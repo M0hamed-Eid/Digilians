@@ -1,0 +1,7 @@
+id,name,email,age,country
+1,Ahmed Ali,ahmed@example.com,25,Egypt
+2,Sara Mohamed,sara@example.com,30,Egypt
+3,Omar Hassan,omar@example.com,22,Egypt
+4,Mona Adel,mona@example.com,28,Egypt
+5,Youssef Samy,youssef@example.com,35,Egypt
+6,Eid,mohammedeid@gmail.com,,America
