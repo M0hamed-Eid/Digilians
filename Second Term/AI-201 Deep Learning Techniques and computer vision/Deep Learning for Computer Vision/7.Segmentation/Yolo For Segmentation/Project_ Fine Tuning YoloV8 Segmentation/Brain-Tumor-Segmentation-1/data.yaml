@@ -1,0 +1,13 @@
+train: /content/drive/MyDrive/Deep Learning for Computer Vision/7.Segmentation/Yolo For Segmentation/Project_ Fine Tuning YoloV8 Segmentation/Brain-Tumor-Segmentation-1/train
+val: /content/drive/MyDrive/Deep Learning for Computer Vision/7.Segmentation/Yolo For Segmentation/Project_ Fine Tuning YoloV8 Segmentation/Brain-Tumor-Segmentation-1/valid
+test: /content/drive/MyDrive/Deep Learning for Computer Vision/7.Segmentation/Yolo For Segmentation/Project_ Fine Tuning YoloV8 Segmentation/Brain-Tumor-Segmentation-1/test
+
+nc: 1
+names: ['object']
+
+roboflow:
+  workspace: aegis-8nzeo
+  project: brain-tumor-segmentation-wltzi
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/aegis-8nzeo/brain-tumor-segmentation-wltzi/dataset/1
