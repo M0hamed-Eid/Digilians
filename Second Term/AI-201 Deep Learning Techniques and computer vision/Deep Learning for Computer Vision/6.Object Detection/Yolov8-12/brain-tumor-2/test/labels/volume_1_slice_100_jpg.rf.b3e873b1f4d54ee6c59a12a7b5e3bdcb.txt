@@ -1,0 +1,24 @@
+:: ===== Create environment =====
+conda create -n yolo python=3.10 -y
+conda activate yolo
+
+:: ===== Detect CUDA version =====
+for /f "tokens=3" %%a in ('nvidia-smi ^| findstr "CUDA Version"') do set CUDA_VER=%%a
+
+echo CUDA Version Detected: %CUDA_VER%
+
+:: ===== Install PyTorch based on CUDA version =====
+if "%CUDA_VER%" GEQ "12" (
+    echo Installing PyTorch for CUDA 12...
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+) else (
+    echo Installing PyTorch for CUDA 11.8...
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+)
+
+:: ===== Install Ultralytics (YOLO) =====
+pip install ultralytics
+
+:: ===== Install OpenCV & required tools =====
+pip install opencv-python supervision "numpy<2"
+

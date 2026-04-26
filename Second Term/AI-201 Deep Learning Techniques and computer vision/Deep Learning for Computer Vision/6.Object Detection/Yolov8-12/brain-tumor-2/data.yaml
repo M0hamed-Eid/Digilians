@@ -1,0 +1,14 @@
+names:
+- label0
+- label1
+- label2
+nc: 3
+roboflow:
+  license: CC BY 4.0
+  project: brain-tumor-m2pbp
+  url: https://universe.roboflow.com/roboflow-100/brain-tumor-m2pbp/dataset/2
+  version: 2
+  workspace: roboflow-100
+test: brain-tumor-2/test/images
+train: brain-tumor-2/train/images
+val: brain-tumor-2/valid/images

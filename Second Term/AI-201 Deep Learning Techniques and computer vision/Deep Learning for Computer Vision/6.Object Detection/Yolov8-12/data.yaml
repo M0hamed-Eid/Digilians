@@ -1,0 +1,12 @@
+
+names:
+- Benign
+- Malignant
+
+nc: 2
+
+
+test: brain-tumor-2/test/images
+train: brain-tumor-2/train/images
+val: brain-tumor-2/valid/images
+
