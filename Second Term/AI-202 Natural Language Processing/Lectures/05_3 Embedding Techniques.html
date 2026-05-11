@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP Embedding Techniques – Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f14;
+    --bg2: #14151d;
+    --bg3: #1a1c27;
+    --surface: #1e2030;
+    --surface2: #252840;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e2e4f0;
+    --text2: #9b9ec0;
+    --text3: #6a6d8f;
+
+    --c1: #7c6af7; /* purple */
+    --c1b: #2a235a;
+    --c1t: #c4beff;
+    --c2: #29d4a8; /* teal */
+    --c2b: #0e3328;
+    --c2t: #9efce4;
+    --c3: #f97a5a; /* coral */
+    --c3b: #3d1a0e;
+    --c3t: #ffcfc3;
+    --c4: #f9c74f; /* amber */
+    --c4b: #352800;
+    --c4t: #ffe8a0;
+    --c5: #5bade8; /* blue */
+    --c5b: #0d2640;
+    --c5t: #b8dcf8;
+    --c6: #f06292; /* pink */
+    --c6b: #3a0e20;
+    --c6t: #ffc2d8;
+
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Sora', sans-serif;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: linear-gradient(135deg, #1a1232 0%, #12152a 50%, #0b1f2e 100%);
+    border-bottom: 1px solid var(--border2);
+    padding: 2.5rem 2rem 2rem;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-inner { max-width: 960px; margin: 0 auto; display: flex; align-items: center; gap: 1.5rem; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--c2t);
+    background: var(--c2b);
+    border: 1px solid var(--c2);
+    border-radius: 6px;
+    padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .site-header h1 {
+    font-size: clamp(1.3rem, 3vw, 1.9rem);
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--c1t), var(--c2), var(--c5t));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { color: var(--text2); font-size: 13px; margin-top: 4px; }
+
+  /* ── TOC ── */
+  .toc-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: .75rem 2rem;
+    overflow-x: auto;
+  }
+  .toc-inner { max-width: 960px; margin: 0 auto; display: flex; gap: 8px; flex-wrap: nowrap; }
+  .toc-chip {
+    font-size: 12px;
+    font-family: var(--mono);
+    padding: 5px 14px;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .toc-chip:nth-child(1)  { color: var(--c1t); border-color: var(--c1); background: var(--c1b); }
+  .toc-chip:nth-child(2)  { color: var(--c2t); border-color: var(--c2); background: var(--c2b); }
+  .toc-chip:nth-child(3)  { color: var(--c3t); border-color: var(--c3); background: var(--c3b); }
+  .toc-chip:nth-child(4)  { color: var(--c4t); border-color: var(--c4); background: var(--c4b); }
+  .toc-chip:nth-child(5)  { color: var(--c5t); border-color: var(--c5); background: var(--c5b); }
+  .toc-chip:nth-child(6)  { color: var(--c6t); border-color: var(--c6); background: var(--c6b); }
+  .toc-chip:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+  /* ── Main layout ── */
+  main { max-width: 960px; margin: 0 auto; padding: 2rem; }
+
+  /* ── Section cards ── */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .section-card[data-color="1"] { border-left: 3px solid var(--c1); }
+  .section-card[data-color="2"] { border-left: 3px solid var(--c2); }
+  .section-card[data-color="3"] { border-left: 3px solid var(--c3); }
+  .section-card[data-color="4"] { border-left: 3px solid var(--c4); }
+  .section-card[data-color="5"] { border-left: 3px solid var(--c5); }
+  .section-card[data-color="6"] { border-left: 3px solid var(--c6); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+  }
+  .section-header:hover { background: rgba(255,255,255,.03); }
+  .icon-badge {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  [data-color="1"] .icon-badge { background: var(--c1b); color: var(--c1); }
+  [data-color="2"] .icon-badge { background: var(--c2b); color: var(--c2); }
+  [data-color="3"] .icon-badge { background: var(--c3b); color: var(--c3); }
+  [data-color="4"] .icon-badge { background: var(--c4b); color: var(--c4); }
+  [data-color="5"] .icon-badge { background: var(--c5b); color: var(--c5); }
+  [data-color="6"] .icon-badge { background: var(--c6b); color: var(--c6); }
+  .section-title { font-size: 1.05rem; font-weight: 600; flex: 1; }
+  .toggle-btn { color: var(--text3); font-size: 18px; transition: transform .25s; }
+  .section-card.collapsed .toggle-btn { transform: rotate(-90deg); }
+  .section-body { padding: 1.4rem; }
+  .section-card.collapsed .section-body { display: none; }
+
+  /* ── Lang tab switcher ── */
+  .lang-tabs {
+    display: flex; gap: 2px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    width: fit-content;
+    margin-bottom: 1.25rem;
+  }
+  .lang-tab {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    transition: all .2s;
+  }
+  .lang-tab.active { background: var(--surface2); color: var(--text); }
+
+  .lang-content { display: none; }
+  .lang-content.active { display: block; }
+
+  /* Arabic content */
+  .ar { direction: rtl; text-align: right; font-size: 15.5px; line-height: 1.9; }
+
+  /* ── Special boxes ── */
+  .box {
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    margin: 1.1rem 0;
+    border-left: 3px solid;
+    font-size: 14px;
+  }
+  .box-analogy { background: #1c1a2e; border-color: var(--c1); color: var(--c1t); }
+  .box-example { background: #0f2a20; border-color: var(--c2); color: var(--c2t); }
+  .box-summary { background: #0d2038; border-color: var(--c5); color: var(--c5t); }
+  .box-warning { background: #321a0c; border-color: var(--c3); color: var(--c3t); }
+  .box-title { font-weight: 600; margin-bottom: .4rem; font-size: 13px; letter-spacing: .04em; font-family: var(--mono); }
+
+  /* ── Inline spans ── */
+  .term {
+    color: var(--c4);
+    font-weight: 600;
+    font-family: var(--mono);
+    font-size: 0.88em;
+  }
+  .highlight { color: var(--c2); font-weight: 600; }
+  .code-inline {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    padding: 1px 7px;
+    border-radius: 5px;
+    color: var(--c3t);
+  }
+
+  /* ── Compare table ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 1rem 0; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c1b), var(--c5b));
+    color: var(--text);
+    padding: 8px 12px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .05em;
+  }
+  .compare-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .compare-table tr:hover td { background: rgba(255,255,255,.03); }
+
+  /* ── SVG figures ── */
+  .figure-wrap {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    margin: 1.2rem 0;
+    overflow-x: auto;
+  }
+  .figure-caption { font-size: 12px; color: var(--text3); text-align: center; margin-top: .5rem; font-family: var(--mono); }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  .kw { color: #ff7b72; }
+  .fn { color: #79c0ff; }
+  .st { color: #a5d6ff; }
+  .cm { color: #555; }
+  .num { color: #f2cc60; }
+
+  /* ── Prose ── */
+  h3 { font-size: .9rem; font-weight: 600; color: var(--text2); margin: 1.1rem 0 .5rem; text-transform: uppercase; letter-spacing: .06em; font-family: var(--mono); }
+  p { margin: .6rem 0; color: var(--text); }
+  ul, ol { padding-left: 1.4rem; margin: .6rem 0; }
+  li { margin: .3rem 0; color: var(--text); }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    main { padding: 1rem; }
+    .site-header { padding: 1.2rem 1rem; }
+    .toc-bar { padding: .6rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div>
+      <span class="badge">NLP · Lecture 05</span>
+      <h1>Embedding Techniques</h1>
+      <p class="subtitle">Bilingual study guide &mdash; English + Arabic</p>
+    </div>
+  </div>
+</header>
+
+<nav class="toc-bar" aria-label="Table of contents">
+  <div class="toc-inner">
+    <a class="toc-chip" href="#sec-intro">Introduction</a>
+    <a class="toc-chip" href="#sec-word2vec">Word2vec</a>
+    <a class="toc-chip" href="#sec-archs">CBOW vs Skip-gram</a>
+    <a class="toc-chip" href="#sec-lm">Language Modeling</a>
+    <a class="toc-chip" href="#sec-ns">Negative Sampling</a>
+    <a class="toc-chip" href="#sec-train">Training Process</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════
+     SECTION 1 · Introduction
+═══════════════════════════════════════════════ -->
+<article class="section-card" id="sec-intro" data-color="1">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">&#9670;</div>
+    <span class="section-title">1 &mdash; Introduction to Embeddings</span>
+    <span class="toggle-btn">&#9660;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="lang-content active" data-lang="en">
+      <p>An <span class="term">embedding</span> is a way of turning a word (or any piece of text) into a list of numbers — a <span class="term">vector</span> — so that a computer can work with it mathematically.</p>
+
+      <div class="box box-analogy">
+        <div class="box-title">&#128161; Analogy</div>
+        Think of each word as a point in a huge map. Words that mean similar things are placed close together on that map. "Dog" and "cat" live near each other; "dog" and "democracy" live far apart.
+      </div>
+
+      <h3>Why does this matter?</h3>
+      <p>Before embeddings, computers treated words as plain labels with no relationships. Embeddings let us <span class="highlight">encode meaning, grammar, and context</span> into numbers. This is why tools like Google Translate, Siri, and keyboard next-word prediction work so well.</p>
+
+      <h3>The "king" example</h3>
+      <p>A trained embedding for the word <span class="code-inline">king</span> (GloVe, trained on Wikipedia) is a vector of hundreds of numbers. By scanning these numbers, you can compare words visually: columns with similar colour patterns mean similar concepts.</p>
+
+      <h3>Famous analogy arithmetic</h3>
+      <p>You can <em>add</em> and <em>subtract</em> word vectors and get meaningful results:</p>
+
+      <!-- SVG: vector arithmetic diagram -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 620 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#6a6d8f"/>
+            </marker>
+          </defs>
+          <!-- boxes -->
+          <rect x="10" y="22" width="90" height="46" rx="8" fill="#2a235a" stroke="#7c6af7" stroke-width="1"/>
+          <text x="55" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="14" fill="#c4beff" font-weight="600">king</text>
+
+          <text x="115" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="20" fill="#6a6d8f">−</text>
+
+          <rect x="130" y="22" width="90" height="46" rx="8" fill="#3d1a0e" stroke="#f97a5a" stroke-width="1"/>
+          <text x="175" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="14" fill="#ffcfc3" font-weight="600">man</text>
+
+          <text x="235" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="20" fill="#6a6d8f">+</text>
+
+          <rect x="250" y="22" width="90" height="46" rx="8" fill="#0e3328" stroke="#29d4a8" stroke-width="1"/>
+          <text x="295" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="14" fill="#9efce4" font-weight="600">woman</text>
+
+          <line x1="355" y1="45" x2="390" y2="45" stroke="#6a6d8f" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="372" y="40" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#6a6d8f">≈</text>
+
+          <rect x="395" y="22" width="90" height="46" rx="8" fill="#0d2038" stroke="#5bade8" stroke-width="1.5"/>
+          <text x="440" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="14" fill="#b8dcf8" font-weight="700">queen</text>
+
+          <text x="500" y="50" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#6a6d8f">closest</text>
+          <text x="500" y="62" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#6a6d8f">vector</text>
+        </svg>
+        <p class="figure-caption">Vector arithmetic: king &minus; man + woman &asymp; queen</p>
+      </div>
+
+      <p>The result is not <em>exactly</em> equal to the queen vector, but it is the <span class="highlight">closest vector</span> in the vocabulary of 400,000 words.</p>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; Summary</div>
+        Embeddings convert words into numeric vectors that capture meaning. Similar words have similar vectors. You can even do arithmetic with them and get semantically meaningful results.
+      </div>
+    </div>
+
+    <!-- ARABIC -->
+    <div class="lang-content ar" data-lang="ar">
+      <p><span class="term">Embedding</span> هو طريقة لتحويل الكلمة إلى قائمة من الأرقام (يسميها <span class="term">vector</span>) حتى يفهمها الحاسوب رياضيًا.</p>
+
+      <div class="box box-analogy">
+        <div class="box-title">&#128161; تشبيه</div>
+        تخيّل إن كل كلمة نقطة على خريطة ضخمة. الكلمات اللي معناها متقارب تكون قريبة من بعض على الخريطة. كلمة "قطة" قريبة من "كلب"، وبعيدة جدًا عن "ديمقراطية".
+      </div>
+
+      <h3>ليش هذا مهم؟</h3>
+      <p>قبل الـ embeddings، الحاسوب كان يشوف الكلمات مجرد labels ما بينها علاقة. الـ embeddings خلّت الحاسوب <span class="highlight">يفهم المعنى والسياق والقواعد اللغوية</span> كلها كأرقام. هذا هو السبب اللي يخلي Google Translate وSiri ولوحة المفاتيح (next-word prediction) تشتغل بشكل ذكي.</p>
+
+      <h3>مثال كلمة "king"</h3>
+      <p>الـ embedding المدرّب على ويكيبيديا لكلمة <span class="code-inline">king</span> هو vector فيه مئات الأرقام. لو قارنت هذه الأرقام مع كلمات ثانية وعرضتها كألوان، الكلمات المتشابهة يكون فيها أنماط ألوان متشابهة.</p>
+
+      <h3>حساب المعنى</h3>
+      <p>أروع خاصية في الـ embeddings هي إنك تقدر تجمع وتطرح كلمات وتطلع نتيجة منطقية:</p>
+      <p style="text-align:center; font-family:var(--mono); color:var(--c1t); font-size:15px; padding:.8rem; background:var(--c1b); border-radius:8px;">
+        king &minus; man + woman &asymp; queen
+      </p>
+      <p>الناتج مو مساوٍ تمامًا لـ vector الـ queen، لكنه أقرب vector في القاموس (400,000 كلمة) لهذه النتيجة.</p>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; ملخص</div>
+        الـ embeddings تحوّل الكلمات لأرقام تعبّر عن معناها. الكلمات المتشابهة تكون أرقامها متقاربة. وتقدر تجري عليها عمليات رياضية وتطلع نتائج تعبّر عن علاقات منطقية بين الكلمات.
+      </div>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 2 · Word2vec
+═══════════════════════════════════════════════ -->
+<article class="section-card" id="sec-word2vec" data-color="2">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">&#9632;</div>
+    <span class="section-title">2 &mdash; Word2vec</span>
+    <span class="toggle-btn">&#9660;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-content active" data-lang="en">
+      <p><span class="term">Word2vec</span> is a specific algorithm, introduced by Tomas Mikolov in 2013, that learns word vectors from a large body of text. The core idea: <span class="highlight">don't count how often words appear together — predict them</span>.</p>
+
+      <h3>Key properties</h3>
+      <ul>
+        <li>Each word gets a <span class="term">low-dimensional vector</span> (typically 100–300 numbers).</li>
+        <li>Word similarity = vector similarity (measured by <span class="term">cosine similarity</span>).</li>
+        <li>Meaning and word relationships are encoded <em>spatially</em> — in the geometry of the vector space.</li>
+        <li>It is a shallow neural network — <strong>not</strong> deep learning.</li>
+      </ul>
+
+      <div class="box box-analogy">
+        <div class="box-title">&#128161; Analogy</div>
+        Imagine learning vocabulary by reading millions of books. You learn the meaning of "bank" not from a dictionary, but from noticing it appears near "money", "loan", "river", "fish" — in different contexts. Word2vec does exactly this, but automatically.
+      </div>
+
+      <h3>The "predict" idea</h3>
+      <p>Old methods <em>counted</em> how many times two words appeared near each other. Word2vec instead trains a network to <em>predict</em> context: "given this word, what words are likely nearby?" — making the vectors richer and faster to compute.</p>
+
+      <h3>Two architectures</h3>
+      <table class="compare-table">
+        <thead><tr><th>Architecture</th><th>Input</th><th>Predicts</th></tr></thead>
+        <tbody>
+          <tr><td><span class="term">CBOW</span> (Continuous Bag of Words)</td><td>Surrounding context words</td><td>The target/center word</td></tr>
+          <tr><td><span class="term">Skip-gram</span></td><td>A single center word</td><td>Surrounding context words</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; Summary</div>
+        Word2vec learns word vectors by predicting context. It is fast, scalable, and captures rich semantic relationships. Two variants exist: CBOW (context → word) and Skip-gram (word → context).
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-lang="ar">
+      <p><span class="term">Word2vec</span> هو algorithm طوّره Tomas Mikolov سنة 2013 وهو يشتغل في Google. الفكرة الأساسية: <span class="highlight">بدل ما تعدّ مرات ظهور الكلمات مع بعض، درّب الموديل يتوقعها</span>.</p>
+
+      <h3>أهم خصائصه</h3>
+      <ul>
+        <li>كل كلمة تاخذ <span class="term">vector</span> صغير (عادةً 100 إلى 300 رقم).</li>
+        <li>تشابه الكلمات = تشابه الـ vectors (يُقاس بـ <span class="term">cosine similarity</span>).</li>
+        <li>العلاقات بين الكلمات مُشفّرة بشكل هندسي في فضاء الـ vectors.</li>
+        <li>هو <span class="term">neural network</span> بسيط (مش deep learning).</li>
+      </ul>
+
+      <div class="box box-analogy">
+        <div class="box-title">&#128161; تشبيه</div>
+        تخيّل إنك تتعلم معنى الكلمات بقراءة ملايين الكتب. ما بتحتاج قاموس، بس تلاحظ إن كلمة "بنك" تظهر دايمًا قريبة من "مال" و"قرض"، بينما كلمة "نهر" تظهر قريبة من "سمك". Word2vec يعمل نفس الشيء تلقائيًا.
+      </div>
+
+      <h3>فكرة "التوقع" بدل العد</h3>
+      <p>الطرق القديمة كانت تعدّ كم مرة كلمتان ظهرتا جنب بعض. Word2vec بدل كذا يدرّب شبكة عصبية تتوقع: "بالنظر لهذه الكلمة، أي كلمات يُرجَّح أنها قريبة منها؟" — هذا يعطي vectors أغنى وأسرع في الحساب.</p>
+
+      <h3>نوعان من الـ architecture</h3>
+      <table class="compare-table">
+        <thead><tr><th>النوع</th><th>المدخل (Input)</th><th>ما يتوقعه</th></tr></thead>
+        <tbody>
+          <tr><td><span class="term">CBOW</span></td><td>الكلمات المحيطة (السياق)</td><td>الكلمة المركزية</td></tr>
+          <tr><td><span class="term">Skip-gram</span></td><td>الكلمة المركزية</td><td>الكلمات المحيطة</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; ملخص</div>
+        Word2vec يتعلم vectors للكلمات عن طريق التوقع. سريع وقابل للتوسع ويلتقط علاقات دلالية غنية. فيه نوعان: CBOW (السياق ← الكلمة) وSkip-gram (الكلمة ← السياق).
+      </div>
+    </div>
+
+  </div>
+</article>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 3 · CBOW vs Skip-gram
+═══════════════════════════════════════════════ -->
+<article class="section-card" id="sec-archs" data-color="3">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">&#9670;</div>
+    <span class="section-title">3 &mdash; CBOW vs Skip-gram (Architecture Deep-dive)</span>
+    <span class="toggle-btn">&#9660;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-content active" data-lang="en">
+      <p>Both architectures use a <span class="term">sliding window</span> that moves across the text. At each position there is a <strong>center word</strong> and <strong>context words</strong> (its neighbours).</p>
+
+      <!-- SVG: sliding window diagram -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 620 120" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <!-- sentence tokens -->
+          <text x="10" y="30" font-family="'IBM Plex Mono',monospace" font-size="12" fill="#6a6d8f">Sentence:</text>
+          <rect x="10" y="45" width="68" height="32" rx="6" fill="#1e2030" stroke="#3a3d5c" stroke-width="1"/>
+          <text x="44" y="66" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#6a6d8f">thou</text>
+
+          <rect x="88" y="40" width="68" height="40" rx="6" fill="#2a235a" stroke="#7c6af7" stroke-width="1.5"/>
+          <text x="122" y="60" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#9efce4">shalt</text>
+          <text x="122" y="74" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="9" fill="#7c6af7">center</text>
+
+          <rect x="166" y="45" width="68" height="32" rx="6" fill="#1e2030" stroke="#3a3d5c" stroke-width="1"/>
+          <text x="200" y="66" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#6a6d8f">not</text>
+
+          <rect x="244" y="45" width="68" height="32" rx="6" fill="#1e2030" stroke="#3a3d5c" stroke-width="1"/>
+          <text x="278" y="66" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#6a6d8f">make</text>
+
+          <rect x="322" y="45" width="68" height="32" rx="6" fill="#1e2030" stroke="#3a3d5c" stroke-width="1"/>
+          <text x="356" y="66" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#6a6d8f">a</text>
+
+          <!-- window bracket -->
+          <rect x="6" y="37" width="238" height="50" rx="8" fill="none" stroke="#f97a5a" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="125" y="105" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#f97a5a">window size = 2 (2 words each side)</text>
+        </svg>
+        <p class="figure-caption">Sliding window: the center word is "shalt"; context words are "thou" and "not" and "make"</p>
+      </div>
+
+      <h3>CBOW — predict the center from context</h3>
+      <p>CBOW takes <em>all</em> context words and tries to predict the missing center word. It averages the context embeddings together, then maps that average to the most likely word.</p>
+      <div class="box box-example">
+        <div class="box-title">&#9654; Example</div>
+        Input: [thou, not] → Predict: <strong>shalt</strong>
+      </div>
+
+      <h3>Skip-gram — predict context from center</h3>
+      <p>Skip-gram goes the other direction: given the center word, predict each surrounding context word one at a time. It creates more training pairs and generally works better for rare words.</p>
+      <div class="box box-example">
+        <div class="box-title">&#9654; Example</div>
+        Input: <strong>shalt</strong> → Predict: thou, not, make, a (each separately)
+      </div>
+
+      <h3>Relations Word2vec learns</h3>
+      <p>By training on billions of words, Word2vec captures many types of relationships:</p>
+      <ul>
+        <li><strong>Semantic:</strong> Paris → France :: Rome → Italy</li>
+        <li><strong>Syntactic:</strong> run → running :: swim → swimming</li>
+        <li><strong>Gender:</strong> king → queen :: man → woman</li>
+        <li><strong>Superlatives:</strong> good → best :: bad → worst</li>
+      </ul>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; Summary</div>
+        CBOW uses context words to predict a missing center word (fast, good for frequent words). Skip-gram uses a center word to predict its context (slower, better for rare words and larger datasets).
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-lang="ar">
+      <p>كلا النوعين يستخدمان <span class="term">sliding window</span> (نافذة تنزلق) فوق النص. في كل موضع فيه <strong>كلمة مركزية</strong> وحولها <strong>كلمات السياق</strong> (جيرانها).</p>
+
+      <h3>CBOW — توقّع الكلمة المركزية من السياق</h3>
+      <p>CBOW يأخذ كل كلمات السياق المحيطة ويحاول يتوقع الكلمة المركزية الناقصة. يعمل متوسط لـ embeddings السياق ثم يحدد الكلمة الأقرب.</p>
+      <div class="box box-example">
+        <div class="box-title">&#9654; مثال</div>
+        المدخل: [thou, not] ← التوقع: <strong>shalt</strong>
+      </div>
+
+      <h3>Skip-gram — توقّع السياق من الكلمة</h3>
+      <p>Skip-gram يعمل العكس: بناءً على الكلمة المركزية، يتوقع كل كلمة سياق محيطة بها بشكل منفرد. يولّد زوج تدريب أكثر وعادةً يشتغل أحسن مع الكلمات النادرة.</p>
+      <div class="box box-example">
+        <div class="box-title">&#9654; مثال</div>
+        المدخل: <strong>shalt</strong> ← يتوقع: thou, not, make, a (كل واحدة على حدة)
+      </div>
+
+      <h3>أنواع العلاقات اللي يتعلمها Word2vec</h3>
+      <ul>
+        <li><strong>دلالية:</strong> Paris → France :: Rome → Italy</li>
+        <li><strong>نحوية:</strong> run → running :: swim → swimming</li>
+        <li><strong>جنس:</strong> king → queen :: man → woman</li>
+        <li><strong>تفضيل:</strong> good → best :: bad → worst</li>
+      </ul>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; ملخص</div>
+        CBOW يستخدم السياق يتوقع الكلمة المركزية (سريع، كويس للكلمات الشائعة). Skip-gram يستخدم الكلمة المركزية يتوقع السياق (أبطأ، لكن أقوى للكلمات النادرة وقواعد البيانات الكبيرة).
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 4 · Language Modeling
+═══════════════════════════════════════════════ -->
+<article class="section-card" id="sec-lm" data-color="4">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">&#9650;</div>
+    <span class="section-title">4 &mdash; Language Modeling (LM)</span>
+    <span class="toggle-btn">&#9660;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-content active" data-lang="en">
+      <p>A <span class="term">language model (LM)</span> assigns probabilities to sequences of words. It answers: "how likely is this sentence?" or "what word comes next?"</p>
+
+      <div class="box box-analogy">
+        <div class="box-title">&#128161; Analogy</div>
+        Your smartphone keyboard is a language model. When you type "I'm on my way", it suggests "home" or "there". It learned these suggestions from billions of messages.
+      </div>
+
+      <h3>How prediction works (3 steps)</h3>
+
+      <!-- SVG: 3-step diagram -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 620 100" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <defs>
+            <marker id="arrlm" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#6a6d8f"/>
+            </marker>
+          </defs>
+          <!-- step 1 -->
+          <rect x="10" y="20" width="140" height="60" rx="8" fill="#352800" stroke="#f9c74f" stroke-width="1"/>
+          <text x="80" y="44" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#f9c74f">STEP 1</text>
+          <text x="80" y="60" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#ffe8a0">Look up word</text>
+          <text x="80" y="74" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#ffe8a0">embeddings</text>
+          <line x1="152" y1="50" x2="184" y2="50" stroke="#6a6d8f" stroke-width="1.5" marker-end="url(#arrlm)"/>
+          <!-- step 2 -->
+          <rect x="188" y="20" width="140" height="60" rx="8" fill="#0e3328" stroke="#29d4a8" stroke-width="1"/>
+          <text x="258" y="44" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#29d4a8">STEP 2</text>
+          <text x="258" y="60" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#9efce4">Process through</text>
+          <text x="258" y="74" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#9efce4">neural network</text>
+          <line x1="330" y1="50" x2="362" y2="50" stroke="#6a6d8f" stroke-width="1.5" marker-end="url(#arrlm)"/>
+          <!-- step 3 -->
+          <rect x="366" y="20" width="140" height="60" rx="8" fill="#0d2038" stroke="#5bade8" stroke-width="1"/>
+          <text x="436" y="44" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#5bade8">STEP 3</text>
+          <text x="436" y="60" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#b8dcf8">Output probability</text>
+          <text x="436" y="74" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#b8dcf8">per vocabulary word</text>
+        </svg>
+        <p class="figure-caption">Three steps: embed inputs → process → output probability distribution over all words</p>
+      </div>
+
+      <p>The model does not output one word. It outputs a <span class="highlight">probability score for every word in its vocabulary</span> (potentially millions). The word with the highest score is chosen (or sampled).</p>
+
+      <h3>Sliding window generates training data</h3>
+      <p>Embeddings are learned by sliding a window over text. Each position creates a <em>training sample</em>: a center word and its neighbours. The model learns to predict which words appear together.</p>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; Summary</div>
+        A language model predicts the probability of word sequences. In Word2vec, a sliding window over text generates training samples, teaching the model which words co-occur. The output is a probability distribution over the entire vocabulary.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-lang="ar">
+      <p><span class="term">Language Model (LM)</span> هو موديل يحسب احتمالية تسلسلات الكلمات. بمعنى آخر: "ما هي الكلمة اللي يُرجَّح تجي بعد كذا؟"</p>
+
+      <div class="box box-analogy">
+        <div class="box-title">&#128161; تشبيه</div>
+        لوحة مفاتيح الجوال هي language model. لما تكتب "أنا في الطريق" تقترح "للبيت" أو "هناك" — تعلمت هذا من مليارات الرسائل.
+      </div>
+
+      <h3>كيف يعمل التوقع (3 خطوات)</h3>
+      <ol>
+        <li><strong>ابحث عن الـ embeddings</strong> للكلمات المدخلة.</li>
+        <li><strong>مرّرها في الشبكة العصبية</strong> لمعالجتها.</li>
+        <li><strong>أخرج احتمالية</strong> لكل كلمة في القاموس.</li>
+      </ol>
+
+      <p>الموديل ما يطلع كلمة واحدة، يطلع <span class="highlight">احتمالية لكل كلمة في القاموس</span> (ممكن ملايين الكلمات). تُختار الكلمة ذات الاحتمالية الأعلى.</p>
+
+      <h3>الـ sliding window يولّد بيانات التدريب</h3>
+      <p>الـ embeddings تتعلم بتمرير نافذة فوق النص. كل موضع يولّد <em>sample تدريبي</em>: كلمة مركزية وجيرانها. الموديل يتعلم يتوقع أي كلمات تظهر مع بعض.</p>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; ملخص</div>
+        الـ language model يتوقع الكلمة التالية بحساب احتمالية كل كلمة في القاموس. الـ sliding window يولّد بيانات التدريب. الناتج توزيع احتمالي على كل الكلمات.
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 5 · Negative Sampling
+═══════════════════════════════════════════════ -->
+<article class="section-card" id="sec-ns" data-color="5">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">&#9711;</div>
+    <span class="section-title">5 &mdash; Negative Sampling</span>
+    <span class="toggle-btn">&#9660;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-content active" data-lang="en">
+      <p>Training Word2vec naively would require computing probabilities over tens of thousands of words for every training step — extremely slow. <span class="term">Negative sampling</span> is a shortcut that makes training fast and practical.</p>
+
+      <h3>The problem</h3>
+      <div class="box box-warning">
+        <div class="box-title">&#9888; Warning</div>
+        If all training examples are positive (label = 1, "these words are neighbours"), the model could cheat by always outputting 1 — getting 100% accuracy while learning nothing useful. This produces garbage embeddings.
+      </div>
+
+      <h3>The solution</h3>
+      <p>For every <em>positive</em> pair (real neighbours), we add several <em>negative</em> pairs: random words that are <strong>not</strong> neighbours. The model must learn to output 1 for real pairs and 0 for fake ones.</p>
+
+      <!-- SVG: positive vs negative samples -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 600 130" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <text x="10" y="20" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#29d4a8">POSITIVE sample (label = 1)</text>
+          <rect x="10" y="28" width="90" height="34" rx="6" fill="#2a235a" stroke="#7c6af7" stroke-width="1"/>
+          <text x="55" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#c4beff">not</text>
+          <text x="115" y="50" font-family="'Sora',sans-serif" font-size="13" fill="#6a6d8f">+</text>
+          <rect x="130" y="28" width="90" height="34" rx="6" fill="#0e3328" stroke="#29d4a8" stroke-width="1"/>
+          <text x="175" y="50" text-anchor="middle" font-family="'Sora',sans-serif" font-size="13" fill="#9efce4">thou</text>
+          <text x="235" y="50" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#29d4a8">→ target: 1 (real neighbour)</text>
+
+          <text x="10" y="90" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#f97a5a">NEGATIVE samples (label = 0)</text>
+          <rect x="10" y="98" width="90" height="28" rx="6" fill="#2a235a" stroke="#7c6af7" stroke-width="1"/>
+          <text x="55" y="116" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#c4beff">not</text>
+          <text x="115" y="116" font-family="'Sora',sans-serif" font-size="13" fill="#6a6d8f">+</text>
+          <rect x="130" y="98" width="90" height="28" rx="6" fill="#3d1a0e" stroke="#f97a5a" stroke-width="1"/>
+          <text x="175" y="116" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#ffcfc3">pizza</text>
+          <text x="237" y="116" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#f97a5a">→ target: 0 (random, not a neighbour)</text>
+        </svg>
+        <p class="figure-caption">One positive pair + several negative pairs per training step (SGNS)</p>
+      </div>
+
+      <h3>Skip-gram with Negative Sampling (SGNS)</h3>
+      <p>This combination — Skip-gram architecture + negative sampling training trick — is the most widely used variant of Word2vec. Two hyperparameters matter most:</p>
+      <ul>
+        <li><span class="term">Window size</span>: how many words on each side count as context (typically 2–10).</li>
+        <li><span class="term">Number of negative samples</span>: how many fake pairs per positive pair (typically 5–20).</li>
+      </ul>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; Summary</div>
+        Negative sampling solves the training efficiency problem. By mixing positive pairs (real neighbours) with negative pairs (random non-neighbours), the model learns to distinguish real context from noise — and learns meaningful embeddings quickly.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-lang="ar">
+      <p>لو درّبنا Word2vec بشكل عادي، كل خطوة تدريب تحتاج حسابات على عشرات الآلاف من الكلمات — بطيء جدًا. <span class="term">Negative Sampling</span> هي حيلة تجعل التدريب سريعًا وعمليًا.</p>
+
+      <h3>المشكلة</h3>
+      <div class="box box-warning">
+        <div class="box-title">&#9888; تحذير</div>
+        لو كل أمثلة التدريب إيجابية (label = 1)، الموديل يقدر "يغش" بإنه يرجّع 1 دائمًا — يحصل على 100% accuracy بدون ما يتعلم أي شيء مفيد. النتيجة: embeddings عديمة الفائدة.
+      </div>
+
+      <h3>الحل</h3>
+      <p>لكل زوج <em>إيجابي</em> (جيران حقيقيون)، نضيف عدة أزواج <em>سلبية</em>: كلمات عشوائية <strong>ليست</strong> جيرانًا. الموديل يتعلم يرجّع 1 للأزواج الحقيقية و0 للمزيفة.</p>
+
+      <h3>Skip-gram with Negative Sampling (SGNS)</h3>
+      <p>هذا التوليف — architecture الـ Skip-gram + حيلة التدريب بالـ negative sampling — هو أكثر variant مستخدم في Word2vec. أهم hyperparameters:</p>
+      <ul>
+        <li><span class="term">Window size</span>: كم كلمة على كل جانب تُعتبر سياقًا (عادةً 2–10).</li>
+        <li><span class="term">عدد negative samples</span>: كم زوج مزيف لكل زوج حقيقي (عادةً 5–20).</li>
+      </ul>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; ملخص</div>
+        Negative Sampling يحل مشكلة كفاءة التدريب. بخلط الأزواج الإيجابية (جيران حقيقيون) مع الأزواج السلبية (غير جيران عشوائيون)، يتعلم الموديل التمييز بين السياق الحقيقي والضجيج — ويتعلم embeddings ذات معنى بسرعة.
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ══════════════════════════════════════════════
+     SECTION 6 · Training Process + Gensim
+═══════════════════════════════════════════════ -->
+<article class="section-card" id="sec-train" data-color="6">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">&#9679;</div>
+    <span class="section-title">6 &mdash; Training Process &amp; Gensim</span>
+    <span class="toggle-btn">&#9660;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-content active" data-lang="en">
+      <h3>Two matrices</h3>
+      <p>Training starts by creating two matrices, both filled with random numbers:</p>
+      <ul>
+        <li><span class="term">Embedding matrix</span>: one row per word in the vocabulary (vocab_size × embedding_size)</li>
+        <li><span class="term">Context matrix</span>: same shape — used for context/output words</li>
+      </ul>
+      <p>A common choice: vocabulary of <span class="code-inline">10,000</span> words, embedding size <span class="code-inline">300</span>. Each matrix is then 10,000 × 300.</p>
+
+      <h3>One training step</h3>
+      <!-- SVG: training step flow -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 620 160" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <defs>
+            <marker id="arrtr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#6a6d8f"/>
+            </marker>
+          </defs>
+          <!-- center word -->
+          <rect x="10" y="60" width="100" height="40" rx="7" fill="#2a235a" stroke="#7c6af7" stroke-width="1"/>
+          <text x="60" y="85" text-anchor="middle" font-family="'Sora',sans-serif" font-size="12" fill="#c4beff">input word</text>
+          <line x1="112" y1="80" x2="144" y2="80" stroke="#6a6d8f" stroke-width="1.5" marker-end="url(#arrtr)"/>
+
+          <!-- embedding lookup -->
+          <rect x="148" y="55" width="110" height="50" rx="7" fill="#352800" stroke="#f9c74f" stroke-width="1"/>
+          <text x="203" y="75" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#f9c74f">Embedding</text>
+          <text x="203" y="91" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#f9c74f">Matrix lookup</text>
+          <line x1="260" y1="80" x2="292" y2="80" stroke="#6a6d8f" stroke-width="1.5" marker-end="url(#arrtr)"/>
+
+          <!-- dot product -->
+          <rect x="296" y="55" width="100" height="50" rx="7" fill="#0e3328" stroke="#29d4a8" stroke-width="1"/>
+          <text x="346" y="75" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#29d4a8">dot product</text>
+          <text x="346" y="91" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#29d4a8">+ sigmoid</text>
+          <line x1="398" y1="80" x2="430" y2="80" stroke="#6a6d8f" stroke-width="1.5" marker-end="url(#arrtr)"/>
+
+          <!-- scores -->
+          <rect x="434" y="55" width="100" height="50" rx="7" fill="#0d2038" stroke="#5bade8" stroke-width="1"/>
+          <text x="484" y="75" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#5bade8">score vs</text>
+          <text x="484" y="91" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#5bade8">target → error</text>
+
+          <!-- backprop arrow -->
+          <path d="M 484 108 Q 484 140 280 140 Q 80 140 60 108" fill="none" stroke="#f06292" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrtr)"/>
+          <text x="280" y="155" text-anchor="middle" font-family="'IBM Plex Mono',monospace" font-size="10" fill="#f06292">backpropagation — update embeddings to reduce error</text>
+        </svg>
+        <p class="figure-caption">One forward + backward pass of Word2vec training</p>
+      </div>
+
+      <ol>
+        <li>Look up the input word's embedding in the <span class="term">Embedding matrix</span>.</li>
+        <li>Look up context words' embeddings in the <span class="term">Context matrix</span>.</li>
+        <li>Compute <span class="term">dot product</span> of input vs. each context embedding → a similarity score.</li>
+        <li>Pass scores through <span class="term">sigmoid</span> to get values between 0 and 1.</li>
+        <li>Compare to target labels (1 = real neighbour, 0 = negative sample) → compute error.</li>
+        <li>Use the error to <span class="highlight">update both matrices</span> via backpropagation.</li>
+      </ol>
+
+      <p>Repeat for millions of training examples, multiple passes (epochs). Then <strong>discard the Context matrix</strong> and keep only the Embedding matrix as the pre-trained embeddings.</p>
+
+      <h3>Gensim: training in Python</h3>
+      <div class="code-block">
+<span class="kw">from</span> gensim.models <span class="kw">import</span> Word2Vec
+
+<span class="cm"># sentences is a list of tokenized sentences</span>
+model = <span class="fn">Word2Vec</span>(
+    sentences,
+    vector_size=<span class="num">100</span>,   <span class="cm"># embedding dimensions</span>
+    window=<span class="num">5</span>,          <span class="cm"># context window size</span>
+    min_count=<span class="num">1</span>,        <span class="cm"># ignore words with freq &lt; 1</span>
+    workers=<span class="num">4</span>           <span class="cm"># parallel threads</span>
+)
+
+<span class="cm"># Get a word vector</span>
+vector = model.wv[<span class="st">'king'</span>]
+
+<span class="cm"># Find most similar words</span>
+model.wv.<span class="fn">most_similar</span>(<span class="st">'king'</span>, topn=<span class="num">5</span>)
+
+<span class="cm"># Vector arithmetic: king - man + woman</span>
+model.wv.<span class="fn">most_similar</span>(
+    positive=[<span class="st">'king'</span>, <span class="st">'woman'</span>],
+    negative=[<span class="st">'man'</span>]
+)</div>
+
+      <h3>Using a pre-trained model (Google News)</h3>
+      <p>Google released a model trained on 100 billion words from Google News. It contains 3 million word vectors of 300 dimensions. You can load it via Gensim and immediately use it for similarity and arithmetic tasks.</p>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; Summary</div>
+        Training initializes two matrices randomly, then iteratively adjusts them using positive and negative examples. After training, only the Embedding matrix is kept. Gensim makes this easy to implement in Python; pre-trained models (Google News, GloVe) save you training time on large corpora.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-lang="ar">
+      <h3>مصفوفتان للبداية</h3>
+      <p>يبدأ التدريب بإنشاء مصفوفتين مليئتين بأرقام عشوائية:</p>
+      <ul>
+        <li><span class="term">Embedding matrix</span>: صف لكل كلمة في القاموس (vocab_size × embedding_size)</li>
+        <li><span class="term">Context matrix</span>: نفس الشكل — تستخدم لكلمات السياق</li>
+      </ul>
+      <p>قيم شائعة: قاموس <span class="code-inline">10,000</span> كلمة، حجم الـ embedding <span class="code-inline">300</span>. كل مصفوفة 10,000 × 300.</p>
+
+      <h3>خطوة تدريب واحدة</h3>
+      <ol>
+        <li>ابحث عن embedding الكلمة المدخلة في <span class="term">Embedding matrix</span>.</li>
+        <li>ابحث عن embeddings كلمات السياق في <span class="term">Context matrix</span>.</li>
+        <li>احسب <span class="term">dot product</span> لكل زوج → درجة تشابه.</li>
+        <li>مرّر الدرجات عبر <span class="term">sigmoid</span> للحصول على قيم بين 0 و1.</li>
+        <li>قارن مع الهدف (1 = جار حقيقي، 0 = negative sample) → احسب الخطأ.</li>
+        <li>استخدم الخطأ <span class="highlight">لتحديث المصفوفتين</span> عبر backpropagation.</li>
+      </ol>
+
+      <p>كرّر هذا على ملايين الأمثلة، عدة مرات (epochs). ثم <strong>اتخلص من Context matrix</strong> واحتفظ بـ Embedding matrix كـ pre-trained embeddings.</p>
+
+      <h3>Gensim: التدريب في Python</h3>
+      <div class="code-block">
+<span class="kw">from</span> gensim.models <span class="kw">import</span> Word2Vec
+
+<span class="cm"># sentences = قائمة من الجمل المقسّمة إلى كلمات</span>
+model = <span class="fn">Word2Vec</span>(
+    sentences,
+    vector_size=<span class="num">100</span>,   <span class="cm"># أبعاد الـ embedding</span>
+    window=<span class="num">5</span>,          <span class="cm"># حجم نافذة السياق</span>
+    min_count=<span class="num">1</span>,
+    workers=<span class="num">4</span>
+)
+
+<span class="cm"># أقرب كلمات لـ king</span>
+model.wv.<span class="fn">most_similar</span>(<span class="st">'king'</span>, topn=<span class="num">5</span>)
+
+<span class="cm"># king - man + woman</span>
+model.wv.<span class="fn">most_similar</span>(
+    positive=[<span class="st">'king'</span>, <span class="st">'woman'</span>],
+    negative=[<span class="st">'man'</span>]
+)</div>
+
+      <h3>الموديل المسبق التدريب (Google News)</h3>
+      <p>Google أطلقت موديلًا مدرّبًا على 100 مليار كلمة من أخبار Google News. يحتوي على 3 ملايين vector من 300 بُعد. تقدر تحمّله عبر Gensim وتستخدمه فورًا.</p>
+
+      <div class="box box-summary">
+        <div class="box-title">&#10022; ملخص</div>
+        التدريب يبدأ بمصفوفتين عشوائيتين ويحدّثهما تدريجيًا. بعد التدريب نحتفظ فقط بـ Embedding matrix. Gensim يسهّل التطبيق في Python، والموديلات الجاهزة (Google News, GloVe) توفّر وقت التدريب.
+      </div>
+    </div>
+  </div>
+</article>
+
+</main>
+
+<script>
+function toggleSection(header) {
+  const card = header.closest('.section-card');
+  card.classList.toggle('collapsed');
+}
+
+function switchLang(btn, lang) {
+  const body = btn.closest('.section-body');
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  body.querySelectorAll('.lang-content').forEach(c => {
+    c.classList.toggle('active', c.dataset.lang === lang);
+  });
+  if (lang === 'ar') {
+    document.documentElement.setAttribute('dir', 'rtl');
+  } else {
+    document.documentElement.setAttribute('dir', 'ltr');
+  }
+}
+</script>
+</body>
+</html>

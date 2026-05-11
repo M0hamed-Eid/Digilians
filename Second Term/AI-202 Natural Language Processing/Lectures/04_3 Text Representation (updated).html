@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Text Representation — Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & tokens ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-sans: 'Sora', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', monospace;
+
+  --bg:        #f5f4f0;
+  --surface:   #ffffff;
+  --border:    #e4e2da;
+  --text:      #18180f;
+  --muted:     #6b6a62;
+  --radius:    12px;
+
+  /* 9 accent slots: fg / bg / mid */
+  --c1-fg:#185FA5; --c1-bg:#E6F1FB; --c1-mid:#B5D4F4;   /* blue   — intro */
+  --c2-fg:#BA7517; --c2-bg:#FAEEDA; --c2-mid:#FAC775;   /* amber  — one-hot */
+  --c3-fg:#0F6E56; --c3-bg:#E1F5EE; --c3-mid:#9FE1CB;   /* teal   — bow */
+  --c4-fg:#534AB7; --c4-bg:#EEEDFE; --c4-mid:#AFA9EC;   /* purple — count-vec */
+  --c5-fg:#993C1D; --c5-bg:#FAECE7; --c5-mid:#F0997B;   /* coral  — tf-idf */
+  --c6-fg:#3B6D11; --c6-bg:#EAF3DE; --c6-mid:#C0DD97;   /* green  — ngram */
+  --c7-fg:#6D2E46; --c7-bg:#FBEAF0; --c7-mid:#F4C0D1;   /* pink   — occ-matrix */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:      #141410;
+    --surface: #1e1e1a;
+    --border:  #2e2e28;
+    --text:    #e8e6dc;
+    --muted:   #9c9a8e;
+    --c1-bg:#0C447C; --c1-mid:#185FA5;
+    --c2-bg:#633806; --c2-mid:#854F0B;
+    --c3-bg:#085041; --c3-mid:#0F6E56;
+    --c4-bg:#3C3489; --c4-mid:#534AB7;
+    --c5-bg:#711B13; --c5-mid:#993C1D;
+    --c6-bg:#27500A; --c6-mid:#3B6D11;
+    --c7-bg:#4B1528; --c7-mid:#6D2E46;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  font-size: 15px;
+}
+
+/* ── Page wrapper ───────────────────────────────────── */
+.page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+/* ── Header ─────────────────────────────────────────── */
+.header {
+  background: linear-gradient(135deg, var(--c1-bg) 0%, var(--c4-bg) 50%, var(--c3-bg) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 28px 22px;
+  margin-bottom: 32px;
+}
+.header h1 {
+  font-size: 24px; font-weight: 700;
+  background: linear-gradient(90deg, var(--c1-fg), var(--c4-fg), var(--c3-fg));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+.header p { color: var(--muted); font-size: 13px; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.toc button {
+  border: none; padding: 4px 13px; border-radius: 20px;
+  font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: opacity .15s;
+}
+.toc button:hover { opacity: .75; }
+.toc button:nth-child(1)  { background:var(--c1-bg); color:var(--c1-fg); }
+.toc button:nth-child(2)  { background:var(--c2-bg); color:var(--c2-fg); }
+.toc button:nth-child(3)  { background:var(--c3-bg); color:var(--c3-fg); }
+.toc button:nth-child(4)  { background:var(--c4-bg); color:var(--c4-fg); }
+.toc button:nth-child(5)  { background:var(--c5-bg); color:var(--c5-fg); }
+.toc button:nth-child(6)  { background:var(--c6-bg); color:var(--c6-fg); }
+.toc button:nth-child(7)  { background:var(--c7-bg); color:var(--c7-fg); }
+
+/* ── Section card ───────────────────────────────────── */
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+/* colored left stripe — assigned per section via class */
+.section.s1 { border-left: 4px solid var(--c1-fg); }
+.section.s2 { border-left: 4px solid var(--c2-fg); }
+.section.s3 { border-left: 4px solid var(--c3-fg); }
+.section.s4 { border-left: 4px solid var(--c4-fg); }
+.section.s5 { border-left: 4px solid var(--c5-fg); }
+.section.s6 { border-left: 4px solid var(--c6-fg); }
+.section.s7 { border-left: 4px solid var(--c7-fg); }
+
+.sec-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; cursor: pointer; user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s;
+}
+.sec-header:hover { background: var(--bg); }
+
+.badge {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px; flex-shrink: 0;
+}
+.s1 .badge { background:var(--c1-bg); color:var(--c1-fg); }
+.s2 .badge { background:var(--c2-bg); color:var(--c2-fg); }
+.s3 .badge { background:var(--c3-bg); color:var(--c3-fg); }
+.s4 .badge { background:var(--c4-bg); color:var(--c4-fg); }
+.s5 .badge { background:var(--c5-bg); color:var(--c5-fg); }
+.s6 .badge { background:var(--c6-bg); color:var(--c6-fg); }
+.s7 .badge { background:var(--c7-bg); color:var(--c7-fg); }
+
+.sec-title { font-size: 16px; font-weight: 600; flex: 1; }
+.toggle-icon { color: var(--muted); font-size: 16px; transition: transform .2s; }
+.toggle-icon.open { transform: rotate(180deg); }
+
+.sec-body { padding: 22px 22px 24px; display: none; }
+.sec-body.open { display: block; }
+
+/* ── Language tabs ──────────────────────────────────── */
+.lang-tabs {
+  display: flex; border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden; margin-bottom: 20px;
+}
+.lang-tab {
+  flex: 1; padding: 7px 0; text-align: center;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  background: var(--bg); color: var(--muted);
+  border: none; font-family: var(--font-sans);
+  transition: all .15s;
+}
+.lang-tab.active { background: var(--c1-fg); color: #fff; }
+.lang-panel { display: none; }
+.lang-panel.active { display: block; }
+
+/* ── Typography inside panels ───────────────────────── */
+h3 { font-size: 14px; font-weight: 600; margin: 18px 0 8px; }
+h3:first-child { margin-top: 0; }
+p { margin-bottom: 12px; }
+ul, ol { padding-left: 20px; margin-bottom: 12px; }
+li { margin-bottom: 5px; }
+
+/* ── Inline spans ───────────────────────────────────── */
+.term      { background:var(--c2-bg); color:var(--c2-fg); padding:1px 6px; border-radius:4px; font-weight:600; font-size:13px; }
+.highlight { background:var(--c4-bg); color:var(--c4-fg); padding:1px 6px; border-radius:4px; font-size:13px; font-weight:500; }
+.code-inline { font-family:var(--font-mono); background:var(--border); color:var(--text); padding:1px 6px; border-radius:4px; font-size:12px; }
+
+/* ── Callout boxes ──────────────────────────────────── */
+.box {
+  padding: 12px 16px; border-radius: 0 10px 10px 0;
+  margin: 14px 0; border-left: 3px solid;
+}
+.box .box-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+
+.box-analogy  { background:var(--c3-bg); border-color:var(--c3-fg); }
+.box-analogy  .box-label { color:var(--c3-fg); }
+.box-analogy  .box-label::before { content:"💡 "; }
+
+.box-example  { background:var(--c1-bg); border-color:var(--c1-fg); }
+.box-example  .box-label { color:var(--c1-fg); }
+.box-example  .box-label::before { content:"▶ "; }
+
+.box-warning  { background:var(--c5-bg); border-color:var(--c5-fg); }
+.box-warning  .box-label { color:var(--c5-fg); }
+.box-warning  .box-label::before { content:"⚠ "; }
+
+.box-summary  {
+  background:var(--c6-bg); border:1px solid var(--c6-mid);
+  border-left: 3px solid var(--c6-fg); border-radius: 0 10px 10px 0;
+  padding:12px 16px; margin: 20px 0 0;
+}
+.box-summary .box-label { color:var(--c6-fg); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
+.box-summary .box-label::before { content:"✦ "; }
+
+/* ── Tables ─────────────────────────────────────────── */
+.tbl { width:100%; border-collapse:collapse; font-size:14px; margin:12px 0; }
+.tbl th {
+  padding:8px 12px; text-align:left; font-weight:600;
+  background: linear-gradient(90deg, var(--c4-bg), var(--c1-bg));
+  color: var(--c4-fg);
+}
+.tbl td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:nth-child(even) td { background:var(--bg); }
+
+/* ── Code blocks ────────────────────────────────────── */
+.code-block {
+  font-family: var(--font-mono);
+  background: #1e1d1b; color: #cdd6f4;
+  padding: 16px 18px; border-radius: 10px;
+  font-size: 12.5px; overflow-x: auto;
+  margin: 12px 0; line-height: 1.65;
+}
+.code-block .kw  { color: #cba6f7; } /* keywords */
+.code-block .str { color: #a6e3a1; } /* strings  */
+.code-block .cm  { color: #6c7086; } /* comments */
+.code-block .fn  { color: #89b4fa; } /* functions */
+.code-block .nm  { color: #fab387; } /* numbers  */
+.code-block .cls { color: #f9e2af; } /* class names */
+
+/* ── Math formula ───────────────────────────────────── */
+.formula {
+  background: var(--c4-bg); border: 1px solid var(--c4-mid);
+  border-radius: 8px; padding: 10px 16px;
+  font-family: var(--font-mono); font-size: 13px; color: var(--c4-fg);
+  margin: 10px 0; text-align: center;
+}
+
+/* ── RTL panels ─────────────────────────────────────── */
+[dir="rtl"] {
+  font-family: 'Segoe UI', 'Tahoma', 'Arabic Typesetting', var(--font-sans);
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ══ HEADER ══════════════════════════════════════════ -->
+<div class="header">
+  <h1>NLP: Text Representation</h1>
+  <p>Bilingual study guide — English + Arabic &nbsp;|&nbsp; Digilians Data Science Diploma</p>
+  <div class="toc">
+    <button onclick="jumpTo('intro')">Introduction</button>
+    <button onclick="jumpTo('ohe')">One-Hot Encoding</button>
+    <button onclick="jumpTo('bow')">Bag of Words</button>
+    <button onclick="jumpTo('cv')">Count Vectorizer</button>
+    <button onclick="jumpTo('tfidf')">TF-IDF</button>
+    <button onclick="jumpTo('ngram')">N-Gram</button>
+    <button onclick="jumpTo('matrix')">Occurrence Matrices</button>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 1 — INTRODUCTION ════════════════════════ -->
+<div class="section s1" id="intro">
+  <div class="sec-header" onclick="toggle('intro')">
+    <div class="badge">01</div>
+    <div class="sec-title">Introduction to Text Representation</div>
+    <div class="toggle-icon" id="ti-intro">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-intro">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('intro','en')">English</button>
+      <button class="lang-tab" onclick="lang('intro','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="intro-en">
+      <h3>The core problem</h3>
+      <p>Computers are extremely fast at processing <strong>numbers</strong>. But language — words, sentences, documents — is not numbers. So before any NLP model can work on text, we must first convert that text into numbers. This process is called <span class="term">Text Representation</span>.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">Analogy</div>
+        Think of a computer as a calculator that only understands digits. If you want it to "read" the word "apple", you need to translate "apple" into a number or a set of numbers first. Text representation is exactly that translation step.
+      </div>
+
+      <h3>Why does it matter?</h3>
+      <ul>
+        <li>Every ML and deep learning model needs <strong>numerical input</strong> — no exceptions.</li>
+        <li>The way you represent text directly affects how well your model learns. A bad representation loses information; a good one preserves meaning.</li>
+        <li>Text representation is also called <span class="term">feature engineering</span> — turning raw text into useful features.</li>
+      </ul>
+
+      <h3>The spectrum of methods</h3>
+      <p>Methods range from very simple to very sophisticated:</p>
+      <table class="tbl">
+        <tr><th>Method</th><th>Idea</th><th>Captures meaning?</th></tr>
+        <tr><td>One-Hot Encoding</td><td>Each word = a unique binary vector</td><td>No</td></tr>
+        <tr><td>Bag of Words / Count Vectorizer</td><td>Count word occurrences</td><td>Partially</td></tr>
+        <tr><td>TF-IDF</td><td>Weight words by importance</td><td>Better</td></tr>
+        <tr><td>N-Gram</td><td>Count word group occurrences</td><td>Partially (context)</td></tr>
+        <tr><td>Co-Occurrence Matrix / Word Embeddings</td><td>Words with similar context = similar vectors</td><td>Yes</td></tr>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        Text Representation = converting text into numbers so machines can process it. It is the essential first step for all NLP tasks. Methods range from simple (one-hot) to advanced (embeddings). The goal is always to preserve as much meaning as possible.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="intro-ar" dir="rtl">
+      <h3>المشكلة الأساسية</h3>
+      <p>الحاسوب سريع جداً في معالجة <strong>الأرقام</strong>. لكن اللغة — كلمات، جمل، وثائق — ليست أرقاماً. لذا قبل أي model في NLP يقدر يشتغل على النص، لازم نحوّل هذا النص لأرقام أولاً. هذه العملية اسمها <span class="term">Text Representation</span>.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">تشبيه</div>
+        فكّر في الحاسوب كآلة حاسبة تفهم الأرقام فقط. لو تبي إياها "تقرأ" كلمة "apple"، لازم تترجم "apple" لرقم أو مجموعة أرقام أولاً. الـ Text Representation هي بالضبط خطوة الترجمة هذه.
+      </div>
+
+      <h3>ليش مهم؟</h3>
+      <ul>
+        <li>كل model في ML وDeep Learning يحتاج <strong>مدخلات رقمية</strong> — بدون استثناء.</li>
+        <li>طريقة تمثيلك للنص بتأثر مباشرة على مدى تعلّم الـ model. تمثيل سيء يفقد المعلومات؛ تمثيل جيد يحافظ على المعنى.</li>
+        <li>الـ Text Representation تُعرف أيضاً بـ <span class="term">feature engineering</span> — تحويل النص الخام لـ features مفيدة.</li>
+      </ul>
+
+      <h3>طيف الأساليب</h3>
+      <table class="tbl">
+        <tr><th>الأسلوب</th><th>الفكرة</th><th>يحتفظ بالمعنى؟</th></tr>
+        <tr><td>One-Hot Encoding</td><td>كل كلمة = vector ثنائي فريد</td><td>لا</td></tr>
+        <tr><td>Bag of Words / Count Vectorizer</td><td>عدّ تكرار الكلمات</td><td>جزئياً</td></tr>
+        <tr><td>TF-IDF</td><td>وزن الكلمات حسب أهميتها</td><td>أفضل</td></tr>
+        <tr><td>N-Gram</td><td>عدّ تكرار مجموعات الكلمات</td><td>جزئياً (سياق)</td></tr>
+        <tr><td>Co-Occurrence / Word Embeddings</td><td>كلمات بسياق مشابه = vectors متشابهة</td><td>نعم</td></tr>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        Text Representation = تحويل النص لأرقام حتى تعالجه الماكينة. هي الخطوة الأولى الأساسية لكل مهام NLP. الأساليب تتراوح بين بسيطة (one-hot) ومتقدمة (embeddings). الهدف دائماً الحفاظ على أكبر قدر من المعنى.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 2 — ONE-HOT ENCODING ════════════════════ -->
+<div class="section s2" id="ohe">
+  <div class="sec-header" onclick="toggle('ohe')">
+    <div class="badge">02</div>
+    <div class="sec-title">One-Hot Encoding</div>
+    <div class="toggle-icon" id="ti-ohe">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-ohe">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('ohe','en')">English</button>
+      <button class="lang-tab" onclick="lang('ohe','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="ohe-en">
+      <h3>What is One-Hot Encoding?</h3>
+      <p>Given a <span class="term">vocabulary</span> (the complete list of unique words), each word is represented as a vector of length N (where N = total number of words in the vocabulary). The vector contains all zeros except for a single 1 in the position that belongs to that word.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">Analogy</div>
+        Imagine a class with 5 seats. Each student "is" represented by the seat they sit in: student A = [1,0,0,0,0], student B = [0,1,0,0,0], etc. No student shares a representation, and no representation tells you anything about who sits near whom.
+      </div>
+
+      <h3>Visual example</h3>
+      <p>Vocabulary: <span class="code-inline">["cat", "dog", "fish", "bird"]</span> — 4 words, so each vector has length 4.</p>
+      <table class="tbl">
+        <tr><th>Word</th><th>Vector</th></tr>
+        <tr><td>cat</td><td><span class="code-inline">[1, 0, 0, 0]</span></td></tr>
+        <tr><td>dog</td><td><span class="code-inline">[0, 1, 0, 0]</span></td></tr>
+        <tr><td>fish</td><td><span class="code-inline">[0, 0, 1, 0]</span></td></tr>
+        <tr><td>bird</td><td><span class="code-inline">[0, 0, 0, 1]</span></td></tr>
+      </table>
+
+      <h3>Limitations — why it fails at scale</h3>
+
+      <p><strong>1. The curse of dimensionality</strong></p>
+      <p>A real vocabulary has 50,000+ words. Every word's vector has 49,999 zeros and a single 1. To store all word vectors you need 50,000 × 50,000 = 2.5 billion memory units. This is called a <span class="term">sparse</span> representation — mostly zeros, very little signal.</p>
+
+      <p><strong>2. No meaning or similarity</strong></p>
+      <p>The words "orange", "banana", and "watermelon" are all fruits. In our mental map they are close together. But in one-hot space, every pair of words is <em>exactly the same distance apart</em>. "cat" and "dog" are just as "different" from each other as "cat" and "spaceship". No semantic relationships are captured.</p>
+
+      <p><strong>3. No frequency, no order, no context</strong></p>
+      <ul>
+        <li>Does not count how often a word appears.</li>
+        <li>Does not use the order of words in a sentence.</li>
+        <li>Each word is encoded in complete isolation.</li>
+      </ul>
+
+      <div class="box box-warning">
+        <div class="box-label">Key Takeaway</div>
+        One-hot encoding is the simplest possible representation. It is useful for understanding the concept of word vectors, but is never used in real NLP tasks due to sparsity and the lack of any semantic information.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        One-hot encodes each word as a vector of zeros with a single 1. Simple and clear, but fails in practice: huge memory cost (sparse), treats all words as equally different, and captures zero meaning or context.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="ohe-ar" dir="rtl">
+      <h3>ما هو One-Hot Encoding؟</h3>
+      <p>بناءً على <span class="term">vocabulary</span> (القائمة الكاملة للكلمات الفريدة)، كل كلمة تُمثَّل كـ vector طوله N (حيث N = إجمالي عدد الكلمات في الـ vocabulary). الـ vector يحتوي كل أصفار ما عدا رقم 1 واحد في موضع تلك الكلمة.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">تشبيه</div>
+        تخيّل فصل بـ 5 مقاعد. كل طالب "يُمثَّل" بالمقعد اللي يجلس فيه: الطالب A = [1,0,0,0,0]، الطالب B = [0,1,0,0,0]، إلخ. لا طالب يشارك تمثيل طالب آخر، ولا تمثيل يخبرك شيئاً عمّن يجلس بجانب من.
+      </div>
+
+      <h3>مثال بصري</h3>
+      <p>الـ Vocabulary: <span class="code-inline">["cat", "dog", "fish", "bird"]</span> — 4 كلمات، إذن كل vector طوله 4.</p>
+      <table class="tbl">
+        <tr><th>الكلمة</th><th>الـ Vector</th></tr>
+        <tr><td>cat</td><td><span class="code-inline">[1, 0, 0, 0]</span></td></tr>
+        <tr><td>dog</td><td><span class="code-inline">[0, 1, 0, 0]</span></td></tr>
+        <tr><td>fish</td><td><span class="code-inline">[0, 0, 1, 0]</span></td></tr>
+        <tr><td>bird</td><td><span class="code-inline">[0, 0, 0, 1]</span></td></tr>
+      </table>
+
+      <h3>المحدودية — ليش بتفشل مع الحجم الكبير</h3>
+      <p><strong>1. لعنة الأبعاد (Curse of Dimensionality)</strong></p>
+      <p>في الواقع الـ vocabulary يحتوي 50,000+ كلمة. كل vector يحتوي 49,999 صفر ورقم 1 واحد. لتخزين كل vectors الكلمات تحتاج 50,000 × 50,000 = 2.5 مليار وحدة ذاكرة. هذا ما يسمى تمثيل <span class="term">sparse</span> — أغلبه أصفار وفيه إشارة قليلة جداً.</p>
+
+      <p><strong>2. لا معنى ولا تشابه</strong></p>
+      <p>كلمات "orange"، "banana"، "watermelon" كلها فواكه — في خريطتنا الذهنية هي قريبة بعضها من بعض. لكن في فضاء One-Hot، كل زوج من الكلمات على <em>نفس المسافة تماماً</em> من بعض. "cat" و"dog" بنفس قدر "اختلاف" "cat" عن "spaceship". لا علاقات دلالية تُحتجز.</p>
+
+      <p><strong>3. لا تكرار ولا ترتيب ولا سياق</strong></p>
+      <ul>
+        <li>لا يعدّ كم مرة ظهرت الكلمة.</li>
+        <li>لا يستخدم ترتيب الكلمات في الجملة.</li>
+        <li>كل كلمة مشفّرة بعزل تام عن باقي الكلمات.</li>
+      </ul>
+
+      <div class="box box-warning">
+        <div class="box-label">نقطة مهمة</div>
+        One-Hot هو أبسط تمثيل ممكن. مفيد لفهم مفهوم word vectors، لكن لا يُستخدم في مهام NLP الحقيقية بسبب الـ sparsity وغياب أي معلومات دلالية.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        One-Hot يشفّر كل كلمة كـ vector من أصفار مع رقم 1 واحد. بسيط وواضح، لكن يفشل عملياً: تكلفة ذاكرة ضخمة (sparse)، يعامل كل الكلمات كأنها متساوية في الاختلاف، ولا يحتجز أي معنى أو سياق.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 3 — BAG OF WORDS ════════════════════════ -->
+<div class="section s3" id="bow">
+  <div class="sec-header" onclick="toggle('bow')">
+    <div class="badge">03</div>
+    <div class="sec-title">Bag of Words (BoW)</div>
+    <div class="toggle-icon" id="ti-bow">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-bow">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('bow','en')">English</button>
+      <button class="lang-tab" onclick="lang('bow','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="bow-en">
+      <h3>What is Bag of Words?</h3>
+      <p><span class="term">Bag of Words (BoW)</span> represents a document by counting <em>how many times each word in the vocabulary appears</em> in it. It literally treats a document as a bag — you shake the bag, the words fall out, and you just count each type. The order is gone.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">Analogy</div>
+        Imagine tearing a book apart, throwing all the words into a bag, and shaking it. You then count: 50 "the"s, 30 "king"s, 20 "sword"s... The count profile represents the book. You have no idea what order the words were in, but the counts give you a rough sense of the topic.
+      </div>
+
+      <h3>Two building blocks</h3>
+      <ul>
+        <li>A <span class="highlight">vocabulary</span> of known words (built from your corpus).</li>
+        <li>A <span class="highlight">count measure</span> — how many times each vocabulary word appears in a given document.</li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">Example</div>
+        <p>Corpus (2 documents):</p>
+        <ul>
+          <li>Doc 1: "the cat sat on the mat"</li>
+          <li>Doc 2: "the cat ate the rat"</li>
+        </ul>
+        <p>Vocabulary: <span class="code-inline">[the, cat, sat, on, mat, ate, rat]</span></p>
+        <table class="tbl">
+          <tr><th>Document</th><th>the</th><th>cat</th><th>sat</th><th>on</th><th>mat</th><th>ate</th><th>rat</th></tr>
+          <tr><td>Doc 1</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td>Doc 2</td><td>2</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+        </table>
+        <p>Each row is the document's BoW vector. Doc 1 = <span class="code-inline">[2,1,1,1,1,0,0]</span></p>
+      </div>
+
+      <h3>Limitations</h3>
+      <table class="tbl">
+        <tr><th>Problem</th><th>Explanation</th></tr>
+        <tr><td><strong>Vocabulary design</strong></td><td>Needs careful preprocessing (stop word removal, stemming). A huge vocabulary = huge sparse vectors.</td></tr>
+        <tr><td><strong>Sparsity</strong></td><td>Most documents use only a tiny fraction of the vocabulary. Most counts are zero — computationally expensive.</td></tr>
+        <tr><td><strong>No word order / no meaning</strong></td><td>"This is interesting" and "Is this interesting?" produce the same BoW. Synonyms like "old bike" vs "used bike" are treated as different.</td></tr>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        BoW counts word occurrences in a document, ignoring all word order. Simple and effective for basic tasks. Main problems: sparsity, no semantic understanding, and no awareness of word order or context.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="bow-ar" dir="rtl">
+      <h3>ما هو Bag of Words؟</h3>
+      <p><span class="term">Bag of Words (BoW)</span> يمثّل وثيقة بعدّ <em>كم مرة ظهرت كل كلمة من الـ vocabulary</em> فيها. حرفياً يعامل الوثيقة كحقيبة — تهزّها، الكلمات تسقط، وتعدّ كل نوع. الترتيب يضيع.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">تشبيه</div>
+        تخيّل إنك تمزّق كتاباً، ترمي كل الكلمات في حقيبة، وتهزّها. ثم تعدّ: 50 مرة "the"، 30 مرة "king"، 20 مرة "sword"... ملف العدّ هذا يمثّل الكتاب. ما تعرف ترتيب الكلمات، لكن الأعداد تعطيك فكرة تقريبية عن الموضوع.
+      </div>
+
+      <h3>المكوّنان الأساسيان</h3>
+      <ul>
+        <li><span class="highlight">vocabulary</span> من الكلمات المعروفة (مبني من الـ corpus).</li>
+        <li><span class="highlight">مقياس العدّ</span> — كم مرة ظهرت كل كلمة من الـ vocabulary في وثيقة معينة.</li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">مثال</div>
+        <p>Corpus (وثيقتان):</p>
+        <ul>
+          <li>Doc 1: "the cat sat on the mat"</li>
+          <li>Doc 2: "the cat ate the rat"</li>
+        </ul>
+        <p>Vocabulary: <span class="code-inline">[the, cat, sat, on, mat, ate, rat]</span></p>
+        <table class="tbl">
+          <tr><th>الوثيقة</th><th>the</th><th>cat</th><th>sat</th><th>on</th><th>mat</th><th>ate</th><th>rat</th></tr>
+          <tr><td>Doc 1</td><td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td>Doc 2</td><td>2</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+        </table>
+        <p>Doc 1 = <span class="code-inline">[2,1,1,1,1,0,0]</span></p>
+      </div>
+
+      <h3>المحدودية</h3>
+      <table class="tbl">
+        <tr><th>المشكلة</th><th>الشرح</th></tr>
+        <tr><td><strong>تصميم الـ Vocabulary</strong></td><td>يحتاج preprocessing دقيق (حذف stop words، stemming). vocabulary ضخم = vectors ضخمة sparse.</td></tr>
+        <tr><td><strong>Sparsity</strong></td><td>معظم الوثائق تستخدم جزءاً صغيراً فقط من الـ vocabulary. معظم الأعداد أصفار.</td></tr>
+        <tr><td><strong>لا ترتيب / لا معنى</strong></td><td>"This is interesting" و"Is this interesting?" ينتجان نفس الـ BoW. المترادفات مثل "old bike" و"used bike" تُعامل كأنها مختلفة.</td></tr>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        BoW يعدّ تكرار الكلمات في وثيقة، متجاهلاً ترتيبها. بسيط وفعّال للمهام الأساسية. المشاكل الرئيسية: sparsity، لا فهم دلالي، ولا وعي بترتيب الكلمات أو سياقها.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 4 — COUNT VECTORIZER ════════════════════ -->
+<div class="section s4" id="cv">
+  <div class="sec-header" onclick="toggle('cv')">
+    <div class="badge">04</div>
+    <div class="sec-title">Count Vectorizer</div>
+    <div class="toggle-icon" id="ti-cv">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-cv">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('cv','en')">English</button>
+      <button class="lang-tab" onclick="lang('cv','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="cv-en">
+      <h3>What is Count Vectorizer?</h3>
+      <p><span class="term">Count Vectorizer</span> is the practical implementation of Bag of Words. It squeezes an entire sentence or document into a single vector. Each position in the vector corresponds to a specific token from the vocabulary, and the value is how many times that token appeared.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">Analogy</div>
+        Think of a spreadsheet where columns are vocabulary words and rows are documents. Count Vectorizer fills each cell with the word count. It is a structured, numeric summary of a text — like a fingerprint that captures word frequency but not word meaning or order.
+      </div>
+
+      <h3>How it works step by step</h3>
+      <ol>
+        <li><strong>Build the vocabulary:</strong> scan all documents, collect unique tokens, assign each an ID.</li>
+        <li><strong>Vectorize each document:</strong> for each document, create a vector of length = vocabulary size. Set each position to the count of that token in the document.</li>
+      </ol>
+
+      <div class="box box-example">
+        <div class="box-label">Code Example (scikit-learn)</div>
+        <div class="code-block">
+<span class="kw">from</span> sklearn.feature_extraction.text <span class="kw">import</span> <span class="cls">CountVectorizer</span>
+
+corpus = [
+    <span class="str">"I love NLP and I love Python"</span>,
+    <span class="str">"Python is great for NLP"</span>,
+]
+
+cv = <span class="cls">CountVectorizer</span>()
+X = cv.<span class="fn">fit_transform</span>(corpus)
+
+<span class="kw">print</span>(cv.<span class="fn">get_feature_names_out</span>())
+<span class="cm"># ['and', 'for', 'great', 'is', 'love', 'nlp', 'python']</span>
+
+<span class="kw">print</span>(X.<span class="fn">toarray</span>())
+<span class="cm"># Doc 1: [1, 0, 0, 0, 2, 1, 1]  ← "love" appears 2x</span>
+<span class="cm"># Doc 2: [0, 1, 1, 1, 0, 1, 1]</span>
+        </div>
+      </div>
+
+      <h3>Hashing Vectorizer — memory-efficient variant</h3>
+      <p>Instead of storing the vocabulary as a string dictionary, a <span class="term">Hashing Vectorizer</span> applies a <span class="highlight">hash function</span> to each token to convert it directly to a numerical index. This uses much less memory (no vocabulary object stored), but you lose the ability to see which word maps to which index.</p>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        Count Vectorizer is the practical BoW implementation in scikit-learn. It builds a vocabulary from the corpus, then represents each document as a word-count vector. The Hashing Vectorizer is a memory-efficient alternative that uses hash functions instead of a stored vocabulary.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="cv-ar" dir="rtl">
+      <h3>ما هو Count Vectorizer؟</h3>
+      <p><span class="term">Count Vectorizer</span> هو التطبيق العملي لـ Bag of Words. يضغط جملة أو وثيقة كاملة في vector واحد. كل موضع في الـ vector يقابل token محدد من الـ vocabulary، والقيمة هي عدد مرات ظهوره.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">تشبيه</div>
+        فكّر في جدول بيانات (spreadsheet) حيث الأعمدة هي كلمات الـ vocabulary والصفوف هي الوثائق. Count Vectorizer يملأ كل خلية بعدد الكلمة. إنه ملخص رقمي منظم للنص — مثل بصمة تلتقط تكرار الكلمات لكن لا معناها ولا ترتيبها.
+      </div>
+
+      <h3>كيف يعمل خطوة بخطوة</h3>
+      <ol>
+        <li><strong>بناء الـ vocabulary:</strong> فحص كل الوثائق، جمع الـ tokens الفريدة، إعطاء كل منها ID.</li>
+        <li><strong>تحويل كل وثيقة لـ vector:</strong> لكل وثيقة، إنشاء vector بطول = حجم الـ vocabulary. وضع عدد كل token في موضعه.</li>
+      </ol>
+
+      <div class="box box-example">
+        <div class="box-label">مثال كود (scikit-learn)</div>
+        <div class="code-block">
+<span class="kw">from</span> sklearn.feature_extraction.text <span class="kw">import</span> <span class="cls">CountVectorizer</span>
+
+corpus = [
+    <span class="str">"I love NLP and I love Python"</span>,
+    <span class="str">"Python is great for NLP"</span>,
+]
+
+cv = <span class="cls">CountVectorizer</span>()
+X = cv.<span class="fn">fit_transform</span>(corpus)
+
+<span class="kw">print</span>(cv.<span class="fn">get_feature_names_out</span>())
+<span class="cm"># ['and', 'for', 'great', 'is', 'love', 'nlp', 'python']</span>
+
+<span class="kw">print</span>(X.<span class="fn">toarray</span>())
+<span class="cm"># Doc 1: [1, 0, 0, 0, 2, 1, 1]  ← "love" ظهرت مرتين</span>
+<span class="cm"># Doc 2: [0, 1, 1, 1, 0, 1, 1]</span>
+        </div>
+      </div>
+
+      <h3>Hashing Vectorizer — البديل الموفّر للذاكرة</h3>
+      <p>بدل تخزين الـ vocabulary كـ dictionary نصي، يطبّق <span class="term">Hashing Vectorizer</span> <span class="highlight">hash function</span> على كل token لتحويله مباشرة لـ index رقمي. يستخدم ذاكرة أقل بكثير (لا كائن vocabulary يُخزَّن)، لكن تفقد القدرة على رؤية أي كلمة يقابلها أي index.</p>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        Count Vectorizer هو التطبيق العملي لـ BoW في scikit-learn. يبني vocabulary من الـ corpus ثم يمثّل كل وثيقة كـ vector عدّ الكلمات. الـ Hashing Vectorizer بديل موفّر للذاكرة يستخدم hash functions بدل vocabulary مخزون.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 5 — TF-IDF ═══════════════════════════════ -->
+<div class="section s5" id="tfidf">
+  <div class="sec-header" onclick="toggle('tfidf')">
+    <div class="badge">05</div>
+    <div class="sec-title">TF-IDF</div>
+    <div class="toggle-icon" id="ti-tfidf">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-tfidf">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('tfidf','en')">English</button>
+      <button class="lang-tab" onclick="lang('tfidf','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="tfidf-en">
+      <h3>The problem Count Vectorizer misses</h3>
+      <p>Count Vectorizer gives the same weight to every word. But the word "the" appears in almost every document — it tells you nothing useful. Meanwhile "blockchain" appearing 5 times in a document is a much stronger signal. We need a smarter weighting system.</p>
+
+      <h3>TF-IDF: two ideas multiplied together</h3>
+      <p><span class="term">TF-IDF</span> stands for <strong>Term Frequency × Inverse Document Frequency</strong>. It rewards words that appear often <em>in a specific document</em> but rarely <em>across all documents</em>.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">Analogy</div>
+        Imagine you are grading how "special" a word is to a document. A word is special if: (1) it appears a lot in this document AND (2) it does not appear in every other document. If it appears everywhere, it is boring and not useful. If it appears rarely everywhere but a lot here, it is the keyword of this document.
+      </div>
+
+      <h3>The two formulas</h3>
+      <div class="formula">TF(t, d) = (count of term t in document d) / (total words in document d)</div>
+      <div class="formula">IDF(t) = log( total documents / documents containing t )</div>
+      <div class="formula">TF-IDF(t, d) = TF(t, d) × IDF(t)</div>
+
+      <h3>Step-by-step worked example</h3>
+      <div class="box box-example">
+        <div class="box-label">Example from slides</div>
+        <p><strong>Setup:</strong> a document of 100 words where "apple" appears 5 times. We have 10 million documents total, and "apple" appears in 1,000 of them.</p>
+        <p><strong>Step 1 — TF:</strong></p>
+        <div class="formula">TF = 5 / 100 = 0.05</div>
+        <p><strong>Step 2 — IDF:</strong></p>
+        <div class="formula">IDF = log(10,000,000 / 1,000) = log(10,000) = 4</div>
+        <p><strong>Step 3 — TF-IDF:</strong></p>
+        <div class="formula">TF-IDF = 0.05 × 4 = 0.20</div>
+        <p>The word "apple" gets a weight of 0.20 in this document. A common word like "the" would get IDF ≈ 0 (appears in almost all documents), so its TF-IDF ≈ 0.</p>
+      </div>
+
+      <h3>What a high TF-IDF score means</h3>
+      <table class="tbl">
+        <tr><th>TF</th><th>IDF</th><th>TF-IDF score</th><th>Meaning</th></tr>
+        <tr><td>High</td><td>High</td><td>High</td><td>Word is important to this specific document</td></tr>
+        <tr><td>High</td><td>Low</td><td>Low</td><td>Word is common everywhere (like "the")</td></tr>
+        <tr><td>Low</td><td>High</td><td>Low</td><td>Word rarely appears anywhere, including here</td></tr>
+      </table>
+
+      <div class="box box-example">
+        <div class="box-label">Code Example (scikit-learn)</div>
+        <div class="code-block">
+<span class="kw">from</span> sklearn.feature_extraction.text <span class="kw">import</span> <span class="cls">TfidfVectorizer</span>
+
+corpus = [
+    <span class="str">"I love NLP and machine learning"</span>,
+    <span class="str">"Machine learning is powerful"</span>,
+    <span class="str">"NLP is a part of machine learning"</span>,
+]
+
+tfidf = <span class="cls">TfidfVectorizer</span>()
+X = tfidf.<span class="fn">fit_transform</span>(corpus)
+
+<span class="kw">print</span>(tfidf.<span class="fn">get_feature_names_out</span>())
+<span class="kw">print</span>(X.<span class="fn">toarray</span>().round(<span class="nm">2</span>))
+<span class="cm"># Words common to all docs get lower scores</span>
+<span class="cm"># Unique words like "love" get higher scores in their document</span>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        TF-IDF = TF × IDF. TF rewards words that appear often in a document. IDF penalizes words that appear in every document. The result: common words (the, is) get near-zero weight; rare, document-specific words get high weight. Much more informative than raw counts.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="tfidf-ar" dir="rtl">
+      <h3>المشكلة التي يفوّتها Count Vectorizer</h3>
+      <p>الـ Count Vectorizer يعطي نفس الوزن لكل كلمة. لكن كلمة "the" تظهر في تقريباً كل وثيقة — لا تخبرك شيئاً مفيداً. بينما ظهور "blockchain" 5 مرات في وثيقة هو إشارة أقوى بكثير. نحتاج نظام وزن أذكى.</p>
+
+      <h3>TF-IDF: فكرتان مضروبتان ببعض</h3>
+      <p><span class="term">TF-IDF</span> اختصار لـ <strong>Term Frequency × Inverse Document Frequency</strong>. يكافئ الكلمات التي تظهر كثيراً <em>في وثيقة محددة</em> لكن نادراً <em>عبر كل الوثائق</em>.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">تشبيه</div>
+        تخيّل إنك بتقيّم مدى "تميّز" كلمة لوثيقة ما. كلمة متميزة إذا: (1) ظهرت كثيراً في هذه الوثيقة، و(2) لا تظهر في كل وثيقة أخرى. لو ظهرت في كل مكان فهي مملة وغير مفيدة. لو ظهرت نادراً في أي مكان لكن كثيراً هنا، فهي الكلمة المفتاحية لهذه الوثيقة.
+      </div>
+
+      <h3>الصيغتان الرياضيتان</h3>
+      <div class="formula">TF(t, d) = (عدد مرات ظهور t في d) / (إجمالي كلمات d)</div>
+      <div class="formula">IDF(t) = log( إجمالي الوثائق / الوثائق التي تحتوي t )</div>
+      <div class="formula">TF-IDF(t, d) = TF(t, d) × IDF(t)</div>
+
+      <h3>مثال محلول خطوة بخطوة</h3>
+      <div class="box box-example">
+        <div class="box-label">مثال من الشرائح</div>
+        <p><strong>الإعداد:</strong> وثيقة من 100 كلمة، فيها كلمة "apple" تظهر 5 مرات. لدينا 10 ملايين وثيقة، و"apple" تظهر في 1,000 منها.</p>
+        <p><strong>الخطوة 1 — TF:</strong></p>
+        <div class="formula">TF = 5 / 100 = 0.05</div>
+        <p><strong>الخطوة 2 — IDF:</strong></p>
+        <div class="formula">IDF = log(10,000,000 / 1,000) = log(10,000) = 4</div>
+        <p><strong>الخطوة 3 — TF-IDF:</strong></p>
+        <div class="formula">TF-IDF = 0.05 × 4 = 0.20</div>
+        <p>كلمة "apple" تحصل على وزن 0.20 في هذه الوثيقة. كلمة شائعة مثل "the" ستحصل على IDF ≈ 0 (تظهر في تقريباً كل الوثائق)، فـ TF-IDF ≈ 0.</p>
+      </div>
+
+      <h3>ماذا يعني درجة TF-IDF عالية</h3>
+      <table class="tbl">
+        <tr><th>TF</th><th>IDF</th><th>درجة TF-IDF</th><th>المعنى</th></tr>
+        <tr><td>عالي</td><td>عالي</td><td>عالية</td><td>الكلمة مهمة لهذه الوثيقة تحديداً</td></tr>
+        <tr><td>عالي</td><td>منخفض</td><td>منخفضة</td><td>كلمة شائعة في كل مكان (مثل "the")</td></tr>
+        <tr><td>منخفض</td><td>عالي</td><td>منخفضة</td><td>كلمة نادرة في كل مكان بما فيه هنا</td></tr>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        TF-IDF = TF × IDF. TF يكافئ الكلمات الكثيرة في وثيقة. IDF يعاقب الكلمات الموجودة في كل وثيقة. النتيجة: كلمات شائعة (the, is) تحصل على وزن صفري تقريباً؛ كلمات نادرة ومرتبطة بالوثيقة تحصل على وزن عالٍ. أكثر إفادة بكثير من الأعداد الخام.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 6 — N-GRAM ════════════════════════════════ -->
+<div class="section s6" id="ngram">
+  <div class="sec-header" onclick="toggle('ngram')">
+    <div class="badge">06</div>
+    <div class="sec-title">N-Gram</div>
+    <div class="toggle-icon" id="ti-ngram">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-ngram">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('ngram','en')">English</button>
+      <button class="lang-tab" onclick="lang('ngram','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="ngram-en">
+      <h3>What is N-Gram?</h3>
+      <p><span class="term">N-Gram</span> is an extension of Bag of Words where instead of counting individual words, we count <strong>groups of N consecutive words</strong>. This gives the model some awareness of word sequences and captures short-range context that BoW misses.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">Analogy</div>
+        BoW hears each instrument in an orchestra separately: "violin... drums... flute...". N-Gram (specifically bigram) hears pairs: "violin-drums, drums-flute, flute-piano...". The pairs give you more context about how the music flows than isolated instruments do.
+      </div>
+
+      <h3>Types of N-Grams</h3>
+      <table class="tbl">
+        <tr><th>Name</th><th>N value</th><th>Example from "I love deep learning"</th></tr>
+        <tr><td>Unigram</td><td>1</td><td>I, love, deep, learning</td></tr>
+        <tr><td>Bigram</td><td>2</td><td>"I love", "love deep", "deep learning"</td></tr>
+        <tr><td>Trigram</td><td>3</td><td>"I love deep", "love deep learning"</td></tr>
+      </table>
+
+      <div class="box box-example">
+        <div class="box-label">Example</div>
+        <p>Sentence: <em>"New York is a great city"</em></p>
+        <p>Unigrams: <span class="code-inline">New, York, is, a, great, city</span></p>
+        <p>Bigrams: <span class="code-inline">New York, York is, is a, a great, great city</span></p>
+        <p>With bigrams, "New York" is treated as a single unit — preserving the place name. With unigrams, "New" and "York" are independent, losing the meaning.</p>
+      </div>
+
+      <div class="box box-example">
+        <div class="box-label">Code Example (scikit-learn)</div>
+        <div class="code-block">
+<span class="kw">from</span> sklearn.feature_extraction.text <span class="kw">import</span> <span class="cls">CountVectorizer</span>
+
+corpus = [<span class="str">"I love deep learning"</span>, <span class="str">"deep learning is powerful"</span>]
+
+<span class="cm"># Bigrams only</span>
+cv_bigram = <span class="cls">CountVectorizer</span>(ngram_range=(<span class="nm">2</span>, <span class="nm">2</span>))
+X = cv_bigram.<span class="fn">fit_transform</span>(corpus)
+<span class="kw">print</span>(cv_bigram.<span class="fn">get_feature_names_out</span>())
+<span class="cm"># ['deep learning', 'is powerful', 'learning is', 'love deep']</span>
+
+<span class="cm"># Unigrams + Bigrams together</span>
+cv_both = <span class="cls">CountVectorizer</span>(ngram_range=(<span class="nm">1</span>, <span class="nm">2</span>))
+        </div>
+      </div>
+
+      <h3>Trade-off: more context vs more dimensions</h3>
+      <p>N-Grams capture more context, but the vocabulary explodes: a vocabulary of 50,000 words has ~50,000² possible bigrams. In practice, only common bigrams are kept (using <span class="code-inline">min_df</span> and <span class="code-inline">max_features</span> parameters).</p>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        N-Gram counts groups of N consecutive words. Bigrams (N=2) and trigrams (N=3) capture short-range context that BoW misses (e.g., "New York" as a unit). The trade-off: bigger vocabulary, more dimensions, more memory.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="ngram-ar" dir="rtl">
+      <h3>ما هو N-Gram؟</h3>
+      <p><span class="term">N-Gram</span> هو امتداد لـ Bag of Words حيث بدل عدّ الكلمات المنفردة، نعدّ <strong>مجموعات من N كلمات متتالية</strong>. يعطي الـ model وعياً ببعض تسلسل الكلمات ويلتقط سياقاً قصير المدى يفوّته BoW.</p>
+
+      <div class="box box-analogy">
+        <div class="box-label">تشبيه</div>
+        BoW يسمع كل آلة موسيقية في الأوركسترا منفصلة: "كمان... طبول... ناي...". N-Gram (تحديداً bigram) يسمع ثنائيات: "كمان-طبول، طبول-ناي، ناي-بيانو...". الثنائيات تعطيك سياقاً أكبر عن تدفق الموسيقى من الآلات المنفصلة.
+      </div>
+
+      <h3>أنواع الـ N-Grams</h3>
+      <table class="tbl">
+        <tr><th>الاسم</th><th>قيمة N</th><th>مثال من "I love deep learning"</th></tr>
+        <tr><td>Unigram</td><td>1</td><td>I, love, deep, learning</td></tr>
+        <tr><td>Bigram</td><td>2</td><td>"I love"، "love deep"، "deep learning"</td></tr>
+        <tr><td>Trigram</td><td>3</td><td>"I love deep"، "love deep learning"</td></tr>
+      </table>
+
+      <div class="box box-example">
+        <div class="box-label">مثال</div>
+        <p>الجملة: <em>"New York is a great city"</em></p>
+        <p>Unigrams: <span class="code-inline">New, York, is, a, great, city</span></p>
+        <p>Bigrams: <span class="code-inline">New York, York is, is a, a great, great city</span></p>
+        <p>مع bigrams، "New York" تُعامل كوحدة واحدة — تحافظ على اسم المكان. مع unigrams، "New" و"York" مستقلتان، يضيع المعنى.</p>
+      </div>
+
+      <h3>المقايضة: سياق أكثر مقابل أبعاد أكثر</h3>
+      <p>الـ N-Grams تلتقط سياقاً أكثر، لكن الـ vocabulary ينفجر: vocabulary من 50,000 كلمة لديه ~50,000² bigram محتمل. عملياً يُحتفظ فقط بالـ bigrams الشائعة (باستخدام <span class="code-inline">min_df</span> و<span class="code-inline">max_features</span>).</p>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        N-Gram يعدّ مجموعات من N كلمات متتالية. Bigrams (N=2) وTrigrams (N=3) يلتقطان سياقاً قصير المدى يفوّته BoW (مثل "New York" كوحدة). المقايضة: vocabulary أكبر، أبعاد أكثر، ذاكرة أكثر.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ SECTION 7 — OCCURRENCE & CO-OCCURRENCE MATRICES ═ -->
+<div class="section s7" id="matrix">
+  <div class="sec-header" onclick="toggle('matrix')">
+    <div class="badge">07</div>
+    <div class="sec-title">Occurrence Matrix &amp; Co-Occurrence Matrix</div>
+    <div class="toggle-icon" id="ti-matrix">▼</div>
+  </div>
+  <div class="sec-body open" id="sb-matrix">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="lang('matrix','en')">English</button>
+      <button class="lang-tab" onclick="lang('matrix','ar')">Arabic — العربية</button>
+    </div>
+
+    <!-- EN -->
+    <div class="lang-panel active" id="matrix-en">
+      <h3>The key idea: distributional semantics</h3>
+      <p>These methods are based on a famous linguistic hypothesis: <em>"A word can be identified by the company it keeps."</em> Words that tend to appear in the same contexts have similar meanings. "Doctor" and "nurse" often appear near "hospital", "patient", "medicine" — so they are semantically close.</p>
+
+      <h3>Occurrence Matrix (Term-Document Matrix)</h3>
+      <p>A <span class="term">rectangular matrix</span> where:</p>
+      <ul>
+        <li>Rows = unique words (terms) — the vocabulary</li>
+        <li>Columns = documents</li>
+        <li>Each cell = 0/1, raw frequency, or TF-IDF score</li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">Example — Occurrence Matrix</div>
+        <p>Corpus: <em>"I like deep learning.", "I like NLP.", "I enjoy flying."</em></p>
+        <table class="tbl">
+          <tr><th>Term \ Doc</th><th>Doc 1</th><th>Doc 2</th><th>Doc 3</th></tr>
+          <tr><td>I</td><td>1</td><td>1</td><td>1</td></tr>
+          <tr><td>like</td><td>1</td><td>1</td><td>0</td></tr>
+          <tr><td>deep</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td>learning</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td>NLP</td><td>0</td><td>1</td><td>0</td></tr>
+          <tr><td>enjoy</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>flying</td><td>0</td><td>0</td><td>1</td></tr>
+        </table>
+        <p>This is also called a <span class="highlight">Term-Document Matrix</span>. Two rows that look similar = two terms that appear in similar documents = potentially similar meaning.</p>
+      </div>
+
+      <h3>Co-Occurrence Matrix (Term-Term Matrix)</h3>
+      <p>A <span class="term">square matrix</span> where both axes are the vocabulary. Each cell counts how many times two terms appeared <strong>near each other</strong> (within a sliding context window).</p>
+
+      <div class="box box-example">
+        <div class="box-label">Example — Co-Occurrence with Window=1</div>
+        <p>Corpus: <em>"I like deep learning.", "I like NLP.", "I enjoy flying."</em></p>
+        <table class="tbl">
+          <tr><th> </th><th>I</th><th>like</th><th>deep</th><th>learning</th><th>NLP</th><th>enjoy</th><th>flying</th></tr>
+          <tr><td><strong>I</strong></td><td>0</td><td>2</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+          <tr><td><strong>like</strong></td><td>2</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>deep</strong></td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>learning</strong></td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>NLP</strong></td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td><strong>enjoy</strong></td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td><strong>flying</strong></td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+        </table>
+        <p>"I" co-occurs with "like" twice (in Doc 1 and Doc 2) and with "enjoy" once (in Doc 3). Notice it is a <em>symmetric</em> matrix — if A appears near B, then B appears near A.</p>
+      </div>
+
+      <h3>Two ways to define "context"</h3>
+      <table class="tbl">
+        <tr><th>Approach</th><th>Definition</th><th>Captures</th></tr>
+        <tr><td><strong>Full Document</strong></td><td>Two words co-occur if they are in the same document</td><td>Broad topical similarity</td></tr>
+        <tr><td><strong>Window-based</strong></td><td>Two words co-occur if they are within N words of each other (window size 3, 5, 7, 9 are common)</td><td>Syntactic + semantic similarity</td></tr>
+      </table>
+
+      <h3>Limitations of Co-Occurrence Matrix</h3>
+      <ul>
+        <li>Size grows with vocabulary squared — very large for real vocabularies.</li>
+        <li>Highly sparse — most word pairs never co-occur.</li>
+        <li>Needs <span class="highlight">dimensionality reduction</span> (e.g., <span class="term">SVD — Singular Value Decomposition</span>) to be practical.</li>
+        <li>Hard to update when new words or documents are added.</li>
+      </ul>
+
+      <div class="box box-analogy">
+        <div class="box-label">Bridge to Word Embeddings</div>
+        The co-occurrence matrix is the conceptual foundation for modern word embeddings like Word2Vec and GloVe. Those methods learn dense, low-dimensional vectors that capture the same "words near each other = similar meaning" idea — but far more efficiently than storing the full matrix.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">Summary</div>
+        Occurrence Matrix = terms × documents (rectangular). Co-Occurrence Matrix = terms × terms (square), counting how often two words appear near each other. Both are based on the idea that word meaning comes from context. Main limitation: huge, sparse, needs SVD for practical use. These lead directly to Word2Vec and modern embeddings.
+      </div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-panel" id="matrix-ar" dir="rtl">
+      <h3>الفكرة الأساسية: الدلالة التوزيعية (Distributional Semantics)</h3>
+      <p>هذه الأساليب مبنية على فرضية لغوية مشهورة: <em>"الكلمة تُعرَّف بالصحبة التي تحتفظ بها."</em> الكلمات التي تميل للظهور في نفس السياقات لها معاني متشابهة. "Doctor" و"nurse" كثيراً ما تظهران بجانب "hospital"، "patient"، "medicine" — فهما متقاربتان دلالياً.</p>
+
+      <h3>Occurrence Matrix (Term-Document Matrix)</h3>
+      <p><span class="term">مصفوفة مستطيلة</span> حيث:</p>
+      <ul>
+        <li>الصفوف = الكلمات الفريدة (terms) — الـ vocabulary</li>
+        <li>الأعمدة = الوثائق</li>
+        <li>كل خلية = 0/1، أو تكرار خام، أو درجة TF-IDF</li>
+      </ul>
+      <p>صفّان متشابهان = كلمتان تظهران في وثائق مشابهة = ربما لهما معنى مشابه.</p>
+
+      <h3>Co-Occurrence Matrix (Term-Term Matrix)</h3>
+      <p><span class="term">مصفوفة مربعة</span> حيث كلا المحورين هو الـ vocabulary. كل خلية تعدّ كم مرة ظهر كلا الـ terms <strong>بالقرب من بعضهما</strong> (ضمن نافذة سياق متحركة).</p>
+
+      <div class="box box-example">
+        <div class="box-label">مثال — Co-Occurrence بنافذة = 1</div>
+        <p>Corpus: <em>"I like deep learning.", "I like NLP.", "I enjoy flying."</em></p>
+        <p>"I" تتزامن مع "like" مرتين (في Doc 1 وDoc 2) ومع "enjoy" مرة واحدة (في Doc 3). المصفوفة <em>متماثلة (symmetric)</em> — لو A ظهر بجانب B، فـ B ظهر بجانب A.</p>
+      </div>
+
+      <h3>طريقتان لتعريف "السياق"</h3>
+      <table class="tbl">
+        <tr><th>الأسلوب</th><th>التعريف</th><th>يلتقط</th></tr>
+        <tr><td><strong>الوثيقة الكاملة</strong></td><td>كلمتان تتزامنان إذا كانتا في نفس الوثيقة</td><td>التشابه الموضوعي الواسع</td></tr>
+        <tr><td><strong>نافذة متحركة</strong></td><td>كلمتان تتزامنان إذا كانتا ضمن N كلمة من بعضهما (حجم النافذة 3، 5، 7، 9 شائع)</td><td>التشابه النحوي + الدلالي</td></tr>
+      </table>
+
+      <h3>محدودية Co-Occurrence Matrix</h3>
+      <ul>
+        <li>الحجم يكبر مع مربع الـ vocabulary — ضخم جداً للـ vocabularies الحقيقية.</li>
+        <li>Sparse جداً — معظم أزواج الكلمات لا تتزامن أبداً.</li>
+        <li>يحتاج <span class="highlight">تقليص الأبعاد</span> (مثل <span class="term">SVD — Singular Value Decomposition</span>) ليكون عملياً.</li>
+        <li>صعب التحديث عند إضافة كلمات أو وثائق جديدة.</li>
+      </ul>
+
+      <div class="box box-analogy">
+        <div class="box-label">الجسر نحو Word Embeddings</div>
+        الـ Co-Occurrence Matrix هو الأساس المفاهيمي للـ word embeddings الحديثة مثل Word2Vec وGloVe. تلك الطرق تتعلم vectors كثيفة (dense) وقليلة الأبعاد تلتقط نفس فكرة "الكلمات القريبة = معنى متشابه" — لكن بكفاءة أعلى بكثير من تخزين المصفوفة الكاملة.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">ملخص</div>
+        Occurrence Matrix = terms × documents (مستطيلة). Co-Occurrence Matrix = terms × terms (مربعة)، تعدّ كم مرة ظهرت كلمتان بالقرب من بعضهما. كلتاهما مبنيتان على فكرة أن معنى الكلمة يأتي من سياقها. المحدودية الرئيسية: ضخمة، sparse، تحتاج SVD للاستخدام العملي. هذا يقودنا مباشرة إلى Word2Vec والـ embeddings الحديثة.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div><!-- end .page -->
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('sb-' + id);
+  const icon = document.getElementById('ti-' + id);
+  const open = body.classList.toggle('open');
+  icon.classList.toggle('open', open);
+}
+
+function lang(section, l) {
+  const body = document.getElementById('sb-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    t.classList.toggle('active',
+      (l === 'en' && t.textContent.includes('English')) ||
+      (l === 'ar' && t.textContent.includes('Arabic'))
+    );
+  });
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById(section + '-' + l);
+  if (panel) panel.classList.add('active');
+}
+
+function jumpTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
