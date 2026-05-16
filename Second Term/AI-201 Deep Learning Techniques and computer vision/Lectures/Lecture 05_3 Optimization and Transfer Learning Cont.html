@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Deep Neural Network Optimization — Lecture 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Kufi+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --bg2: #16161e;
+    --bg3: #1e1e2a;
+    --bg4: #252535;
+    --surface: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8e8f0;
+    --text2: #a0a0b8;
+    --text3: #6a6a80;
+
+    --purple: #9d8fff;
+    --purple-bg: rgba(157,143,255,0.1);
+    --purple-mid: rgba(157,143,255,0.2);
+    --teal: #4ecdc4;
+    --teal-bg: rgba(78,205,196,0.1);
+    --teal-mid: rgba(78,205,196,0.2);
+    --coral: #ff8a65;
+    --coral-bg: rgba(255,138,101,0.1);
+    --coral-mid: rgba(255,138,101,0.2);
+    --amber: #ffc342;
+    --amber-bg: rgba(255,195,66,0.1);
+    --amber-mid: rgba(255,195,66,0.2);
+    --pink: #f06aaa;
+    --pink-bg: rgba(240,106,170,0.1);
+    --pink-mid: rgba(240,106,170,0.2);
+    --blue: #5b9cf6;
+    --blue-bg: rgba(91,156,246,0.1);
+    --blue-mid: rgba(91,156,246,0.2);
+    --green: #69d99a;
+    --green-bg: rgba(105,217,154,0.1);
+    --green-mid: rgba(105,217,154,0.2);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --red-mid: rgba(248,113,113,0.2);
+
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Sora', sans-serif;
+    --ar: 'Noto Kufi Arabic', sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ─── HEADER ──────────────────────────────────────────── */
+  .site-header {
+    background: linear-gradient(135deg, #0d0d18 0%, #1a1228 50%, #0d1a1e 100%);
+    border-bottom: 1px solid var(--border2);
+    padding: 3rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 600px 300px at 20% 50%, rgba(157,143,255,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 400px 200px at 80% 30%, rgba(78,205,196,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-inner { max-width: 900px; margin: 0 auto; position: relative; }
+  .header-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--purple-bg); border: 1px solid var(--purple-mid);
+    color: var(--purple); font-size: 11px; font-weight: 600;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 1.2rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  h1.main-title {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700; line-height: 1.2; margin-bottom: 0.8rem;
+    background: linear-gradient(135deg, #e8e8f0 0%, var(--purple) 40%, var(--teal) 80%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-sub {
+    color: var(--text2); font-size: 0.9rem; max-width: 560px;
+  }
+
+  /* ─── LANG SWITCHER ───────────────────────────────────── */
+  .lang-bar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 0.8rem 2rem; display: flex; align-items: center; gap: 8px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .lang-label { font-size: 11px; color: var(--text3); margin-right: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .lang-btn {
+    padding: 5px 16px; border-radius: 20px; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2); cursor: pointer;
+    font-family: var(--sans); font-size: 12px; font-weight: 500; transition: all 0.2s;
+  }
+  .lang-btn.active { background: var(--purple-bg); border-color: var(--purple-mid); color: var(--purple); }
+  .lang-btn:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+
+  /* ─── TOC ─────────────────────────────────────────────── */
+  .toc-strip {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .toc-chip {
+    padding: 4px 12px; border-radius: 20px; border: 1px solid;
+    font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+    text-decoration: none;
+  }
+  .toc-chip:nth-child(1) { color: var(--purple); border-color: var(--purple-mid); background: var(--purple-bg); }
+  .toc-chip:nth-child(2) { color: var(--teal); border-color: var(--teal-mid); background: var(--teal-bg); }
+  .toc-chip:nth-child(3) { color: var(--coral); border-color: var(--coral-mid); background: var(--coral-bg); }
+  .toc-chip:nth-child(4) { color: var(--amber); border-color: var(--amber-mid); background: var(--amber-bg); }
+  .toc-chip:nth-child(5) { color: var(--pink); border-color: var(--pink-mid); background: var(--pink-bg); }
+  .toc-chip:nth-child(6) { color: var(--blue); border-color: var(--blue-mid); background: var(--blue-bg); }
+  .toc-chip:nth-child(7) { color: var(--green); border-color: var(--green-mid); background: var(--green-bg); }
+  .toc-chip:nth-child(8) { color: var(--red); border-color: var(--red-mid); background: var(--red-bg); }
+
+  /* ─── MAIN LAYOUT ─────────────────────────────────────── */
+  .main { max-width: 900px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+  /* ─── SECTION CARDS ───────────────────────────────────── */
+  .section-card {
+    background: var(--bg2); border-radius: var(--radius);
+    border: 1px solid var(--border); margin-bottom: 2rem; overflow: hidden;
+  }
+  .section-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 1.2rem 1.5rem; cursor: pointer; user-select: none;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+  .section-head:hover { background: rgba(255,255,255,0.02); }
+  .section-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .section-title-group { flex: 1; }
+  .section-number { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+  .section-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+  .toggle-icon { color: var(--text3); transition: transform 0.25s; font-size: 14px; }
+  .section-card.open .toggle-icon { transform: rotate(180deg); }
+  .section-body { padding: 1.5rem; display: none; }
+  .section-card.open .section-body { display: block; }
+
+  /* per-section accent colors */
+  .s1 .section-head { border-left: 3px solid var(--purple); }
+  .s1 .section-icon { background: var(--purple-bg); color: var(--purple); }
+  .s1 .section-number { color: var(--purple); }
+  .s2 .section-head { border-left: 3px solid var(--teal); }
+  .s2 .section-icon { background: var(--teal-bg); color: var(--teal); }
+  .s2 .section-number { color: var(--teal); }
+  .s3 .section-head { border-left: 3px solid var(--coral); }
+  .s3 .section-icon { background: var(--coral-bg); color: var(--coral); }
+  .s3 .section-number { color: var(--coral); }
+  .s4 .section-head { border-left: 3px solid var(--amber); }
+  .s4 .section-icon { background: var(--amber-bg); color: var(--amber); }
+  .s4 .section-number { color: var(--amber); }
+  .s5 .section-head { border-left: 3px solid var(--pink); }
+  .s5 .section-icon { background: var(--pink-bg); color: var(--pink); }
+  .s5 .section-number { color: var(--pink); }
+  .s6 .section-head { border-left: 3px solid var(--blue); }
+  .s6 .section-icon { background: var(--blue-bg); color: var(--blue); }
+  .s6 .section-number { color: var(--blue); }
+  .s7 .section-head { border-left: 3px solid var(--green); }
+  .s7 .section-icon { background: var(--green-bg); color: var(--green); }
+  .s7 .section-number { color: var(--green); }
+  .s8 .section-head { border-left: 3px solid var(--red); }
+  .s8 .section-icon { background: var(--red-bg); color: var(--red); }
+  .s8 .section-number { color: var(--red); }
+
+  /* ─── LANG CONTENT ────────────────────────────────────── */
+  .lang-en { display: block; }
+  .lang-ar { display: none; font-family: var(--ar); direction: rtl; text-align: right; }
+  body.arabic .lang-en { display: none; }
+  body.arabic .lang-ar { display: block; }
+  body.arabic .section-body { direction: rtl; }
+
+  /* ─── TYPOGRAPHY ──────────────────────────────────────── */
+  .body-p { color: var(--text2); margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.8; }
+  .term { color: var(--text); font-weight: 600; border-bottom: 1px dashed rgba(255,255,255,0.2); }
+  .highlight { background: var(--purple-bg); color: var(--purple); padding: 1px 5px; border-radius: 4px; font-size: 0.85em; font-weight: 500; }
+  .code-inline { font-family: var(--mono); background: var(--bg3); color: var(--teal); padding: 1px 6px; border-radius: 4px; font-size: 0.82em; }
+
+  /* ─── BOX TYPES ───────────────────────────────────────── */
+  .box {
+    border-radius: var(--radius-sm); padding: 1rem 1.2rem;
+    margin: 1.2rem 0; font-size: 0.875rem; border: 1px solid;
+  }
+  .box-title { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .box.analogy { background: var(--amber-bg); border-color: var(--amber-mid); color: var(--text2); }
+  .box.analogy .box-title { color: var(--amber); }
+  .box.example { background: var(--teal-bg); border-color: var(--teal-mid); color: var(--text2); }
+  .box.example .box-title { color: var(--teal); }
+  .box.summary { background: var(--purple-bg); border-color: var(--purple-mid); color: var(--text2); }
+  .box.summary .box-title { color: var(--purple); }
+  .box.warning { background: var(--red-bg); border-color: var(--red-mid); color: var(--text2); }
+  .box.warning .box-title { color: var(--red); }
+
+  /* ─── CODE BLOCKS ─────────────────────────────────────── */
+  .code-block {
+    background: #0d1117; border-radius: var(--radius-sm);
+    border: 1px solid var(--border2); padding: 1rem 1.2rem;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.7;
+    overflow-x: auto; margin: 1rem 0;
+    color: #cdd6f4;
+  }
+  .code-block .kw { color: #cba6f7; } /* keyword - purple */
+  .code-block .fn { color: #89b4fa; } /* function - blue */
+  .code-block .st { color: #a6e3a1; } /* string - green */
+  .code-block .cm { color: #585b70; font-style: italic; } /* comment */
+  .code-block .nu { color: #fab387; } /* number - peach */
+  .code-block .cl { color: #f5c2e7; } /* class - pink */
+
+  /* ─── COMPARE TABLE ───────────────────────────────────── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 1rem 0; }
+  .compare-table th {
+    padding: 8px 12px; text-align: left; font-weight: 600; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .compare-table th:first-child { background: var(--bg3); color: var(--text2); }
+  .compare-table th.h-std { background: var(--coral-bg); color: var(--coral); }
+  .compare-table th.h-ds { background: var(--teal-bg); color: var(--teal); }
+  .compare-table td { padding: 8px 12px; border-top: 1px solid var(--border); color: var(--text2); }
+  .compare-table td:first-child { color: var(--text); font-weight: 500; }
+
+  /* ─── FIGURE / DIAGRAM ────────────────────────────────── */
+  .figure { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1.2rem; margin: 1.2rem 0; }
+  .figure-cap { font-size: 0.75rem; color: var(--text3); text-align: center; margin-top: 8px; font-style: italic; }
+
+  /* ─── FORMULA ─────────────────────────────────────────── */
+  .formula {
+    background: var(--bg3); border-radius: var(--radius-sm);
+    padding: 0.8rem 1.2rem; text-align: center; font-family: var(--mono);
+    color: var(--amber); font-size: 0.9rem; margin: 0.8rem 0;
+    border: 1px solid var(--border);
+  }
+
+  /* ─── SVG DIAGRAM HELPERS ─────────────────────────────── */
+  svg text { font-family: var(--sans); }
+
+  /* ─── SCROLL ANCHOR ───────────────────────────────────── */
+  .anchor { scroll-margin-top: 120px; }
+
+  /* ─── MINI GRID ───────────────────────────────────────── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+  @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+  .mini-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.9rem;
+  }
+  .mini-card-title { font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; }
+
+  hr.sec { border: none; border-top: 1px solid var(--border); margin: 1.4rem 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-chip">📚 Lecture 05</div>
+    <h1 class="main-title">Deep Neural Network Optimization</h1>
+    <p class="header-sub">Weight initialization · Regularization · Gradient stability · Advanced architectures · Depthwise separable convolutions</p>
+  </div>
+</header>
+
+<!-- LANG SWITCHER -->
+<div class="lang-bar">
+  <span class="lang-label">Language:</span>
+  <button class="lang-btn active" onclick="switchLang('en')">English</button>
+  <button class="lang-btn" onclick="switchLang('ar')">العربية</button>
+</div>
+
+<!-- TOC -->
+<div class="toc-strip">
+  <a class="toc-chip" href="#" onclick="openAndGo('s1')">Weight Init</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s2')">L1 & L2 Regularization</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s3')">Batch Normalization</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s4')">Callbacks</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s5')">Lambda & Concat</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s6')">Advanced Models</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s7')">Depthwise Separable Conv</a>
+  <a class="toc-chip" href="#" onclick="openAndGo('s8')">Transfer Learning</a>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 1 — WEIGHT INITIALIZATION
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s1 open anchor" id="s1">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">⚖️</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 01</div>
+        <div class="section-title">Weight Initialization</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+
+      <!-- ENGLISH -->
+      <div class="lang-en">
+        <p class="body-p">When you build a neural network, every neuron has a <span class="term">weight</span> — a number that controls how strongly that neuron responds to its input. Before training begins, you must give all those weights a starting value. This is called <span class="term">weight initialization</span>.</p>
+        <p class="body-p">If you choose the starting weights badly (e.g., all zeros, or very large random numbers), the network can suffer from two famous problems:</p>
+        <div class="grid2">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--red)">Vanishing Gradient</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Gradients shrink to nearly zero as they travel backwards through many layers. The early layers learn nothing.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--coral)">Exploding Gradient</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Gradients grow exponentially large. Weights update wildly; training becomes unstable or produces NaN values.</p>
+          </div>
+        </div>
+        <p class="body-p">Good initialization keeps the signal flowing at a healthy magnitude throughout all layers.</p>
+        <hr class="sec"/>
+        <p class="body-p" style="font-weight:600;color:var(--text)">He Uniform Initialization</p>
+        <p class="body-p">Designed for layers that use the <span class="highlight">ReLU</span> activation function. Weights are drawn from a uniform distribution:</p>
+        <div class="formula">w ~ U( −√(6/n), +√(6/n) )</div>
+        <p class="body-p">where <span class="code-inline">n</span> is the number of input units (neurons feeding into this layer). The idea: larger layers (more inputs) use smaller weight values to prevent the outputs from exploding.</p>
+
+        <p class="body-p" style="font-weight:600;color:var(--text);margin-top:1rem">Glorot (Xavier) Normal Initialization</p>
+        <p class="body-p">Designed for <span class="highlight">sigmoid</span> and <span class="highlight">tanh</span> activations. Weights come from a normal (bell curve) distribution:</p>
+        <div class="formula">w ~ N( 0, 2 / (n_in + n_out) )</div>
+        <p class="body-p">It considers both how many inputs come in (<span class="code-inline">n_in</span>) and how many outputs go out (<span class="code-inline">n_out</span>). This balances the variance in both directions.</p>
+
+        <div class="code-block">
+<span class="kw">from</span> tensorflow.keras <span class="kw">import</span> layers, initializers
+
+model = tf.keras.Sequential([
+    layers.Dense(<span class="nu">128</span>, activation=<span class="st">"relu"</span>,
+                 kernel_initializer=<span class="st">"he_uniform"</span>,     <span class="cm"># He for ReLU</span>
+                 input_shape=(<span class="nu">64</span>,)),
+    layers.Dense(<span class="nu">64</span>,  activation=<span class="st">"relu"</span>,
+                 kernel_initializer=<span class="st">"glorot_uniform"</span>), <span class="cm"># Glorot for ReLU too</span>
+    layers.Dense(<span class="nu">10</span>,  activation=<span class="st">"softmax"</span>)
+])
+        </div>
+
+        <div class="box analogy">
+          <div class="box-title">💡 Analogy</div>
+          Imagine tuning a radio. If you start the dial at the extreme (fully left or fully right), it takes forever to find the right station. But if you start near the middle with a small smart guess, you find the signal quickly. Weight initialization is that starting position.
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          Use <strong>He initialization</strong> with ReLU layers; use <strong>Glorot/Xavier</strong> with sigmoid/tanh. The goal is to start weights at values that let the signal pass through all layers without vanishing or exploding.
+        </div>
+      </div><!-- /lang-en -->
+
+      <!-- ARABIC -->
+      <div class="lang-ar">
+        <p class="body-p">لما بتبني شبكة عصبية، كل neuron عنده <span class="term">weight</span> — رقم بيحدد مقدار استجابته للمدخلات. قبل ما يبدأ التدريب، لازم تختار قيمة ابتدائية لكل الـ weights. ده بيتسمى <span class="term">Weight Initialization</span>.</p>
+        <p class="body-p">لو اخترت القيم الابتدائية غلط (زي كلها صفر أو أرقام عشوائية كبيرة جداً)، الشبكة ممكن تعاني من مشكلتين معروفين:</p>
+        <div class="grid2">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--red)">Vanishing Gradient</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">الـ gradient بيصغر جداً وهو بيرجع للخلف في الطبقات، فالطبقات الأولى ما بتتعلمش.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--coral)">Exploding Gradient</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">الـ gradient بيكبر بشكل كبير جداً، فالـ weights بتتغير بجنون وممكن التدريب يبقى غير مستقر.</p>
+          </div>
+        </div>
+        <hr class="sec"/>
+        <p class="body-p" style="font-weight:600;color:var(--text)">He Uniform</p>
+        <p class="body-p">مصممة للطبقات اللي بتستخدم <span class="highlight">ReLU</span>. الـ weights بتتسحب من uniform distribution:</p>
+        <div class="formula">w ~ U( −√(6/n), +√(6/n) )</div>
+        <p class="body-p">حيث <span class="code-inline">n</span> هو عدد الـ neurons اللي بتغذي الطبقة دي. الطبقات الأكبر (عندها inputs أكتر) بتستخدم قيم weights أصغر لمنع الانفجار.</p>
+
+        <p class="body-p" style="font-weight:600;color:var(--text);margin-top:1rem">Glorot (Xavier) Normal</p>
+        <p class="body-p">مصممة لـ <span class="highlight">sigmoid</span> و<span class="highlight">tanh</span>. الـ weights بتيجي من normal distribution:</p>
+        <div class="formula">w ~ N( 0, 2 / (n_in + n_out) )</div>
+
+        <div class="box analogy">
+          <div class="box-title">💡 تشبيه</div>
+          تخيل إنك بتضبط راديو. لو بدأت من أقصى اليمين أو اليسار، هياخد وقت طويل لحد ما تلاقي المحطة. لو بدأت من المنتصف بتقريب منطقي، بتوصل للمحطة أسرع. الـ initialization دي هي نقطة البداية الذكية دي.
+        </div>
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          استخدم <strong>He</strong> مع ReLU، و<strong>Glorot/Xavier</strong> مع sigmoid/tanh. الهدف إن الـ signal يعدي من كل الطبقات من غير ما يختفي أو يكبر جداً.
+        </div>
+      </div><!-- /lang-ar -->
+
+    </div><!-- /section-body -->
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 2 — L1 & L2 REGULARIZATION
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s2 anchor" id="s2">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">🛡️</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 02</div>
+        <div class="section-title">ℓ1 & ℓ2 Regularization</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p"><span class="term">Regularization</span> is a technique to prevent <span class="term">overfitting</span> — the problem where a model learns the training data so well that it fails to generalize to new, unseen data. Think of it as adding a "penalty" to punish the model for making weights too large.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 Analogy</div>
+          Imagine a student who memorizes every question in the textbook word-for-word. They ace the practice tests but fail the real exam because they never learned the underlying concepts. Regularization forces the model to learn the concepts, not just the memorized answers.
+        </div>
+
+        <hr class="sec"/>
+        <div class="grid2">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--teal)">ℓ1 (Lasso)</div>
+            <div class="formula" style="font-size:0.8rem">J(θ) = Loss + λ Σ|θᵢ|</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Adds the sum of absolute values of weights. Tends to push some weights to exactly zero — this effectively removes irrelevant features (sparse model).</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--teal)">ℓ2 (Ridge)</div>
+            <div class="formula" style="font-size:0.8rem">J(θ) = Loss + λ Σθᵢ²</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Adds the sum of squared weights. Pushes weights toward zero but rarely to exactly zero. Spreads the "blame" across all features.</p>
+          </div>
+        </div>
+        <div class="mini-card" style="margin-top:1rem">
+          <div class="mini-card-title" style="color:var(--teal)">Elastic Net (ℓ1 + ℓ2 combined)</div>
+          <div class="formula" style="font-size:0.8rem">J(θ) = Loss + λ₁Σ|θᵢ| + λ₂Σθᵢ²</div>
+          <p class="body-p" style="margin:0;font-size:0.82rem">Gets the best of both worlds: sparsity from ℓ1, and stability from ℓ2.</p>
+        </div>
+
+        <p class="body-p" style="margin-top:1.2rem">λ (lambda) is the regularization strength. Too large = weights go to zero and the model underfits. Too small = no effect.</p>
+
+        <div class="code-block">
+<span class="kw">from</span> tensorflow.keras <span class="kw">import</span> regularizers
+
+<span class="cm"># ℓ1</span>
+tf.keras.layers.Dense(<span class="nu">64</span>, kernel_regularizer=regularizers.l1(<span class="nu">0.01</span>))
+<span class="cm"># ℓ2</span>
+tf.keras.layers.Dense(<span class="nu">64</span>, kernel_regularizer=regularizers.l2(<span class="nu">0.01</span>))
+<span class="cm"># Elastic Net</span>
+tf.keras.layers.Dense(<span class="nu">64</span>, kernel_regularizer=regularizers.l1_l2(l1=<span class="nu">0.01</span>, l2=<span class="nu">0.01</span>))
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          ℓ1 creates sparse models (kills useless features). ℓ2 shrinks all weights proportionally. Elastic Net combines both. All three prevent overfitting by penalizing large weights.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p"><span class="term">Regularization</span> هي تقنية لمنع <span class="term">Overfitting</span> — المشكلة اللي فيها الـ model بيحفظ بيانات التدريب كويس جداً لدرجة إنه بيفشل مع بيانات جديدة. الفكرة إنها بتضيف "غرامة" على الـ weights الكبيرة.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 تشبيه</div>
+          تخيل طالب بيحفظ كل سؤال في الكتاب حرفياً. بينجح في الامتحانات التجريبية بس بيفشل في الامتحان الحقيقي لأنه ما فهمش المفاهيم. الـ regularization بتجبر الـ model يتعلم المفاهيم مش يحفظ.
+        </div>
+
+        <div class="grid2">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--teal)">ℓ1 (Lasso)</div>
+            <div class="formula" style="font-size:0.8rem">J(θ) = Loss + λ Σ|θᵢ|</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بيضيف مجموع القيم المطلقة للـ weights. بيخلي بعض الـ weights تبقى صفر تماماً — يعني بيشيل الـ features الغير مفيدة.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--teal)">ℓ2 (Ridge)</div>
+            <div class="formula" style="font-size:0.8rem">J(θ) = Loss + λ Σθᵢ²</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بيضيف مجموع مربعات الـ weights. بيصغّر كل الـ weights بس نادراً ما بيوصلوا لصفر.</p>
+          </div>
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          ℓ1 بتعمل model خفيف (بيشيل الـ features الزيادة). ℓ2 بتصغّر كل الـ weights. Elastic Net بتجمع الاتنين. الهدف: منع الـ model من الحفظ.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 3 — BATCH NORMALIZATION
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s3 anchor" id="s3">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">📊</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 03</div>
+        <div class="section-title">Batch Normalization</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p">As data flows through a deep network, the distributions of activations can shift wildly between layers. This is called <span class="term">internal covariate shift</span>. <span class="term">Batch Normalization (BN)</span> fixes this by normalizing the output of each layer before passing it to the next.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 Analogy</div>
+          Think of a factory assembly line. If one machine produces parts that are too large or too small, the next machine struggles. Batch Normalization acts like a quality-control step between machines, ensuring every part is within the right range before moving on.
+        </div>
+
+        <p class="body-p">The formula: for each mini-batch of data, it subtracts the mean and divides by the standard deviation, then applies two learnable parameters γ (gamma) and β (beta) to re-scale and re-shift:</p>
+        <div class="formula">xᵢ ← γ · (xᵢ − μ_B) / √(σ²_B + ε) + β</div>
+
+        <div class="grid2" style="margin-top:1rem">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--coral)">μ_B</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Mean of the current mini-batch — subtracted to center the data around zero.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--coral)">σ²_B + ε</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Variance of the batch. ε is a tiny value (like 0.001) to prevent division by zero.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--coral)">γ (gamma)</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Learned scale parameter. Lets the network re-scale the normalized output.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--coral)">β (beta)</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Learned shift parameter. Lets the network re-center the output.</p>
+          </div>
+        </div>
+
+        <p class="body-p" style="margin-top:1rem">Notice the model summary: a BatchNormalization layer after Conv2D with 32 filters has <strong>128 parameters</strong> — that's 4 per channel: γ, β, running mean, and running variance (the last 2 are non-trainable).</p>
+
+        <div class="code-block">
+<span class="cm"># After a Conv layer</span>
+tf.keras.layers.Conv2D(<span class="nu">32</span>, (<span class="nu">3</span>,<span class="nu">3</span>), padding=<span class="st">'same'</span>, activation=<span class="st">'relu'</span>),
+tf.keras.layers.BatchNormalization(),
+
+<span class="cm"># After a Dense layer</span>
+tf.keras.layers.Dense(<span class="nu">128</span>, activation=<span class="st">'relu'</span>),
+tf.keras.layers.BatchNormalization(),
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          BN normalizes the activations within each layer for every batch. This stabilizes training, allows higher learning rates, and acts as mild regularization — reducing overfitting without extra dropout.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p">لما الداتا بتعدي في الشبكة العميقة، توزيع الـ activations ممكن يتغير كتير من طبقة لطبقة. ده اللي بيتسمى <span class="term">Internal Covariate Shift</span>. الـ <span class="term">Batch Normalization</span> بتحل المشكلة دي عن طريق تطبيع output كل طبقة قبل ما يعدي للطبقة الجاية.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 تشبيه</div>
+          تخيل خط إنتاج في مصنع. لو ماكينة واحدة بتنتج قطع أكبر أو أصغر من اللازم، الماكينة الجاية بتتعب. الـ Batch Normalization زي خطوة مراقبة الجودة بين الماكينات — بتضمن إن كل قطعة في النطاق الصح قبل ما تكمل.
+        </div>
+
+        <div class="formula">xᵢ ← γ · (xᵢ − μ_B) / √(σ²_B + ε) + β</div>
+
+        <p class="body-p">γ و β هي parameters بيتعلمهم الـ model. μ_B هو متوسط الـ batch الحالي. σ²_B هو التباين.</p>
+
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          الـ BN بتطبّع الـ activations في كل طبقة لكل batch. ده بيثبّت التدريب، بيسمح بـ learning rates أعلى، وبيقلل الـ overfitting.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 4 — CALLBACKS
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s4 anchor" id="s4">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">📞</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 04</div>
+        <div class="section-title">Callbacks</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p"><span class="term">Callbacks</span> are functions that Keras calls automatically at certain points during training — after each epoch, after each batch, etc. Think of them as "hooks" you attach to the training loop to monitor or control what happens.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 Analogy</div>
+          Imagine you're baking a cake. You set a timer (EarlyStopping), reduce the oven heat if it's not browning fast enough (ReduceLROnPlateau), take a photo whenever it looks best (ModelCheckpoint), and write notes in a baking log (CSVLogger). Callbacks are your kitchen assistants doing all that automatically.
+        </div>
+
+        <hr class="sec"/>
+
+        <!-- EarlyStopping -->
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">1. EarlyStopping</div>
+          <p class="body-p" style="font-size:0.85rem">Stops training when the model stops improving. You pick a metric to watch (usually <span class="code-inline">val_loss</span>) and a number of "patience" epochs to wait before giving up.</p>
+          <div class="code-block">
+early_stopping = EarlyStopping(
+    monitor=<span class="st">'val_loss'</span>,
+    patience=<span class="nu">5</span>,            <span class="cm"># wait 5 epochs with no improvement</span>
+    restore_best_weights=<span class="kw">True</span>  <span class="cm"># roll back to best model</span>
+)
+          </div>
+        </div>
+
+        <!-- ReduceLROnPlateau -->
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">2. ReduceLROnPlateau</div>
+          <p class="body-p" style="font-size:0.85rem">When learning stalls, reduces the learning rate by a factor. Smaller steps = more careful navigation of the loss landscape — less likely to jump over the minimum.</p>
+          <div class="code-block">
+reduce_lr = ReduceLROnPlateau(
+    monitor=<span class="st">'val_loss'</span>,
+    factor=<span class="nu">0.1</span>,    <span class="cm"># new_lr = old_lr × 0.1</span>
+    patience=<span class="nu">10</span>,
+    min_lr=<span class="nu">1e-6</span>
+)
+          </div>
+        </div>
+
+        <!-- ModelCheckpoint -->
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">3. ModelCheckpoint</div>
+          <p class="body-p" style="font-size:0.85rem">Saves the model to disk during training. With <span class="code-inline">save_best_only=True</span>, it only saves when the monitored metric improves — so you always keep the best version.</p>
+          <div class="code-block">
+checkpoint = ModelCheckpoint(
+    filepath=<span class="st">'best_model.keras'</span>,
+    monitor=<span class="st">'val_loss'</span>,
+    save_best_only=<span class="kw">True</span>,
+    verbose=<span class="nu">1</span>
+)
+          </div>
+        </div>
+
+        <!-- CSVLogger -->
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">4. CSVLogger</div>
+          <p class="body-p" style="font-size:0.85rem">Automatically saves per-epoch metrics (loss, accuracy, val_loss, etc.) into a CSV file so you can analyze training history later without re-training.</p>
+          <div class="code-block">
+csv_logger = CSVLogger(<span class="st">'training_log.csv'</span>, separator=<span class="st">','</span>, append=<span class="kw">False</span>)
+          </div>
+        </div>
+
+        <p class="body-p">Pass all callbacks as a list to <span class="code-inline">model.fit()</span>:</p>
+        <div class="code-block">
+model.fit(x_train, y_train,
+          epochs=<span class="nu">10</span>,
+          validation_split=<span class="nu">0.1</span>,
+          callbacks=[early_stopping, reduce_lr, checkpoint, csv_logger])
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          Callbacks automate smart training behavior: stop early when improvement ceases, reduce the learning rate when stuck, save the best model checkpoint, and log everything to a file.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p"><span class="term">Callbacks</span> هي functions بيستدعيها Keras تلقائياً في أوقات معينة أثناء التدريب — بعد كل epoch، بعد كل batch، إلخ. فكّرها زي "مساعدين" بتوقّع فيهم وهم يتابعوا التدريب وبيتدخلوا لما يلزم.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 تشبيه</div>
+          تخيل إنك بتخبز كيكة. بتحط timer (EarlyStopping)، وبتقلل الحرارة لو الخبيز بطيء (ReduceLROnPlateau)، وبتاخد صورة لما تبان كويسة (ModelCheckpoint)، وبتكتب في دفتر ملاحظات (CSVLogger). الـ Callbacks هم المساعدين اللي بيعملوا ده كله تلقائي.
+        </div>
+
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">1. EarlyStopping</div>
+          <p class="body-p" style="font-size:0.85rem">بيوقف التدريب لما الـ model بيبطّل يتحسن. بتختار metric تتابعها (غالباً <span class="code-inline">val_loss</span>) وعدد epochs هتصبر فيهم قبل الوقوف.</p>
+        </div>
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">2. ReduceLROnPlateau</div>
+          <p class="body-p" style="font-size:0.85rem">لما التعلم يتوقف، بيقلل الـ learning rate بمعامل محدد. خطوات أصغر = توجه أدق نحو الـ minimum.</p>
+        </div>
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">3. ModelCheckpoint</div>
+          <p class="body-p" style="font-size:0.85rem">بيحفظ الـ model على الـ disk أثناء التدريب. مع <span class="code-inline">save_best_only=True</span> بيحفظ بس لما الـ metric بيتحسن.</p>
+        </div>
+        <div class="mini-card" style="margin-bottom:1rem; border-left:3px solid var(--amber)">
+          <div class="mini-card-title" style="color:var(--amber)">4. CSVLogger</div>
+          <p class="body-p" style="font-size:0.85rem">بيحفظ الـ metrics (loss, accuracy, إلخ) بعد كل epoch في ملف CSV.</p>
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          الـ Callbacks بتأتمت السلوك الذكي في التدريب: وقوف مبكر، تقليل الـ learning rate لما يتوقف التحسن، حفظ أحسن model، وتسجيل كل حاجة في ملف.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 5 — LAMBDA & CONCATENATE
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s5 anchor" id="s5">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">🔗</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 05</div>
+        <div class="section-title">Lambda Function & Concatenate Layer</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p" style="font-weight:600;color:var(--text)">Lambda Layer</p>
+        <p class="body-p">A <span class="term">Lambda layer</span> lets you apply any custom Python/math operation as a layer in your model — without writing a full custom layer class. It wraps a function and treats it as a layer.</p>
+        <div class="box example">
+          <div class="box-title">▶ Example</div>
+          Normalize pixel values (0–255) to (0–1) directly inside the model:
+          <div class="code-block" style="margin-top:8px">
+Lambda(<span class="kw">lambda</span> x: x / <span class="nu">255.0</span>, input_shape=(<span class="nu">28</span>, <span class="nu">28</span>, <span class="nu">1</span>))
+          </div>
+        </div>
+
+        <hr class="sec"/>
+
+        <p class="body-p" style="font-weight:600;color:var(--text)">Concatenate Layer</p>
+        <p class="body-p">A <span class="term">Concatenate layer</span> combines multiple tensors along a chosen axis. This is essential for building non-sequential architectures where different parts of the network are merged.</p>
+
+        <!-- SVG Diagram: axis=0 vs axis=1 -->
+        <div class="figure">
+          <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:520px;display:block;margin:0 auto">
+            <defs>
+              <style>
+                .dlbl { font-family:'Sora',sans-serif; font-size:11px; fill:#a0a0b8; }
+                .dval { font-family:'IBM Plex Mono',monospace; font-size:12px; fill:#e8e8f0; }
+                .dtitle { font-family:'Sora',sans-serif; font-size:11px; font-weight:600; fill:#6a6a80; }
+              </style>
+            </defs>
+            <!-- axis=0 label -->
+            <text x="20" y="22" class="dtitle">axis = 0 (stack rows)</text>
+            <!-- A matrix -->
+            <rect x="20" y="32" width="90" height="50" rx="4" fill="#1e1e2a" stroke="#4ecdc4" stroke-width="1"/>
+            <text x="55" y="62" class="dval" text-anchor="middle">1 2 3</text>
+            <!-- B matrix -->
+            <rect x="20" y="90" width="90" height="50" rx="4" fill="#1e1e2a" stroke="#9d8fff" stroke-width="1"/>
+            <text x="55" y="120" class="dval" text-anchor="middle">4 5 6</text>
+            <!-- arrow -->
+            <text x="120" y="85" class="dlbl">→</text>
+            <!-- Result -->
+            <rect x="138" y="32" width="90" height="108" rx="4" fill="#1e1e2a" stroke="#4ecdc4" stroke-width="1"/>
+            <text x="183" y="72" class="dval" text-anchor="middle">1 2 3</text>
+            <text x="183" y="100" class="dval" text-anchor="middle">4 5 6</text>
+            <text x="183" y="155" class="dlbl" text-anchor="middle">combined</text>
+
+            <!-- divider -->
+            <line x1="270" y1="10" x2="270" y2="190" stroke="#2a2a3a" stroke-width="1"/>
+
+            <!-- axis=1 label -->
+            <text x="285" y="22" class="dtitle">axis = 1 (stack columns)</text>
+            <!-- A matrix -->
+            <rect x="285" y="32" width="70" height="68" rx="4" fill="#1e1e2a" stroke="#4ecdc4" stroke-width="1"/>
+            <text x="320" y="58" class="dval" text-anchor="middle">1 1</text>
+            <text x="320" y="80" class="dval" text-anchor="middle">1 1</text>
+            <!-- B matrix -->
+            <rect x="365" y="32" width="70" height="68" rx="4" fill="#1e1e2a" stroke="#9d8fff" stroke-width="1"/>
+            <text x="400" y="58" class="dval" text-anchor="middle">9 9</text>
+            <text x="400" y="80" class="dval" text-anchor="middle">9 9</text>
+            <!-- arrow -->
+            <text x="442" y="72" class="dlbl">→</text>
+            <!-- Result wide -->
+            <rect x="455" y="32" width="50" height="68" rx="4" fill="#1e1e2a" stroke="#ff8a65" stroke-width="1.5"/>
+            <text x="480" y="58" style="font-family:'IBM Plex Mono';font-size:9px;fill:#e8e8f0;" text-anchor="middle">1 1 9 9</text>
+            <text x="480" y="78" style="font-family:'IBM Plex Mono';font-size:9px;fill:#e8e8f0;" text-anchor="middle">1 1 9 9</text>
+            <text x="480" y="118" class="dlbl" text-anchor="middle">wider</text>
+          </svg>
+          <div class="figure-cap">axis=0 stacks tensors vertically (more rows); axis=1 stacks them horizontally (more columns)</div>
+        </div>
+
+        <div class="code-block">
+input_A = tf.keras.layers.Input(shape=[<span class="nu">5</span>], name=<span class="st">"wide_input"</span>)
+input_B = tf.keras.layers.Input(shape=[<span class="nu">6</span>], name=<span class="st">"deep_input"</span>)
+hidden1 = tf.keras.layers.Dense(<span class="nu">30</span>, activation=<span class="st">"relu"</span>)(input_B)
+hidden2 = tf.keras.layers.Dense(<span class="nu">30</span>, activation=<span class="st">"relu"</span>)(hidden1)
+concat  = tf.keras.layers.concatenate([input_A, hidden2], axis=<span class="nu">-1</span>)
+output  = tf.keras.layers.Dense(<span class="nu">1</span>, name=<span class="st">"output"</span>)(concat)
+model   = tf.keras.Model(inputs=[input_A, input_B], outputs=[output])
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          Lambda layers add custom math operations inline. Concatenate layers merge tensors from different branches. Together they enable the Functional API — building flexible, multi-input, multi-output architectures.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p" style="font-weight:600;color:var(--text)">Lambda Layer</p>
+        <p class="body-p">الـ <span class="term">Lambda layer</span> بيخليك تطبق أي عملية رياضية أو Python كطبقة في الـ model من غير ما تكتب custom class كاملة.</p>
+        <div class="box example">
+          <div class="box-title">▶ مثال</div>
+          تطبيع قيم الـ pixels من (0–255) إلى (0–1) جوه الـ model مباشرةً:
+          <div class="code-block" style="margin-top:8px">Lambda(<span class="kw">lambda</span> x: x / <span class="nu">255.0</span>)</div>
+        </div>
+        <hr class="sec"/>
+        <p class="body-p" style="font-weight:600;color:var(--text)">Concatenate Layer</p>
+        <p class="body-p">بتجمع أكتر من tensor على axis معين. axis=0 بيكدّس الصفوف (أكتر rows). axis=1 بيكدّس الأعمدة (أكتر columns).</p>
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          Lambda بتضيف عمليات رياضية كطبقة. Concatenate بتدمج outputs من branches مختلفة. الاتنين بيمكنوا بناء architectures مرنة متعددة المدخلات والمخرجات.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 6 — ADVANCED MODELS
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s6 anchor" id="s6">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">🧠</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 06</div>
+        <div class="section-title">Advanced Architectures — VGG19, ResNet50, MobileNet, InceptionV3</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p">These are well-known CNN architectures that have been pre-trained on ImageNet (1.2 million images, 1000 classes). They each solve the challenge of building a deeper, more accurate network in a different way.</p>
+
+        <div class="grid2">
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">VGG19</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">19 layers deep. Uses only 3×3 conv filters stacked in groups followed by max-pooling. Simple but very large (~138M parameters). Easy to understand but memory-heavy.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">ResNet50</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">50 layers with <strong>skip connections</strong> (residual blocks). Instead of just passing data forward, it adds the input directly to the output: F(x) + x. This solves the vanishing gradient problem in very deep networks.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">MobileNet</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Designed for mobile and edge devices. Uses <strong>depthwise separable convolutions</strong> (covered in Section 7) to reduce parameters and computation dramatically while maintaining accuracy.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">InceptionV3</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Uses "Inception modules" — each module applies several convolution sizes (1×1, 3×3, 5×5) in parallel and concatenates the results. Learns features at multiple scales simultaneously. Takes 299×299×3 input.</p>
+          </div>
+        </div>
+
+        <p class="body-p" style="margin-top:1rem">The key insight with <strong>ResNet's skip connection</strong>: if adding more layers hurts performance (because deeper = harder gradient flow), the network can learn to just pass the input unchanged by setting F(x) ≈ 0, so the output is just x. It gives the network an "escape hatch."</p>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          VGG = simplicity with depth. ResNet = skip connections for very deep networks. MobileNet = efficiency for edge devices. InceptionV3 = multi-scale feature extraction. All are available pre-trained in Keras.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p">دي architectures معروفة للـ CNN اتدربت مسبقاً على ImageNet. كل واحدة بتحل تحدي بناء شبكة أعمق وأدق بطريقة مختلفة.</p>
+        <div class="grid2">
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">VGG19</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">19 طبقة بتستخدم بس فلاتر 3×3 مكدّسة. بسيطة بس كبيرة جداً (~138M parameter).</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">ResNet50</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">50 طبقة مع <strong>skip connections</strong> (residual blocks). بيضيف الـ input مباشرةً للـ output: F(x) + x. ده بيحل مشكلة الـ vanishing gradient في الشبكات الكبيرة.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">MobileNet</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">مصمم للأجهزة المحمولة. بيستخدم Depthwise Separable Convolutions لتقليل الحسابات بشكل كبير.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--blue)">
+            <div class="mini-card-title" style="color:var(--blue)">InceptionV3</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بيستخدم "Inception modules" — كل module بيطبق فلاتر بأحجام مختلفة في نفس الوقت وبيدمج النتائج. بيتعلم features بمقاييس مختلفة في آن واحد.</p>
+          </div>
+        </div>
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          VGG = بساطة مع عمق. ResNet = skip connections للشبكات الكبيرة جداً. MobileNet = كفاءة للأجهزة المحمولة. InceptionV3 = استخراج features بمقاييس متعددة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 7 — DEPTHWISE SEPARABLE CONVOLUTION
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s7 anchor" id="s7">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">🔬</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 07</div>
+        <div class="section-title">Depthwise Separable Convolution</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p">Standard convolution is expensive: a single filter looks at all channels at once. <span class="term">Depthwise Separable Convolution</span> splits that one operation into two cheaper steps to get the same result with dramatically fewer computations.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 Analogy</div>
+          Standard conv is like one chef who prepares the entire dish: chops vegetables, cooks them, AND plates them. Depthwise separable is like two specialists: one chef only chops each vegetable independently, then a second chef quickly combines and plates everything. Same result, much faster.
+        </div>
+
+        <!-- Diagram: 2 steps -->
+        <div class="figure">
+          <svg viewBox="0 0 540 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:540px;display:block;margin:0 auto">
+            <defs>
+              <style>
+                .dl { font-family:'Sora',sans-serif; font-size:10px; fill:#6a6a80; text-anchor:middle; }
+                .dm { font-family:'Sora',sans-serif; font-size:11px; font-weight:600; text-anchor:middle; }
+              </style>
+            </defs>
+            <!-- Input channels -->
+            <rect x="10" y="40" width="30" height="80" rx="4" fill="#252535" stroke="#585870" stroke-width="1"/>
+            <rect x="18" y="34" width="30" height="80" rx="4" fill="#1e1e2a" stroke="#4ecdc4" stroke-width="1.5"/>
+            <text x="33" y="80" class="dm" fill="#4ecdc4">R</text>
+            <text x="33" y="120" class="dl">Input</text>
+            <text x="33" y="130" class="dl">C channels</text>
+
+            <!-- Arrow 1 -->
+            <text x="68" y="82" style="font-family:'Sora';font-size:16px;fill:#a0a0b8;">→</text>
+
+            <!-- Step 1: Depthwise -->
+            <rect x="90" y="30" width="110" height="100" rx="6" fill="#1a1a24" stroke="#9d8fff" stroke-width="1.5"/>
+            <text x="145" y="55" class="dm" fill="#9d8fff">Step 1</text>
+            <text x="145" y="72" class="dl">Depthwise Conv</text>
+            <text x="145" y="88" class="dl">K×K filter applied to</text>
+            <text x="145" y="104" class="dl">EACH channel</text>
+            <text x="145" y="120" class="dl">independently</text>
+            <text x="145" y="143" class="dl">Cost: H×W×C×K²</text>
+
+            <!-- Arrow 2 -->
+            <text x="208" y="82" style="font-family:'Sora';font-size:16px;fill:#a0a0b8;">→</text>
+
+            <!-- Step 2: Pointwise -->
+            <rect x="228" y="30" width="110" height="100" rx="6" fill="#1a1a24" stroke="#ffc342" stroke-width="1.5"/>
+            <text x="283" y="55" class="dm" fill="#ffc342">Step 2</text>
+            <text x="283" y="72" class="dl">Pointwise Conv</text>
+            <text x="283" y="88" class="dl">1×1 conv combines</text>
+            <text x="283" y="104" class="dl">all channels into</text>
+            <text x="283" y="120" class="dl">D_out new channels</text>
+            <text x="283" y="143" class="dl">Cost: H×W×C×D_out</text>
+
+            <!-- Arrow 3 -->
+            <text x="346" y="82" style="font-family:'Sora';font-size:16px;fill:#a0a0b8;">→</text>
+
+            <!-- Output -->
+            <rect x="368" y="40" width="30" height="80" rx="4" fill="#252535" stroke="#585870" stroke-width="1"/>
+            <rect x="376" y="34" width="30" height="80" rx="4" fill="#1e1e2a" stroke="#69d99a" stroke-width="1.5"/>
+            <text x="391" y="80" class="dm" fill="#69d99a">D</text>
+            <text x="391" y="120" class="dl">Output</text>
+            <text x="391" y="130" class="dl">D_out ch.</text>
+
+            <!-- vs Standard -->
+            <rect x="430" y="10" width="105" height="140" rx="6" fill="#1a1a24" stroke="#f87171" stroke-width="1.5"/>
+            <text x="482" y="32" class="dm" fill="#f87171">Standard</text>
+            <text x="482" y="48" class="dl">Single Conv</text>
+            <text x="482" y="68" class="dl">K×K filter across</text>
+            <text x="482" y="84" class="dl">ALL channels</text>
+            <text x="482" y="100" class="dl">at once</text>
+            <text x="482" y="120" class="dl">Cost:</text>
+            <text x="482" y="136" class="dl">H×W×C×D_out×K²</text>
+          </svg>
+          <div class="figure-cap">Depthwise separable = Step 1 (per-channel) + Step 2 (combine). Standard = both at once.</div>
+        </div>
+
+        <p class="body-p" style="font-weight:600;color:var(--text)">Why is it faster?</p>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="h-std">Standard Conv</th>
+              <th class="h-ds">Depthwise Separable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Operations per output channel</td><td>K² × D_out</td><td>K² + D_out</td></tr>
+            <tr><td>Example (K=3, D_out=64, Input 5×5×3)</td><td>43,200</td><td>5,475</td></tr>
+            <tr><td>Speed</td><td>Slower</td><td>~8× faster</td></tr>
+            <tr><td>Used in</td><td>VGG, classic CNNs</td><td>MobileNet, Xception</td></tr>
+          </tbody>
+        </table>
+
+        <div class="box example">
+          <div class="box-title">▶ Worked Example (from the lecture)</div>
+          Input: 3×3 image, 2 channels. Filter size 2×2.<br/><br/>
+          <strong>Depthwise step (Channel 1, filter K₁):</strong> Each of the 4 positions applies K₁ to a 2×2 patch of Channel 1 only → Z₁ = [[-4,-4],[-4,-4]]<br/><br/>
+          <strong>Depthwise step (Channel 2, filter K₂):</strong> K₂ applied to Channel 2 patches → Z₂ = [[14,12],[8,6]]<br/><br/>
+          <strong>Pointwise step (combine with w₁=0.5, w₂=0.5):</strong> Y = 0.5×Z₁ + 0.5×Z₂ = [[5,4],[2,1]]
+        </div>
+
+        <div class="code-block">
+<span class="cm"># In Keras — SeparableConv2D does both steps automatically</span>
+tf.keras.layers.SeparableConv2D(
+    filters=<span class="nu">64</span>,
+    kernel_size=<span class="nu">3</span>,
+    padding=<span class="st">'same'</span>,
+    input_shape=(<span class="nu">224</span>, <span class="nu">224</span>, <span class="nu">32</span>)
+)
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          Standard conv: one filter across ALL channels at once. Depthwise separable: first filter each channel independently (cheap), then combine channels with 1×1 filters (cheap). Result: same expressive power, ~8–9× fewer computations. Foundation of MobileNet.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p">الـ Standard Convolution مكلفة: كل filter بيشوف كل الـ channels مع بعض. الـ <span class="term">Depthwise Separable Convolution</span> بتقسّم العملية دي لخطوتين أرخص بكتير للوصول لنفس النتيجة بحسابات أقل بكتير.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 تشبيه</div>
+          الـ Standard Conv زي طباخ واحد بيجهز الأكلة كلها: بيقطع، يطبخ، ويقدّم. الـ Depthwise Separable زي طباخين متخصصين: الأول بيتعامل مع كل خضار لوحده، والتاني بيجمع كل حاجة بسرعة. نفس النتيجة بس أسرع بكتير.
+        </div>
+
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="h-std">Standard Conv</th>
+              <th class="h-ds">Depthwise Separable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>العمليات لكل output channel</td><td>K² × D_out</td><td>K² + D_out</td></tr>
+            <tr><td>مثال (K=3, D_out=64, Input 5×5×3)</td><td>43,200</td><td>5,475</td></tr>
+            <tr><td>السرعة</td><td>أبطأ</td><td>~8 مرات أسرع</td></tr>
+          </tbody>
+        </table>
+
+        <p class="body-p" style="margin-top:1rem"><strong>الخطوتين:</strong></p>
+        <p class="body-p">1. <strong>Depthwise:</strong> بتطبق filter مستقل على كل channel لوحده — ما بتخلطش الـ channels.</p>
+        <p class="body-p">2. <strong>Pointwise:</strong> بتستخدم فلتر 1×1 لدمج النتائج وإنتاج الـ output channels.</p>
+
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          Standard conv: فلتر واحد بيشوف كل الـ channels مع بعض. Depthwise Separable: فلتر مستقل لكل channel (رخيص)، تم دمج بفلاتر 1×1 (رخيص). النتيجة: نفس الكفاءة التعبيرية، ~8–9 مرات أقل حسابات. ده أساس MobileNet.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 8 — TRANSFER LEARNING
+  ══════════════════════════════════════════════════════════ -->
+  <div class="section-card s8 anchor" id="s8">
+    <div class="section-head" onclick="toggle(this)">
+      <div class="section-icon">🚀</div>
+      <div class="section-title-group">
+        <div class="section-number">Section 08</div>
+        <div class="section-title">Transfer Learning & Feature Extraction</div>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="lang-en">
+        <p class="body-p"><span class="term">Transfer Learning</span> means taking a model already trained on a large dataset (like ImageNet) and reusing its learned knowledge for a new, smaller task. Instead of training from scratch, you stand on the shoulders of giants.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 Analogy</div>
+          A doctor who specializes in cardiology already knows biology, anatomy, and how to read medical images. To become a dermatologist, they don't start from zero — they apply their existing knowledge and only learn the new specialty-specific parts. Transfer learning does the same for neural networks.
+        </div>
+
+        <hr class="sec"/>
+
+        <p class="body-p" style="font-weight:600;color:var(--text)">Key Parameters When Loading a Pre-trained Model</p>
+        <div class="grid2">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--red)">weights='imagenet'</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Load the pre-trained weights from ImageNet training. Set to <span class="code-inline">None</span> for random initialization (no transfer).</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--red)">include_top=False</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Remove the final classification layers (they were for 1000 ImageNet classes). You'll add your own output head for your specific task.</p>
+          </div>
+        </div>
+
+        <div class="code-block" style="margin-top:1rem">
+<span class="cm"># Load VGG16 as feature extractor</span>
+model = keras.applications.vgg16.VGG16(
+    weights=<span class="st">'imagenet'</span>,
+    include_top=<span class="kw">False</span>,
+    input_shape=(<span class="nu">224</span>, <span class="nu">224</span>, <span class="nu">3</span>)
+)
+        </div>
+
+        <hr class="sec"/>
+
+        <p class="body-p" style="font-weight:600;color:var(--text)">Feature Extraction vs Fine-tuning</p>
+
+        <div class="grid2">
+          <div class="mini-card" style="border-left:3px solid var(--red)">
+            <div class="mini-card-title" style="color:var(--red)">Feature Extraction (Freeze All)</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Freeze all pre-trained layers. Only train the new output head. Fast to train. Works when your dataset is small and similar to ImageNet.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--pink)">
+            <div class="mini-card-title" style="color:var(--pink)">Fine-tuning (Unfreeze some)</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">Freeze early layers (generic features like edges), unfreeze later layers (task-specific features). Use a very small learning rate to avoid overwriting learned knowledge.</p>
+          </div>
+        </div>
+
+        <div class="code-block" style="margin-top:1rem">
+<span class="cm"># Freeze all layers (feature extraction)</span>
+model.trainable = <span class="kw">False</span>
+
+<span class="cm"># OR freeze specific layers</span>
+<span class="kw">for</span> layer <span class="kw">in</span> model.layers[:-<span class="nu">1</span>]:
+    layer.trainable = <span class="kw">False</span>
+
+<span class="cm"># Freeze by name</span>
+model.get_layer(<span class="st">'conv2d_1'</span>).trainable = <span class="kw">False</span>
+        </div>
+
+        <!-- Diagram: Transfer learning pipeline -->
+        <div class="figure">
+          <svg viewBox="0 0 520 120" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:520px;display:block;margin:0 auto">
+            <style>
+              .tl { font-family:'Sora',sans-serif; font-size:10px; text-anchor:middle; }
+            </style>
+            <!-- Pre-trained base -->
+            <rect x="10" y="20" width="180" height="80" rx="6" fill="#1a1a24" stroke="#f87171" stroke-width="1.5"/>
+            <text x="100" y="45" class="tl" fill="#f87171" font-weight="600">Pre-trained Base (frozen)</text>
+            <text x="100" y="63" class="tl" fill="#6a6a80">VGG16 / ResNet50 / etc.</text>
+            <text x="100" y="80" class="tl" fill="#6a6a80">Generic visual features</text>
+            <text x="100" y="96" class="tl" fill="#585870">(edges, textures, shapes)</text>
+
+            <!-- Arrow -->
+            <line x1="192" y1="60" x2="218" y2="60" stroke="#a0a0b8" stroke-width="1.5" marker-end="url(#arr)"/>
+            <defs>
+              <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="#a0a0b8"/>
+              </marker>
+            </defs>
+
+            <!-- Your new head -->
+            <rect x="220" y="20" width="130" height="80" rx="6" fill="#1a1a24" stroke="#69d99a" stroke-width="1.5"/>
+            <text x="285" y="45" class="tl" fill="#69d99a" font-weight="600">Your New Head</text>
+            <text x="285" y="63" class="tl" fill="#6a6a80">GlobalAveragePooling</text>
+            <text x="285" y="80" class="tl" fill="#6a6a80">Dense(256, relu)</text>
+            <text x="285" y="96" class="tl" fill="#6a6a80">Dense(N, softmax)</text>
+
+            <!-- Arrow -->
+            <line x1="352" y1="60" x2="378" y2="60" stroke="#a0a0b8" stroke-width="1.5" marker-end="url(#arr)"/>
+
+            <!-- Output -->
+            <rect x="380" y="30" width="130" height="60" rx="6" fill="#1a1a24" stroke="#9d8fff" stroke-width="1.5"/>
+            <text x="445" y="55" class="tl" fill="#9d8fff" font-weight="600">Your Task Output</text>
+            <text x="445" y="75" class="tl" fill="#6a6a80">N classes specific to you</text>
+          </svg>
+          <div class="figure-cap">Transfer Learning pipeline: freeze the pre-trained base, add and train only your new classification head</div>
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ Summary</div>
+          Transfer learning = reuse pre-trained weights. Set <span class="code-inline">include_top=False</span> to remove ImageNet-specific output. Freeze the base layers, add your own head, and train only the head. This drastically reduces training time and data requirements.
+        </div>
+      </div>
+
+      <div class="lang-ar">
+        <p class="body-p"><span class="term">Transfer Learning</span> يعني تاخد model اتدرب على داتا كبيرة (زي ImageNet) وتعيد استخدام معرفته في مهمة جديدة أصغر. بدل ما تبدأ من الصفر، بتوظّف خبرة الـ model القديم.</p>
+
+        <div class="box analogy">
+          <div class="box-title">💡 تشبيه</div>
+          دكتور قلب عنده خلفية في علم الأحياء والتشريح وقراءة الصور الطبية. عشان يتخصص في الجلدية، ما بيبدأش من الصفر — بيستخدم معرفته الحالية ويتعلم الجزء الجديد بس. الـ Transfer Learning بتعمل نفس الكلام للشبكات العصبية.
+        </div>
+
+        <div class="grid2">
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--red)">weights='imagenet'</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بيحمّل الـ weights المتدربة على ImageNet. اضبطها <span class="code-inline">None</span> لو عايز initialization عشوائي.</p>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title" style="color:var(--red)">include_top=False</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بيشيل طبقات التصنيف النهائية (كانت لـ 1000 class في ImageNet). هتضيف head جديد بتاعك لمهمتك الخاصة.</p>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top:1rem">
+          <div class="mini-card" style="border-left:3px solid var(--red)">
+            <div class="mini-card-title" style="color:var(--red)">Feature Extraction (تجميد كل شيء)</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بتجمّد كل الطبقات المتدربة وبتدرب الـ head الجديد بس. سريع. بيشتغل كويس مع الداتا الصغيرة.</p>
+          </div>
+          <div class="mini-card" style="border-left:3px solid var(--pink)">
+            <div class="mini-card-title" style="color:var(--pink)">Fine-tuning (تجميد جزئي)</div>
+            <p class="body-p" style="margin:0;font-size:0.82rem">بتجمّد الطبقات الأولى (features عامة) وبتفك تجميد الطبقات المتأخرة (features متخصصة). بتستخدم learning rate صغيرة جداً.</p>
+          </div>
+        </div>
+
+        <div class="box summary">
+          <div class="box-title">✦ خلاصة</div>
+          Transfer Learning = إعادة استخدام الـ weights المتدربة. اضبط <span class="code-inline">include_top=False</span> لإزالة الـ output الخاص بـ ImageNet. اجمّد الـ base، أضف الـ head بتاعك، ودرّب الـ head بس. ده بيقلل وقت التدريب ومتطلبات الداتا بشكل كبير.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer style="text-align:center;padding:2rem;color:var(--text3);font-size:0.8rem;border-top:1px solid var(--border)">
+  Deep Neural Network Optimization — Lecture 05 · Dr. Ahmed Yousry
+</footer>
+
+<script>
+  function toggle(head) {
+    const card = head.closest('.section-card');
+    card.classList.toggle('open');
+  }
+
+  function switchLang(lang) {
+    document.body.classList.toggle('arabic', lang === 'ar');
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const idx = lang === 'en' ? 0 : 1;
+    document.querySelectorAll('.lang-btn')[idx].classList.add('active');
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  }
+
+  function openAndGo(id) {
+    event.preventDefault();
+    const card = document.getElementById(id);
+    if (card) {
+      card.classList.add('open');
+      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+  }
+</script>
+</body>
+</html>

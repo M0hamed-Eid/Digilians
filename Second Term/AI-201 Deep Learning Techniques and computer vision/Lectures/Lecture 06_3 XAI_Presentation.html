@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Explainable AI — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ── CSS VARIABLES ─────────────────────────────────────── */
+:root {
+  --bg:        #0d0f14;
+  --surface:   #141720;
+  --surface2:  #1c2030;
+  --border:    #272c3d;
+  --text:      #e4e8f5;
+  --muted:     #7880a0;
+
+  /* 9 accent colors — 3 tiers each */
+  --c1:#7c6af5; --c1-bg:#1a1830; --c1-mid:#2e2860;
+  --c2:#3dc9a4; --c2-bg:#0d261f; --c2-mid:#1a4035;
+  --c3:#f5a623; --c3-bg:#261c08; --c3-mid:#42300f;
+  --c4:#e05cac; --c4-bg:#250f1c; --c4-mid:#401828;
+  --c5:#5cb8f5; --c5-bg:#081d2a; --c5-mid:#0f3248;
+  --c6:#a0e06a; --c6-bg:#131f08; --c6-mid:#203512;
+  --c7:#f5716a; --c7-bg:#250e0e; --c7-mid:#401818;
+  --c8:#c97cf5; --c8-bg:#1c1028; --c8-mid:#2e1a42;
+  --c9:#f5d76a; --c9-bg:#24200a; --c9-mid:#3d3512;
+
+  --radius: 14px;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Sora', sans-serif;
+  --arabic: 'Noto Sans Arabic', sans-serif;
+}
+
+/* ── RESET & BASE ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+/* ── HEADER ────────────────────────────────────────────── */
+header {
+  background: linear-gradient(135deg, #0d0f14 0%, #141b35 40%, #0d1a25 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 56px 40px 44px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(124,106,245,.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 75% 30%, rgba(61,201,164,.10) 0%, transparent 55%);
+  pointer-events:none;
+}
+.header-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--c2);
+  margin-bottom: 16px;
+}
+header h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.15;
+  background: linear-gradient(135deg, #a89fff 0%, #3dc9a4 45%, #5cb8f5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+.header-sub {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 300;
+}
+
+/* ── TOC ───────────────────────────────────────────────── */
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 28px 40px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.toc a {
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .5px;
+  padding: 7px 16px;
+  border-radius: 100px;
+  transition: all .2s;
+}
+.toc a:nth-child(1){ color:var(--c1); background:var(--c1-bg); border:1px solid var(--c1-mid); }
+.toc a:nth-child(2){ color:var(--c2); background:var(--c2-bg); border:1px solid var(--c2-mid); }
+.toc a:nth-child(3){ color:var(--c3); background:var(--c3-bg); border:1px solid var(--c3-mid); }
+.toc a:nth-child(4){ color:var(--c5); background:var(--c5-bg); border:1px solid var(--c5-mid); }
+.toc a:nth-child(5){ color:var(--c4); background:var(--c4-bg); border:1px solid var(--c4-mid); }
+.toc a:hover { filter:brightness(1.3); transform:translateY(-2px); }
+
+/* ── LAYOUT ────────────────────────────────────────────── */
+main { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+
+/* ── SECTION CARDS ─────────────────────────────────────── */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 36px;
+  overflow: hidden;
+}
+.section-card[data-accent="1"] { border-left: 4px solid var(--c1); }
+.section-card[data-accent="2"] { border-left: 4px solid var(--c2); }
+.section-card[data-accent="3"] { border-left: 4px solid var(--c3); }
+.section-card[data-accent="5"] { border-left: 4px solid var(--c5); }
+.section-card[data-accent="4"] { border-left: 4px solid var(--c4); }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 28px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+}
+.section-header:hover { background: var(--surface2); }
+
+.icon-badge {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+[data-accent="1"] .icon-badge { background:var(--c1-mid); }
+[data-accent="2"] .icon-badge { background:var(--c2-mid); }
+[data-accent="3"] .icon-badge { background:var(--c3-mid); }
+[data-accent="5"] .icon-badge { background:var(--c5-mid); }
+[data-accent="4"] .icon-badge { background:var(--c4-mid); }
+
+.section-title-wrap { flex:1; }
+.section-title-wrap h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+[data-accent="1"] h2 { color:var(--c1); }
+[data-accent="2"] h2 { color:var(--c2); }
+[data-accent="3"] h2 { color:var(--c3); }
+[data-accent="5"] h2 { color:var(--c5); }
+[data-accent="4"] h2 { color:var(--c4); }
+
+.section-title-wrap small { color:var(--muted); font-size:12px; }
+
+.toggle-btn {
+  background:none; border:none; color:var(--muted);
+  font-size:20px; cursor:pointer; line-height:1;
+  transition:transform .3s;
+  padding: 4px 8px;
+}
+.section-card.collapsed .toggle-btn { transform:rotate(-90deg); }
+
+.section-body { display:block; }
+.section-card.collapsed .section-body { display:none; }
+
+/* ── LANG TABS ─────────────────────────────────────────── */
+.lang-tabs {
+  display: flex;
+  gap: 0;
+  padding: 16px 28px 0;
+}
+.lang-tab {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+}
+.lang-tab:first-child { border-radius: 8px 0 0 8px; }
+.lang-tab:last-child { border-radius: 0 8px 8px 0; border-left:none; }
+.lang-tab.active {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.lang-panel { padding: 24px 28px; }
+.lang-panel[lang="ar"] {
+  font-family: var(--arabic);
+  direction: rtl;
+  text-align: right;
+  line-height: 2;
+}
+.lang-panel.hidden { display: none; }
+
+/* ── BOXES ─────────────────────────────────────────────── */
+.box {
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 18px 0;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.box-analogy  { background:var(--c3-bg); border:1px solid var(--c3-mid); }
+.box-example  { background:var(--c2-bg); border:1px solid var(--c2-mid); }
+.box-summary  { background:var(--c1-bg); border:1px solid var(--c1-mid); }
+.box-warning  { background:var(--c7-bg); border:1px solid var(--c7-mid); }
+
+.box-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.box-analogy  .box-label { color:var(--c3); }
+.box-example  .box-label { color:var(--c2); }
+.box-summary  .box-label { color:var(--c1); }
+.box-warning  .box-label { color:var(--c7); }
+
+/* ── INLINE SPANS ──────────────────────────────────────── */
+.term {
+  color: var(--c3);
+  font-weight: 600;
+  border-bottom: 1px dashed var(--c3-mid);
+}
+.highlight {
+  background: var(--c1-mid);
+  color: var(--c1);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 13px;
+}
+.code-inline {
+  font-family: var(--mono);
+  background: #0a0c12;
+  color: #a89fff;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+}
+
+/* ── PROSE ─────────────────────────────────────────────── */
+.lang-panel p { margin-bottom: 14px; }
+.lang-panel ul { padding-left: 20px; margin-bottom: 14px; }
+.lang-panel[lang="ar"] ul { padding-left: 0; padding-right: 20px; }
+.lang-panel li { margin-bottom: 6px; }
+.lang-panel h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 20px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── COMPARE TABLE ─────────────────────────────────────── */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  font-size: 13.5px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.compare-table thead tr {
+  background: linear-gradient(90deg, var(--c1-mid), var(--c5-mid));
+}
+.compare-table th {
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+  font-weight: 600;
+  text-align: left;
+}
+.compare-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.compare-table tbody tr:nth-child(even) td { background: var(--surface2); }
+.compare-table tbody tr:hover td { background: var(--c1-bg); }
+
+/* ── FIGURE / DIAGRAM ──────────────────────────────────── */
+.figure-wrap {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  text-align: center;
+}
+.figure-wrap figcaption {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 14px;
+  font-family: var(--mono);
+}
+
+/* ── CODE BLOCK ────────────────────────────────────────── */
+.code-block {
+  background: #070810;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.9;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.tok-kw   { color:#c678dd; }
+.tok-fn   { color:#61afef; }
+.tok-str  { color:#98c379; }
+.tok-cmt  { color:#5c6370; font-style:italic; }
+.tok-num  { color:#d19a66; }
+.tok-var  { color:#e06c75; }
+
+/* ── DIVIDER ───────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 8px 0;
+}
+
+/* ── SCROLL ────────────────────────────────────────────── */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <p class="header-tag">Deep Learning · Lecture 06</p>
+  <h1>Explainable AI (XAI)</h1>
+  <p class="header-sub">Bilingual Study Guide — English &amp; Arabic · Dr. Ahmed Yousry</p>
+</header>
+
+<!-- TOC -->
+<nav class="toc" aria-label="Table of Contents">
+  <a href="#why-xai">Why XAI?</a>
+  <a href="#gradcam">Grad-CAM</a>
+  <a href="#lime">LIME</a>
+  <a href="#shap">SHAP</a>
+  <a href="#saliency">Saliency Maps</a>
+</nav>
+
+<main>
+
+<!-- ═══════════════ SECTION 1: WHY XAI ═══════════════ -->
+<article class="section-card" data-accent="1" id="why-xai">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">🤔</div>
+    <div class="section-title-wrap">
+      <h2>Why XAI?</h2>
+      <small>Motivation &amp; Use Cases</small>
+    </div>
+    <button class="toggle-btn" aria-label="toggle">▾</button>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="lang-panel" lang="en">
+      <h3>What is XAI?</h3>
+      <p>
+        Most modern AI models — especially deep neural networks — are called
+        <span class="term">black boxes</span>. They take input (an image, text, numbers)
+        and produce an output (a label, a decision), but they give you
+        <em>no explanation</em> for why they made that choice.
+      </p>
+      <p>
+        <span class="term">Explainable AI (XAI)</span> is a set of techniques that open
+        that black box and let humans understand the reasoning behind the model's
+        predictions.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 Analogy</div>
+        Imagine a doctor who just says "You have cancer" and walks away — no test results, no explanation.
+        That's a black-box model. XAI is the doctor who shows you the X-ray and points to the suspicious region.
+      </div>
+
+      <h3>Why does it matter?</h3>
+      <ul>
+        <li><strong>Trust:</strong> You cannot trust something you do not understand. XAI helps users believe the model's decisions.</li>
+        <li><strong>Debugging:</strong> If the model makes an error, XAI tells you <em>where</em> it went wrong — wrong features, wrong regions.</li>
+        <li><strong>Fairness:</strong> XAI reveals if the model is biased (e.g., making decisions based on gender or race instead of relevant features).</li>
+        <li><strong>Regulation:</strong> Fields like healthcare, finance, and law often require decisions to be explainable by law.</li>
+        <li><strong>Validation:</strong> Confirms the model focuses on the right patterns, not noise or spurious correlations.</li>
+      </ul>
+
+      <h3>Sensitive Domains</h3>
+      <table class="compare-table">
+        <thead><tr><th>Domain</th><th>Why Explainability is Critical</th></tr></thead>
+        <tbody>
+          <tr><td>Healthcare</td><td>Diagnoses affect human lives — errors must be detected and justified.</td></tr>
+          <tr><td>Finance</td><td>Loan/insurance decisions must be fair and auditable.</td></tr>
+          <tr><td>Security</td><td>Threat detection must be trustworthy and free of false positives.</td></tr>
+          <tr><td>Autonomous Vehicles</td><td>Safety depends on understanding why the car made a decision.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ Summary</div>
+        XAI bridges the gap between powerful-but-opaque AI models and the humans who need to trust and use them.
+        It is not optional in high-stakes fields — it is a requirement.
+      </div>
+    </div>
+
+    <!-- ARABIC -->
+    <div class="lang-panel hidden" lang="ar">
+      <h3>ما هو الـ XAI؟</h3>
+      <p>
+        معظم نماذج الذكاء الاصطناعي الحديثة — خصوصاً الـ <span class="term">deep neural networks</span> —
+        بتتصرف زي الـ <span class="term">black box</span> (الصندوق الأسود).
+        بتاخد input وبتطلع output، بس مش بتقولك ليه اتخذت القرار ده.
+      </p>
+      <p>
+        الـ <span class="term">Explainable AI (XAI)</span> هو مجموعة من الـ techniques اللي بتفتح
+        الصندوق الأسود ده وبتخلي البشر يفهموا ليه النموذج اتخذ القرار اللي اتخذه.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 مثال توضيحي</div>
+        تخيل دكتور بيقولك "عندك سرطان" ويمشي من غير ما يوريك أي تحاليل أو أشعة.
+        ده هو الـ black-box model.
+        الـ XAI هو الدكتور اللي بيوريك الأشعة ويقولك "الجزء ده هو المشكلة."
+      </div>
+
+      <h3>ليه XAI مهم؟</h3>
+      <ul>
+        <li><strong>الثقة (Trust):</strong> مش هتثق في حاجة مش فاهمها. الـ XAI بيخلي الناس يصدقوا قرارات النموذج.</li>
+        <li><strong>اكتشاف الأخطاء (Debugging):</strong> لو النموذج غلط، الـ XAI بيقولك غلط فين بالظبط.</li>
+        <li><strong>العدالة (Fairness):</strong> بيكشف لو النموذج متحيز — مثلاً بياخد قرارات بناءً على الجنس أو العرق.</li>
+        <li><strong>القانون والتنظيم:</strong> في مجالات زي الصحة والمال، القانون بيطلب تفسير القرارات.</li>
+        <li><strong>التحقق (Validation):</strong> بيتأكد إن النموذج بيشوف الحاجات الصح، مش بيتعلم من ضجيج عشوائي.</li>
+      </ul>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ ملخص</div>
+        الـ XAI بيعمل جسر بين النماذج القوية الغامضة وبين البشر اللي محتاجين يثقوا فيها ويستخدموها.
+        في المجالات الحساسة، مش option — ده ضرورة.
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ═══════════════ SECTION 2: GRAD-CAM ═══════════════ -->
+<article class="section-card" data-accent="2" id="gradcam">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">🔥</div>
+    <div class="section-title-wrap">
+      <h2>Grad-CAM</h2>
+      <small>Gradient-weighted Class Activation Mapping</small>
+    </div>
+    <button class="toggle-btn" aria-label="toggle">▾</button>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="lang-panel" lang="en">
+      <h3>What is Grad-CAM?</h3>
+      <p>
+        <span class="term">Grad-CAM</span> (Gradient-weighted Class Activation Mapping) is a technique
+        that highlights <strong>which regions of an image</strong> a CNN focused on when making a prediction.
+        It produces a colored <span class="term">heatmap</span> overlaid on the original image — hot colors
+        (red/yellow) mean "the model cared a lot about this region."
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 Analogy</div>
+        Imagine you asked someone "Why did you think this photo shows a dog?" and they highlighted
+        the ears and snout with a marker. That's what Grad-CAM does — it marks the important areas.
+      </div>
+
+      <h3>How it works — Step by Step</h3>
+
+      <!-- SVG DIAGRAM -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;">
+          <defs>
+            <linearGradient id="grdg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#7c6af5;stop-opacity:.35"/>
+              <stop offset="100%" style="stop-color:#3dc9a4;stop-opacity:.35"/>
+            </linearGradient>
+          </defs>
+          <!-- pipeline boxes -->
+          <g font-family="'IBM Plex Mono',monospace" font-size="11" fill="#e4e8f5" text-anchor="middle">
+            <!-- box 1 -->
+            <rect x="10" y="60" width="110" height="80" rx="10" fill="#1c2030" stroke="#3dc9a4" stroke-width="1.5"/>
+            <text x="65" y="96" fill="#3dc9a4" font-size="20">🖼</text>
+            <text x="65" y="120">Input Image</text>
+
+            <!-- arrow -->
+            <line x1="120" y1="100" x2="155" y2="100" stroke="#3dc9a4" stroke-width="1.5" marker-end="url(#arr)"/>
+
+            <!-- box 2 -->
+            <rect x="155" y="60" width="120" height="80" rx="10" fill="#1c2030" stroke="#7c6af5" stroke-width="1.5"/>
+            <text x="215" y="92" fill="#7c6af5" font-size="14" font-family="'Sora',sans-serif" font-weight="700">Conv</text>
+            <text x="215" y="110" fill="#7c6af5" font-size="14" font-family="'Sora',sans-serif" font-weight="700">Layers</text>
+            <text x="215" y="128">feature maps</text>
+
+            <!-- arrow -->
+            <line x1="275" y1="100" x2="310" y2="100" stroke="#7c6af5" stroke-width="1.5" marker-end="url(#arr2)"/>
+
+            <!-- box 3 -->
+            <rect x="310" y="60" width="130" height="80" rx="10" fill="#1c2030" stroke="#f5a623" stroke-width="1.5"/>
+            <text x="375" y="92" fill="#f5a623" font-size="13" font-family="'Sora',sans-serif" font-weight="700">Gradients</text>
+            <text x="375" y="110" fill="#f5a623" font-size="13" font-family="'Sora',sans-serif" font-weight="700">&amp; Weights</text>
+            <text x="375" y="128">∂score/∂feature</text>
+
+            <!-- arrow -->
+            <line x1="440" y1="100" x2="475" y2="100" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+            <!-- box 4 -->
+            <rect x="475" y="60" width="120" height="80" rx="10" fill="#1c2030" stroke="#e05cac" stroke-width="1.5"/>
+            <text x="535" y="92" fill="#e05cac" font-size="14" font-family="'Sora',sans-serif" font-weight="700">ReLU +</text>
+            <text x="535" y="110" fill="#e05cac" font-size="14" font-family="'Sora',sans-serif" font-weight="700">Combine</text>
+            <text x="535" y="128">weighted sum</text>
+
+            <!-- arrow -->
+            <line x1="595" y1="100" x2="630" y2="100" stroke="#e05cac" stroke-width="1.5" marker-end="url(#arr4)"/>
+
+            <!-- box 5 -->
+            <rect x="630" y="60" width="120" height="80" rx="10" fill="#1c2030" stroke="#5cb8f5" stroke-width="1.5"/>
+            <text x="690" y="96" fill="#5cb8f5" font-size="20">🗺</text>
+            <text x="690" y="120">Heatmap</text>
+          </g>
+          <!-- arrow markers -->
+          <defs>
+            <marker id="arr"  markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0 0, 7 3.5, 0 7" fill="#3dc9a4"/></marker>
+            <marker id="arr2" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0 0, 7 3.5, 0 7" fill="#7c6af5"/></marker>
+            <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0 0, 7 3.5, 0 7" fill="#f5a623"/></marker>
+            <marker id="arr4" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><polygon points="0 0, 7 3.5, 0 7" fill="#e05cac"/></marker>
+          </defs>
+        </svg>
+        <figcaption>Figure 1 — Grad-CAM pipeline: from raw image to heatmap</figcaption>
+      </div>
+
+      <ul>
+        <li>
+          <strong>Step 1 — Extract Feature Maps:</strong>
+          Take the output of the <span class="term">last convolutional layer</span>.
+          Each filter in that layer has generated a <span class="term">feature map</span> — a grid of numbers
+          representing what pattern it detected (edges, textures, object parts).
+        </li>
+        <li>
+          <strong>Step 2 — Compute Gradients:</strong>
+          Calculate <span class="code-inline">∂(class score) / ∂(feature map)</span>.
+          This tells us: if we change a pixel in this feature map, how much does the final class score change?
+          Larger gradient = more important feature map.
+        </li>
+        <li>
+          <strong>Step 3 — Calculate Weights:</strong>
+          Average the gradients across all spatial positions for each feature map.
+          These averages become the <span class="term">importance weights</span>.
+        </li>
+        <li>
+          <strong>Step 4 — Generate Heatmap:</strong>
+          Multiply each feature map by its weight, sum them all, then apply
+          <span class="term">ReLU</span> (zeroes out negative values — we only care about regions
+          that <em>increase</em> the score). Resize the result to match the input image.
+        </li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">▶ Example</div>
+        A CNN classifies an X-ray as "pneumonia." Grad-CAM reveals the heatmap is concentrated
+        on the lower-right lung lobe — exactly where pneumonia shadows appear. This confirms the
+        model is reasoning correctly, not picking up artifacts.
+      </div>
+
+      <h3>Why the Last Conv Layer?</h3>
+      <p>
+        Early layers detect simple patterns (edges, corners). The last conv layer detects
+        <em>semantic, high-level concepts</em> (faces, wheels, tumors) while still retaining
+        spatial information. Fully-connected layers lose spatial information, so they cannot
+        produce a meaningful heatmap.
+      </p>
+
+      <div class="box box-warning">
+        <div class="box-label">⚠ Important</div>
+        Grad-CAM only works with CNNs that have convolutional layers.
+        It cannot be applied directly to fully-connected networks or transformers without adaptation.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ Summary</div>
+        Grad-CAM uses gradients flowing back from the class score to the last conv layer to create a heatmap.
+        Hot regions = regions the model found most useful for that specific prediction.
+        It is fast, requires no model changes, and is class-specific.
+      </div>
+    </div>
+
+    <!-- ARABIC -->
+    <div class="lang-panel hidden" lang="ar">
+      <h3>ما هو Grad-CAM؟</h3>
+      <p>
+        الـ <span class="term">Grad-CAM</span> هي تقنية بتوضح <strong>أي أجزاء الصورة</strong>
+        اللي الـ CNN بصّ فيها لما اتخذ قراره. بتعمل <span class="term">heatmap</span> (خريطة حرارية)
+        فوق الصورة الأصلية — الألوان الساخنة (أحمر/أصفر) معناها "النموذج اهتم بالمنطقة دي جداً."
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 مثال توضيحي</div>
+        تخيل إنك سألت حد "ليه قلت إن الصورة دي فيها كلب؟" فهو لون بالفلوماستر على الأذنين والبوز.
+        ده بالظبط اللي الـ Grad-CAM بيعمله — بيحدد المناطق المهمة.
+      </div>
+
+      <h3>خطوات Grad-CAM</h3>
+      <ul>
+        <li>
+          <strong>خطوة ١ — استخراج الـ Feature Maps:</strong>
+          بناخد output من آخر <span class="term">convolutional layer</span>.
+          كل filter في الطبقة دي عمل feature map — شبكة من الأرقام بتمثل البيتيرن اللي اتشاف (حواف، نسج، أجزاء من objects).
+        </li>
+        <li>
+          <strong>خطوة ٢ — حساب الـ Gradients:</strong>
+          بنحسب <span class="code-inline">∂(score) / ∂(feature map)</span>.
+          ده بيقولنا: لو غيرنا pixel في الـ feature map دي، قد إيه هيتغير الـ score؟
+          gradient أكبر = feature map أهم.
+        </li>
+        <li>
+          <strong>خطوة ٣ — حساب الـ Weights:</strong>
+          بنعمل average للـ gradients لكل feature map. الـ averages دي بتبقى هي الـ importance weights.
+        </li>
+        <li>
+          <strong>خطوة ٤ — توليد الـ Heatmap:</strong>
+          بنضرب كل feature map في وزنها، بنجمعهم، وبنطبق الـ <span class="term">ReLU</span>
+          (بيشيل القيم السالبة، لأننا مهتمين بس بالمناطق اللي بتزود الـ score).
+          بعدين بنعيد تحجيم النتيجة عشان تتناسب مع الصورة الأصلية.
+        </li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">▶ مثال عملي</div>
+        CNN صنّف أشعة X على إنها "pneumonia". الـ Grad-CAM وضّح إن الـ heatmap مركّزة
+        على الجزء الأيمن السفلي من الرئة — وده بالظبط مكان الظلال في حالات الالتهاب الرئوي.
+        ده بيأكد إن النموذج بيفكر صح.
+      </div>
+
+      <h3>ليه آخر Conv Layer؟</h3>
+      <p>
+        الطبقات الأولى بتشوف patterns بسيطة (حواف وزوايا).
+        آخر conv layer بتشوف مفاهيم عالية المستوى (وجوه، عجلات، أورام) مع الحفاظ على معلومات المكان.
+        الـ fully-connected layers بتفقد المعلومات المكانية، فمش ممكن تعمل heatmap منطقية منها.
+      </p>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ ملخص</div>
+        الـ Grad-CAM بيستخدم الـ gradients اللي بترجع من الـ class score لآخر conv layer عشان يعمل heatmap.
+        المناطق السخنة = المناطق اللي النموذج لقاها مفيدة للتنبؤ ده.
+        سريعة، ما بتغيرش النموذج، ومخصصة لكل class.
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ═══════════════ SECTION 3: LIME ═══════════════ -->
+<article class="section-card" data-accent="3" id="lime">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">🍋</div>
+    <div class="section-title-wrap">
+      <h2>LIME</h2>
+      <small>Local Interpretable Model-agnostic Explanations</small>
+    </div>
+    <button class="toggle-btn" aria-label="toggle">▾</button>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="lang-panel" lang="en">
+      <h3>What is LIME?</h3>
+      <p>
+        <span class="term">LIME</span> stands for <em>Local Interpretable Model-agnostic Explanations</em>.
+        The key word is <span class="highlight">model-agnostic</span> — it works with <em>any</em> model,
+        regardless of architecture (CNN, SVM, random forest, transformer, etc.).
+      </p>
+      <p>
+        LIME does not explain the entire model. Instead, it explains
+        <strong>a single prediction</strong> by studying how small changes around that input affect the output.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 Analogy</div>
+        You want to understand why a dark room feels cold. You cannot understand the whole thermodynamics of the building,
+        so you open the window a little, close a vent, add a curtain — and observe small changes in temperature.
+        LIME does the same: it tweaks the input slightly and watches how the prediction changes.
+      </div>
+
+      <h3>How LIME Works for Images</h3>
+      <ul>
+        <li>
+          <strong>Step 1 — Superpixels:</strong>
+          LIME divides the image into regions called <span class="term">superpixels</span> —
+          groups of adjacent pixels that share similar color/texture. Each superpixel is treated as
+          an atomic unit (on/off).
+        </li>
+        <li>
+          <strong>Step 2 — Perturbation:</strong>
+          LIME creates many modified copies of the image by randomly turning superpixels
+          on or off (greying them out). It generates hundreds of such "perturbed" images.
+        </li>
+        <li>
+          <strong>Step 3 — Query the Black Box:</strong>
+          Each perturbed image is fed into the original model to get its prediction score.
+        </li>
+        <li>
+          <strong>Step 4 — Fit a Simple Model:</strong>
+          LIME trains a simple, interpretable model (like a linear regression) on the set
+          {perturbed image → prediction score}. This simple model approximates
+          the black box <em>locally</em> (near the original input).
+        </li>
+        <li>
+          <strong>Step 5 — Read the Explanation:</strong>
+          The coefficients of the simple model tell you which superpixels matter most
+          (positive = pushes toward the class, negative = pushes away).
+        </li>
+      </ul>
+
+      <!-- SVG figure for LIME -->
+      <div class="figure-wrap">
+        <svg viewBox="0 0 660 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:660px;">
+          <g font-family="'Sora',sans-serif" font-size="12" fill="#e4e8f5" text-anchor="middle">
+            <!-- original image -->
+            <rect x="10" y="30" width="100" height="100" rx="8" fill="#1c2030" stroke="#f5a623" stroke-width="1.5"/>
+            <text x="60" y="76" font-size="28">🖼</text>
+            <text x="60" y="118" font-size="11" fill="#f5a623">Original</text>
+
+            <!-- perturbed copies -->
+            <rect x="145" y="20" width="70" height="50" rx="6" fill="#261c08" stroke="#f5a623" stroke-width="1" stroke-dasharray="4"/>
+            <text x="180" y="50" font-size="18">🟫</text>
+            <rect x="145" y="90" width="70" height="50" rx="6" fill="#261c08" stroke="#f5a623" stroke-width="1" stroke-dasharray="4"/>
+            <text x="180" y="120" font-size="18">🟫</text>
+
+            <text x="160" y="156" font-size="11" fill="#7880a0">Perturbed</text>
+
+            <!-- arrow 1 -->
+            <line x1="110" y1="80" x2="142" y2="50" stroke="#f5a623" stroke-width="1.2" marker-end="url(#lime1)"/>
+            <line x1="110" y1="80" x2="142" y2="115" stroke="#f5a623" stroke-width="1.2" marker-end="url(#lime1)"/>
+
+            <!-- black box -->
+            <rect x="250" y="40" width="110" height="80" rx="8" fill="#1c2030" stroke="#7c6af5" stroke-width="1.5"/>
+            <text x="305" y="80" font-size="22">🤖</text>
+            <text x="305" y="103" font-size="11" fill="#7c6af5">Black Box</text>
+
+            <line x1="215" y1="45" x2="248" y2="65" stroke="#7c6af5" stroke-width="1.2" marker-end="url(#lime2)"/>
+            <line x1="215" y1="115" x2="248" y2="100" stroke="#7c6af5" stroke-width="1.2" marker-end="url(#lime2)"/>
+
+            <!-- scores -->
+            <rect x="395" y="50" width="90" height="30" rx="6" fill="#1c2030" stroke="#3dc9a4" stroke-width="1"/>
+            <text x="440" y="70" font-size="12" fill="#3dc9a4">0.93 🐱</text>
+            <rect x="395" y="90" width="90" height="30" rx="6" fill="#1c2030" stroke="#3dc9a4" stroke-width="1"/>
+            <text x="440" y="110" font-size="12" fill="#3dc9a4">0.11 🐱</text>
+
+            <line x1="360" y1="80" x2="393" y2="68" stroke="#3dc9a4" stroke-width="1.2" marker-end="url(#lime3)"/>
+            <line x1="360" y1="80" x2="393" y2="103" stroke="#3dc9a4" stroke-width="1.2" marker-end="url(#lime3)"/>
+
+            <!-- linear model -->
+            <rect x="520" y="40" width="130" height="80" rx="8" fill="#1c2030" stroke="#e05cac" stroke-width="1.5"/>
+            <text x="585" y="70" font-size="11" fill="#e05cac">Linear Model</text>
+            <text x="585" y="90" font-size="10" fill="#7880a0">superpixel A: +0.8</text>
+            <text x="585" y="107" font-size="10" fill="#7880a0">superpixel B: -0.2</text>
+
+            <line x1="488" y1="80" x2="518" y2="80" stroke="#e05cac" stroke-width="1.2" marker-end="url(#lime4)"/>
+          </g>
+          <defs>
+            <marker id="lime1" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><polygon points="0 0,6 3,0 6" fill="#f5a623"/></marker>
+            <marker id="lime2" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><polygon points="0 0,6 3,0 6" fill="#7c6af5"/></marker>
+            <marker id="lime3" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><polygon points="0 0,6 3,0 6" fill="#3dc9a4"/></marker>
+            <marker id="lime4" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><polygon points="0 0,6 3,0 6" fill="#e05cac"/></marker>
+          </defs>
+        </svg>
+        <figcaption>Figure 2 — LIME pipeline: perturb → query black box → fit linear model → extract importances</figcaption>
+      </div>
+
+      <div class="box box-example">
+        <div class="box-label">▶ Example</div>
+        An image classifier says "cat." LIME perturbs the image 500 times, each time hiding different
+        superpixels. It finds that when the ear region is hidden, the score drops the most.
+        Conclusion: the ears were the most important feature for predicting "cat."
+      </div>
+
+      <h3>LIME vs Grad-CAM</h3>
+      <table class="compare-table">
+        <thead><tr><th>Property</th><th>Grad-CAM</th><th>LIME</th></tr></thead>
+        <tbody>
+          <tr><td>Model type</td><td>CNNs only</td><td>Any model</td></tr>
+          <tr><td>Speed</td><td>Fast (one pass)</td><td>Slow (many queries)</td></tr>
+          <tr><td>Explanation type</td><td>Pixel-level heatmap</td><td>Superpixel importance</td></tr>
+          <tr><td>Requires model internals</td><td>Yes (gradients)</td><td>No (black-box access only)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ Summary</div>
+        LIME explains any model by perturbing a single input and observing how the output changes.
+        It is model-agnostic and works on images, text, and tabular data.
+        The trade-off: it is slower and the explanations are local (only valid near that specific input).
+      </div>
+    </div>
+
+    <!-- ARABIC -->
+    <div class="lang-panel hidden" lang="ar">
+      <h3>ما هو LIME؟</h3>
+      <p>
+        الـ <span class="term">LIME</span> اختصار لـ <em>Local Interpretable Model-agnostic Explanations</em>.
+        الكلمة المهمة هي <span class="highlight">model-agnostic</span> — معناها إنها بتشتغل مع
+        <em>أي نموذج</em> بغض النظر عن شكله (CNN, SVM, random forest, transformer...).
+      </p>
+      <p>
+        الـ LIME مش بيشرح النموذج كله، بيشرح <strong>تنبؤ واحد بعينه</strong>
+        عن طريق تغييرات صغيرة في الـ input وملاحظة تأثيرها.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 مثال توضيحي</div>
+        عايز تفهم ليه أوضة معينة باردة. مش قادر تفهم كل الفيزياء، فبتفتح الشباك شوية، بتقفل فتحة تهوية، بتحط ستارة — وبتشوف التغيير في درجة الحرارة.
+        الـ LIME بيعمل نفس الشيء: بيغير الـ input شوية وبيشوف التنبؤ بيتغير إزاي.
+      </div>
+
+      <h3>خطوات LIME في الصور</h3>
+      <ul>
+        <li>
+          <strong>خطوة ١ — الـ Superpixels:</strong>
+          بيقسم الصورة لمناطق اسمها <span class="term">superpixels</span> —
+          مجموعات pixels متجاورة بيها ألوان/نسج متشابهة. كل superpixel بيتعامل معاه كوحدة (يظهر أو يختفي).
+        </li>
+        <li>
+          <strong>خطوة ٢ — الـ Perturbation:</strong>
+          بيعمل نسخ كتير من الصورة عن طريق إخفاء superpixels بشكل عشوائي (تحويلهم رمادي).
+          بيعمل مئات من الصور المعدّلة دي.
+        </li>
+        <li>
+          <strong>خطوة ٣ — استفسار الـ Black Box:</strong>
+          كل صورة معدّلة بتتدفع للنموذج الأصلي عشان يديها score.
+        </li>
+        <li>
+          <strong>خطوة ٤ — نموذج بسيط:</strong>
+          بيدرب نموذج بسيط وسهل الفهم (زي linear regression) على الـ {صورة معدّلة → score}.
+          النموذج البسيط ده بيقرب الـ black box <em>محلياً</em>.
+        </li>
+        <li>
+          <strong>خطوة ٥ — قراءة التفسير:</strong>
+          المعاملات بتقولك أي superpixels أهم (موجب = بيدفع ناحية الـ class، سالب = بيبعده).
+        </li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">▶ مثال عملي</div>
+        نموذج تصنيف صور قال "قطة". الـ LIME عمل ٥٠٠ تجربة وخبّى superpixels مختلفة في كل مرة.
+        لقى إن لما اتخبّت منطقة الأذن، الـ score وقع أكتر حاجة.
+        النتيجة: الأذنين هي أهم حاجة ساعدت النموذج يقول "قطة."
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ ملخص</div>
+        الـ LIME بيشرح أي نموذج عن طريق تغيير الـ input ومشاهدة التأثير على الـ output.
+        يشتغل مع صور، نصوص، وجداول. مشكلته إنه بطيء والتفسير صالح بس قريب من الـ input الأصلي.
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ═══════════════ SECTION 4: SHAP ═══════════════ -->
+<article class="section-card" data-accent="5" id="shap">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">🎲</div>
+    <div class="section-title-wrap">
+      <h2>SHAP</h2>
+      <small>SHapley Additive exPlanations</small>
+    </div>
+    <button class="toggle-btn" aria-label="toggle">▾</button>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="lang-panel" lang="en">
+      <h3>What is SHAP?</h3>
+      <p>
+        <span class="term">SHAP</span> (SHapley Additive exPlanations) is grounded in
+        <strong>cooperative game theory</strong>. The core idea: treat each feature as a "player"
+        in a game, and figure out how much each player contributed to the final outcome (prediction).
+      </p>
+      <p>
+        SHAP computes <span class="term">Shapley values</span> — a mathematically principled way to
+        fairly distribute credit among features.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 Analogy</div>
+        A team of 4 workers completes a project worth $1000. To be fair, you measure each worker's contribution
+        by checking: how much does the project value change when this worker is added to every possible sub-team?
+        That average marginal contribution is the Shapley value. SHAP does the same for model features.
+      </div>
+
+      <h3>Shapley Values — The Math Idea (Simple)</h3>
+      <p>
+        For a feature <em>i</em>, the Shapley value is the <strong>average marginal contribution</strong>
+        of feature <em>i</em> across <em>all possible subsets</em> of features.
+      </p>
+      <div class="code-block">
+        <span class="tok-cmt">-- For each possible subset S of features (not including i):</span><br/>
+        <span class="tok-kw">marginal</span>(i, S) = f(S ∪ {i}) - f(S)<br/>
+        <span class="tok-cmt">-- Shapley value = weighted average of marginal(i, S) over all S</span>
+      </div>
+      <p>This gives a <em>fair</em> attribution because it considers every possible combination of features.</p>
+
+      <h3>Key Properties of SHAP</h3>
+      <ul>
+        <li><strong>Consistency:</strong> If a feature matters more, its SHAP value is always higher.</li>
+        <li><strong>Local accuracy:</strong> The sum of all SHAP values equals the model's prediction minus a baseline.</li>
+        <li><strong>Missingness:</strong> Features that do not participate in a subset get zero contribution.</li>
+        <li><strong>Model-agnostic:</strong> Works with any model (though specialized fast versions exist for trees and neural nets).</li>
+      </ul>
+
+      <div class="box box-example">
+        <div class="box-label">▶ Example</div>
+        A bank model predicts loan rejection. SHAP values say:<br/>
+        Age: +0.3 (increases rejection risk)<br/>
+        Income: -0.5 (decreases rejection risk strongly)<br/>
+        Employment: +0.1<br/>
+        The sum: baseline + 0.3 - 0.5 + 0.1 = final rejection probability.
+        Now the applicant knows <em>exactly</em> what to improve.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ Summary</div>
+        SHAP assigns each feature a fair contribution score based on game theory.
+        It is mathematically rigorous, consistent, and works globally and locally.
+        It is the gold standard of feature attribution methods.
+      </div>
+    </div>
+
+    <!-- ARABIC -->
+    <div class="lang-panel hidden" lang="ar">
+      <h3>ما هو SHAP؟</h3>
+      <p>
+        الـ <span class="term">SHAP</span> مبني على <strong>نظرية الألعاب التعاونية</strong> (game theory).
+        الفكرة: تعامل كل feature كأنه "لاعب" في لعبة، وحدد قد إيه كل لاعب ساهم في النتيجة النهائية (التنبؤ).
+      </p>
+      <p>
+        الـ SHAP بيحسب <span class="term">Shapley values</span> — طريقة رياضية محكمة لتوزيع الفضل بشكل عادل على الـ features.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 مثال توضيحي</div>
+        فريق من ٤ موظفين أنهوا مشروع بقيمة ١٠٠٠ جنيه. عشان تكون عادل في توزيع المكافأة،
+        بتقيس مساهمة كل موظف: كيف تتغير قيمة المشروع لو أضفنا الموظف ده لكل مجموعة فرعية ممكنة؟
+        متوسط هذه المساهمة هو قيمة Shapley. الـ SHAP بيعمل نفس الشيء مع الـ features.
+      </div>
+
+      <h3>الفكرة الرياضية ببساطة</h3>
+      <p>
+        لكل feature <em>i</em>، قيمة Shapley هي <strong>متوسط المساهمة الهامشية</strong>
+        على <em>كل المجموعات الجزئية الممكنة</em> من الـ features.
+      </p>
+
+      <div class="box box-example">
+        <div class="box-label">▶ مثال عملي</div>
+        نموذج بنكي توقع رفض قرض. قيم SHAP قالت:<br/>
+        العمر: +0.3 (بيزود احتمال الرفض)<br/>
+        الدخل: -0.5 (بيقلل احتمال الرفض بشكل قوي)<br/>
+        التوظيف: +0.1<br/>
+        المجموع: baseline + 0.3 - 0.5 + 0.1 = احتمال الرفض النهائي.
+        دلوقتي المتقدم بيعرف بالظبط إيه اللي محتاج يحسنه.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ ملخص</div>
+        الـ SHAP بيحدد مساهمة كل feature بشكل عادل رياضياً مبني على نظرية الألعاب.
+        دقيق ومتسق ويشتغل على المستوى المحلي والعالمي.
+        يعتبر المعيار الذهبي لطرق نسب الأهمية للـ features.
+      </div>
+    </div>
+  </div>
+</article>
+
+
+<!-- ═══════════════ SECTION 5: SALIENCY ═══════════════ -->
+<article class="section-card" data-accent="4" id="saliency">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">👁</div>
+    <div class="section-title-wrap">
+      <h2>Saliency Maps</h2>
+      <small>Gradient-based Visual Explanation</small>
+    </div>
+    <button class="toggle-btn" aria-label="toggle">▾</button>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <!-- ENGLISH -->
+    <div class="lang-panel" lang="en">
+      <h3>What are Saliency Maps?</h3>
+      <p>
+        A <span class="term">saliency map</span> is the simplest gradient-based explanation method.
+        It answers: <em>which pixels in the input image most directly affect the class score?</em>
+      </p>
+      <p>
+        It computes the <strong>gradient of the class score with respect to each input pixel</strong>.
+        A large gradient means: changing that pixel slightly would change the prediction a lot —
+        so that pixel is important.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 Analogy</div>
+        Imagine a dial (the class score) connected to many knobs (pixels).
+        Some knobs barely move the dial; others move it a lot.
+        Saliency maps find the "sensitive knobs" — the pixels that most directly control the output.
+      </div>
+
+      <h3>How it works</h3>
+      <ul>
+        <li>Forward pass: feed image into the model, get the class score <span class="code-inline">S_c</span>.</li>
+        <li>Backward pass: compute <span class="code-inline">∂S_c / ∂I</span> — gradient of score w.r.t. each pixel.</li>
+        <li>Visualize: take the absolute value (or max over channels), normalize, display as a grayscale or colored overlay.</li>
+      </ul>
+
+      <h3>Saliency vs Grad-CAM</h3>
+      <table class="compare-table">
+        <thead><tr><th>Property</th><th>Saliency Maps</th><th>Grad-CAM</th></tr></thead>
+        <tbody>
+          <tr><td>Resolution</td><td>Full pixel-level</td><td>Low-res (feature map size), upsampled</td></tr>
+          <tr><td>Noisy?</td><td>Often noisy/speckled</td><td>Smoother, more coherent regions</td></tr>
+          <tr><td>Computation</td><td>Single backprop</td><td>Single backprop + pooling</td></tr>
+          <tr><td>Use</td><td>Quick pixel sensitivity check</td><td>Semantic region explanation</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box box-warning">
+        <div class="box-label">⚠ Limitation</div>
+        Saliency maps can be noisy and unstable — small changes to the image or model parameters
+        can drastically change the map, even if the prediction stays the same.
+        Grad-CAM is usually preferred for semantic interpretability.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ Summary</div>
+        Saliency maps use the gradient of the output with respect to input pixels to find the most
+        sensitive spots in the image. Fast and simple, but often noisy compared to Grad-CAM.
+        Best used as a quick sanity check on what the model "sees."
+      </div>
+    </div>
+
+    <!-- ARABIC -->
+    <div class="lang-panel hidden" lang="ar">
+      <h3>ما هي Saliency Maps؟</h3>
+      <p>
+        الـ <span class="term">saliency map</span> هي أبسط طريقة تفسير مبنية على الـ gradients.
+        بتجاوب على سؤال: <em>أي pixels في الصورة بتأثر بشكل مباشر على الـ class score؟</em>
+      </p>
+      <p>
+        بتحسب <strong>gradient الـ class score بالنسبة لكل pixel</strong> في الصورة.
+        gradient كبير معناه: تغيير الـ pixel ده شوية هيغير التنبؤ كتير — يعني الـ pixel ده مهم.
+      </p>
+
+      <div class="box box-analogy">
+        <div class="box-label">💡 مثال توضيحي</div>
+        تخيل عقرب ساعة (الـ class score) متصلة بمجموعة مقابض (الـ pixels).
+        بعض المقابض مش بتحرك العقرب تقريباً، وبعضها بيحركها كتير.
+        الـ saliency maps بتلاقي "المقابض الحساسة" — الـ pixels اللي بتتحكم في الـ output بشكل مباشر.
+      </div>
+
+      <h3>خطوات الحساب</h3>
+      <ul>
+        <li>Forward pass: بتحط الصورة في النموذج وبتاخد الـ class score <span class="code-inline">S_c</span>.</li>
+        <li>Backward pass: بتحسب <span class="code-inline">∂S_c / ∂I</span> — gradient الـ score بالنسبة لكل pixel.</li>
+        <li>Visualization: بتاخد القيمة المطلقة، بتعمل normalize، وبتعرضها كـ grayscale أو overlay ملوّن.</li>
+      </ul>
+
+      <div class="box box-warning">
+        <div class="box-label">⚠ محدودية</div>
+        الـ saliency maps ممكن تكون ضوضائية وغير مستقرة — تغييرات بسيطة في الصورة أو في النموذج
+        ممكن تغير الـ map بشكل كبير رغم إن التنبؤ نفسه مش بيتغير.
+        الـ Grad-CAM عادةً بيكون أفضل للتفسير الدلالي.
+      </div>
+
+      <div class="box box-summary">
+        <div class="box-label">✦ ملخص</div>
+        الـ saliency maps بتستخدم gradient الـ output بالنسبة لكل pixel عشان تلاقي الأماكن الأكثر حساسية في الصورة.
+        سريعة وبسيطة، بس أكثر ضوضاءً من الـ Grad-CAM.
+        بتستخدم كاختبار سريع على إيه اللي النموذج "بيشوفه".
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- FINAL COMPARE -->
+<article class="section-card" data-accent="2" style="margin-top:40px;">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="icon-badge">📊</div>
+    <div class="section-title-wrap">
+      <h2>Full Methods Comparison</h2>
+      <small>Grad-CAM · LIME · SHAP · Saliency</small>
+    </div>
+    <button class="toggle-btn" aria-label="toggle">▾</button>
+  </div>
+  <div class="section-body">
+    <div class="lang-panel" lang="en" style="display:block;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Model-agnostic?</th>
+            <th>Explanation Type</th>
+            <th>Speed</th>
+            <th>Best For</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:var(--c2)">Grad-CAM</strong></td>
+            <td>No (CNNs only)</td>
+            <td>Spatial heatmap</td>
+            <td>Fast</td>
+            <td>Image classification, CNNs</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--c3)">LIME</strong></td>
+            <td>Yes</td>
+            <td>Superpixel importance</td>
+            <td>Slow</td>
+            <td>Any model, any data type</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--c5)">SHAP</strong></td>
+            <td>Yes</td>
+            <td>Feature attribution scores</td>
+            <td>Medium–Slow</td>
+            <td>Tabular data, global analysis</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--c4)">Saliency</strong></td>
+            <td>No (needs gradients)</td>
+            <td>Pixel sensitivity map</td>
+            <td>Fastest</td>
+            <td>Quick sensitivity checks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</article>
+
+</main>
+
+<script>
+function toggleSection(header) {
+  const card = header.closest('.section-card');
+  card.classList.toggle('collapsed');
+}
+
+function switchLang(btn, lang) {
+  const body = btn.closest('.section-body');
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  body.querySelectorAll('.lang-panel').forEach(p => {
+    p.classList.toggle('hidden', p.getAttribute('lang') !== lang);
+  });
+}
+</script>
+</body>
+</html>
