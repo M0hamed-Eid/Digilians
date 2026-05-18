@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Skills — Module 1 Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font-head: 'Sora', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* 9 accent colors — each with fg, bg, mid */
+  --c1-fg: #1a3a5c; --c1-bg: #ddeeff; --c1-mid: #5596cc;
+  --c2-fg: #2d1a5c; --c2-bg: #ece6ff; --c2-mid: #7c5cc4;
+  --c3-fg: #1a4a2e; --c3-bg: #d6f5e3; --c3-mid: #3aab65;
+  --c4-fg: #5c2a00; --c4-bg: #fff0db; --c4-mid: #e08030;
+  --c5-fg: #5c1a1a; --c5-bg: #fde8e8; --c5-mid: #d45050;
+  --c6-fg: #1a4a50; --c6-bg: #d6f5f5; --c6-mid: #2da8b0;
+  --c7-fg: #3a3a1a; --c7-bg: #f5f5d6; --c7-mid: #a0a020;
+  --c8-fg: #3a1a40; --c8-bg: #f5e6ff; --c8-mid: #9040b8;
+  --c9-fg: #1a3a3a; --c9-bg: #ddf5f0; --c9-mid: #30a090;
+
+  /* Light mode */
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface2: #f0f2f8;
+  --border: #dde1ec;
+  --text: #1a1e2e;
+  --text-muted: #6b7190;
+  --shadow: rgba(30,40,80,0.08);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+[data-theme="dark"] {
+  --bg: #10121c;
+  --surface: #181b2a;
+  --surface2: #1e2235;
+  --border: #2a2e42;
+  --text: #e8eaf5;
+  --text-muted: #8a8faa;
+  --shadow: rgba(0,0,0,0.3);
+  --c1-bg: #1a2535; --c2-bg: #1e1a30; --c3-bg: #1a2820;
+  --c4-bg: #2e1e0a; --c5-bg: #2e1a1a; --c6-bg: #1a2830;
+  --c7-bg: #242410; --c8-bg: #22182a; --c9-bg: #182828;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-head);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+  transition: background .3s, color .3s;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: linear-gradient(135deg, #0f1632 0%, #1a2560 40%, #2a3a8a 70%, #1a1a50 100%);
+  padding: 48px 32px 36px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.site-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 60%, rgba(80,120,255,.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(120,60,200,.12) 0%, transparent 50%);
+}
+.header-badge {
+  display: inline-block;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #c8d8ff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+}
+.site-header h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+  position: relative;
+}
+.site-header h1 span {
+  background: linear-gradient(90deg, #80aaff, #c084fc, #60d9fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.header-sub {
+  color: #a0b4e0;
+  margin-top: 10px;
+  font-size: 14px;
+}
+.header-controls {
+  position: absolute;
+  top: 20px; right: 24px;
+  display: flex; gap: 8px;
+}
+.ctrl-btn {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background .2s;
+}
+.ctrl-btn:hover { background: rgba(255,255,255,.22); }
+.ctrl-btn.active { background: rgba(255,255,255,.3); }
+
+/* ── LAYOUT ── */
+.page-wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 80px; }
+
+/* ── TOC ── */
+.toc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 16px var(--shadow);
+}
+.toc-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  font-family: var(--font-mono);
+}
+.toc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.toc-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform .15s, box-shadow .15s;
+  font-family: var(--font-head);
+}
+.toc-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+
+/* ── SECTION CARD ── */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  box-shadow: 0 2px 16px var(--shadow);
+  overflow: hidden;
+  transition: box-shadow .2s;
+}
+.section-card:hover { box-shadow: 0 6px 28px var(--shadow); }
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px;
+  cursor: pointer;
+  border-left: 5px solid var(--accent, #5596cc);
+  user-select: none;
+  transition: background .2s;
+}
+.section-header:hover { background: var(--surface2); }
+.section-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  background: var(--accent-bg, #ddeeff);
+}
+.section-title-wrap { flex: 1; }
+.section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.section-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.collapse-btn {
+  font-size: 18px;
+  color: var(--text-muted);
+  transition: transform .25s;
+  font-family: var(--font-mono);
+}
+.section-card.open .collapse-btn { transform: rotate(180deg); }
+.section-body {
+  display: none;
+  padding: 0 28px 28px;
+  border-top: 1px solid var(--border);
+}
+.section-card.open .section-body { display: block; }
+
+/* ── LANG CONTENT ── */
+.lang-en, .lang-ar { }
+[data-lang="ar"] .lang-en { display: none; }
+[data-lang="en"] .lang-ar { display: none; }
+.lang-ar { direction: rtl; text-align: right; font-size: 15px; line-height: 1.85; }
+
+/* ── CONTENT BOXES ── */
+.box {
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  margin: 16px 0;
+  border-left: 4px solid;
+}
+.box-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+}
+.box-analogy { background: #fff9e6; border-color: #f0b429; color: #5a3a00; }
+.box-analogy .box-label { color: #c87d00; }
+.box-example { background: #e8f4ff; border-color: #3b82f6; color: #1a3050; }
+.box-example .box-label { color: #2563eb; }
+.box-summary { background: #e6faf0; border-color: #22c55e; color: #0f3020; }
+.box-summary .box-label { color: #16a34a; }
+.box-warning { background: #fff0f0; border-color: #ef4444; color: #400; }
+.box-warning .box-label { color: #dc2626; }
+[data-theme="dark"] .box-analogy { background: #2a200a; color: #e8d090; }
+[data-theme="dark"] .box-example { background: #0a1825; color: #90c8f0; }
+[data-theme="dark"] .box-summary { background: #0a2015; color: #80d8a0; }
+[data-theme="dark"] .box-warning { background: #250a0a; color: #f08080; }
+
+/* ── INLINE FORMATTING ── */
+.term {
+  background: var(--c2-bg);
+  color: var(--c2-fg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: .93em;
+}
+.highlight {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,220,50,.4) 5%, rgba(255,220,50,.4) 95%, transparent 100%);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.code-inline {
+  font-family: var(--font-mono);
+  background: var(--surface2);
+  color: var(--c2-mid);
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: .88em;
+  border: 1px solid var(--border);
+}
+
+/* ── COMPARISON TABLE ── */
+.comp-table-wrap { overflow-x: auto; margin: 16px 0; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.comp-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.comp-table thead tr {
+  background: linear-gradient(90deg, var(--c1-mid), var(--c2-mid));
+  color: #fff;
+}
+.comp-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .03em;
+}
+.comp-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); }
+.comp-table tr:last-child td { border-bottom: none; }
+.comp-table tr:nth-child(even) td { background: var(--surface2); }
+.comp-table tr:hover td { background: var(--c1-bg); }
+
+/* ── SUBSECTION ── */
+.sub-head {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c1-fg);
+  margin: 22px 0 10px;
+  padding-left: 10px;
+  border-left: 3px solid var(--c1-mid);
+}
+[data-theme="dark"] .sub-head { color: var(--c1-mid); }
+
+ul.styled { padding-left: 20px; margin: 10px 0; }
+ul.styled li { margin-bottom: 7px; }
+
+p { margin-bottom: 12px; }
+
+/* ── QUIZ ── */
+.quiz-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0;
+  margin-top: 32px;
+  overflow: hidden;
+  box-shadow: 0 2px 20px var(--shadow);
+}
+.quiz-header {
+  background: linear-gradient(135deg, #1a1060, #2a2080);
+  padding: 28px 32px;
+  color: #fff;
+}
+.quiz-header h2 { font-size: 22px; font-weight: 800; }
+.quiz-header p { color: #a0a8e0; margin-top: 6px; font-size: 13px; }
+.quiz-body { padding: 28px; }
+.quiz-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+.q-tab {
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-head);
+  transition: all .2s;
+}
+.q-tab.active { background: var(--c2-mid); border-color: var(--c2-mid); color: #fff; }
+.quiz-group { display: none; }
+.quiz-group.active { display: block; }
+
+.q-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+.q-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.q-text { font-weight: 600; margin-bottom: 12px; line-height: 1.5; }
+.q-options { list-style: none; padding: 0; margin: 0 0 14px; }
+.q-options li {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 14px;
+  cursor: default;
+}
+.q-options li .opt-key {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--c2-mid);
+  margin-right: 8px;
+}
+.show-ans-btn {
+  background: linear-gradient(90deg, var(--c2-mid), var(--c1-mid));
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-head);
+  transition: opacity .2s;
+}
+.show-ans-btn:hover { opacity: .85; }
+.q-answer {
+  display: none;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--c3-bg);
+  border-left: 4px solid var(--c3-mid);
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--c3-fg);
+}
+[data-theme="dark"] .q-answer { background: #0d2018; color: #80c898; }
+.q-answer .ans-label { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; font-family: var(--font-mono); margin-bottom: 4px; }
+
+/* TF specific */
+.tf-options { display: flex; gap: 10px; margin-bottom: 14px; }
+.tf-opt {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+}
+
+/* score bar */
+.quiz-progress {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--text-muted);
+}
+.progress-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--c3-mid), var(--c1-mid)); border-radius: 3px; transition: width .4s; }
+
+/* scroll to top */
+.scroll-top {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--c2-mid); color: #fff;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: none; cursor: pointer; font-size: 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  display: none; align-items: center; justify-content: center;
+  transition: transform .2s;
+}
+.scroll-top:hover { transform: translateY(-3px); }
+.scroll-top.visible { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-controls">
+    <button class="ctrl-btn" onclick="toggleLang()" id="lang-btn">🌐 AR</button>
+    <button class="ctrl-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+  </div>
+  <div class="header-badge">Digilians · Module 1</div>
+  <h1>Leadership <span>Skills</span></h1>
+  <p class="header-sub">Interactive Study Guide — Foundation of Leadership</p>
+</header>
+
+<div class="page-wrap">
+
+<!-- TOC -->
+<div class="toc-card">
+  <div class="toc-title">Table of Contents</div>
+  <div class="toc-chips">
+    <button class="toc-chip" style="background:var(--c1-bg);color:var(--c1-fg);" onclick="scrollTo('s1')">📌 Program Overview</button>
+    <button class="toc-chip" style="background:var(--c2-bg);color:var(--c2-fg);" onclick="scrollTo('s2')">🔑 Definition of Leadership</button>
+    <button class="toc-chip" style="background:var(--c3-bg);color:var(--c3-fg);" onclick="scrollTo('s3')">🆚 Leadership vs Management</button>
+    <button class="toc-chip" style="background:var(--c4-bg);color:var(--c4-fg);" onclick="scrollTo('s4')">🚀 Leading Without Authority</button>
+    <button class="toc-chip" style="background:var(--c6-bg);color:var(--c6-fg);" onclick="scrollTo('s5')">🧠 Growth vs Fixed Mindset</button>
+    <button class="toc-chip" style="background:var(--c7-bg);color:var(--c7-fg);" onclick="scrollTo('s6')">🌟 Personal Traits</button>
+    <button class="toc-chip" style="background:var(--c8-bg);color:var(--c8-fg);" onclick="scrollTo('s7')">⚙️ Key Skills of Leaders</button>
+    <button class="toc-chip" style="background:var(--c5-bg);color:var(--c5-fg);" onclick="scrollTo('quiz')">🎯 Assessment (50+ Q)</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: PROGRAM OVERVIEW -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s1" style="--accent:#5596cc;--accent-bg:#ddeeff;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon">📌</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Program Overview</div>
+      <div class="section-subtitle">What this course is about and what you will learn</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <!-- EN -->
+    <div class="lang-en">
+      <p>The <span class="term">Modern Leader Course</span> is built around one core idea: giving you the practical skills to lead effectively — whether you have a title or not. The course blends theory with real-world exercises, making it hands-on from day one.</p>
+
+      <div class="sub-head">What You Will Be Able to Do</div>
+      <ul class="styled">
+        <li>Define what <span class="term">modern leadership</span> actually means (beyond just giving orders)</li>
+        <li>Lead and influence people without a formal management title</li>
+        <li>Tell the difference between being a <span class="term">leader</span> and being a <span class="term">manager</span></li>
+        <li>Use different leadership styles depending on the situation</li>
+        <li>Think strategically — seeing the big picture, not just today's tasks</li>
+        <li>Develop key interpersonal skills: <span class="code-inline">EQ</span>, team building, communication</li>
+        <li>Build your own <span class="term">Personal Leadership Development Plan</span></li>
+      </ul>
+
+      <div class="sub-head">Course Modules</div>
+      <ul class="styled">
+        <li><strong>Module 1:</strong> Foundation of Leadership (this module)</li>
+        <li><strong>Module 2:</strong> Leadership Styles</li>
+        <li><strong>Module 3:</strong> Strategic Leadership</li>
+        <li><strong>Module 4:</strong> Interpersonal Skills of Leaders</li>
+      </ul>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy</div>Think of this course like a gym for your leadership muscles. Module 1 is the warm-up — it teaches you the basics. Each module after that increases the weight, so by Module 4 you can handle complex leadership challenges.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>This course focuses on making you a practical, effective leader in today's world. It is interactive, realistic, and designed to work even if you are brand new to leadership.</div>
+    </div>
+
+    <!-- AR -->
+    <div class="lang-ar">
+      <p>دورة <span class="term">Modern Leader</span> مصممة عشان تديك المهارات العملية اللي تحتاجها تبقى قائد فعّال — سواء عندك لقب رسمي أو لأ. الكورس بيجمع بين الـ theory والتطبيق الفعلي.</p>
+
+      <div class="sub-head">هتعرف تعمل إيه في آخر الكورس؟</div>
+      <ul class="styled">
+        <li>تعرّف الـ <span class="term">modern leadership</span> بشكل صح</li>
+        <li>تقود وتأثر في الناس حتى من غير ما يكون عندك لقب رسمي</li>
+        <li>تفرّق بين الـ <span class="term">leader</span> والـ <span class="term">manager</span></li>
+        <li>تختار الـ leadership style المناسب حسب الموقف</li>
+        <li>تفكر بشكل <span class="term">strategic</span> — مش بس تشوف المهام اليومية</li>
+        <li>تطوّر مهارات زي الـ <span class="code-inline">EQ</span> وبناء الفريق والـ communication</li>
+        <li>تعمل خطة تطوير شخصية للـ leadership بتاعتك</li>
+      </ul>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>الكورس ده هو دليلك العملي لتبقى قائد في العالم الحديث. هتتعلم نظريات بس أهم من كده هتشوف إزاي تطبقها على أرض الواقع.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: DEFINITION OF LEADERSHIP -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s2" style="--accent:#7c5cc4;--accent-bg:#ece6ff;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:var(--c2-bg);">🔑</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Definition of Leadership</div>
+      <div class="section-subtitle">Modern leadership, self-leadership, and the core concept</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-en">
+      <p><span class="term">Leadership</span> is the ability to <span class="highlight">influence, inspire, and guide others</span> toward achieving a common goal. Crucially, it is not tied to a job title — you do not need to be a manager to be a leader.</p>
+      <p>Leadership is about <strong>empowering people</strong>, not controlling them. A leader creates an environment where others want to do their best work.</p>
+
+      <div class="sub-head">3 Core Elements of Leadership</div>
+      <ul class="styled">
+        <li><strong>Vision:</strong> Having a clear idea of where you want to go</li>
+        <li><strong>Influence:</strong> Getting others on board without forcing them</li>
+        <li><strong>Inspiration:</strong> Making people believe they can achieve great things</li>
+      </ul>
+
+      <div class="sub-head">Modern Leadership</div>
+      <p><span class="term">Modern leadership</span> moves away from the old "boss giving orders" style. Instead it focuses on:</p>
+      <ul class="styled">
+        <li><span class="code-inline">Agility</span> — adapting fast to change</li>
+        <li><span class="code-inline">Inclusivity</span> — making sure every voice is heard</li>
+        <li><span class="code-inline">Empathy</span> — understanding how your team feels</li>
+        <li><span class="code-inline">Ethical decision-making</span> — doing what is right, not just what is easy</li>
+        <li><span class="code-inline">Shared purpose</span> — everyone knows why they are doing what they do</li>
+      </ul>
+
+      <div class="sub-head">Self-Leadership</div>
+      <p><span class="term">Self-leadership</span> means you manage yourself first before you manage others. It uses strategies like:</p>
+      <ul class="styled">
+        <li><strong>Goal-setting:</strong> Knowing what you want to achieve</li>
+        <li><strong>Self-talk:</strong> Controlling your inner voice to stay positive and focused</li>
+        <li><strong>Self-discipline:</strong> Doing what needs to be done even when you do not feel like it</li>
+      </ul>
+      <p>Think of it this way: <span class="highlight">You cannot lead others if you cannot lead yourself.</span></p>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy</div>A pilot who cannot control their own plane cannot safely carry passengers. Self-leadership is you learning to fly your own plane first.</div>
+
+      <div class="box box-example"><div class="box-label">▶ Real-World Example</div>Imagine a junior team member who consistently meets their deadlines, stays calm under pressure, and keeps improving their skills. Even without a manager title, their teammates start looking to them for guidance. That is self-leadership leading to natural influence.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>Leadership = influence + inspiration + vision. It happens at every level, and it starts with leading yourself. Modern leadership is human-centered, adaptive, and ethically driven — a big shift from traditional command-and-control.</div>
+    </div>
+
+    <div class="lang-ar">
+      <p>الـ <span class="term">Leadership</span> هي قدرتك إنك تؤثر وتلهم وتوجّه الناس نحو هدف مشترك. والنقطة المهمة جداً: <span class="highlight">مش لازم يكون عندك لقب رسمي عشان تبقى leader.</span></p>
+
+      <div class="sub-head">الـ Modern Leadership</div>
+      <p>الـ <span class="term">modern leadership</span> اتغيرت عن الأسلوب القديم "المدير بيأمر والناس بتنفذ". دلوقتي بتركز على:</p>
+      <ul class="styled">
+        <li><span class="code-inline">Agility</span> — تتكيف بسرعة مع التغييرات</li>
+        <li><span class="code-inline">Inclusivity</span> — كل الناس يحسوا إن صوتهم مسموع</li>
+        <li><span class="code-inline">Empathy</span> — تفهم مشاعر وأحاسيس فريقك</li>
+        <li><span class="code-inline">Ethical decision-making</span> — تعمل الصح مش بس الأسهل</li>
+      </ul>
+
+      <div class="sub-head">الـ Self-Leadership</div>
+      <p>الـ <span class="term">Self-leadership</span> يعني إنك تقود نفسك الأول قبل ما تقود غيرك. بتستخدم فيه:</p>
+      <ul class="styled">
+        <li><strong>Goal-setting:</strong> تعرف عايز تحقق إيه</li>
+        <li><strong>Self-talk:</strong> تتحكم في صوتك الداخلي</li>
+        <li><strong>Self-discipline:</strong> تعمل اللي محتاج تعمله حتى لو مش في مود</li>
+      </ul>
+
+      <div class="box box-analogy"><div class="box-label">💡 تشبيه</div>زي الطيار — لو مش قادر يتحكم في الطيارة بتاعته، مش هيقدر يوصّل الركاب بأمان. الـ self-leadership هو إنك تتعلم تطير طياراتك الأول.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>الـ Leadership = تأثير + إلهام + رؤية. بتحصل على كل المستويات وبتبدأ بقيادة نفسك. الـ modern leadership إنسانية، متكيّفة، وأخلاقية.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: LEADERSHIP VS MANAGEMENT -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s3" style="--accent:#3aab65;--accent-bg:#d6f5e3;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:var(--c3-bg);">🆚</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Leadership vs Management</div>
+      <div class="section-subtitle">Two different roles — often confused but fundamentally different</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-en">
+      <p>People often use "leader" and "manager" interchangeably, but they describe very different things. <span class="highlight">Organizations need both — but they serve different purposes.</span></p>
+
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>Leadership</th><th>Management</th></tr></thead>
+          <tbody>
+            <tr><td>Focuses on <strong>vision</strong></td><td>Focuses on <strong>execution</strong></td></tr>
+            <tr><td><strong>Inspires</strong> people</td><td><strong>Coordinates</strong> people</td></tr>
+            <tr><td>Drives <strong>change & innovation</strong></td><td>Maintains <strong>stability & control</strong></td></tr>
+            <tr><td>Works through <strong>influence</strong></td><td>Works through <strong>authority</strong></td></tr>
+            <tr><td><strong>Leads</strong> people</td><td><strong>Manages</strong> work</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box box-example"><div class="box-label">▶ Real-World Example</div><strong>Steve Jobs (Leader):</strong> He painted a vision of computers that were beautiful, intuitive, and life-changing. He inspired Apple's team to believe they were "putting a dent in the universe." That is leadership — vision and inspiration.<br><br><strong>Tim Cook (Manager + Leader):</strong> After Jobs, Cook maintained Apple's operations with exceptional efficiency — supply chain, logistics, production schedules. That is management. The best executives combine both.</div>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy</div>A leader is like the <strong>architect</strong> who draws the vision of a building. A manager is like the <strong>construction foreman</strong> who makes sure the bricks are laid correctly on schedule. Both are essential — but you need the vision before you can manage the execution.</div>
+
+      <div class="box box-warning"><div class="box-label">⚠ Important Distinction</div>A person can be a great manager but a poor leader (great at organizing tasks, bad at inspiring people), or a visionary leader but a poor manager (great ideas, chaotic execution). The goal is to develop both sets of skills.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>Leadership = vision, influence, inspiring people to change. Management = execution, coordination, maintaining order. Great organizations need both, and the best professionals learn to do both well.</div>
+    </div>
+
+    <div class="lang-ar">
+      <p>الناس كتير بتخلط بين الـ "leader" والـ "manager" — لكن في فرق جوهري بينهم. <span class="highlight">المنظمات محتاجة الاتنين، بس كل واحد بيخدم غرض مختلف.</span></p>
+
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>Leadership (القيادة)</th><th>Management (الإدارة)</th></tr></thead>
+          <tbody>
+            <tr><td>بيركز على الـ <strong>vision</strong></td><td>بيركز على الـ <strong>execution</strong></td></tr>
+            <tr><td>بـ<strong>يلهم</strong> الناس</td><td>بـ<strong>ينسق</strong> الناس</td></tr>
+            <tr><td>بيدفع التغيير والـ <strong>innovation</strong></td><td>بيحافظ على الـ <strong>stability والcontrol</strong></td></tr>
+            <tr><td>بيشتغل عن طريق الـ <strong>influence</strong></td><td>بيشتغل عن طريق الـ <strong>authority</strong></td></tr>
+            <tr><td>بـ<strong>يقود</strong> الناس</td><td>بـ<strong>يدير</strong> الشغل</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box box-analogy"><div class="box-label">💡 تشبيه</div>الـ leader زي الـ <strong>architect</strong> اللي بيرسم تصميم المبنى. الـ manager زي الـ <strong>مشرف على البناء</strong> اللي بيتأكد إن الطوب اتحط صح في الوقت المحدد. الاتنين ضروريين.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>الـ Leadership = رؤية وتأثير وإلهام. الـ Management = تنفيذ وتنسيق ونظام. الهدف إنك تتعلم الاتنين.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: LEADING WITHOUT AUTHORITY -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s4" style="--accent:#e08030;--accent-bg:#fff0db;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:var(--c4-bg);">🚀</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Leading Without Authority</div>
+      <div class="section-subtitle">How to influence and lead without a formal title — crucial for new graduates</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-en">
+      <p><span class="term">Leading without authority</span> means creating a positive impact and influencing others even when you have no formal title like "manager" or "team lead." It is about <span class="highlight">impact, not hierarchy.</span></p>
+      <p>Instead of using <span class="code-inline">position power</span> (telling people what to do because you outrank them), you rely on:</p>
+      <ul class="styled">
+        <li><strong>Relationships:</strong> People who know and trust you are more likely to follow you</li>
+        <li><strong>Credibility:</strong> Your knowledge, reliability, and track record</li>
+        <li><strong>Communication:</strong> How clearly and confidently you express ideas</li>
+        <li><strong>Initiative:</strong> Stepping up to solve problems before being asked</li>
+      </ul>
+
+      <div class="sub-head">Why This Matters for New Graduates</div>
+      <p>When you first start a job, you have no direct reports and limited decision-making power. But you can still lead by:</p>
+      <ul class="styled">
+        <li>Bringing fresh ideas to the table</li>
+        <li>Encouraging collaboration between teammates</li>
+        <li>Taking full ownership of your tasks</li>
+        <li>Being the most positive, proactive person in the room</li>
+      </ul>
+      <p><span class="highlight">This kind of influence gets noticed — and leads to formal leadership opportunities later.</span></p>
+
+      <div class="sub-head">5 Ways to Lead Without Authority</div>
+      <ul class="styled">
+        <li><strong>1. Build Trust & Relationships</strong> — Know your colleagues, be reliable, help without expecting returns</li>
+        <li><strong>2. Communicate Clearly & Confidently</strong> — Ask smart questions, share ideas respectfully, listen actively</li>
+        <li><strong>3. Take Initiative</strong> — Volunteer for projects, spot problems, propose solutions</li>
+        <li><strong>4. Become a Subject Matter Expert</strong> — Build expertise, become the go-to person for that area</li>
+        <li><strong>5. Model a Growth Mindset</strong> — Embrace challenges, act on feedback, celebrate others' wins</li>
+      </ul>
+
+      <div class="box box-example"><div class="box-label">▶ Real-World Example</div>Sara joins a marketing team fresh out of college. She has no title, but she notices the team's social media content lacks a consistent voice. Without being asked, she creates a one-page brand voice guide, shares it with the team, and offers to help implement it. Within two months, everyone is asking Sara for content advice — she is leading without authority through initiative and expertise.</div>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy</div>Leading without authority is like being the most prepared person on a group trip. You do not own the car or book the hotel, but because you researched the route, everyone naturally follows your suggestions. Your knowledge and initiative make you the de facto leader.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>You do not need a title to lead. Influence comes from trust, credibility, communication, and initiative. For new graduates, this is the most important leadership concept — start leading from day one through your actions and attitude.</div>
+    </div>
+
+    <div class="lang-ar">
+      <p>الـ <span class="term">Leading Without Authority</span> يعني إنك تأثر في الناس وتحدث تغيير إيجابي حتى لو مش عندك لقب رسمي زي "manager" أو "team lead". الموضوع عن الـ <span class="highlight">impact مش الـ hierarchy.</span></p>
+
+      <div class="sub-head">ليه مهم للخريجين الجدد؟</div>
+      <p>لما تبدأ أول وظيفة، مش هيبقى عندك ناس تيم بتديرها ومش هيبقى عندك صلاحيات قرار. بس ممكن تقود عن طريق:</p>
+      <ul class="styled">
+        <li>تجيب أفكار جديدة</li>
+        <li>تشجع التعاون بين أعضاء الفريق</li>
+        <li>تاخد مسؤولية كاملة على مهامك</li>
+        <li>تبقى الشخص الأكثر إيجابية وproactivity في الأوضة</li>
+      </ul>
+
+      <div class="sub-head">5 طرق تقود من غير authority</div>
+      <ul class="styled">
+        <li><strong>1. ابني trust وعلاقات</strong> — اعرف زملائك، كون موثوق، ساعد من غير ما تنتظر مقابل</li>
+        <li><strong>2. اتكلم بوضوح وثقة</strong> — اسأل أسئلة ذكية، شارك أفكارك باحترام، استمع بشكل فعّال</li>
+        <li><strong>3. خد initiative</strong> — تطوع للمشاريع، لاحظ المشاكل وقترح حلول</li>
+        <li><strong>4. ابقى subject matter expert</strong> — بني خبرة في حاجة مفيدة وابقى المرجع في الموضوع ده</li>
+        <li><strong>5. Model a Growth Mindset</strong> — استقبل التحديات، تصرف على الـ feedback، احتفل بنجاح الغير</li>
+      </ul>
+
+      <div class="box box-example"><div class="box-label">▶ مثال عملي</div>سارة بتبدأ أول وظيفة في فريق تسويق. ملاقتش عندها لقب رسمي، لكنها لاحظت إن الكونتنت على السوشال ميديا مش عنده صوت ثابت. من غير ما حد يطلب منها، عملت دليل من صفحة واحدة لـ brand voice وشاركته مع الفريق. في شهرين، الكل بدأ يسألها نصيحة في الكونتنت. دي leadership من غير authority.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>مش محتاج لقب عشان تقود. الـ influence بتيجي من الـ trust والـ credibility والـ communication والـ initiative. للخريجين الجدد، ده أهم concept في الكورس كله.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: GROWTH VS FIXED MINDSET -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s5" style="--accent:#2da8b0;--accent-bg:#d6f5f5;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:var(--c6-bg);">🧠</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Growth Mindset vs Fixed Mindset in Leadership</div>
+      <div class="section-subtitle">How your beliefs about ability shape your leadership style</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-en">
+      <p>The concept of <span class="term">mindset</span> in leadership comes from psychologist Carol Dweck. It describes how your core belief about intelligence and ability affects everything you do as a leader.</p>
+
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>Dimension</th><th>Growth Mindset</th><th>Fixed Mindset</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Core Belief</strong></td><td>Abilities can be developed through effort and learning</td><td>Abilities are fixed — you either have them or you don't</td></tr>
+            <tr><td><strong>Challenges</strong></td><td>Embraces as growth opportunities</td><td>Avoids out of fear of failure</td></tr>
+            <tr><td><strong>Failure</strong></td><td>Learns from it and tries again</td><td>Sees it as proof of inadequacy</td></tr>
+            <tr><td><strong>Effort</strong></td><td>Believes effort leads to mastery</td><td>Thinks effort is pointless if you're "not talented"</td></tr>
+            <tr><td><strong>Feedback</strong></td><td>Seeks and uses it to improve</td><td>Ignores it or gets defensive</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-head">Why Growth Mindset Matters in Leadership</div>
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>Leadership Area</th><th>Growth Mindset Leader Does This</th></tr></thead>
+          <tbody>
+            <tr><td>Team Development</td><td>Coaches and mentors; believes people can grow into any role</td></tr>
+            <tr><td>Change Management</td><td>Views change as a learning curve, not a threat</td></tr>
+            <tr><td>Innovation</td><td>Encourages experimentation; tolerates smart failure</td></tr>
+            <tr><td>Resilience</td><td>Bounces back from setbacks and motivates others to do the same</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-head">Growth Mindset Example: Ronaldo Mouchawar (Souq.com)</div>
+      <p>When launching Souq.com, Mouchawar's team faced terrible logistics, no online payment options, and zero customer trust. A fixed-mindset leader might have quit. Instead, Mouchawar adapted: he introduced <span class="code-inline">cash-on-delivery</span>, learned from customer behavior, and kept iterating — eventually building the company and selling it to Amazon.</p>
+
+      <div class="sub-head">Fixed Mindset Example</div>
+      <p>A manager avoids delegating complex tasks because they believe only they can do them "right." When a junior employee makes a mistake, the manager stops giving that person opportunities. Result: the team stops taking initiative, morale drops, innovation slows.</p>
+
+      <div class="sub-head">8 Growth Mindset Behaviors of Leaders</div>
+      <ul class="styled">
+        <li><strong>Embrace Challenges</strong> — Seek difficult tasks as learning opportunities</li>
+        <li><strong>Persist Through Setbacks</strong> — Show grit; adapt your strategy when you fail</li>
+        <li><strong>Learn from Criticism</strong> — See feedback as a gift, not an attack</li>
+        <li><strong>Value Effort</strong> — Hard work develops skill; talent alone is not enough</li>
+        <li><strong>Adopt the "Not Yet" Mindset</strong> — "I can't do this yet" — focus on future growth</li>
+        <li><strong>Seek Inspiration</strong> — Be motivated by others' success, not threatened by it</li>
+        <li><strong>Focus on Process</strong> — Learning matters more than performing</li>
+        <li><strong>Ask Questions</strong> — Admitting you don't know is a strength</li>
+      </ul>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy</div>A growth mindset leader is like a plant in good soil — given the right conditions (challenges, feedback, effort), it keeps growing. A fixed mindset leader is like a plant in concrete — no matter how good the conditions, it cannot put down roots and grow.</div>
+
+      <div class="box box-warning"><div class="box-label">⚠ Common Mistake</div>People often claim to have a growth mindset but revert to fixed mindset under pressure. The test is what you do when things go wrong — do you hide the failure, or do you examine it openly and learn from it?</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>Growth mindset leaders believe effort creates ability, embrace challenges, and invest in their team's potential. Fixed mindset leaders limit their own and their team's growth by avoiding risk and reacting defensively to failure. The difference between these two approaches often determines long-term success.</div>
+    </div>
+
+    <div class="lang-ar">
+      <p>فكرة الـ <span class="term">mindset</span> في القيادة جايه من عالمة النفس Carol Dweck. بتوصف إزاي معتقداتك الأساسية عن الذكاء والقدرة بتأثر على كل حاجة بتعملها كـ leader.</p>
+
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>الجانب</th><th>Growth Mindset</th><th>Fixed Mindset</th></tr></thead>
+          <tbody>
+            <tr><td><strong>المعتقد الأساسي</strong></td><td>القدرات بتتطور بالجهد والتعلم</td><td>القدرات ثابتة — إما عندك أو ملوش</td></tr>
+            <tr><td><strong>التحديات</strong></td><td>بيستقبلها كفرص للنمو</td><td>بيتجنبها خوفاً من الفشل</td></tr>
+            <tr><td><strong>الفشل</strong></td><td>بيتعلم منه ويجرب تاني</td><td>بيشوفه دليل على عدم الكفاءة</td></tr>
+            <tr><td><strong>الجهد</strong></td><td>بيؤمن إن الجهد بيوصل للإتقان</td><td>بيفكر إن الجهد مش مجدي لو مش "موهوب"</td></tr>
+            <tr><td><strong>الـ Feedback</strong></td><td>بيدوّر عليه ويستخدمه للتحسين</td><td>بيتجاهله أو بيدافع عن نفسه</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-head">مثال Growth Mindset: رونالدو مشعور (Souq.com)</div>
+      <p>لما بدأ Souq.com، فريق مشعور واجه مشاكل logistics رهيبة، مفيش payment online، ومفيش customer trust. بدل ما يستسلم، عمل <span class="code-inline">cash-on-delivery</span> وتعلم من سلوك العملاء وفضل يطور — لحد ما باع الشركة لـ Amazon.</p>
+
+      <div class="sub-head">8 سلوكيات الـ Growth Mindset للقادة</div>
+      <ul class="styled">
+        <li><strong>Embrace Challenges</strong> — دوّر على المهام الصعبة كفرص تعلم</li>
+        <li><strong>Persist Through Setbacks</strong> — اصبر وغيّر استراتيجيتك لما تفشل</li>
+        <li><strong>Learn from Criticism</strong> — شوف الـ feedback كهدية مش كهجوم</li>
+        <li><strong>Value Effort</strong> — الشغل الجامد بيطوّر المهارة</li>
+        <li><strong>الـ "Not Yet" Mindset</strong> — "أنا مش قادر أعمله <em>لسه</em>" — ركز على النمو المستقبلي</li>
+        <li><strong>Seek Inspiration</strong> — اتحفز من نجاح الغير، ماتخافش منه</li>
+        <li><strong>Focus on Process</strong> — التعلم أهم من الأداء</li>
+        <li><strong>Ask Questions</strong> — الاعتراف بإنك مش عارف ده نقطة قوة</li>
+      </ul>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>الـ Growth Mindset leaders بيؤمنوا إن الجهد بيخلق القدرة، بيستقبلوا التحديات، وبيستثمروا في تطوير فريقهم. الفرق بين المنهجين بيحدد النجاح على المدى البعيد.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 6: PERSONAL TRAITS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s6" style="--accent:#a0a020;--accent-bg:#f5f5d6;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:var(--c7-bg);">🌟</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Personal Traits of Leaders</div>
+      <div class="section-subtitle">The character qualities that distinguish great leaders + Top skills for 2030</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-en">
+      <p>Beyond skills and techniques, great leaders share certain <span class="term">personal traits</span> — qualities of character that make people want to follow them. These are not things you are born with; they are developed through deliberate practice.</p>
+
+      <div class="sub-head">8 Common Traits of Leaders</div>
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>Trait</th><th>What It Means in Practice</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Self-Awareness</strong></td><td>You know your strengths, weaknesses, triggers, and blind spots</td></tr>
+            <tr><td><strong>Integrity</strong></td><td>You do what you say you will do, even when no one is watching</td></tr>
+            <tr><td><strong>Accountability</strong></td><td>You own your mistakes instead of blaming others</td></tr>
+            <tr><td><strong>Courage</strong></td><td>You speak up, make hard decisions, and take calculated risks</td></tr>
+            <tr><td><strong>Assertiveness</strong></td><td>You express your needs and opinions clearly without being aggressive</td></tr>
+            <tr><td><strong>Positive Outlook & Passion</strong></td><td>You bring energy and enthusiasm that lifts the whole team</td></tr>
+            <tr><td><strong>Resilience</strong></td><td>You recover quickly from setbacks and keep going</td></tr>
+            <tr><td><strong>Commitment to Continuous Learning</strong></td><td>You are never "done" learning — always curious, always growing</td></tr>
+            <tr><td><strong>Decisiveness</strong></td><td>You make timely decisions with available information, then commit</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-head">Top 10 Skills for 2030 (World Economic Forum)</div>
+      <p>The WEF's Future of Jobs Report 2025 identifies the skills that will matter most by 2030. The key finding: <span class="highlight">uniquely human skills that AI cannot replicate, combined with digital literacy, will be most valuable.</span></p>
+      <ul class="styled">
+        <li><span class="code-inline">AI & Big Data</span></li>
+        <li><span class="code-inline">Cybersecurity & Networks</span></li>
+        <li><span class="code-inline">Technological Literacy</span></li>
+        <li><span class="code-inline">Creative Thinking</span></li>
+        <li><span class="code-inline">Resilience, Flexibility & Agility</span></li>
+        <li><span class="code-inline">Environmental Stewardship</span></li>
+        <li><span class="code-inline">Curiosity & Lifelong Learning</span></li>
+        <li><span class="code-inline">Leadership & Social Influence</span></li>
+        <li><span class="code-inline">Talent Management</span></li>
+        <li><span class="code-inline">Analytical Thinking</span> (tops the list)</li>
+      </ul>
+
+      <div class="box box-example"><div class="box-label">▶ Real-World Example</div><strong>Integrity in action:</strong> A project manager discovers a critical mistake in a report right before presenting to senior leadership. Instead of hiding it, they tell the truth upfront, explain how it happened, and present a plan to fix it. Their honesty builds more trust than a perfect presentation would have.</div>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy</div>Personal traits are like the foundation of a building. Skills are the floors built on top. You can add more floors (skills) over time, but if the foundation (character) is weak, the whole structure is unstable.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>The most effective leaders combine strong character traits with practical skills. The WEF confirms that human qualities — creativity, resilience, leadership — will only increase in value as AI handles more technical work. Invest in your character as much as your capabilities.</div>
+    </div>
+
+    <div class="lang-ar">
+      <p>بعيداً عن المهارات التقنية، القادة العظام بيشتركوا في <span class="term">صفات شخصية</span> معينة — صفات بتخلي الناس عايزة تتبعهم. الخبر الكويس: دي مش صفات بتتولد بيها، دي بتتطورها بالممارسة.</p>
+
+      <div class="sub-head">8 صفات مشتركة للقادة</div>
+      <div class="comp-table-wrap">
+        <table class="comp-table">
+          <thead><tr><th>الصفة</th><th>معناها على أرض الواقع</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Self-Awareness</strong></td><td>عارف نقاط قوتك وضعفك ومحفزاتك</td></tr>
+            <tr><td><strong>Integrity</strong></td><td>بتعمل اللي بتقوله حتى لما مفيش حد بيشوفك</td></tr>
+            <tr><td><strong>Accountability</strong></td><td>بتاخد مسؤولية أخطائك ومش بتلوم غيرك</td></tr>
+            <tr><td><strong>Courage</strong></td><td>بتكلم بصراحة وبتاخد قرارات صعبة</td></tr>
+            <tr><td><strong>Assertiveness</strong></td><td>بتعبر عن رأيك بوضوح من غير عدوانية</td></tr>
+            <tr><td><strong>Positive Outlook & Passion</strong></td><td>بتجيب طاقة وحماس يرفع مستوى الفريق كله</td></tr>
+            <tr><td><strong>Resilience</strong></td><td>بترجع بسرعة بعد الانتكاسات وتكمل</td></tr>
+            <tr><td><strong>Continuous Learning</strong></td><td>فضولي دايماً وبتتعلم باستمرار</td></tr>
+            <tr><td><strong>Decisiveness</strong></td><td>بتاخد قرارات في وقتها من المعلومات المتاحة</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="sub-head">أهم 10 مهارات لـ 2030 (World Economic Forum)</div>
+      <p>تقرير WEF بيقول: <span class="highlight">المهارات الإنسانية اللي الـ AI مش يقدر يعملها، مع الـ digital literacy، هي الأكثر قيمة.</span></p>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>القادة الأكثر تأثيراً بيجمعوا بين الصفات الشخصية القوية والمهارات العملية. المهارات الإنسانية — الإبداع، الـ resilience، الـ leadership — هتزيد قيمتها كلما زاد دور الـ AI في الشغل التقني.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SECTION 7: KEY SKILLS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-card open" id="s7" style="--accent:#9040b8;--accent-bg:#f5e6ff;">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="section-icon" style="background:var(--c8-bg);">⚙️</div>
+    <div class="section-title-wrap">
+      <div class="section-title">Key Skills of Successful Leaders</div>
+      <div class="section-subtitle">Communication, Decision-Making, EI, Conflict Resolution, Adaptability, Team Building, Strategic Thinking</div>
+    </div>
+    <div class="collapse-btn">▼</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-en">
+      <div class="sub-head">1. Communication — Clear, Honest, Motivating</div>
+      <ul class="styled">
+        <li><strong>Clarity:</strong> Avoid jargon; make your message easy for anyone to understand</li>
+        <li><strong>Honesty:</strong> Transparency builds trust — communicate openly, even with bad news</li>
+        <li><strong>Motivation:</strong> Communication should inspire action, not just inform</li>
+        <li><strong>Active Listening:</strong> Great communicators listen as much as they speak</li>
+      </ul>
+
+      <div class="sub-head">2. Decision-Making — Timely, Informed, Ethical</div>
+      <ul class="styled">
+        <li><strong>Timely:</strong> Do not procrastinate — know when you have enough information to act</li>
+        <li><strong>Informed:</strong> Base decisions on data and stakeholder input</li>
+        <li><strong>Ethical:</strong> Consider long-term consequences and fairness</li>
+        <li><strong>Accountable:</strong> Stand by your decisions; learn from both good and bad outcomes</li>
+      </ul>
+
+      <div class="sub-head">3. Emotional Intelligence (EI)</div>
+      <ul class="styled">
+        <li><strong>Self-Awareness:</strong> Recognize your emotional triggers and biases</li>
+        <li><strong>Self-Regulation:</strong> Stay calm under stress</li>
+        <li><strong>Empathy:</strong> Understand others' feelings and perspectives</li>
+        <li><strong>Social Skills:</strong> Build rapport, resolve conflict, foster cooperation</li>
+      </ul>
+
+      <div class="sub-head">4. Conflict Resolution</div>
+      <ul class="styled">
+        <li><strong>Address Issues Early:</strong> Intervene before conflict escalates</li>
+        <li><strong>Mediation Skills:</strong> Help opposing parties find common ground</li>
+        <li><strong>Maintain Respect:</strong> Encourage respectful dialogue; avoid blame</li>
+        <li><strong>Solution-Oriented:</strong> Focus on outcomes that benefit the whole team</li>
+      </ul>
+
+      <div class="sub-head">5. Adaptability</div>
+      <ul class="styled">
+        <li><strong>Flexibility:</strong> Willingness to change strategies when conditions shift</li>
+        <li><strong>Resilience:</strong> Bounce back from setbacks with a positive outlook</li>
+        <li><strong>Change Leadership:</strong> Help others embrace change by explaining "why"</li>
+        <li><strong>Continuous Learning:</strong> Stay curious; keep learning new tools and ideas</li>
+      </ul>
+
+      <div class="sub-head">6. Team Building</div>
+      <ul class="styled">
+        <li><strong>Trust Building:</strong> Create psychological safety for the team</li>
+        <li><strong>Empowerment:</strong> Delegate effectively; encourage autonomy</li>
+        <li><strong>Inclusivity:</strong> Value diversity; make everyone feel included</li>
+        <li><strong>Recognition:</strong> Celebrate wins; acknowledge individual contributions</li>
+      </ul>
+
+      <div class="sub-head">7. Strategic Thinking</div>
+      <ul class="styled">
+        <li><strong>Vision-Oriented:</strong> Keep the long-term vision in mind for every decision</li>
+        <li><strong>Prioritization:</strong> Identify which actions will have the greatest impact</li>
+        <li><strong>Systems Thinking:</strong> Understand how all parts of the organization interact</li>
+        <li><strong>Innovation:</strong> Continuously look for ways to improve and stay ahead</li>
+      </ul>
+
+      <div class="box box-example"><div class="box-label">▶ Real-World Example — Emotional Intelligence</div>A project is running late. A manager with low EI blames the team publicly, raising anxiety and killing morale. A high-EI manager stays calm, privately speaks with each team member to understand the blockers, and jointly develops a recovery plan. The second approach produces better results and builds loyalty.</div>
+
+      <div class="box box-example"><div class="box-label">▶ Real-World Example — Strategic Thinking</div>When Netflix shifted from DVD mailing to streaming, it was not just a technology change — it was a strategic decision to stay ahead of where the market was going. Leaders who think strategically ask: "Where will the world be in 5 years, and how do we position for that?"</div>
+
+      <div class="box box-analogy"><div class="box-label">💡 Analogy — Conflict Resolution</div>A conflict in a team is like a small crack in a dam. If you ignore it, water pressure builds up and eventually the dam breaks. If you address it early with proper repair (mediation, respect, solutions), the dam holds and gets stronger.</div>
+
+      <div class="box box-warning"><div class="box-label">⚠ EI Warning</div>You cannot have high Emotional Intelligence without self-awareness first. Leaders who do not know their own triggers and biases often hurt people unintentionally. EI development starts with honest self-reflection.</div>
+
+      <div class="box box-summary"><div class="box-label">✦ Summary</div>The 7 key skills — Communication, Decision-Making, EI, Conflict Resolution, Adaptability, Team Building, and Strategic Thinking — are interconnected. You cannot be a great communicator without EI. You cannot build a great team without conflict resolution. Develop all seven together for maximum leadership effectiveness.</div>
+    </div>
+
+    <div class="lang-ar">
+      <div class="sub-head">1. Communication — واضحة وصادقة ومحفزة</div>
+      <ul class="styled">
+        <li><strong>Clarity:</strong> ابعد عن الـ jargon — خلّي رسالتك سهلة الفهم</li>
+        <li><strong>Honesty:</strong> الشفافية بتبني الثقة — اتكلم بصراحة حتى بالأخبار الصعبة</li>
+        <li><strong>Motivation:</strong> الـ communication لازم يحفز ويدفع للعمل</li>
+        <li><strong>Active Listening:</strong> القائد الكويس بيسمع بقدر ما بيتكلم</li>
+      </ul>
+
+      <div class="sub-head">2. Decision-Making — في وقتها ومبنية على معلومات وأخلاقية</div>
+      <ul class="styled">
+        <li><strong>Timely:</strong> ماتسيبش القرار — اعرف امتى عندك معلومات كافية تتصرف</li>
+        <li><strong>Informed:</strong> بني قراراتك على data وآراء أصحاب المصلحة</li>
+        <li><strong>Ethical:</strong> فكر في النتائج طويلة المدى والعدالة</li>
+        <li><strong>Accountable:</strong> قف وراء قراراتك وتعلم من النتايج</li>
+      </ul>
+
+      <div class="sub-head">3. Emotional Intelligence (EI)</div>
+      <ul class="styled">
+        <li><strong>Self-Awareness:</strong> اعرف محفزاتك العاطفية وتحيزاتك</li>
+        <li><strong>Self-Regulation:</strong> افضل هادي تحت الضغط</li>
+        <li><strong>Empathy:</strong> افهم مشاعر ووجهات نظر الغير</li>
+        <li><strong>Social Skills:</strong> ابني علاقات، حل النزاعات، شجع التعاون</li>
+      </ul>
+
+      <div class="sub-head">4. Conflict Resolution</div>
+      <ul class="styled">
+        <li><strong>Address Issues Early:</strong> تدخل قبل ما النزاع يكبر</li>
+        <li><strong>Mediation Skills:</strong> ساعد الأطراف يلاقوا أرضية مشتركة</li>
+        <li><strong>Maintain Respect:</strong> شجع الحوار المحترم وابعد عن اللوم</li>
+        <li><strong>Solution-Oriented:</strong> ركز على النتايج المفيدة للفريق كله</li>
+      </ul>
+
+      <div class="sub-head">5. Adaptability</div>
+      <ul class="styled">
+        <li><strong>Flexibility:</strong> الاستعداد تغير الاستراتيجية لما الظروف تتغير</li>
+        <li><strong>Resilience:</strong> ارجع بسرعة من الانتكاسات بنظرة إيجابية</li>
+        <li><strong>Change Leadership:</strong> ساعد الناس تقبل التغيير بشرح "ليه"</li>
+        <li><strong>Continuous Learning:</strong> افضل فضولي وتعلم أدوات وأفكار جديدة</li>
+      </ul>
+
+      <div class="sub-head">6. Team Building</div>
+      <ul class="styled">
+        <li><strong>Trust Building:</strong> اعمل بيئة آمنة نفسياً للفريق</li>
+        <li><strong>Empowerment:</strong> Delegate بشكل فعّال وشجع الاستقلالية</li>
+        <li><strong>Inclusivity:</strong> قدّر التنوع وخلّي الكل يحس إنه مشمول</li>
+        <li><strong>Recognition:</strong> احتفل بالإنجازات واعترف بمساهمات الأفراد</li>
+      </ul>
+
+      <div class="sub-head">7. Strategic Thinking</div>
+      <ul class="styled">
+        <li><strong>Vision-Oriented:</strong> خلّي الـ vision طويلة المدى في بالك في كل قرار</li>
+        <li><strong>Prioritization:</strong> حدد الأعمال اللي هيكون ليها أكبر تأثير</li>
+        <li><strong>Systems Thinking:</strong> افهم إزاي كل أجزاء المنظمة بتتفاعل مع بعض</li>
+        <li><strong>Innovation:</strong> دايماً دوّر على فرص التحسين</li>
+      </ul>
+
+      <div class="box box-summary"><div class="box-label">✦ ملخص</div>الـ 7 مهارات الأساسية — Communication، Decision-Making، EI، Conflict Resolution، Adaptability، Team Building، و Strategic Thinking — كلها مترابطة. طوّرهم مع بعض عشان تحقق أقصى فعالية في القيادة.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ASSESSMENT / QUIZ -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="quiz-section" id="quiz">
+  <div class="quiz-header">
+    <h2>🎯 Assessment — 50+ Questions</h2>
+    <p>Test your knowledge of Leadership Skills Module 1. Click "Show Answer" to reveal the correct answer and explanation.</p>
+  </div>
+  <div class="quiz-body">
+    <div class="quiz-tabs">
+      <button class="q-tab active" onclick="showTab('mcq', this)">Multiple Choice (MCQ)</button>
+      <button class="q-tab" onclick="showTab('tf', this)">True / False</button>
+    </div>
+
+    <!-- MCQ GROUP -->
+    <div class="quiz-group active" id="tab-mcq">
+      <div class="quiz-progress"><span>MCQ Section — 30 Questions</span><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:60%"></div></div><span>🎯 Test Yourself</span></div>
+
+      <!-- Q1 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 01 · Foundation</div>
+        <div class="q-text">Which of the following BEST defines leadership according to modern understanding?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> The formal authority given to a person with the title of manager</li>
+          <li><span class="opt-key">B</span> The ability to influence, inspire, and guide others toward a common goal</li>
+          <li><span class="opt-key">C</span> The act of controlling team members to ensure they follow procedures</li>
+          <li><span class="opt-key">D</span> A skill that only senior executives in organizations need to develop</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Leadership is defined as the ability to influence, inspire, and guide others — not control them. It is NOT tied to a formal title and occurs at all levels of an organization.</div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 02 · Leadership vs Management</div>
+        <div class="q-text">A new department head focuses heavily on meeting weekly KPIs, scheduling tasks, and maintaining team stability. This person is demonstrating primarily:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Transformational leadership</li>
+          <li><span class="opt-key">B</span> Self-leadership</li>
+          <li><span class="opt-key">C</span> Management</li>
+          <li><span class="opt-key">D</span> Strategic leadership</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Management focuses on execution, coordination, maintaining stability, and control. The described behaviors (KPIs, task scheduling, stability) are management behaviors, not visionary leadership behaviors.</div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 03 · Leading Without Authority</div>
+        <div class="q-text">Ahmed is a fresh graduate with no managerial title. He proactively identifies an inefficiency in the team's reporting process and presents a solution to his colleagues. Which behavior of "leading without authority" is he demonstrating?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Building trust through reliability</li>
+          <li><span class="opt-key">B</span> Becoming a subject matter expert</li>
+          <li><span class="opt-key">C</span> Taking initiative</li>
+          <li><span class="opt-key">D</span> Modeling a growth mindset</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>"Taking initiative" means spotting problems and proposing solutions without being asked to. Ahmed did exactly this — he saw the problem and acted proactively, demonstrating leadership through initiative.</div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 04 · Growth Mindset</div>
+        <div class="q-text">A manager receives critical feedback from her team about her communication style. She listens carefully, asks clarifying questions, and adjusts her approach in the following weeks. This is an example of:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Fixed mindset leadership</li>
+          <li><span class="opt-key">B</span> Emotional avoidance</li>
+          <li><span class="opt-key">C</span> Growth mindset — learning from criticism</li>
+          <li><span class="opt-key">D</span> Defensive management</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>A growth mindset leader sees feedback as a tool for improvement, asks questions to understand it, and acts on it. This is precisely what the manager did — demonstrating a key growth mindset behavior.</div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 05 · Self-Leadership</div>
+        <div class="q-text">Self-leadership is best described as:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Managing a team of individual contributors effectively</li>
+          <li><span class="opt-key">B</span> Influencing yourself through goal-setting, self-talk, and self-discipline to achieve better performance</li>
+          <li><span class="opt-key">C</span> Avoiding the need for external mentors or coaches</li>
+          <li><span class="opt-key">D</span> Making unilateral decisions without team input</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Self-leadership is about managing yourself — using strategies like goal-setting, self-talk, and self-discipline to manage thoughts, feelings, and actions. It is the foundation for leading others.</div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 06 · Emotional Intelligence</div>
+        <div class="q-text">During a heated project meeting, a team leader stays calm, acknowledges the frustration of each team member, and guides the group toward a constructive solution. Which component of Emotional Intelligence is most prominently displayed?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Self-awareness only</li>
+          <li><span class="opt-key">B</span> Self-regulation and empathy</li>
+          <li><span class="opt-key">C</span> Decisiveness and assertiveness</li>
+          <li><span class="opt-key">D</span> Strategic thinking</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Staying calm under pressure = Self-regulation. Acknowledging the feelings of team members = Empathy. Both are core EI components shown in this scenario.</div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 07 · Modern Leadership</div>
+        <div class="q-text">Modern leadership differs from traditional leadership primarily in that it:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Relies more heavily on positional authority and hierarchy</li>
+          <li><span class="opt-key">B</span> Moves away from top-down management to a more networked, adaptive, human-centered approach</li>
+          <li><span class="opt-key">C</span> Focuses exclusively on financial performance metrics</li>
+          <li><span class="opt-key">D</span> Is only relevant for technology companies</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Modern leadership moves beyond traditional top-down management. It involves a dynamic, human-centered approach that empowers teams through empathy, collaboration, shared purpose, and continuous growth.</div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 08 · Fixed Mindset</div>
+        <div class="q-text">A manager consistently avoids delegating complex tasks because they believe "only I can do this right." After a junior employee makes one mistake, the manager stops giving them any development opportunities. What is the impact of this behavior?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Higher team morale and better innovation outcomes</li>
+          <li><span class="opt-key">B</span> The team becomes more self-sufficient over time</li>
+          <li><span class="opt-key">C</span> The team stops taking initiative, morale drops, and innovation slows</li>
+          <li><span class="opt-key">D</span> The manager becomes more respected for their high standards</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>This is the classic fixed mindset leadership example. Fixed mindset leaders limit growth — both their own and their team's — by avoiding risk and failing to invest in people's potential. The result is lower initiative, morale, and innovation.</div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 09 · Conflict Resolution</div>
+        <div class="q-text">Two team members have an ongoing disagreement about project priorities. As a leader, the BEST first step in conflict resolution is to:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Wait and hope the conflict resolves itself</li>
+          <li><span class="opt-key">B</span> Address the issue early to avoid escalation, then mediate toward a common solution</li>
+          <li><span class="opt-key">C</span> Side with the higher-performing team member</li>
+          <li><span class="opt-key">D</span> Escalate immediately to senior management</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Good conflict resolution starts with addressing issues early (before they escalate) and using mediation to help parties find common ground. Waiting, taking sides, or escalating prematurely are all ineffective approaches.</div>
+      </div>
+
+      <!-- Q10 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 10 · Leading Without Authority</div>
+        <div class="q-text">When you lead without a formal title, your primary source of influence is:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Positional power granted by the organization</li>
+          <li><span class="opt-key">B</span> Relationships, credibility, communication, and initiative</li>
+          <li><span class="opt-key">C</span> The ability to issue performance reviews</li>
+          <li><span class="opt-key">D</span> Access to company resources and budgets</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Leading without authority means replacing positional power with personal power — relationships, credibility, clear communication, and proactive initiative. These are the tools available to anyone regardless of title.</div>
+      </div>
+
+      <!-- Q11 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 11 · Strategic Thinking</div>
+        <div class="q-text">A leader who consistently keeps the long-term vision in mind, identifies high-impact priorities, and looks for innovation opportunities is demonstrating:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Operational management</li>
+          <li><span class="opt-key">B</span> Strategic thinking</li>
+          <li><span class="opt-key">C</span> Micromanagement</li>
+          <li><span class="opt-key">D</span> Reactive leadership</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Strategic thinking involves being vision-oriented, prioritizing for impact, understanding how the organization's parts interact, and innovating. All described behaviors match this skill.</div>
+      </div>
+
+      <!-- Q12 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 12 · Personal Traits</div>
+        <div class="q-text">A project manager discovers a significant error in their team's work right before a client presentation. Instead of hiding the error, they inform the client, explain what happened, and present a recovery plan. Which leadership trait is MOST demonstrated?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Decisiveness</li>
+          <li><span class="opt-key">B</span> Resilience</li>
+          <li><span class="opt-key">C</span> Integrity</li>
+          <li><span class="opt-key">D</span> Assertiveness</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Integrity means doing what is right even when it is difficult — being honest even when delivering bad news. The manager chose honesty over self-protection, which is the definition of integrity in leadership.</div>
+      </div>
+
+      <!-- Q13 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 13 · Growth Mindset Behaviors</div>
+        <div class="q-text">The "Not Yet" mindset in leadership means:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Delaying decisions until all information is available</li>
+          <li><span class="opt-key">B</span> Acknowledging current limitations while focusing on future growth potential</li>
+          <li><span class="opt-key">C</span> Refusing to attempt tasks until fully trained</li>
+          <li><span class="opt-key">D</span> Putting off difficult conversations with team members</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>The "Not Yet" mindset transforms "I can't do this" into "I can't do this yet." It acknowledges current limitations as temporary and focuses attention on growth and future capability, not fixed inability.</div>
+      </div>
+
+      <!-- Q14 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 14 · Team Building</div>
+        <div class="q-text">Which of the following is NOT a component of effective team building according to the course material?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Creating psychological safety and trust</li>
+          <li><span class="opt-key">B</span> Valuing diversity and inclusivity</li>
+          <li><span class="opt-key">C</span> Maintaining strict top-down control of all decisions</li>
+          <li><span class="opt-key">D</span> Recognizing individual and group contributions</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Effective team building includes trust, empowerment, inclusivity, and recognition. Strict top-down control is the opposite of empowerment — it kills autonomy and collaboration, which are essential for high-performing teams.</div>
+      </div>
+
+      <!-- Q15 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 15 · WEF Skills 2030</div>
+        <div class="q-text">According to the World Economic Forum's Future of Jobs Report 2025, which skills will be MOST valuable by 2030?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Technical AI skills alone, since AI will handle all human tasks</li>
+          <li><span class="opt-key">B</span> Traditional management skills like scheduling and reporting</li>
+          <li><span class="opt-key">C</span> Uniquely human skills that AI cannot replicate, combined with strong digital literacy</li>
+          <li><span class="opt-key">D</span> Physical and manual labor skills</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>The WEF report emphasizes that while technical AI skills are in demand, uniquely human skills (creativity, resilience, leadership, analytical thinking) that AI cannot replicate — combined with digital literacy — will be most valuable.</div>
+      </div>
+
+      <!-- Q16 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 16 · Communication</div>
+        <div class="q-text">A leader who adjusts their communication style based on the audience, listens actively to feedback, and ensures messages inspire action rather than just informing is demonstrating which key leadership skill?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Conflict resolution</li>
+          <li><span class="opt-key">B</span> Strategic thinking</li>
+          <li><span class="opt-key">C</span> Effective communication</li>
+          <li><span class="opt-key">D</span> Decision-making</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Effective communication includes clarity, honesty, motivating messaging, and active listening. Adjusting to the audience and inspiring action — not just informing — are hallmarks of great leadership communication.</div>
+      </div>
+
+      <!-- Q17 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 17 · Adaptability</div>
+        <div class="q-text">When a company undergoes major restructuring, an effective leader's role in adaptability includes:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Resisting the change to protect team stability</li>
+          <li><span class="opt-key">B</span> Helping others embrace change by clearly communicating the "why" and supporting transitions</li>
+          <li><span class="opt-key">C</span> Ignoring team concerns and focusing only on execution</li>
+          <li><span class="opt-key">D</span> Delegating all communication about the change to HR</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Adaptability in leadership includes "change leadership" — helping others embrace change by clearly communicating the reasoning behind it and supporting them through transitions. This reduces resistance and builds trust.</div>
+      </div>
+
+      <!-- Q18 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 18 · Accountability vs Blame</div>
+        <div class="q-text">Which statement BEST represents the leadership trait of Accountability?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> "It was the team's fault — I gave them clear instructions."</li>
+          <li><span class="opt-key">B</span> "I take full responsibility for this outcome. Here's what I'll do differently."</li>
+          <li><span class="opt-key">C</span> "I need more information before I can comment on what happened."</li>
+          <li><span class="opt-key">D</span> "Everyone makes mistakes — let's just move on."</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Accountability means owning your mistakes instead of blaming others, and actively working to correct them. Statement B demonstrates both ownership and a forward-looking corrective approach.</div>
+      </div>
+
+      <!-- Q19 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 19 · Ronaldo Mouchawar Example</div>
+        <div class="q-text">The story of Ronaldo Mouchawar and Souq.com is used in the course to illustrate:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> How authority is necessary for business success</li>
+          <li><span class="opt-key">B</span> The fixed mindset approach to business challenges</li>
+          <li><span class="opt-key">C</span> Growth mindset in action — innovating, persisting, and learning from market challenges</li>
+          <li><span class="opt-key">D</span> How to manage a large team with limited resources</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Mouchawar faced poor logistics, no online payment, and low customer trust — yet adapted by creating cash-on-delivery and learning from customers. This is a textbook growth mindset example: innovate, persist, turn problems into learning opportunities.</div>
+      </div>
+
+      <!-- Q20 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 20 · Decision Making</div>
+        <div class="q-text">A leader who considers the long-term consequences of their decisions, ensures fairness, and stands by their choices while learning from outcomes is demonstrating which quality of good decision-making?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Timeliness only</li>
+          <li><span class="opt-key">B</span> Ethical decision-making and accountability</li>
+          <li><span class="opt-key">C</span> Risk avoidance</li>
+          <li><span class="opt-key">D</span> Delegation</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Considering long-term consequences and fairness = Ethical. Standing by decisions and learning from outcomes = Accountable. Both are described under the Decision-Making key skill in the module.</div>
+      </div>
+
+      <!-- Q21 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 21 · Leadership Occurs At All Levels</div>
+        <div class="q-text">The statement "Leadership occurs at all levels — you don't need a title to be a leader" implies:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Senior executives are the only true leaders in an organization</li>
+          <li><span class="opt-key">B</span> Any individual, regardless of position, can influence, inspire, and guide others</li>
+          <li><span class="opt-key">C</span> Leadership is the same as management in modern organizations</li>
+          <li><span class="opt-key">D</span> Only those with high EQ can be leaders</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>One of the core tenets of modern leadership is that it is not restricted to titles. Anyone at any level can exhibit leadership through influence, initiative, and positive impact on those around them.</div>
+      </div>
+
+      <!-- Q22 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 22 · EI Component</div>
+        <div class="q-text">Which component of Emotional Intelligence helps a leader recognize their own biases and emotional reactions before responding to a challenging situation?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Empathy</li>
+          <li><span class="opt-key">B</span> Social Skills</li>
+          <li><span class="opt-key">C</span> Self-Awareness</li>
+          <li><span class="opt-key">D</span> Self-Regulation</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Self-Awareness is the foundation of EI — it means recognizing your own emotional triggers and biases. You cannot regulate yourself (Self-Regulation) until you are first aware of what triggers you. Self-Awareness is always the starting point.</div>
+      </div>
+
+      <!-- Q23 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 23 · Scenario-Based</div>
+        <div class="q-text">Laila is a junior analyst who notices that the team's data reporting process takes 3 extra hours due to manual work. She researches an automation solution, builds a prototype, and presents it to her team lead — all without being asked. What TWO "leading without authority" behaviors does she demonstrate?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Building trust AND conflict resolution</li>
+          <li><span class="opt-key">B</span> Taking initiative AND becoming a subject matter resource</li>
+          <li><span class="opt-key">C</span> Communicating clearly AND team building</li>
+          <li><span class="opt-key">D</span> Modeling growth mindset AND delegation</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Laila spotted a problem and acted without being asked (Taking Initiative) and researched and built expertise in automation (Becoming a Subject Matter Resource). Both behaviors are ways to lead without formal authority.</div>
+      </div>
+
+      <!-- Q24 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 24 · Difference: Leadership vs Management</div>
+        <div class="q-text">Which pairing CORRECTLY matches the leadership/management distinction?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Leadership → Works through authority / Management → Works through influence</li>
+          <li><span class="opt-key">B</span> Leadership → Maintains stability / Management → Drives change</li>
+          <li><span class="opt-key">C</span> Leadership → Focuses on vision / Management → Focuses on execution</li>
+          <li><span class="opt-key">D</span> Leadership → Coordinates people / Management → Inspires people</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Per the module's comparison table: Leadership focuses on vision; Management focuses on execution. Leadership works through influence; Management works through authority. Leadership drives change; Management maintains stability.</div>
+      </div>
+
+      <!-- Q25 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 25 · Assertiveness</div>
+        <div class="q-text">Being assertive as a leader means:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Being aggressive in defending your position</li>
+          <li><span class="opt-key">B</span> Always agreeing with others to avoid conflict</li>
+          <li><span class="opt-key">C</span> Expressing your needs and opinions clearly and respectfully without being aggressive</li>
+          <li><span class="opt-key">D</span> Only speaking when you are certain you are right</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Assertiveness is the middle ground between passivity (always agreeing) and aggression (forcing your view). It means stating your needs and opinions clearly, directly, and respectfully — a critical personal trait of leaders.</div>
+      </div>
+
+      <!-- Q26 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 26 · Hard Scenario</div>
+        <div class="q-text">A startup CEO knows their product launch will miss its deadline. Their instinct is to push the team harder. A growth mindset leader would instead:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Launch anyway to meet the deadline regardless of quality</li>
+          <li><span class="opt-key">B</span> Blame the engineering team publicly to create urgency</li>
+          <li><span class="opt-key">C</span> Examine what caused the delay, learn from it, adapt the strategy, and support the team through the setback</li>
+          <li><span class="opt-key">D</span> Hire a new engineering lead immediately</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: C</div>Growth mindset leaders persist through setbacks by adapting strategies, not by blaming or forcing. They examine failure as a learning opportunity, support the team, and modify their approach. Options A and B reflect fixed/reactive mindsets; D is avoidance.</div>
+      </div>
+
+      <!-- Q27 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 27 · Continuous Learning</div>
+        <div class="q-text">Why is "commitment to continuous learning" considered one of the most important personal traits of a leader?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Because leaders need to have academic qualifications</li>
+          <li><span class="opt-key">B</span> Because the world changes rapidly and leaders must keep adapting their knowledge and skills to remain effective</li>
+          <li><span class="opt-key">C</span> Because it helps leaders avoid making decisions</li>
+          <li><span class="opt-key">D</span> Because it makes leaders appear more qualified than their team</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>The WEF and the course both emphasize that the world is changing faster than ever. Leaders who stop learning quickly become outdated. Continuous curiosity and learning keep leaders relevant, adaptive, and able to guide others through change.</div>
+      </div>
+
+      <!-- Q28 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 28 · Empowerment in Team Building</div>
+        <div class="q-text">A leader who delegates complex projects to team members and encourages them to make independent decisions is practicing:</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Micromanagement</li>
+          <li><span class="opt-key">B</span> Empowerment in team building</li>
+          <li><span class="opt-key">C</span> Conflict avoidance</li>
+          <li><span class="opt-key">D</span> Risk management</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>Empowerment = delegating effectively and encouraging autonomy. When a leader trusts team members with complex tasks and independent decisions, it builds their confidence, capability, and engagement — a core element of team building.</div>
+      </div>
+
+      <!-- Q29 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 29 · Applied — Hard</div>
+        <div class="q-text">A senior engineer has deep technical knowledge and always has a solution ready, but they rarely involve teammates in decisions and tend to dismiss others' ideas quickly. They are demonstrating strong _____ but weak _____.</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> Strategic thinking / Self-awareness</li>
+          <li><span class="opt-key">B</span> Subject matter expertise / Interpersonal and EI skills</li>
+          <li><span class="opt-key">C</span> Decisiveness / Technical ability</li>
+          <li><span class="opt-key">D</span> Communication / Resilience</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>The engineer has strong technical knowledge (subject matter expertise) but is poor at collaboration, listening, and empathy — which are core interpersonal and EI skills. Great leaders combine both technical and human skills.</div>
+      </div>
+
+      <!-- Q30 -->
+      <div class="q-item">
+        <div class="q-num">MCQ 30 · Vision vs Execution</div>
+        <div class="q-text">Which analogy BEST illustrates the difference between a leader and a manager?</div>
+        <ul class="q-options">
+          <li><span class="opt-key">A</span> A pilot and a passenger</li>
+          <li><span class="opt-key">B</span> An architect who designs the building and a foreman who ensures it is built correctly</li>
+          <li><span class="opt-key">C</span> A teacher and a student</li>
+          <li><span class="opt-key">D</span> A doctor and a nurse</li>
+        </ul>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ Correct: B</div>The architect-foreman analogy perfectly captures the distinction: the architect (leader) creates the vision, while the foreman (manager) ensures the execution. You need the vision before you can manage the execution — both roles are essential.</div>
+      </div>
+
+    </div><!-- end MCQ group -->
+
+    <!-- TRUE/FALSE GROUP -->
+    <div class="quiz-group" id="tab-tf">
+      <div class="quiz-progress"><span>True / False Section — 22 Questions</span><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:44%"></div></div><span>🎯 Test Yourself</span></div>
+
+      <!-- TF items -->
+      <div class="q-item">
+        <div class="q-num">T/F 01</div>
+        <div class="q-text">Leadership requires a formal title such as "manager" or "team lead" to be effective.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>The course states clearly: "Leadership occurs at all levels — you don't need a title to be a leader." Leadership is about influence and impact, not hierarchy.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 02</div>
+        <div class="q-text">Self-leadership forms the foundation for leading others effectively.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>Self-leadership is explicitly described as "forming the basis for leading others." You must first manage yourself — your goals, discipline, and thoughts — before you can effectively lead others.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 03</div>
+        <div class="q-text">Management and leadership are essentially the same thing in modern organizations.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>They are fundamentally different: Leadership focuses on vision, inspiration, influence, and change. Management focuses on execution, coordination, authority, and stability. Both are needed, but they serve distinct purposes.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 04</div>
+        <div class="q-text">A person with a growth mindset believes that intelligence and ability are fixed traits that cannot be changed.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>That describes a FIXED mindset, not a growth mindset. A growth mindset holds the opposite belief: that abilities and intelligence CAN be developed through effort, learning, and feedback.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 05</div>
+        <div class="q-text">New graduates can lead without authority by taking initiative, sharing fresh ideas, and taking ownership of tasks.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>The course specifically addresses this scenario. Even without formal power, new graduates can lead by bringing fresh ideas, encouraging collaboration, taking task ownership, and being a source of positivity and initiative.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 06</div>
+        <div class="q-text">Emotional Intelligence (EI) is only relevant for HR professionals, not for all leaders.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>EI is listed as one of the 7 key skills of ALL successful leaders. Managing your emotions and understanding others' is critical for communication, conflict resolution, team building, and decision-making — across all leadership roles.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 07</div>
+        <div class="q-text">According to the course, conflict in teams should be allowed to resolve itself naturally to avoid creating tension.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>The course states that good conflict resolution means "addressing issues early" to avoid escalation. Waiting for conflicts to resolve themselves typically leads to bigger problems, reduced morale, and decreased team effectiveness.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 08</div>
+        <div class="q-text">Modern leadership uses a human-centered approach that moves beyond traditional top-down management.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>Modern leadership is explicitly defined in the module as "a dynamic, human-centered approach that empowers teams through empathy, collaboration, and shared purpose, moving beyond traditional top-down management."</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 09</div>
+        <div class="q-text">A leader with a fixed mindset who limits delegation will typically see higher innovation and morale in their team.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>The opposite is true. The fixed mindset example in the course shows that when a leader avoids delegation and stops giving people development opportunities, "the team stops taking initiative, morale drops, and innovation slows."</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 10</div>
+        <div class="q-text">Integrity as a leadership trait means doing what is right even when it is difficult or no one is watching.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>Integrity is consistently described as doing what you say you will do and doing what is right — even under pressure, even with bad news, even when it is easier to hide the truth. It is the foundation of leader credibility.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 11</div>
+        <div class="q-text">Strategic thinking in leadership means focusing only on today's operational tasks and short-term results.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>Strategic thinking is the opposite — it means "seeing the big picture," keeping the long-term vision in mind, and understanding how all parts of the organization work together. Focusing only on short-term tasks is operational, not strategic.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 12</div>
+        <div class="q-text">Asking questions and admitting you do not know something is a sign of weakness in a leader.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>The course explicitly states that "admitting when you don't know something and asking for help" is listed as a STRENGTH and a growth mindset behavior. Pretending to know everything damages trust and stifles learning.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 13</div>
+        <div class="q-text">The World Economic Forum's 2025 report suggests that purely technical AI skills, without human skills, will be the only thing needed to succeed by 2030.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>The WEF report emphasizes a COMBINATION: uniquely human skills that AI cannot replicate (creativity, resilience, leadership, analytical thinking) combined with digital literacy will be most valuable. Technical skills alone are insufficient.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 14</div>
+        <div class="q-text">Empathy is a component of Emotional Intelligence that involves understanding and being sensitive to the feelings and perspectives of others.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>This is the exact definition given in the course. Empathy — one of the four EI components (alongside self-awareness, self-regulation, and social skills) — means understanding and being sensitive to others' feelings and perspectives.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 15</div>
+        <div class="q-text">A growth mindset leader views change as a learning curve, not a threat.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>This is directly stated in the "Why Growth Mindset Matters in Leadership" table under "Change Management": a Growth Mindset Leader "views change as a learning curve, not a threat."</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 16</div>
+        <div class="q-text">Decisiveness as a leadership trait means making decisions impulsively without gathering any information.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>Decisiveness means making timely, INFORMED decisions — knowing when you have gathered enough information to act, then committing. It is not impulsiveness. The course specifies that good decisions are "timely, informed, and ethical."</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 17</div>
+        <div class="q-text">Inclusivity in team building means ensuring everyone on the team feels valued and included, regardless of diversity.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>Inclusivity in team building is defined as "valuing diversity and ensuring everyone feels included." A leader who practices inclusivity creates an environment where all voices are heard and respected.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 18</div>
+        <div class="q-text">A leader who seeks inspiration from others' success rather than feeling threatened by it is demonstrating growth mindset behavior.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>"Seek Inspiration: Find motivation in the success of others rather than feeling threatened by it" is behavior #6 in the Growth Mindset Behaviors of Leaders list in the course.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 19</div>
+        <div class="q-text">Conflict resolution focuses only on who was right in a dispute, not on finding mutually beneficial solutions.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>Good conflict resolution is "solution-oriented" — focused on outcomes that benefit the team and align with organizational goals. It uses mediation to help parties find common ground, not to determine who was right.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 20</div>
+        <div class="q-text">Credibility is one of the key foundations of influence when leading without authority.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✓ TRUE</div>When you lead without a formal title, you rely on: Relationships, Credibility, Communication, and Initiative — as stated in the "Leading Without Authority" section. Credibility (your knowledge and track record) is a primary source of influence.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 21</div>
+        <div class="q-text">Self-regulation in Emotional Intelligence means completely suppressing emotions in the workplace.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>Self-regulation means "staying calm and composed, especially under stress" — not suppressing emotions. Leaders with good self-regulation acknowledge their feelings but choose how to respond, rather than reacting impulsively.</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">T/F 22</div>
+        <div class="q-text">The Modern Leader Course uses a purely theoretical approach with no hands-on practical application.</div>
+        <div class="tf-options"><span class="tf-opt">True</span><span class="tf-opt">False</span></div>
+        <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+        <div class="q-answer"><div class="ans-label">✗ FALSE</div>The course overview explicitly states it is "highly interactive" and "combines theoretical knowledge with practical strategies to ensure hands-on practical application." Theory and practice are both core to the course design.</div>
+      </div>
+
+    </div><!-- end TF group -->
+  </div>
+</div>
+
+</div><!-- end page-wrap -->
+
+<button class="scroll-top" id="scrollBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+// Toggle section collapse
+function toggle(header) {
+  const card = header.closest('.section-card');
+  card.classList.toggle('open');
+}
+
+// Language switcher
+function toggleLang() {
+  const html = document.documentElement;
+  const btn = document.getElementById('lang-btn');
+  if (html.dataset.lang === 'en') {
+    html.dataset.lang = 'ar';
+    html.lang = 'ar';
+    btn.textContent = '🌐 EN';
+  } else {
+    html.dataset.lang = 'en';
+    html.lang = 'en';
+    btn.textContent = '🌐 AR';
+  }
+}
+
+// Theme switcher
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-btn');
+  if (html.dataset.theme === 'light') {
+    html.dataset.theme = 'dark';
+    btn.textContent = '☀️ Light';
+  } else {
+    html.dataset.theme = 'light';
+    btn.textContent = '🌙 Dark';
+  }
+}
+
+// Smooth scroll to section
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// Show answer
+function showAnswer(btn) {
+  const answer = btn.nextElementSibling;
+  if (answer.style.display === 'block') {
+    answer.style.display = 'none';
+    btn.textContent = 'Show Answer';
+  } else {
+    answer.style.display = 'block';
+    btn.textContent = 'Hide Answer';
+  }
+}
+
+// Quiz tabs
+function showTab(tab, el) {
+  document.querySelectorAll('.quiz-group').forEach(g => g.classList.remove('active'));
+  document.querySelectorAll('.q-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  el.classList.add('active');
+}
+
+// Scroll to top button
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scrollBtn');
+  btn.classList.toggle('visible', window.scrollY > 400);
+});
+
+// Open all sections by default
+document.querySelectorAll('.section-card').forEach(c => c.classList.add('open'));
+</script>
+</body>
+</html>

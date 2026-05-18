@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Skills - Module Two | Digilians</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c1-fg:#a5f3fc;--c1-bg:#0e2a30;--c1-mid:#155e75;
+  --c2-fg:#bbf7d0;--c2-bg:#0e2a1a;--c2-mid:#14532d;
+  --c3-fg:#fde68a;--c3-bg:#2a1f05;--c3-mid:#78350f;
+  --c4-fg:#fca5a5;--c4-bg:#2a0e0e;--c4-mid:#7f1d1d;
+  --c5-fg:#d8b4fe;--c5-bg:#1e0a2a;--c5-mid:#581c87;
+  --c6-fg:#fed7aa;--c6-bg:#2a1205;--c6-mid:#7c2d12;
+  --c7-fg:#a5b4fc;--c7-bg:#0e1030;--c7-mid:#1e1b4b;
+  --bg:#0d0f14;--surface:#141720;--surface2:#1a1e2a;--surface3:#20253a;
+  --border:#2a2f45;--text:#e2e8f0;--text-dim:#8892a4;--text-muted:#4a5568;
+  --font-head:'Sora',sans-serif;--font-mono:'IBM Plex Mono',monospace;
+  --font-ar:'Noto Sans Arabic',sans-serif;
+  --sp2:8px;--sp3:12px;--sp4:16px;--sp5:24px;--sp6:32px;--sp7:48px;
+  --radius:12px;--radius-sm:6px;--radius-lg:20px;
+}
+[data-theme="light"]{
+  --bg:#f0f2f8;--surface:#ffffff;--surface2:#f5f7fc;--surface3:#eaecf5;
+  --border:#d0d5e8;--text:#1a1e2a;--text-dim:#4a5568;--text-muted:#8892a4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-head);background:var(--bg);color:var(--text);line-height:1.7;font-size:15px;transition:background .3s,color .3s}
+.site-header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#0d1117,#141720);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);padding:var(--sp4) var(--sp6);display:flex;align-items:center;justify-content:space-between;gap:var(--sp4);flex-wrap:wrap}
+.header-brand .label{font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--c1-fg);opacity:.7}
+.header-brand h1{font-size:20px;font-weight:800;background:linear-gradient(90deg,var(--c1-fg),var(--c5-fg));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-controls{display:flex;gap:var(--sp3);align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:var(--sp2);padding:var(--sp2) var(--sp4);border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-family:var(--font-head);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:hover{background:var(--surface3);color:var(--text);border-color:var(--c1-mid)}
+.btn.active{background:var(--c1-bg);color:var(--c1-fg);border-color:var(--c1-mid)}
+.container{max-width:1000px;margin:0 auto;padding:var(--sp6) var(--sp5)}
+.toc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp5);margin-bottom:var(--sp7);position:relative;overflow:hidden}
+.toc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c1-fg),var(--c5-fg),var(--c3-fg))}
+.toc-title{font-size:13px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-dim);margin-bottom:var(--sp4)}
+.toc-grid{display:flex;flex-wrap:wrap;gap:8px}
+.toc-chip{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .2s;text-decoration:none;display:inline-block}
+.toc-chip:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.chip-1{background:var(--c1-bg);color:var(--c1-fg);border-color:var(--c1-mid)}
+.chip-2{background:var(--c2-bg);color:var(--c2-fg);border-color:var(--c2-mid)}
+.chip-3{background:var(--c3-bg);color:var(--c3-fg);border-color:var(--c3-mid)}
+.chip-4{background:var(--c4-bg);color:var(--c4-fg);border-color:var(--c4-mid)}
+.chip-5{background:var(--c5-bg);color:var(--c5-fg);border-color:var(--c5-mid)}
+.chip-6{background:var(--c6-bg);color:var(--c6-fg);border-color:var(--c6-mid)}
+.chip-7{background:var(--c7-bg);color:var(--c7-fg);border-color:var(--c7-mid)}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:var(--sp5);overflow:hidden;transition:border-color .2s}
+.section-card:hover{border-color:var(--c1-mid)}
+.section-header{display:flex;align-items:center;gap:var(--sp4);padding:var(--sp5);cursor:pointer;user-select:none;position:relative}
+.section-stripe{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+.section-badge{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.section-meta{flex:1}
+.section-meta h2{font-size:17px;font-weight:700;line-height:1.2}
+.section-meta .sub{font-size:12px;color:var(--text-dim);margin-top:2px}
+.toggle-icon{width:28px;height:28px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);transition:transform .3s;flex-shrink:0}
+.section-card.open .toggle-icon{transform:rotate(180deg)}
+.section-body{display:none;padding:0 var(--sp5) var(--sp5);border-top:1px solid var(--border)}
+.section-card.open .section-body{display:block}
+.lang-tabs{display:flex;gap:8px;margin:var(--sp4) 0;border-bottom:1px solid var(--border)}
+.lang-tab{padding:var(--sp2) var(--sp4);border:none;background:none;color:var(--text-dim);font-family:var(--font-head);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px}
+.lang-tab.active{color:var(--c1-fg);border-bottom-color:var(--c1-fg)}
+.lang-content{display:none}
+.lang-content.active{display:block}
+.ar-text{font-family:var(--font-ar);direction:rtl;text-align:right;line-height:2}
+.box{border-radius:var(--radius);padding:var(--sp4) var(--sp5);margin:var(--sp4) 0;border:1px solid}
+.box-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:var(--sp3);display:flex;align-items:center;gap:8px}
+.box-analogy{background:var(--c3-bg);border-color:var(--c3-mid)}
+.box-analogy .box-label{color:var(--c3-fg)}
+.box-example{background:var(--c2-bg);border-color:var(--c2-mid)}
+.box-example .box-label{color:var(--c2-fg)}
+.box-summary{background:var(--c7-bg);border-color:var(--c7-mid)}
+.box-summary .box-label{color:var(--c7-fg)}
+.box-warning{background:var(--c4-bg);border-color:var(--c4-mid)}
+.box-warning .box-label{color:var(--c4-fg)}
+.term{background:var(--c5-bg);color:var(--c5-fg);padding:1px 6px;border-radius:4px;font-weight:600;font-size:.9em}
+.highlight{background:var(--c3-bg);color:var(--c3-fg);padding:1px 6px;border-radius:4px;font-weight:600}
+.code-inline{font-family:var(--font-mono);background:var(--surface3);color:var(--c1-fg);padding:2px 8px;border-radius:4px;font-size:.88em}
+.table-wrap{overflow-x:auto;margin:var(--sp4) 0;border-radius:var(--radius)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead tr{background:linear-gradient(135deg,var(--c1-mid),var(--c5-mid))}
+thead th{padding:var(--sp3) var(--sp4);text-align:left;color:#fff;font-weight:700;font-size:12px;letter-spacing:.05em}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:nth-child(even){background:var(--surface2)}
+tbody tr:hover{background:var(--surface3)}
+tbody td{padding:var(--sp3) var(--sp4);vertical-align:top}
+tbody td:first-child{font-weight:600;color:var(--c1-fg)}
+.assessment-header{text-align:center;padding:var(--sp7) var(--sp5) var(--sp5)}
+.assessment-header h2{font-size:28px;font-weight:800;background:linear-gradient(90deg,var(--c3-fg),var(--c6-fg));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:var(--sp3)}
+.assessment-header p{color:var(--text-dim);font-size:14px}
+.q-filter{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:var(--sp5) 0}
+.q-filter .btn.active{background:var(--c3-bg);color:var(--c3-fg);border-color:var(--c3-mid)}
+.q-section-title{font-size:13px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text-dim);margin:var(--sp6) 0 var(--sp4);padding-bottom:8px;border-bottom:1px solid var(--border)}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp5);margin-bottom:var(--sp4);transition:border-color .2s}
+.q-card:hover{border-color:var(--c3-mid)}
+.q-number{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.q-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.1em}
+.badge-mcq{background:var(--c1-bg);color:var(--c1-fg)}
+.badge-tf{background:var(--c5-bg);color:var(--c5-fg)}
+.q-text{font-size:15px;font-weight:500;margin-bottom:var(--sp4);line-height:1.6}
+.q-options{display:flex;flex-direction:column;gap:8px}
+.q-option{display:flex;align-items:flex-start;gap:var(--sp3);padding:var(--sp3) var(--sp4);border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .2s;font-size:14px}
+.q-option:hover{background:var(--surface3);border-color:var(--c3-mid)}
+.q-option.correct{background:var(--c2-bg);border-color:var(--c2-fg);color:var(--c2-fg)}
+.q-option.wrong{background:var(--c4-bg);border-color:var(--c4-fg);color:var(--c4-fg)}
+.opt-key{font-family:var(--font-mono);font-size:12px;font-weight:700;width:20px;flex-shrink:0;margin-top:1px}
+.q-reveal{margin-top:var(--sp4)}
+.reveal-btn{padding:var(--sp2) var(--sp4);border-radius:var(--radius-sm);border:1px solid var(--c3-mid);background:var(--c3-bg);color:var(--c3-fg);font-family:var(--font-head);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.reveal-btn:hover{background:var(--c3-mid)}
+.answer-block{display:none;margin-top:var(--sp3);padding:var(--sp4);background:var(--c2-bg);border:1px solid var(--c2-mid);border-radius:var(--radius-sm);font-size:13.5px}
+.answer-block.visible{display:block}
+.answer-block .correct-label{font-weight:700;color:var(--c2-fg);margin-bottom:8px}
+.answer-block .explanation{color:var(--text-dim);line-height:1.6}
+.score-bar{display:none;position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:var(--sp4);font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:200;min-width:160px}
+.score-bar.visible{display:block}
+.score-bar .score-num{font-size:24px;font-weight:800;color:var(--c2-fg)}
+ul.content-list{margin:10px 0 10px 20px;display:flex;flex-direction:column;gap:6px}
+ol.content-list{margin:12px 0 12px 20px;display:flex;flex-direction:column;gap:10px}
+[dir="rtl"] ul.content-list,[dir="rtl"] ol.content-list{margin-left:0;margin-right:30px}
+[dir="rtl"] .section-stripe{left:auto;right:0;border-radius:0 4px 4px 0}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-brand">
+    <span class="label">Digilians &middot; Module Two</span>
+    <h1>Leadership Skills</h1>
+  </div>
+  <div class="header-controls">
+    <button class="btn" id="themeBtn" onclick="toggleTheme()">&#9790; Dark</button>
+    <button class="btn active" id="langEN" onclick="setLang('en')">EN</button>
+    <button class="btn" id="langAR" onclick="setLang('ar')">&#1593;&#1585;&#1576;&#1610;</button>
+  </div>
+</header>
+
+<div class="container">
+
+<div class="toc-card">
+  <div class="toc-title">Table of Contents</div>
+  <div class="toc-grid">
+    <a href="#s1" class="toc-chip chip-1">Situational Leadership</a>
+    <a href="#s2" class="toc-chip chip-2">The SL Model (D1-D4)</a>
+    <a href="#s3" class="toc-chip chip-3">Process: Right Style</a>
+    <a href="#s4" class="toc-chip chip-4">Goleman's 6 Styles</a>
+    <a href="#s5" class="toc-chip chip-5">Style Characteristics</a>
+    <a href="#s6" class="toc-chip chip-6">When &amp; How to Use</a>
+    <a href="#s7" class="toc-chip chip-7">SWOT &amp; Blind Spots</a>
+    <a href="#assessment" class="toc-chip chip-1">Assessment (50 Q)</a>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section-card open" id="s1">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c1-fg)"></div>
+    <div class="section-badge" style="background:var(--c1-bg)">&#128205;</div>
+    <div class="section-meta">
+      <h2>Situational Leadership Overview</h2>
+      <div class="sub">Hersey &amp; Blanchard &middot; Adaptive Leadership</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s1')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s1')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s1-en">
+      <p>The <span class="term">Situational Leadership Model</span> was developed by <strong>Paul Hersey</strong> and <strong>Ken Blanchard</strong>. Its core idea is simple: <span class="highlight">there is no single best leadership style</span>. Instead, a great leader adapts their approach depending on the person they are leading and the specific task at hand.</p>
+      <p style="margin-top:12px">A leader looks at two things about a team member:</p>
+      <ul class="content-list">
+        <li><strong>Competence</strong> - Does this person have the skills and knowledge to do the task?</li>
+        <li><strong>Commitment</strong> - Is this person motivated and confident enough to do it?</li>
+      </ul>
+      <p>Based on these two factors, the leader selects one of four styles ranging from <span class="term">Directing</span> (high control) to <span class="term">Delegating</span> (high freedom).</p>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; Analogy</div>
+        Think of a driving instructor. With a complete beginner, they grip the wheel and give constant instructions (Directing). As the student improves, they coach, then support, and finally just sit back and let the driver handle everything (Delegating). The instructor changed style - the car did not.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; Real-World Example</div>
+        A new employee joins a tech company. The manager does not hand them a project and disappear. The manager shows them step-by-step how things work, closely checks their work, and slowly gives more independence as skills grow. This is Situational Leadership in action.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Situational Leadership = Adapt your style to the person and the task. Two key variables: <strong>competence</strong> + <strong>commitment</strong>. Styles: Directing, Coaching, Supporting, Delegating.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s1-ar">
+      <p>&#1606;&#1605;&#1608;&#1584;&#1580; <span class="term">Situational Leadership</span> &#1575;&#1578;&#1591;&#1608;&#1585; &#1593;&#1604;&#1609; &#1573;&#1610;&#1583; <strong>Paul Hersey</strong> &#1608;<strong>Ken Blanchard</strong>. &#1575;&#1604;&#1601;&#1603;&#1585;&#1577; &#1575;&#1604;&#1571;&#1587;&#1575;&#1587;&#1610;&#1577;: <span class="highlight">&#1605;&#1601;&#1610;&#1588; &#1571;&#1587;&#1604;&#1608;&#1576; &#1602;&#1610;&#1575;&#1583;&#1577; &#1608;&#1575;&#1581;&#1583; &#1576;&#1610;&#1589;&#1604;&#1581; &#1601;&#1610; &#1603;&#1604; &#1575;&#1604;&#1581;&#1575;&#1604;&#1575;&#1578;</span>. &#1575;&#1604;&#1602;&#1575;&#1574;&#1583; &#1575;&#1604;&#1603;&#1608;&#1610;&#1587; &#1607;&#1608; &#1575;&#1604;&#1604;&#1610; &#1576;&#1610;&#1594;&#1610;&#1585; &#1571;&#1587;&#1604;&#1608;&#1576;&#1607; &#1581;&#1587;&#1576; &#1575;&#1604;&#1588;&#1582;&#1589; &#1575;&#1604;&#1604;&#1610; &#1602;&#1583;&#1575;&#1605;&#1607; &#1608;&#1575;&#1604;&#1605;&#1607;&#1605;&#1577; &#1575;&#1604;&#1605;&#1591;&#1604;&#1608;&#1576;&#1577;.</p>
+      <p style="margin-top:12px">&#1575;&#1604;&#1602;&#1575;&#1574;&#1583; &#1576;&#1610;&#1581;&#1578;&#1575;&#1580; &#1610;&#1581;&#1603;&#1605; &#1593;&#1604;&#1609; &#1575;&#1604;&#1605;&#1608;&#1592;&#1601; &#1605;&#1606; &#1606;&#1575;&#1581;&#1610;&#1578;&#1610;&#1606;:</p>
+      <ul class="content-list">
+        <li><strong>Competence</strong> &#1548; &#1593;&#1606;&#1583;&#1607; &#1575;&#1604;&#1605;&#1607;&#1575;&#1585;&#1577; &#1608;&#1575;&#1604;&#1605;&#1593;&#1585;&#1601;&#1577; &#1593;&#1588;&#1575;&#1606; &#1610;&#1593;&#1605;&#1604; &#1575;&#1604;&#1588;&#1594;&#1604;&#1567;</li>
+        <li><strong>Commitment</strong> &#1548; &#1605;&#1572;&#1605;&#1606; &#1576;&#1606;&#1601;&#1587;&#1607; &#1608;&#1593;&#1606;&#1583;&#1607; &#1583;&#1575;&#1601;&#1593; &#1593;&#1588;&#1575;&#1606; &#1610;&#1603;&#1605;&#1604;&#1567;</li>
+      </ul>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; &#1578;&#1588;&#1576;&#1610;&#1607;</div>
+        &#1601;&#1603;&#1585; &#1601;&#1610; &#1605;&#1583;&#1585;&#1576; &#1602;&#1610;&#1575;&#1583;&#1577; &#1587;&#1610;&#1575;&#1585;&#1577;. &#1605;&#1593; &#1575;&#1604;&#1605;&#1576;&#1578;&#1583;&#1574; &#1576;&#1610;&#1605;&#1587;&#1603; &#1575;&#1604;&#1593;&#1580;&#1604;&#1577; &#1608;&#1610;&#1593;&#1591;&#1610; &#1578;&#1593;&#1604;&#1610;&#1605;&#1575;&#1578; &#1605;&#1587;&#1578;&#1605;&#1585;&#1577; (Directing). &#1604;&#1605;&#1575; &#1575;&#1604;&#1591;&#1575;&#1604;&#1576; &#1610;&#1578;&#1581;&#1587;&#1606; &#1576;&#1610;&#1578;&#1583;&#1585;&#1580; &#1604;&#1604;&#1601;&#1585;&#1575;&#1594; &#1575;&#1604;&#1603;&#1575;&#1605;&#1604; (Delegating). &#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576; &#1575;&#1578;&#1594;&#1610;&#1585; &#1608;&#1575;&#1604;&#1587;&#1610;&#1575;&#1585;&#1577; &#1605;&#1575; &#1575;&#1578;&#1594;&#1610;&#1585;&#1578;&#1588;.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; &#1605;&#1604;&#1582;&#1589;</div>
+        Situational Leadership = &#1594;&#1610;&#1585; &#1571;&#1587;&#1604;&#1608;&#1576;&#1603; &#1581;&#1587;&#1576; &#1575;&#1604;&#1588;&#1582;&#1589; &#1608;&#1575;&#1604;&#1605;&#1607;&#1605;&#1577;. &#1605;&#1578;&#1594;&#1610;&#1585;&#1610;&#1606; &#1571;&#1587;&#1575;&#1587;&#1610;&#1610;&#1606;: <strong>competence</strong> + <strong>commitment</strong>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section-card" id="s2">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c2-fg)"></div>
+    <div class="section-badge" style="background:var(--c2-bg)">&#128202;</div>
+    <div class="section-meta">
+      <h2>The SL Model (D1-D4 Development Levels)</h2>
+      <div class="sub">Matching Development Levels to Leadership Styles</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s2')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s2')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s2-en">
+      <p>The model maps four <span class="term">Development Levels</span> (D1-D4) to four <span class="term">Leadership Styles</span> (S1-S4). Each level combines competence and commitment.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dev. Level</th><th>Competence</th><th>Commitment</th><th>Matching Style</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>D1</td><td>Low</td><td>High</td><td>S1 Directing</td><td>New eager employee - enthusiastic but does not know how yet.</td></tr>
+            <tr><td>D2</td><td>Some</td><td>Low</td><td>S2 Coaching</td><td>Has some skills but feels discouraged or unsure.</td></tr>
+            <tr><td>D3</td><td>High</td><td>Variable</td><td>S3 Supporting</td><td>Very capable but sometimes lacks confidence or motivation.</td></tr>
+            <tr><td>D4</td><td>High</td><td>High</td><td>S4 Delegating</td><td>Expert, self-motivated. Can be fully trusted.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr><th>Style</th><th>Task Behavior</th><th>Relationship Behavior</th><th>Best For</th></tr></thead>
+          <tbody>
+            <tr><td>S1 Directing</td><td>High</td><td>Low</td><td>D1 - new or inexperienced</td></tr>
+            <tr><td>S2 Coaching</td><td>High</td><td>High</td><td>D2 - capable but unmotivated</td></tr>
+            <tr><td>S3 Supporting</td><td>Low</td><td>High</td><td>D3 - skilled but uncertain</td></tr>
+            <tr><td>S4 Delegating</td><td>Low</td><td>Low</td><td>D4 - fully capable and committed</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-warning">
+        <div class="box-label">&#9888; Common Mistake</div>
+        Leaders often over-use one style. A manager who always Directs will frustrate skilled employees. A manager who always Delegates will leave new staff confused. Also remember: a D4 on one task may be D1 on a completely new task.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; Example</div>
+        Ahmed (D1): Just joined sales, super excited but never sold before. Manager uses S1 Directing - clear daily tasks, close supervision.<br><br>
+        Sara (D4): 8 years of experience, consistently hits targets. Manager uses S4 Delegating - assigns the goal and steps back.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Match D1 to S1, D2 to S2, D3 to S3, D4 to S4. <strong>Development level is task-specific</strong> - the same person can be at different levels for different tasks.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s2-ar">
+      <p>&#1575;&#1604;&#1606;&#1605;&#1608;&#1584;&#1580; &#1576;&#1610;&#1585;&#1576;&#1591; 4 &#1605;&#1587;&#1578;&#1608;&#1610;&#1575;&#1578; &#1578;&#1591;&#1608;&#1585; (D1-D4) &#1576;&#1600; 4 &#1571;&#1587;&#1575;&#1604;&#1610;&#1576; &#1602;&#1610;&#1575;&#1583;&#1577; (S1-S4).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>&#1575;&#1604;&#1605;&#1587;&#1578;&#1608;&#1609;</th><th>Competence</th><th>Commitment</th><th>&#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576; &#1575;&#1604;&#1605;&#1606;&#1575;&#1587;&#1576;</th></tr></thead>
+          <tbody>
+            <tr><td>D1</td><td>&#1605;&#1606;&#1582;&#1601;&#1590;</td><td>&#1593;&#1575;&#1604;&#1610;</td><td>S1 Directing</td></tr>
+            <tr><td>D2</td><td>&#1605;&#1578;&#1608;&#1587;&#1591;</td><td>&#1605;&#1606;&#1582;&#1601;&#1590;</td><td>S2 Coaching</td></tr>
+            <tr><td>D3</td><td>&#1593;&#1575;&#1604;&#1610;</td><td>&#1605;&#1578;&#1594;&#1610;&#1585;</td><td>S3 Supporting</td></tr>
+            <tr><td>D4</td><td>&#1593;&#1575;&#1604;&#1610;</td><td>&#1593;&#1575;&#1604;&#1610;</td><td>S4 Delegating</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-warning">
+        <div class="box-label">&#9888; &#1594;&#1604;&#1591;&#1577; &#1588;&#1575;&#1574;&#1593;&#1577;</div>
+        &#1603;&#1578;&#1610;&#1585; &#1605;&#1606; &#1575;&#1604;&#1605;&#1583;&#1610;&#1585;&#1610;&#1606; &#1576;&#1610;&#1587;&#1578;&#1582;&#1583;&#1605;&#1608;&#1575; &#1571;&#1587;&#1604;&#1608;&#1576; &#1608;&#1575;&#1581;&#1583; &#1583;&#1575;&#1610;&#1605;&#1575;. <strong>&#1605;&#1587;&#1578;&#1608;&#1609; &#1575;&#1604;&#1578;&#1591;&#1608;&#1585; &#1576;&#1610;&#1578;&#1594;&#1610;&#1585; &#1581;&#1587;&#1576; &#1575;&#1604;&#1605;&#1607;&#1605;&#1577;</strong> - &#1606;&#1601;&#1587; &#1575;&#1604;&#1588;&#1582;&#1589; &#1605;&#1605;&#1603;&#1606; &#1610;&#1603;&#1608;&#1606; D4 &#1601;&#1610; &#1581;&#1575;&#1580;&#1577; &#1608;D1 &#1601;&#1610; &#1581;&#1575;&#1580;&#1577; &#1578;&#1575;&#1606;&#1610;&#1577;.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; &#1605;&#1604;&#1582;&#1589;</div>
+        &#1591;&#1575;&#1576;&#1602; D1 &#1605;&#1593; S1&#1548; D2 &#1605;&#1593; S2&#1548; D3 &#1605;&#1593; S3&#1548; D4 &#1605;&#1593; S4. &#1575;&#1604;&#1605;&#1587;&#1578;&#1608;&#1609; &#1582;&#1575;&#1589; &#1576;&#1575;&#1604;&#1605;&#1607;&#1605;&#1577; &#1605;&#1588; &#1576;&#1575;&#1604;&#1588;&#1582;&#1589;.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section-card" id="s3">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c3-fg)"></div>
+    <div class="section-badge" style="background:var(--c3-bg)">&#9881;</div>
+    <div class="section-meta">
+      <h2>The Process: Using the Right Style</h2>
+      <div class="sub">3-Step Framework to Apply Situational Leadership</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s3')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s3')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s3-en">
+      <p>Applying Situational Leadership is a practical 3-step process.</p>
+      <ol class="content-list">
+        <li><strong>Step 1 - Identify the Task:</strong> Be specific. What exactly needs to be done? What skills does it require? Vague tasks lead to vague assessments.</li>
+        <li><strong>Step 2 - Assess Readiness:</strong> Evaluate the individual's competence and commitment for that specific task. Is this person D1, D2, D3, or D4 for this task? This changes per task, not per person overall.</li>
+        <li><strong>Step 3 - Adapt the Style:</strong> Apply the matching style. <span class="code-inline">D1 = Directing</span>, <span class="code-inline">D2 = Coaching</span>, <span class="code-inline">D3 = Supporting</span>, <span class="code-inline">D4 = Delegating</span>.</li>
+      </ol>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; Analogy</div>
+        A doctor does not give all patients the same medicine. First they diagnose (Identify + Assess), then prescribe (Adapt Style). A leader does the same.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; Worked Example</div>
+        Task: Present to the board of directors.<br>
+        Employee: Khalid - highly experienced in finance (D4 for financial reports) but has never presented to a board before (D1 for board presentations).<br>
+        Manager correctly identifies this as D1 and uses Directing/Coaching, not Delegating.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Steps: (1) Define the task, (2) Assess the D-level for that task, (3) Match the S-style. Skipping any step leads to mismatched leadership and poor outcomes.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s3-ar">
+      <p>&#1578;&#1591;&#1576;&#1610;&#1602; Situational Leadership &#1593;&#1605;&#1604;&#1610;&#1577; &#1605;&#1606; 3 &#1582;&#1591;&#1608;&#1575;&#1578;.</p>
+      <ol class="content-list">
+        <li><strong>&#1575;&#1604;&#1582;&#1591;&#1608;&#1577; 1 - &#1578;&#1581;&#1583;&#1610;&#1583; &#1575;&#1604;&#1605;&#1607;&#1605;&#1577;:</strong> &#1603;&#1606; &#1605;&#1581;&#1583;&#1583;&#1575;. &#1573;&#1610;&#1607; &#1576;&#1575;&#1604;&#1592;&#1576;&#1591; &#1575;&#1604;&#1605;&#1591;&#1604;&#1608;&#1576;? &#1573;&#1610;&#1607; &#1575;&#1604;&#1605;&#1607;&#1575;&#1585;&#1575;&#1578; &#1575;&#1604;&#1605;&#1591;&#1604;&#1608;&#1576;&#1577;?</li>
+        <li><strong>&#1575;&#1604;&#1582;&#1591;&#1608;&#1577; 2 - &#1578;&#1602;&#1610;&#1610;&#1605; &#1575;&#1604;&#1580;&#1575;&#1607;&#1586;&#1610;&#1577;:</strong> &#1602;&#1610;&#1617;&#1605; competence &#1608; commitment &#1604;&#1604;&#1605;&#1608;&#1592;&#1601; &#1601;&#1610; &#1575;&#1604;&#1605;&#1607;&#1605;&#1577; &#1575;&#1604;&#1605;&#1581;&#1583;&#1583;&#1577; &#1583;&#1610;.</li>
+        <li><strong>&#1575;&#1604;&#1582;&#1591;&#1608;&#1577; 3 - &#1578;&#1603;&#1610;&#1610;&#1601; &#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576;:</strong> &#1591;&#1576;&#1617;&#1602; &#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576; &#1575;&#1604;&#1605;&#1606;&#1575;&#1587;&#1576;.</li>
+      </ol>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; &#1578;&#1588;&#1576;&#1610;&#1607;</div>
+        &#1575;&#1604;&#1583;&#1603;&#1578;&#1608;&#1585; &#1605;&#1588; &#1576;&#1610;&#1583;&#1610; &#1603;&#1604; &#1575;&#1604;&#1605;&#1585;&#1590;&#1609; &#1606;&#1601;&#1587; &#1575;&#1604;&#1583;&#1608;&#1575;. &#1571;&#1608;&#1604;&#1575; &#1576;&#1610;&#1588;&#1582;&#1617;&#1589; (&#1578;&#1581;&#1583;&#1610;&#1583; + &#1578;&#1602;&#1610;&#1610;&#1605;)&#1548; &#1576;&#1593;&#1583;&#1610;&#1606; &#1576;&#1610;&#1608;&#1589;&#1617;&#1601; &#1575;&#1604;&#1593;&#1604;&#1575;&#1580; (&#1578;&#1603;&#1610;&#1610;&#1601; &#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576;). &#1575;&#1604;&#1602;&#1575;&#1574;&#1583; &#1576;&#1610;&#1593;&#1605;&#1604; &#1606;&#1601;&#1587; &#1575;&#1604;&#1588;&#1610;&#1569;.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; &#1605;&#1604;&#1582;&#1589;</div>
+        &#1575;&#1604;&#1582;&#1591;&#1608;&#1575;&#1578;: (1) &#1581;&#1583;&#1617;&#1583; &#1575;&#1604;&#1605;&#1607;&#1605;&#1577;&#1548; (2) &#1602;&#1610;&#1617;&#1605; &#1605;&#1587;&#1578;&#1608;&#1609; D&#1548; (3) &#1591;&#1575;&#1576;&#1602; &#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576; S. &#1604;&#1608; &#1581;&#1584;&#1601;&#1578; &#1571;&#1610; &#1582;&#1591;&#1608;&#1577; &#1607;&#1578;&#1575;&#1582;&#1584; &#1606;&#1578;&#1610;&#1580;&#1577; &#1594;&#1604;&#1591;.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section-card" id="s4">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c4-fg)"></div>
+    <div class="section-badge" style="background:var(--c4-bg)">&#127917;</div>
+    <div class="section-meta">
+      <h2>Goleman's 6 Leadership Styles</h2>
+      <div class="sub">Emotional Intelligence-Based Leadership Framework</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s4')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s4')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s4-en">
+      <p><span class="term">Daniel Goleman</span> introduced 6 leadership styles rooted in <span class="term">Emotional Intelligence (EI)</span>. Unlike Hersey and Blanchard, Goleman focused on the emotional climate a leader creates and how that affects team performance.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Style</th><th>Key Phrase</th><th>EI Competencies</th><th>Best Used When</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Coercive</td><td>Do what I tell you</td><td>Self-control, initiative</td><td>Crisis or turnaround</td></tr>
+            <tr><td>2</td><td>Authoritative</td><td>Come with me</td><td>Self-confidence, empathy</td><td>New direction needed</td></tr>
+            <tr><td>3</td><td>Affiliative</td><td>People come first</td><td>Empathy, communication</td><td>Heal conflict or boost morale</td></tr>
+            <tr><td>4</td><td>Democratic</td><td>What do you think?</td><td>Collaboration, communication</td><td>Build consensus or buy-in</td></tr>
+            <tr><td>5</td><td>Pacesetting</td><td>Do as I do, now</td><td>Initiative, conscientiousness</td><td>High-motivated skilled team</td></tr>
+            <tr><td>6</td><td>Coaching</td><td>Try this</td><td>Empathy, self-awareness</td><td>Develop people long-term</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; Analogy</div>
+        Think of Goleman's 6 styles like tools in a toolbox. A carpenter does not use only a hammer. The right tool depends on what you are building. A great leader knows all 6 tools and picks the right one based on the team's situation.
+      </div>
+      <div class="box box-warning">
+        <div class="box-label">&#9888; Important Note</div>
+        Goleman found that 4 styles (Authoritative, Affiliative, Democratic, Coaching) have a <strong>positive</strong> impact on team climate. Coercive and Pacesetting can have <strong>negative</strong> effects if overused. They are powerful but dangerous.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Goleman = 6 EI-based styles. Best leaders use multiple styles fluidly. Most positively impactful: Authoritative, Coaching, Affiliative, Democratic. Riskiest if overused: Coercive, Pacesetting.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s4-ar">
+      <p><span class="term">Daniel Goleman</span> &#1602;&#1583;&#1617;&#1605; 6 &#1571;&#1587;&#1575;&#1604;&#1610;&#1576; &#1602;&#1610;&#1575;&#1583;&#1577; &#1605;&#1576;&#1606;&#1610;&#1577; &#1593;&#1604;&#1609; <span class="term">Emotional Intelligence (EI)</span>. &#1585;&#1603;&#1617;&#1586; &#1593;&#1604;&#1609; &#1575;&#1604;&#1605;&#1606;&#1575;&#1582; &#1575;&#1604;&#1593;&#1575;&#1591;&#1601;&#1610; &#1575;&#1604;&#1604;&#1610; &#1575;&#1604;&#1602;&#1575;&#1574;&#1583; &#1576;&#1610;&#1582;&#1604;&#1602;&#1607; &#1601;&#1610; &#1575;&#1604;&#1601;&#1585;&#1610;&#1602;.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>&#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576;</th><th>&#1575;&#1604;&#1593;&#1576;&#1575;&#1585;&#1577; &#1575;&#1604;&#1605;&#1601;&#1578;&#1575;&#1581;&#1610;&#1577;</th><th>&#1571;&#1581;&#1587;&#1606; &#1608;&#1602;&#1578; &#1604;&#1604;&#1575;&#1587;&#1578;&#1582;&#1583;&#1575;&#1605;</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Coercive</td><td>&#1575;&#1601;&#1593;&#1604; &#1605;&#1575; &#1571;&#1602;&#1608;&#1604;&#1607;</td><td>&#1575;&#1604;&#1571;&#1586;&#1605;&#1575;&#1578;</td></tr>
+            <tr><td>2</td><td>Authoritative</td><td>&#1578;&#1593;&#1575;&#1604; &#1605;&#1593;&#1610;</td><td>&#1604;&#1605;&#1575; &#1610;&#1581;&#1578;&#1575;&#1580; &#1575;&#1578;&#1580;&#1575;&#1607; &#1580;&#1583;&#1610;&#1583;</td></tr>
+            <tr><td>3</td><td>Affiliative</td><td>&#1575;&#1604;&#1606;&#1575;&#1587; &#1571;&#1608;&#1604;&#1575;</td><td>&#1608;&#1602;&#1578; &#1575;&#1604;&#1582;&#1604;&#1575;&#1601;&#1575;&#1578;</td></tr>
+            <tr><td>4</td><td>Democratic</td><td>&#1573;&#1610;&#1607; &#1585;&#1571;&#1610;&#1603;?</td><td>&#1604;&#1605;&#1575; &#1578;&#1581;&#1578;&#1575;&#1580; buy-in</td></tr>
+            <tr><td>5</td><td>Pacesetting</td><td>&#1575;&#1601;&#1593;&#1604; &#1586;&#1610; &#1605;&#1575; &#1576;&#1593;&#1605;&#1604;</td><td>&#1601;&#1585;&#1610;&#1602; &#1605;&#1581;&#1578;&#1585;&#1601;</td></tr>
+            <tr><td>6</td><td>Coaching</td><td>&#1580;&#1585;&#1617;&#1576; &#1603;&#1583;&#1607;</td><td>&#1578;&#1591;&#1608;&#1610;&#1585; &#1575;&#1604;&#1605;&#1608;&#1592;&#1601;&#1610;&#1606;</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-warning">
+        <div class="box-label">&#9888; &#1605;&#1604;&#1575;&#1581;&#1592;&#1577; &#1605;&#1607;&#1605;&#1577;</div>
+        Goleman &#1604;&#1575;&#1602;&#1609; &#1573;&#1606; 4 &#1571;&#1587;&#1575;&#1604;&#1610;&#1576; (Authoritative&#1548; Affiliative&#1548; Democratic&#1548; Coaching) &#1604;&#1610;&#1607;&#1575; &#1578;&#1571;&#1579;&#1610;&#1585; <strong>&#1573;&#1610;&#1580;&#1575;&#1576;&#1610;</strong>. Coercive &#1608; Pacesetting &#1605;&#1605;&#1603;&#1606; &#1610;&#1603;&#1608;&#1606;&#1608;&#1575; &#1590;&#1575;&#1585;&#1610;&#1606; &#1604;&#1608; &#1575;&#1578;&#1576;&#1575;&#1604;&#1594; &#1601;&#1610;&#1607;&#1605;.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section-card" id="s5">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c5-fg)"></div>
+    <div class="section-badge" style="background:var(--c5-bg)">&#128269;</div>
+    <div class="section-meta">
+      <h2>Characteristics of the Six Styles</h2>
+      <div class="sub">Deep Dive into Each Style's Behaviors</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s5')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s5')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s5-en">
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 1 - Pacesetting</div>
+        Sets extremely high standards and expects others to match them. Obsessed with speed and quality. If someone falls short, steps in and does it themselves. <span class="highlight">Has little empathy for poor performance.</span> Risk: burns out the team and creates anxiety.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 2 - Commanding / Coercive</div>
+        Gives direct orders, rarely asks for input. Controls through tight monitoring. Motivates through fear of consequences. <span class="highlight">Can dismiss other approaches as soft.</span> Useful in genuine emergencies but damaging long-term.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 3 - Visionary / Authoritative</div>
+        Articulates a compelling future. Brings people along by explaining the why. Invites input but maintains final authority. <span class="highlight">Most broadly effective style</span> - works in almost any situation.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 4 - Affiliative</div>
+        Cares deeply about the whole person, not just work output. Shares their own emotions with the team. Rewards both results AND how people treat each other. Risk: may avoid difficult performance conversations.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 5 - Democratic</div>
+        Trusts the team to guide decisions. Reaches conclusions by consensus. Holds lots of meetings, listens deeply. <span class="highlight">Rarely gives negative feedback.</span> Risk: decision paralysis during a crisis.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; 6 - Coaching</div>
+        Identifies each person's strengths and development areas. Provides continuous feedback. <span class="highlight">May sacrifice short-term performance for long-term development.</span> Assigns stretch assignments. Fails when the person is not interested in growing.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Pacesetting and Commanding: powerful but risky. Visionary: most versatile. Affiliative: heals but avoids hard truths. Democratic: empowers but can stall. Coaching: develops people but needs a willing learner.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s5-ar">
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 1 - Pacesetting</div>
+        &#1576;&#1610;&#1581;&#1583;&#1617;&#1583; &#1605;&#1593;&#1575;&#1610;&#1610;&#1585; &#1571;&#1583;&#1575;&#1569; &#1593;&#1575;&#1604;&#1610;&#1577; &#1580;&#1583;&#1611;&#1575;. &#1604;&#1608; &#1581;&#1583; &#1602;&#1589;&#1617;&#1585; &#1576;&#1610;&#1606;&#1586;&#1604; &#1610;&#1593;&#1605;&#1604; &#1575;&#1604;&#1588;&#1594;&#1604; &#1576;&#1606;&#1601;&#1587;&#1607;. &#1582;&#1591;&#1585;: &#1576;&#1610;&#1581;&#1585;&#1602; &#1575;&#1604;&#1601;&#1585;&#1610;&#1602; &#1608;&#1610;&#1587;&#1576;&#1617;&#1576; &#1578;&#1608;&#1578;&#1585;.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 2 - Commanding</div>
+        &#1576;&#1610;&#1571;&#1605;&#1585; &#1605;&#1576;&#1575;&#1588;&#1585;&#1577;&#1548; &#1606;&#1575;&#1583;&#1585;&#1611;&#1575; &#1610;&#1587;&#1571;&#1604; &#1593;&#1606; &#1585;&#1571;&#1610; &#1581;&#1583;. &#1576;&#1610;&#1578;&#1581;&#1603;&#1605; &#1576;&#1605;&#1585;&#1575;&#1602;&#1576;&#1577; &#1605;&#1587;&#1578;&#1605;&#1585;&#1577;. &#1605;&#1601;&#1610;&#1583; &#1601;&#1610; &#1575;&#1604;&#1571;&#1586;&#1605;&#1575;&#1578; &#1576;&#1587; &#1590;&#1575;&#1585; &#1593;&#1604;&#1609; &#1575;&#1604;&#1605;&#1583;&#1609; &#1575;&#1604;&#1591;&#1608;&#1610;&#1604;.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 3 - Visionary</div>
+        &#1576;&#1610;&#1588;&#1585;&#1581; &#1575;&#1604;&#1585;&#1572;&#1610;&#1577; &#1575;&#1604;&#1605;&#1587;&#1578;&#1602;&#1576;&#1604;&#1610;&#1577; &#1576;&#1588;&#1603;&#1604; &#1605;&#1602;&#1606;&#1593;. <span class="highlight">&#1575;&#1604;&#1571;&#1603;&#1579;&#1585; &#1601;&#1593;&#1575;&#1604;&#1610;&#1577; &#1576;&#1588;&#1603;&#1604; &#1593;&#1575;&#1605;</span> &#1608;&#1610;&#1588;&#1578;&#1594;&#1604; &#1601;&#1610; &#1605;&#1593;&#1592;&#1605; &#1575;&#1604;&#1605;&#1608;&#1575;&#1602;&#1601;.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 4 - Affiliative</div>
+        &#1576;&#1610;&#1607;&#1578;&#1605; &#1576;&#1575;&#1604;&#1573;&#1606;&#1587;&#1575;&#1606; &#1603;&#1604;&#1607; &#1605;&#1588; &#1576;&#1587; &#1588;&#1594;&#1604;&#1607;. &#1582;&#1591;&#1585;: &#1605;&#1605;&#1603;&#1606; &#1610;&#1578;&#1580;&#1606;&#1617;&#1576; &#1605;&#1581;&#1575;&#1583;&#1579;&#1575;&#1578; &#1575;&#1604;&#1571;&#1583;&#1575;&#1569; &#1575;&#1604;&#1589;&#1593;&#1576;&#1577;.
+      </div>
+      <div class="box box-example" style="margin-bottom:12px">
+        <div class="box-label">&#9654; 5 - Democratic</div>
+        &#1576;&#1610;&#1579;&#1602; &#1601;&#1610; &#1575;&#1604;&#1601;&#1585;&#1610;&#1602;. &#1576;&#1610;&#1608;&#1589;&#1617;&#1604; &#1604;&#1604;&#1602;&#1585;&#1575;&#1585;&#1575;&#1578; &#1576;&#1575;&#1604;&#1573;&#1580;&#1605;&#1575;&#1593;. &#1582;&#1591;&#1585;: &#1601;&#1610; &#1575;&#1604;&#1571;&#1586;&#1605;&#1575;&#1578; &#1605;&#1605;&#1603;&#1606; &#1610;&#1578;&#1571;&#1582;&#1617;&#1585; &#1601;&#1610; &#1575;&#1604;&#1602;&#1585;&#1575;&#1585;.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; 6 - Coaching</div>
+        &#1576;&#1610;&#1581;&#1583;&#1617;&#1583; &#1606;&#1602;&#1575;&#1591; &#1602;&#1608;&#1577; &#1608;&#1590;&#1593;&#1601; &#1603;&#1604; &#1588;&#1582;&#1589;. &#1576;&#1610;&#1583;&#1610; feedback &#1605;&#1587;&#1578;&#1605;&#1585;. &#1576;&#1610;&#1601;&#1588;&#1604; &#1604;&#1608; &#1575;&#1604;&#1605;&#1608;&#1592;&#1601; &#1605;&#1588; &#1593;&#1606;&#1583;&#1607; &#1585;&#1594;&#1576;&#1577; &#1601;&#1610; &#1575;&#1604;&#1578;&#1591;&#1608;&#1585;.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section-card" id="s6">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c6-fg)"></div>
+    <div class="section-badge" style="background:var(--c6-bg)">&#127919;</div>
+    <div class="section-meta">
+      <h2>When &amp; How to Use Each Style</h2>
+      <div class="sub">Practical Application Guide</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s6')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s6')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s6-en">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Style</th><th>Use When...</th><th>Do NOT Use When...</th><th>How to Develop</th></tr></thead>
+          <tbody>
+            <tr><td>Visionary</td><td>Company needs new direction; turnaround</td><td>Working with a more experienced team</td><td>Build expertise, empathy, and presentation skills</td></tr>
+            <tr><td>Coaching</td><td>Team member needs long-term skill building</td><td>Employee is lazy or needs lots of direction</td><td>Learn informal mentoring; get to know your people</td></tr>
+            <tr><td>Affiliative</td><td>Team tension, conflict, or broken trust</td><td>Performance is critically low and urgent</td><td>Learn conflict resolution; practice optimism</td></tr>
+            <tr><td>Democratic</td><td>Need team buy-in or complex decisions</td><td>Team is inexperienced or a crisis requires speed</td><td>Active listening; involve team in problem-solving</td></tr>
+            <tr><td>Pacesetting</td><td>Skilled motivated team needs fast results</td><td>Low-skilled or demotivated team</td><td>Six Sigma, Kaizen, high-performance coaching</td></tr>
+            <tr><td>Commanding</td><td>Crisis, rapid turnaround, problem employee</td><td>Everyday management - kills morale long-term</td><td>Crisis management; decide under pressure - use cautiously</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-warning">
+        <div class="box-label">&#9888; The Golden Rule</div>
+        No style is universally right or wrong. Great leaders assess: (1) Task urgency, (2) Team skill and motivation, (3) Organizational culture, (4) Long-term vs short-term needs. Then they choose.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; Real Scenario</div>
+        A company is losing money fast. The CEO uses Commanding to stop the bleeding. Once stabilized, switches to Visionary to rebuild direction. Then uses Democratic to build a new strategy with the leadership team. Finally uses Coaching to develop managers for the future. That is fluid leadership - 4 styles in one situation.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Every style has a "when it works" and a "when it fails." The key is reading the room: urgency, skill level, motivation, and culture. The most versatile leaders switch styles like a conductor switches tempo.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s6-ar">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>&#1575;&#1604;&#1571;&#1587;&#1604;&#1608;&#1576;</th><th>&#1575;&#1587;&#1578;&#1582;&#1583;&#1605;&#1607; &#1604;&#1605;&#1575;...</th><th>&#1605;&#1578;&#1587;&#1578;&#1582;&#1583;&#1605;&#1607;&#1608;&#1588; &#1604;&#1605;&#1575;...</th></tr></thead>
+          <tbody>
+            <tr><td>Visionary</td><td>&#1575;&#1604;&#1588;&#1585;&#1603;&#1577; &#1605;&#1581;&#1578;&#1575;&#1580;&#1577; &#1575;&#1578;&#1580;&#1575;&#1607; &#1580;&#1583;&#1610;&#1583;</td><td>&#1601;&#1585;&#1610;&#1602;&#1603; &#1571;&#1603;&#1579;&#1585; &#1582;&#1576;&#1585;&#1577; &#1605;&#1606;&#1603;</td></tr>
+            <tr><td>Coaching</td><td>&#1605;&#1608;&#1592;&#1601; &#1605;&#1581;&#1578;&#1575;&#1580; &#1610;&#1591;&#1608;&#1617;&#1585; &#1605;&#1607;&#1575;&#1585;&#1575;&#1578;&#1607;</td><td>&#1575;&#1604;&#1605;&#1608;&#1592;&#1601; &#1603;&#1587;&#1608;&#1604; &#1571;&#1608; &#1605;&#1581;&#1578;&#1575;&#1580; &#1578;&#1608;&#1580;&#1610;&#1607; &#1605;&#1603;&#1579;&#1617;&#1601;</td></tr>
+            <tr><td>Affiliative</td><td>&#1601;&#1610; &#1578;&#1608;&#1578;&#1585; &#1571;&#1608; &#1582;&#1604;&#1575;&#1601; &#1601;&#1610; &#1575;&#1604;&#1601;&#1585;&#1610;&#1602;</td><td>&#1575;&#1604;&#1571;&#1583;&#1575;&#1569; &#1605;&#1606;&#1582;&#1601;&#1590; &#1608;&#1605;&#1581;&#1578;&#1575;&#1580; &#1581;&#1604; &#1587;&#1585;&#1610;&#1593;</td></tr>
+            <tr><td>Democratic</td><td>&#1578;&#1581;&#1578;&#1575;&#1580; buy-in &#1571;&#1608; &#1602;&#1585;&#1575;&#1585;&#1575;&#1578; &#1605;&#1593;&#1602;&#1617;&#1583;&#1577;</td><td>&#1575;&#1604;&#1601;&#1585;&#1610;&#1602; &#1602;&#1604;&#1610;&#1604; &#1575;&#1604;&#1582;&#1576;&#1585;&#1577; &#1571;&#1608; &#1575;&#1604;&#1608;&#1602;&#1578; &#1571;&#1586;&#1605;&#1577;</td></tr>
+            <tr><td>Pacesetting</td><td>&#1601;&#1585;&#1610;&#1602; &#1605;&#1575;&#1607;&#1585; &#1608;&#1605;&#1581;&#1601;&#1617;&#1586; &#1608;&#1605;&#1581;&#1578;&#1575;&#1580; &#1606;&#1578;&#1575;&#1574;&#1580; &#1587;&#1585;&#1610;&#1593;&#1577;</td><td>&#1601;&#1585;&#1610;&#1602; &#1594;&#1610;&#1585; &#1605;&#1607;&#1610;&#1569;</td></tr>
+            <tr><td>Commanding</td><td>&#1571;&#1586;&#1605;&#1577; &#1571;&#1608; &#1605;&#1588;&#1603;&#1604;&#1577; &#1591;&#1575;&#1585;&#1574;&#1577;</td><td>&#1575;&#1604;&#1573;&#1583;&#1575;&#1585;&#1577; &#1575;&#1604;&#1610;&#1608;&#1605;&#1610;&#1577; &#1575;&#1604;&#1593;&#1575;&#1583;&#1610;&#1577;</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-warning">
+        <div class="box-label">&#9888; &#1575;&#1604;&#1602;&#1575;&#1593;&#1583;&#1577; &#1575;&#1604;&#1584;&#1607;&#1576;&#1610;&#1577;</div>
+        &#1605;&#1601;&#1610;&#1588; &#1571;&#1587;&#1604;&#1608;&#1576; &#1589;&#1581; &#1571;&#1608; &#1594;&#1604;&#1591; &#1583;&#1575;&#1610;&#1605;&#1575;. &#1575;&#1604;&#1602;&#1575;&#1574;&#1583; &#1575;&#1604;&#1603;&#1608;&#1610;&#1587; &#1576;&#1610;&#1602;&#1610;&#1617;&#1605;: (1) &#1573;&#1604;&#1581;&#1575;&#1581;&#1610;&#1577; &#1575;&#1604;&#1605;&#1607;&#1605;&#1577;&#1548; (2) &#1605;&#1607;&#1575;&#1585;&#1577; &#1608;&#1583;&#1575;&#1601;&#1593; &#1575;&#1604;&#1601;&#1585;&#1610;&#1602;&#1548; (3) &#1579;&#1602;&#1575;&#1601;&#1577; &#1575;&#1604;&#1605;&#1606;&#1592;&#1605;&#1577;&#1548; (4) &#1575;&#1604;&#1605;&#1583;&#1609; &#1575;&#1604;&#1602;&#1585;&#1610;&#1576; &#1608;&#1575;&#1604;&#1576;&#1593;&#1610;&#1583;.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section-card" id="s7">
+  <div class="section-header" onclick="toggleSection(this)">
+    <div class="section-stripe" style="background:var(--c7-fg)"></div>
+    <div class="section-badge" style="background:var(--c7-bg)">&#129714;</div>
+    <div class="section-meta">
+      <h2>Leveraging Strengths &amp; Blind Spots</h2>
+      <div class="sub">Personal SWOT Analysis for Leaders</div>
+    </div>
+    <div class="toggle-icon">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchTab(this,'en','s7')">English</button>
+      <button class="lang-tab" onclick="switchTab(this,'ar','s7')">&#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</button>
+    </div>
+    <div class="lang-content active" id="s7-en">
+      <p>Self-awareness is the foundation of great leadership. A <span class="term">Personal SWOT Analysis</span> is a self-assessment tool leaders use to evaluate themselves honestly and grow.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Letter</th><th>Meaning</th><th>Leadership Application</th></tr></thead>
+          <tbody>
+            <tr><td>S</td><td>Strengths</td><td>What leadership skills do I excel at? (communication, vision...)</td></tr>
+            <tr><td>W</td><td>Weaknesses</td><td>Where do I struggle? (giving negative feedback, delegating...)</td></tr>
+            <tr><td>O</td><td>Opportunities</td><td>What external chances exist to grow? (training, mentors, new roles)</td></tr>
+            <tr><td>T</td><td>Threats</td><td>What could derail my leadership? (blind spots, biases, overusing a style)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:12px">After your SWOT, reflect on three critical questions:</p>
+      <ol class="content-list">
+        <li><strong>Which strength do you rely on most?</strong> Overusing even a strength can become a weakness.</li>
+        <li><strong>Could overusing that strength cause challenges?</strong> A very Democratic leader may be unable to make fast decisions in a crisis.</li>
+        <li><strong>Which strengths are underdeveloped, and why?</strong> Maybe you have never tried Coaching because you fear vulnerability. That is a blind spot.</li>
+      </ol>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; Analogy</div>
+        When driving, there is a zone your mirrors cannot see - the blind spot. In leadership, a blind spot is a style you never use or always overuse without realizing its impact. You must actively turn and look to see it.
+      </div>
+      <div class="box box-example">
+        <div class="box-label">&#9654; Example</div>
+        A manager always uses Pacesetting because she is highly competent. She does not realize her team is stressed and afraid to make mistakes. Her strength (high standards) became her blind spot (killing psychological safety). A Personal SWOT would reveal this.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; Summary</div>
+        Personal SWOT = Strengths, Weaknesses, Opportunities, Threats applied to yourself as a leader. Goal: be <strong>self-aware and intentional</strong>. Your biggest strength, when overused, often becomes your biggest threat.
+      </div>
+    </div>
+    <div class="lang-content ar-text" id="s7-ar">
+      <p>&#1575;&#1604;&#1608;&#1593;&#1610; &#1575;&#1604;&#1584;&#1575;&#1578;&#1610; &#1607;&#1608; &#1571;&#1587;&#1575;&#1587; &#1575;&#1604;&#1602;&#1610;&#1575;&#1583;&#1577; &#1575;&#1604;&#1581;&#1602;&#1610;&#1602;&#1610;&#1577;. <span class="term">Personal SWOT Analysis</span> &#1571;&#1583;&#1575;&#1577; &#1604;&#1604;&#1602;&#1575;&#1574;&#1583; &#1610;&#1602;&#1610;&#1617;&#1605; &#1601;&#1610;&#1607;&#1575; &#1606;&#1601;&#1587;&#1607; &#1576;&#1589;&#1583;&#1602; &#1608;&#1610;&#1581;&#1583;&#1617;&#1583; &#1605;&#1580;&#1575;&#1604;&#1575;&#1578; &#1578;&#1591;&#1608;&#1585;&#1607;.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>&#1575;&#1604;&#1581;&#1585;&#1601;</th><th>&#1575;&#1604;&#1605;&#1593;&#1606;&#1609;</th><th>&#1575;&#1604;&#1578;&#1591;&#1576;&#1610;&#1602; &#1575;&#1604;&#1602;&#1610;&#1575;&#1583;&#1610;</th></tr></thead>
+          <tbody>
+            <tr><td>S</td><td>Strengths</td><td>&#1601;&#1610;&#1606; &#1571;&#1606;&#1575; &#1605;&#1578;&#1605;&#1610;&#1617;&#1586; &#1603;&#1602;&#1575;&#1574;&#1583;?</td></tr>
+            <tr><td>W</td><td>Weaknesses</td><td>&#1601;&#1610;&#1606; &#1576;&#1608;&#1575;&#1580;&#1607; &#1589;&#1593;&#1608;&#1576;&#1577;?</td></tr>
+            <tr><td>O</td><td>Opportunities</td><td>&#1573;&#1610;&#1607; &#1601;&#1585;&#1589; &#1575;&#1604;&#1578;&#1591;&#1608;&#1585; &#1575;&#1604;&#1582;&#1575;&#1585;&#1580;&#1610;&#1577;?</td></tr>
+            <tr><td>T</td><td>Threats</td><td>&#1573;&#1610;&#1607; &#1575;&#1604;&#1604;&#1610; &#1605;&#1605;&#1603;&#1606; &#1610;&#1593;&#1610;&#1602; &#1602;&#1610;&#1575;&#1583;&#1578;&#1610;?</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box box-analogy">
+        <div class="box-label">&#128161; &#1578;&#1588;&#1576;&#1610;&#1607;</div>
+        &#1604;&#1605;&#1575; &#1576;&#1578;&#1602;&#1608;&#1583; &#1593;&#1585;&#1576;&#1610;&#1577;&#1548; &#1601;&#1610;&#1607; &#1605;&#1606;&#1591;&#1602;&#1577; &#1575;&#1604;&#1605;&#1585;&#1575;&#1610;&#1575; &#1605;&#1588; &#1576;&#1578;&#1588;&#1608;&#1601;&#1607;&#1575; - &#1575;&#1604;&#1600; blind spot. &#1601;&#1610; &#1575;&#1604;&#1602;&#1610;&#1575;&#1583;&#1577;&#1548; &#1575;&#1604;&#1600; blind spot &#1607;&#1608; &#1571;&#1587;&#1604;&#1608;&#1576; &#1576;&#1578;&#1587;&#1578;&#1582;&#1583;&#1605;&#1607; &#1571;&#1608; &#1576;&#1578;&#1578;&#1580;&#1606;&#1617;&#1576;&#1607; &#1605;&#1606; &#1594;&#1610;&#1585; &#1605;&#1575; &#1578;&#1581;&#1587; &#1576;&#1578;&#1571;&#1579;&#1610;&#1585;&#1607; &#1593;&#1604;&#1609; &#1575;&#1604;&#1601;&#1585;&#1610;&#1602;.
+      </div>
+      <div class="box box-summary">
+        <div class="box-label">&#10022; &#1605;&#1604;&#1582;&#1589;</div>
+        Personal SWOT = &#1578;&#1591;&#1576;&#1610;&#1602; &#1575;&#1604;&#1578;&#1581;&#1604;&#1610;&#1604; &#1593;&#1604;&#1609; &#1606;&#1601;&#1587;&#1603; &#1603;&#1602;&#1575;&#1574;&#1583;. &#1575;&#1604;&#1607;&#1583;&#1601; &#1575;&#1604;&#1608;&#1593;&#1610; &#1575;&#1604;&#1584;&#1575;&#1578;&#1610; &#1608;&#1575;&#1604;&#1578;&#1593;&#1605;&#1617;&#1583;. &#1571;&#1602;&#1608;&#1609; &#1606;&#1602;&#1591;&#1577; &#1593;&#1606;&#1583;&#1603; &#1604;&#1608; &#1576;&#1575;&#1604;&#1594;&#1578; &#1601;&#1610;&#1607;&#1575; &#1607;&#1578;&#1576;&#1602;&#1609; &#1571;&#1603;&#1576;&#1585; &#1578;&#1607;&#1583;&#1610;&#1583; &#1593;&#1604;&#1610;&#1603;.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ASSESSMENT -->
+<div id="assessment">
+  <div class="assessment-header">
+    <h2>Assessment - 50 Questions</h2>
+    <p>Test your understanding of Leadership Skills Module Two</p>
+  </div>
+  <div class="q-filter">
+    <button class="btn active" onclick="filterQ('all',this)">All (50)</button>
+    <button class="btn" onclick="filterQ('mcq',this)">MCQ Only</button>
+    <button class="btn" onclick="filterQ('tf',this)">True / False Only</button>
+  </div>
+  <div id="q-list"></div>
+</div>
+
+</div>
+
+<div class="score-bar" id="scoreBar">
+  <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">SCORE</div>
+  <div class="score-num" id="scoreNum">0</div>
+  <div style="font-size:11px;color:var(--text-dim)" id="scoreDen">/ 0 answered</div>
+</div>
+
+<script>
+var answeredCount = 0;
+var correctCount = 0;
+
+var questions = [
+  {id:1,type:"mcq",text:"A new employee is very enthusiastic but has no experience in the task. According to Situational Leadership, what development level is she at?",opts:["D4 - High competence, high commitment","D3 - High competence, variable commitment","D1 - Low competence, high commitment","D2 - Some competence, low commitment"],ans:2,exp:"D1 is defined as low competence with high commitment - exactly matching an enthusiastic beginner. The appropriate style is Directing (S1)."},
+  {id:2,type:"mcq",text:"Which leadership style from Hersey and Blanchard is characterized by HIGH task focus and LOW relationship behavior?",opts:["Supporting (S3)","Coaching (S2)","Delegating (S4)","Directing (S1)"],ans:3,exp:"Directing (S1) is the only style with high task behavior and low relationship behavior. It is used for D1 employees."},
+  {id:3,type:"mcq",text:"An experienced team member suddenly loses motivation after a team restructure. She is still highly competent. What development level is she at now?",opts:["D1","D2","D3","D4"],ans:2,exp:"D3 = High competence, Variable commitment. The matching style is Supporting (S3), which focuses on boosting confidence and motivation."},
+  {id:4,type:"mcq",text:"According to Goleman, which leadership style is most broadly effective and works in nearly any situation?",opts:["Pacesetting","Coercive","Affiliative","Authoritative (Visionary)"],ans:3,exp:"Goleman identified Authoritative/Visionary as the most broadly effective style. It mobilizes people toward a clear vision and works in most contexts."},
+  {id:5,type:"mcq",text:"A manager facing a sudden factory safety emergency shouts clear directives and takes immediate control. Which Goleman style is this?",opts:["Democratic","Affiliative","Coercive - Commanding","Coaching"],ans:2,exp:"Coercive/Commanding is best used in crisis situations where immediate compliance is essential. Its key phrase is: Do what I tell you."},
+  {id:6,type:"mcq",text:"The 3 steps for using the right Situational Leadership style are, in order:",opts:["Assess, Adapt, Identify","Adapt, Identify, Assess","Identify the Task - Assess Readiness - Adapt Style","Delegate - Coach - Direct"],ans:2,exp:"The correct sequence is: (1) Identify the Task, (2) Assess Readiness D1-D4, (3) Adapt the leadership style to match."},
+  {id:7,type:"mcq",text:"Which Goleman style creates emotional bonds and has Empathy as its core EI competency?",opts:["Democratic","Coaching","Affiliative","Pacesetting"],ans:2,exp:"Affiliative focuses on People come first. It creates emotional bonds through empathy and communication. Best used to heal conflict or boost morale."},
+  {id:8,type:"mcq",text:"A D4 employee on Task A may be D1 on Task B. What does this tell us about development levels?",opts:["Development levels are fixed for each person","Development levels are task-specific, not person-specific","D4 employees never go back to lower levels","This is handled by Goleman, not Hersey and Blanchard"],ans:1,exp:"This is a fundamental principle of Situational Leadership: development level is TASK-SPECIFIC. The same person can be at different levels for different tasks."},
+  {id:9,type:"mcq",text:"Which style is described as: leader gives lots of directives, rarely seeks input, motivates through fear of consequences?",opts:["Coaching","Commanding / Coercive","Pacesetting","Democratic"],ans:1,exp:"This precisely describes the Commanding/Coercive style. It relies on authority and compliance, not engagement."},
+  {id:10,type:"mcq",text:"A manager trusts her team fully, holds many meetings, and makes decisions by consensus. Which Goleman style is this?",opts:["Visionary","Affiliative","Democratic","Coaching"],ans:2,exp:"Democratic leadership is defined by consensus-building, active listening, and involving the team in decisions. Key phrase: What do you think?"},
+  {id:11,type:"mcq",text:"According to the Personal SWOT framework, which question must a leader ask about their most-used strength?",opts:["How can I eliminate this strength?","Could overusing this strength cause challenges?","Should I keep this strength secret?","Is this strength approved by my manager?"],ans:1,exp:"The material asks: Could overusing that strength cause challenges? Even a strength, when overused, can become a blind spot or leadership failure."},
+  {id:12,type:"mcq",text:"The Coaching leadership style is most likely to FAIL when used with:",opts:["An employee who wants long-term career growth","An employee who needs a lot of direction and is not making effort","An employee who is adrift in the organization","A new team member who lacks confidence"],ans:1,exp:"Coaching fails with employees who are not putting in effort or who need high direction. In those cases Pacesetting or Coercive may be more appropriate."},
+  {id:13,type:"mcq",text:"Delegating (S4) in Situational Leadership is characterized by:",opts:["High task, high support","High task, low support","Low task, high support","Low task, low support"],ans:3,exp:"Delegating S4 = Low task behavior + Low relationship behavior. The leader hands off responsibility because the D4 employee is fully capable and committed."},
+  {id:14,type:"mcq",text:"Which Goleman style develops people, provides ongoing challenge and feedback, and may sacrifice short-term performance for long-term growth?",opts:["Pacesetting","Commanding","Coaching","Affiliative"],ans:2,exp:"This is the Coaching style. It focuses on developing individuals long-term, even if that means accepting lower short-term output."},
+  {id:15,type:"mcq",text:"A leader who sees development of others as showing them how to do it and has little sympathy for poor performance is using which style?",opts:["Visionary","Affiliative","Coaching","Pacesetting"],ans:3,exp:"These characteristics match the Pacesetting style - high standards, showing by example, low tolerance for underperformance."},
+  {id:16,type:"mcq",text:"Coaching (S2) in Situational Leadership involves:",opts:["Low task focus, high support","High task focus, low support","High task focus, high support","Low task, low support"],ans:2,exp:"Coaching/Selling S2 = High task behavior + High relationship behavior. The leader explains decisions AND encourages buy-in. Used for D2 employees."},
+  {id:17,type:"mcq",text:"The Affiliative leadership style should be used when:",opts:["A crisis requires immediate action","The team needs new technical skills","There is team tension, broken trust, or a stressful period","The team needs to set high performance standards"],ans:2,exp:"Affiliative is best for repairing relationships, healing conflicts, or providing emotional support during difficult periods."},
+  {id:18,type:"mcq",text:"According to Goleman, which two styles have the most NEGATIVE impact on team climate if overused?",opts:["Affiliative and Democratic","Visionary and Coaching","Coercive and Pacesetting","Democratic and Affiliative"],ans:2,exp:"Coercive creates fear and resentment; Pacesetting creates anxiety and burnout. Both are harmful when used as the default style."},
+  {id:19,type:"mcq",text:"The Situational Leadership Model was developed by:",opts:["Daniel Goleman and Peter Drucker","Paul Hersey and Ken Blanchard","John Kotter and Warren Bennis","Jim Collins and Patrick Lencioni"],ans:1,exp:"The Situational Leadership Model was specifically developed by Paul Hersey and Ken Blanchard as an adaptive leadership framework."},
+  {id:20,type:"mcq",text:"A Personal SWOT analysis for leaders is used to:",opts:["Analyze market competition","Evaluate financial performance","Self-assess Strengths, Weaknesses, Opportunities, and Threats for personal growth","Plan a product launch"],ans:2,exp:"Personal SWOT = self-assessment for personal and professional leadership growth. It helps leaders understand their strengths and blind spots."},
+  {id:21,type:"mcq",text:"Which Situational Leadership style has HIGH directive AND HIGH supportive behavior?",opts:["S1 Directing","S2 Coaching","S3 Supporting","S4 Delegating"],ans:1,exp:"S2 Coaching has both high task (directive) and high relationship (supportive) behavior. It is used for D2 employees who have some skill but lack motivation."},
+  {id:22,type:"mcq",text:"In Goleman's model, the Democratic style should NOT be used when:",opts:["You need team buy-in on a strategy","The team is knowledgeable and capable","The team is inexperienced and the situation is urgent","You want to build consensus on a new initiative"],ans:2,exp:"Democratic leadership relies on capable, motivated, knowledgeable team members. It fails with inexperienced teams or when urgent decisions are needed."},
+  {id:23,type:"mcq",text:"To develop a Visionary leadership style, you should focus on:",opts:["Improving your Six Sigma certification","Learning crisis management and making decisions under pressure","Building expertise, self-confidence, empathy, and presentation skills","Running more meetings and practicing active listening"],ans:2,exp:"Developing the Visionary style requires expertise, vision, self-confidence, empathy, and strong presentation skills to sell the vision."},
+  {id:24,type:"mcq",text:"A team member with some competence but low commitment is at development level:",opts:["D1","D2","D3","D4"],ans:1,exp:"D2 = Some competence, Low commitment. This person knows a bit about the task but lacks motivation. The matching style is Coaching (S2)."},
+  {id:25,type:"mcq",text:"The Pacesetting style is BEST used when:",opts:["The team has low skills and needs direction","You need to heal conflict in the team","You need high-quality results quickly from a motivated skilled team","A team member needs long-term development"],ans:2,exp:"Pacesetting works best with highly skilled, already-motivated teams that need to deliver top performance quickly. It is counterproductive with low-skill teams."},
+  {id:26,type:"mcq",text:"Which aspect of the Commanding style makes it risky for everyday management?",opts:["It involves too much empathy","It relies on corrective feedback and fear of consequences, damaging long-term morale","It encourages too much team input","It focuses too much on vision"],ans:1,exp:"Commanding motivates through fear of consequences and negative feedback. Used daily, this destroys trust, morale, and psychological safety."},
+  {id:27,type:"mcq",text:"A manager consistently sets world-class standards, jumps in to rescue tasks when others fail, and demands faster and better work. Which style is this?",opts:["Affiliative","Coaching","Pacesetting","Democratic"],ans:2,exp:"This describes the Pacesetting style: high standards, rescuing failing tasks, demanding better performance, and showing-by-doing as the development method."},
+  {id:28,type:"mcq",text:"In the 3-step Situational Leadership process, Assess Readiness means:",opts:["Checking if the office has the right equipment","Evaluating the employee's competence AND commitment for the specific task","Reviewing the company's financial readiness","Assessing how ready the customer is to buy"],ans:1,exp:"Assessing Readiness = evaluating both competence (can they do it?) and commitment (will they do it?) for the specific task, placing them at D1, D2, D3, or D4."},
+  {id:29,type:"mcq",text:"Goleman's 6 leadership styles are all rooted in which concept?",opts:["Project Management","Technical Competence","Emotional Intelligence (EI)","Financial Planning"],ans:2,exp:"All six of Goleman's leadership styles are based on Emotional Intelligence competencies like empathy, self-awareness, self-control, and collaboration."},
+  {id:30,type:"mcq",text:"The key phrase for Democratic leadership is:",opts:["Do as I do","Come with me","What do you think?","People come first"],ans:2,exp:"What do you think? is the signature phrase for Democratic leadership. It reflects the focus on gathering input and building consensus."},
+  {id:31,type:"tf",text:"The Situational Leadership Model says there is one best leadership style that should be used in all situations.",ans:false,exp:"FALSE. The core principle of Situational Leadership is that there is NO single best style. Leaders must adapt based on the follower development level for each specific task."},
+  {id:32,type:"tf",text:"In the Situational Leadership Model, D4 employees are highly competent and highly committed.",ans:true,exp:"TRUE. D4 = High competence + High commitment. These are experienced, self-motivated individuals best managed with a Delegating S4 style."},
+  {id:33,type:"tf",text:"A person who is D4 for one task will automatically be D4 for all other tasks in their role.",ans:false,exp:"FALSE. Development levels are task-specific. A D4 expert in financial reporting may be D1 when asked to lead a public presentation for the first time."},
+  {id:34,type:"tf",text:"Goleman's Affiliative style focuses on task completion above all else.",ans:false,exp:"FALSE. Affiliative places MORE emphasis on individuals and relationships than on the task. Its motto is People come first."},
+  {id:35,type:"tf",text:"The Pacesetting leadership style, when overused, can cause burnout and anxiety in the team.",ans:true,exp:"TRUE. Pacesetting expects everyone to perform at the leader's own high level. When overused, it creates stress and reduces psychological safety."},
+  {id:36,type:"tf",text:"Goleman's Coaching style and S2 Coaching in Situational Leadership are exactly the same concept.",ans:false,exp:"FALSE. These are from two different frameworks. Goleman's Coaching is about long-term development. S2 Coaching in Situational Leadership involves high task AND high support to build skill and buy-in."},
+  {id:37,type:"tf",text:"The Democratic leadership style is most effective in crisis situations that require fast decisions.",ans:false,exp:"FALSE. Democratic leadership is slow by nature as it requires gathering input and building consensus. In a crisis, Commanding or Directing is more appropriate."},
+  {id:38,type:"tf",text:"A Personal SWOT analysis helps leaders identify their blind spots and underdeveloped strengths.",ans:true,exp:"TRUE. By examining Weaknesses and Threats alongside Strengths and Opportunities, leaders can discover blind spots - areas of impact they were not aware of."},
+  {id:39,type:"tf",text:"In Situational Leadership, Delegating (S4) involves low task behavior and low relationship behavior.",ans:true,exp:"TRUE. Delegating S4 = Low directive + Low supportive. The leader trusts the D4 employee fully and hands off responsibility without close monitoring."},
+  {id:40,type:"tf",text:"Goleman found that all 6 leadership styles have equally positive effects on team climate.",ans:false,exp:"FALSE. Goleman found that Coercive and Pacesetting can have NEGATIVE effects on team climate when overused. Authoritative, Affiliative, Democratic, and Coaching tend to be more positively impactful."},
+  {id:41,type:"tf",text:"A Visionary leader takes responsibility for communicating a clear vision and helps others align it with their individual objectives.",ans:true,exp:"TRUE. The Visionary leader communicates a compelling vision and ensures everyone understands how their role contributes to it."},
+  {id:42,type:"tf",text:"The Commanding style should be the primary daily management approach because it ensures compliance.",ans:false,exp:"FALSE. The material explicitly warns that Coercive/Commanding style is very easily misused and should only be used when necessary such as in a crisis."},
+  {id:43,type:"tf",text:"S3 Supporting in Situational Leadership involves low task behavior and high supportive behavior.",ans:true,exp:"TRUE. Supporting S3 = Low directive + High supportive. Used with D3 employees who have the competence but need confidence and motivational support."},
+  {id:44,type:"tf",text:"Developing the Pacesetting style involves learning techniques like Six Sigma and Kaizen.",ans:true,exp:"TRUE. The material specifically mentions Six Sigma and Kaizen as tools for improving team performance quality - core elements of the Pacesetting approach."},
+  {id:45,type:"tf",text:"The Affiliative style is useful for situations where a team is experiencing conflict or broken trust.",ans:true,exp:"TRUE. Affiliative leadership is specifically recommended whenever there is team tension or conflict, when trust has been broken, or if the team needs motivation through a stressful time."},
+  {id:46,type:"tf",text:"A leader should always use the same leadership style to maintain consistency and avoid confusion.",ans:false,exp:"FALSE. Both Goleman and Hersey and Blanchard explicitly state that great leaders adapt their style based on the situation. Rigid use of one style is a leadership failure."},
+  {id:47,type:"tf",text:"In a Personal SWOT, Threats refers to external factors that could undermine a leader's effectiveness.",ans:true,exp:"TRUE. Threats in a Personal SWOT are external factors - like organizational changes, team dynamics, or blind spots in behavior - that could derail the leader's effectiveness."},
+  {id:48,type:"tf",text:"Goleman's Coaching style can fail when used with an employee who is not interested in personal development.",ans:true,exp:"TRUE. Coaching fails with employees who are not making an effort. The style requires a willing and motivated learner to work."},
+  {id:49,type:"tf",text:"D2 in Situational Leadership represents an employee with some competence but LOW commitment.",ans:true,exp:"TRUE. D2 = Some competence + Low commitment. This person may have learned some skills but feels discouraged or unmotivated. The matching style is Coaching (S2)."},
+  {id:50,type:"tf",text:"Great leaders consider task urgency, team skill, organizational culture, and long-term vs short-term needs before choosing a style.",ans:true,exp:"TRUE. The REMEMBER section of the material explicitly lists these four factors as what great leaders assess before selecting a leadership style."}
+];
+
+function renderQuestions(filter) {
+  filter = filter || "all";
+  var container = document.getElementById("q-list");
+  container.innerHTML = "";
+  var filtered = filter === "all" ? questions : questions.filter(function(q){ return q.type === filter; });
+  var mcqStarted = false, tfStarted = false;
+  for (var i = 0; i < filtered.length; i++) {
+    var q = filtered[i];
+    if (q.type === "mcq" && !mcqStarted) {
+      var h = document.createElement("div");
+      h.className = "q-section-title"; h.textContent = "Multiple Choice Questions";
+      container.appendChild(h); mcqStarted = true;
+    }
+    if (q.type === "tf" && !tfStarted) {
+      var h2 = document.createElement("div");
+      h2.className = "q-section-title"; h2.textContent = "True / False Questions";
+      container.appendChild(h2); tfStarted = true;
+    }
+    var card = document.createElement("div");
+    card.className = "q-card"; card.id = "qcard-" + q.id;
+    var badgeClass = q.type === "mcq" ? "badge-mcq" : "badge-tf";
+    var badgeText = q.type === "mcq" ? "MCQ" : "T/F";
+    var optsHtml = "";
+    if (q.type === "mcq") {
+      var keys = ["A","B","C","D"];
+      optsHtml = '<div class="q-options">';
+      for (var j = 0; j < q.opts.length; j++) {
+        optsHtml += '<div class="q-option" id="opt-'+q.id+'-'+j+'" onclick="selectOpt('+q.id+','+j+')"><span class="opt-key">'+keys[j]+'</span>'+q.opts[j]+'</div>';
+      }
+      optsHtml += '</div>';
+    } else {
+      optsHtml = '<div class="q-options">'
+        + '<div class="q-option" id="opt-'+q.id+'-0" onclick="selectOpt('+q.id+',0)"><span class="opt-key">T</span>True</div>'
+        + '<div class="q-option" id="opt-'+q.id+'-1" onclick="selectOpt('+q.id+',1)"><span class="opt-key">F</span>False</div>'
+        + '</div>';
+    }
+    card.innerHTML = '<div class="q-number"><span>#'+q.id+'</span><span class="q-badge '+badgeClass+'">'+badgeText+'</span></div>'
+      + '<div class="q-text">'+q.text+'</div>'
+      + optsHtml
+      + '<div class="q-reveal"><button class="reveal-btn" onclick="revealAnswer('+q.id+')">Show Answer</button>'
+      + '<div class="answer-block" id="ans-'+q.id+'"><div class="correct-label">Correct Answer: <span id="ans-label-'+q.id+'"></span></div><div class="explanation">'+q.exp+'</div></div></div>';
+    container.appendChild(card);
+  }
+}
+
+function selectOpt(qid, optIdx) {
+  var q = null;
+  for (var i = 0; i < questions.length; i++) { if (questions[i].id === qid) { q = questions[i]; break; } }
+  if (!q) return;
+  var card = document.getElementById("qcard-" + qid);
+  if (!card || card.getAttribute("data-answered")) return;
+  var correctIdx = q.type === "tf" ? (q.ans === true ? 0 : 1) : q.ans;
+  var numOpts = q.type === "mcq" ? q.opts.length : 2;
+  for (var i = 0; i < numOpts; i++) {
+    var el = document.getElementById("opt-" + qid + "-" + i);
+    if (!el) continue;
+    if (i === correctIdx) el.classList.add("correct");
+    else if (i === optIdx) el.classList.add("wrong");
+  }
+  card.setAttribute("data-answered", "1");
+  answeredCount++;
+  if (optIdx === correctIdx) correctCount++;
+  updateScore();
+  revealAnswer(qid);
+}
+
+function revealAnswer(qid) {
+  var q = null;
+  for (var i = 0; i < questions.length; i++) { if (questions[i].id === qid) { q = questions[i]; break; } }
+  var block = document.getElementById("ans-" + qid);
+  var label = document.getElementById("ans-label-" + qid);
+  if (!block || !label || !q) return;
+  var keys = ["A","B","C","D"];
+  var answerText = q.type === "tf" ? (q.ans ? "TRUE" : "FALSE") : keys[q.ans] + " - " + q.opts[q.ans];
+  label.textContent = answerText;
+  block.classList.add("visible");
+}
+
+function updateScore() {
+  var bar = document.getElementById("scoreBar");
+  bar.classList.add("visible");
+  document.getElementById("scoreNum").textContent = correctCount;
+  document.getElementById("scoreDen").textContent = "/ " + answeredCount + " answered";
+}
+
+function filterQ(type, btn) {
+  var btns = document.querySelectorAll(".q-filter .btn");
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+  btn.classList.add("active");
+  renderQuestions(type);
+}
+
+function toggleSection(header) {
+  var card = header.parentElement;
+  card.classList.toggle("open");
+}
+
+function switchTab(btn, lang, sectionId) {
+  var body = btn.parentElement;
+  var tabs = body.querySelectorAll(".lang-tab");
+  var contents = body.parentElement.querySelectorAll(".lang-content");
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+  for (var i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+  btn.classList.add("active");
+  var target = document.getElementById(sectionId + "-" + lang);
+  if (target) target.classList.add("active");
+}
+
+function setLang(lang) {
+  document.getElementById("langEN").classList.toggle("active", lang === "en");
+  document.getElementById("langAR").classList.toggle("active", lang === "ar");
+  var sections = ["s1","s2","s3","s4","s5","s6","s7"];
+  for (var i = 0; i < sections.length; i++) {
+    var sid = sections[i];
+    var en = document.getElementById(sid + "-en");
+    var ar = document.getElementById(sid + "-ar");
+    if (!en || !ar) continue;
+    en.classList.toggle("active", lang === "en");
+    ar.classList.toggle("active", lang === "ar");
+    var wrapper = en.parentElement;
+    var tabs = wrapper.querySelectorAll(".lang-tab");
+    for (var j = 0; j < tabs.length; j++) {
+      tabs[j].classList.toggle("active", (lang === "en" && j === 0) || (lang === "ar" && j === 1));
+    }
+  }
+  document.documentElement.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+}
+
+function toggleTheme() {
+  var html = document.documentElement;
+  var btn = document.getElementById("themeBtn");
+  var isDark = html.getAttribute("data-theme") === "dark";
+  html.setAttribute("data-theme", isDark ? "light" : "dark");
+  btn.textContent = isDark ? "Dark" : "Light";
+}
+
+// TOC smooth scroll
+var chips = document.querySelectorAll(".toc-chip");
+for (var i = 0; i < chips.length; i++) {
+  chips[i].addEventListener("click", function(e) {
+    e.preventDefault();
+    var target = document.querySelector(this.getAttribute("href"));
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (!target.classList.contains("open")) target.classList.add("open");
+    }
+  });
+}
+
+renderQuestions("all");
+</script>
+</body>
+</html>

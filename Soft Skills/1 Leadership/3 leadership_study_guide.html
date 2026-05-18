@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Skills — Module 3 Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --bg2: #141720;
+  --bg3: #1c2030;
+  --surface: #1e2233;
+  --surface2: #252a3a;
+  --border: #2e3452;
+  --text: #e4e8f5;
+  --text2: #9aa3c2;
+  --text3: #5e6890;
+
+  /* 9 accent colors */
+  --c1-fg: #7ee8fa; --c1-bg: #0d2c35; --c1-mid: #1a4f60;
+  --c2-fg: #a78bfa; --c2-bg: #1a1030; --c2-mid: #2d1f55;
+  --c3-fg: #34d399; --c3-bg: #0a2218; --c3-mid: #163d2c;
+  --c4-fg: #f59e0b; --c4-bg: #251a05; --c4-mid: #3d2d0a;
+  --c5-fg: #f87171; --c5-bg: #2a0f0f; --c5-mid: #3d1a1a;
+  --c6-fg: #60a5fa; --c6-bg: #0d1c2e; --c6-mid: #1a3050;
+  --c7-fg: #fb7185; --c7-bg: #2a0d15; --c7-mid: #3d1524;
+  --c8-fg: #a3e635; --c8-bg: #141e05; --c8-mid: #233608;
+  --c9-fg: #e879f9; --c9-bg: #220d27; --c9-mid: #3a1742;
+
+  --radius: 12px;
+  --radius-sm: 6px;
+  --gap: 24px;
+}
+
+[data-theme="light"] {
+  --bg: #f0f2f8;
+  --bg2: #e8eaf5;
+  --bg3: #dde0f0;
+  --surface: #ffffff;
+  --surface2: #f5f6fc;
+  --border: #d0d4e8;
+  --text: #1a1e30;
+  --text2: #4a5070;
+  --text3: #8090b8;
+
+  --c1-fg: #0891b2; --c1-bg: #e0f7fc; --c1-mid: #b0e8f5;
+  --c2-fg: #7c3aed; --c2-bg: #ede9fe; --c2-mid: #c4b5fd;
+  --c3-fg: #059669; --c3-bg: #d1fae5; --c3-mid: #6ee7b7;
+  --c4-fg: #d97706; --c4-bg: #fef3c7; --c4-mid: #fcd34d;
+  --c5-fg: #dc2626; --c5-bg: #fee2e2; --c5-mid: #fca5a5;
+  --c6-fg: #2563eb; --c6-bg: #dbeafe; --c6-mid: #93c5fd;
+  --c7-fg: #e11d48; --c7-bg: #ffe4e6; --c7-mid: #fda4af;
+  --c8-fg: #65a30d; --c8-bg: #ecfccb; --c8-mid: #a3e635;
+  --c9-fg: #9333ea; --c9-bg: #f3e8ff; --c9-mid: #d8b4fe;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.site-header {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0d1528 40%, #0f1a35 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+  gap: 16px;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-badge {
+  background: linear-gradient(135deg, var(--c1-fg), var(--c2-fg));
+  color: #fff;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+}
+.brand-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 400;
+}
+.header-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ctrl-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.ctrl-btn:hover, .ctrl-btn.active {
+  background: var(--c1-bg);
+  border-color: var(--c1-fg);
+  color: var(--c1-fg);
+}
+.lang-btn {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.lang-btn button {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lang-btn button.active {
+  background: var(--c2-fg);
+  color: #fff;
+}
+
+/* HERO BANNER */
+.hero {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0f1a35 50%, #0d1528 100%);
+  padding: 60px 40px 50px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(126,232,250,0.07) 0%, transparent 70%),
+              radial-gradient(ellipse 60% 40% at 80% 100%, rgba(167,139,250,0.06) 0%, transparent 70%);
+}
+.hero-tag {
+  display: inline-block;
+  background: var(--c1-bg);
+  border: 1px solid var(--c1-mid);
+  color: var(--c1-fg);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #fff 0%, var(--c1-fg) 50%, var(--c2-fg) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 14px;
+  position: relative;
+}
+.hero p {
+  color: var(--text2);
+  font-size: 15px;
+  max-width: 560px;
+  margin: 0 auto 28px;
+  position: relative;
+}
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  position: relative;
+}
+.stat {
+  text-align: center;
+}
+.stat-n {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--c1-fg);
+  letter-spacing: -0.04em;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.stat-l {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* LAYOUT */
+.page-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 40px 80px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* TOC */
+.toc-wrap {
+  position: sticky;
+  top: 88px;
+}
+.toc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.toc-head {
+  background: var(--surface2);
+  padding: 14px 18px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+}
+.toc-list {
+  list-style: none;
+  padding: 10px 0;
+}
+.toc-list li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+.toc-list li a:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+.toc-chip {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* MAIN CONTENT */
+.content-area { min-width: 0; }
+
+/* SECTION CARDS */
+.section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  cursor: pointer;
+  user-select: none;
+  gap: 12px;
+}
+.section-header:hover { background: var(--surface2); }
+.sec-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sec-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.sec-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
+.sec-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.toggle-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.toggle-btn:hover { color: var(--text); border-color: var(--text3); }
+.section-body {
+  padding: 0 24px 24px;
+  border-top: 1px solid var(--border);
+}
+.section-body.collapsed { display: none; }
+
+/* STRIPE */
+.section-card { border-left: 4px solid var(--border); }
+.s1 { border-left-color: var(--c1-fg); }
+.s2 { border-left-color: var(--c2-fg); }
+.s3 { border-left-color: var(--c3-fg); }
+.s4 { border-left-color: var(--c4-fg); }
+.s5 { border-left-color: var(--c5-fg); }
+
+/* CONTENT BLOCKS */
+.block { border-radius: 10px; padding: 18px 20px; margin: 18px 0; }
+.block-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+.block p { font-size: 14px; line-height: 1.75; color: var(--text2); }
+.block p + p { margin-top: 8px; }
+
+.block-analogy { background: var(--c4-bg); border: 1px solid var(--c4-mid); }
+.block-analogy .block-title { color: var(--c4-fg); }
+.block-analogy p { color: var(--text); }
+
+.block-example { background: var(--c6-bg); border: 1px solid var(--c6-mid); }
+.block-example .block-title { color: var(--c6-fg); }
+.block-example p { color: var(--text); }
+
+.block-summary { background: var(--c3-bg); border: 1px solid var(--c3-mid); }
+.block-summary .block-title { color: var(--c3-fg); }
+.block-summary p { color: var(--text); }
+
+.block-warning { background: var(--c5-bg); border: 1px solid var(--c5-mid); }
+.block-warning .block-title { color: var(--c5-fg); }
+.block-warning p { color: var(--text); }
+
+.block-ar { background: var(--c2-bg); border: 1px solid var(--c2-mid); direction: rtl; text-align: right; }
+.block-ar .block-title { color: var(--c2-fg); }
+.block-ar p { color: var(--text); font-size: 14px; }
+
+/* LANG CONTENT */
+[data-lang="ar"] .en-only { display: none; }
+[data-lang="en"] .ar-only { display: none; }
+
+/* EXPLANATION */
+.explain-block { margin: 16px 0; }
+.explain-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 8px;
+}
+.explain-text { font-size: 14px; color: var(--text2); line-height: 1.8; }
+.explain-text + .explain-text { margin-top: 10px; }
+
+/* TERM / HIGHLIGHT */
+.term {
+  background: var(--c1-bg);
+  color: var(--c1-fg);
+  border: 1px solid var(--c1-mid);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+}
+.highlight {
+  background: linear-gradient(90deg, rgba(167,139,250,0.2), transparent);
+  border-left: 3px solid var(--c2-fg);
+  padding: 2px 8px;
+  margin: 2px 0;
+  display: inline-block;
+}
+.code-inline {
+  background: #0a0c14;
+  color: #a5f3fc;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #1e2a3a;
+}
+
+/* TABLES */
+table { width: 100%; border-collapse: collapse; margin: 18px 0; border-radius: 10px; overflow: hidden; font-size: 13px; }
+thead tr { background: linear-gradient(135deg, var(--c1-bg), var(--c2-bg)); }
+thead th { padding: 12px 16px; text-align: left; font-weight: 700; color: var(--text); border-bottom: 1px solid var(--border); font-size: 12px; }
+tbody tr { border-bottom: 1px solid var(--border); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 11px 16px; color: var(--text2); vertical-align: top; line-height: 1.6; }
+.td-high { color: var(--c3-fg); font-weight: 600; }
+.td-low { color: var(--c5-fg); font-weight: 600; }
+
+/* STEP ITEMS */
+.steps { list-style: none; counter-reset: steps; margin: 14px 0; }
+.steps li {
+  counter-increment: steps;
+  display: flex;
+  gap: 14px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+.steps li::before {
+  content: counter(steps);
+  background: linear-gradient(135deg, var(--c1-fg), var(--c2-fg));
+  color: #000;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: 'IBM Plex Mono', monospace;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.steps li span { font-size: 14px; color: var(--text2); line-height: 1.7; }
+
+/* BULLET GRID */
+.bullet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+.bullet-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bullet-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* FRAMEWORK CARDS */
+.fw-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+.fw-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.fw-card-title { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.fw-card-text { font-size: 12px; color: var(--text3); line-height: 1.6; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 22px 0; }
+.section-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 14px;
+}
+
+/* QUIZ */
+.quiz-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  overflow: hidden;
+  border-left: 4px solid var(--c9-fg);
+}
+.quiz-header {
+  background: linear-gradient(135deg, var(--c9-bg), var(--bg3));
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--border);
+}
+.quiz-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--c9-fg);
+  margin-bottom: 6px;
+}
+.quiz-header p { font-size: 13px; color: var(--text2); }
+.quiz-stats {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+}
+.qstat {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  text-align: center;
+}
+.qstat-n { font-size: 22px; font-weight: 800; color: var(--c9-fg); font-family: 'IBM Plex Mono', monospace; }
+.qstat-l { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+.quiz-body { padding: 28px 32px; }
+.q-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 22px;
+  margin-bottom: 18px;
+  transition: border-color 0.2s;
+}
+.q-item:hover { border-color: var(--c9-fg); }
+.q-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+.q-type-mcq { color: var(--c1-fg); }
+.q-type-tf { color: var(--c4-fg); }
+.q-text { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.7; margin-bottom: 14px; }
+.q-options { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.q-options li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.q-opt-letter {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.show-ans-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 14px;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.show-ans-btn:hover {
+  background: var(--c9-bg);
+  border-color: var(--c9-fg);
+  color: var(--c9-fg);
+}
+.q-answer {
+  display: none;
+  margin-top: 14px;
+  background: var(--c3-bg);
+  border: 1px solid var(--c3-mid);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.q-answer.visible { display: block; }
+.ans-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--c3-fg);
+  font-family: 'IBM Plex Mono', monospace;
+  margin-bottom: 8px;
+}
+.ans-correct { font-size: 14px; font-weight: 700; color: var(--c3-fg); margin-bottom: 6px; }
+.ans-explain { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* SCROLL */
+html { scroll-behavior: smooth; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* PROGRESS BAR */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--c1-fg), var(--c2-fg), var(--c9-fg));
+  z-index: 999;
+  transition: width 0.1s;
+}
+
+/* h3 inside section */
+.section-body h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 22px 0 10px;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-body h3::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: var(--c1-fg);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .page-body { grid-template-columns: 1fr; }
+  .toc-wrap { position: static; }
+  .hero-stats { gap: 16px; }
+  .bullet-grid, .fw-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .site-header, .hero, .page-body, .quiz-body { padding-left: 16px; padding-right: 16px; }
+  .hero-stats { flex-wrap: wrap; }
+  .quiz-stats { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div>
+        <div class="brand-badge">MOD 3</div>
+      </div>
+      <div>
+        <div class="brand-title">Leadership Skills</div>
+        <div class="brand-sub">Digilians · Interactive Study Guide</div>
+      </div>
+    </div>
+    <div class="header-controls">
+      <button class="ctrl-btn" onclick="toggleTheme()" id="themeBtn">☀ Light</button>
+      <div class="lang-btn">
+        <button class="active" id="enBtn" onclick="setLang('en')">EN</button>
+        <button id="arBtn" onclick="setLang('ar')">AR</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Interactive Study Guide</div>
+  <h1>Leadership Skills — Module 3</h1>
+  <p>Master interpersonal leadership, executive presence, problem solving, and decision making with bilingual explanations and 50+ practice questions.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Core Topics</div></div>
+    <div class="stat"><div class="stat-n">50+</div><div class="stat-l">Quiz Questions</div></div>
+    <div class="stat"><div class="stat-n">2</div><div class="stat-l">Languages</div></div>
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Interactive</div></div>
+  </div>
+</div>
+
+<!-- PAGE BODY -->
+<div class="page-body">
+
+  <!-- TOC -->
+  <aside class="toc-wrap">
+    <div class="toc-card">
+      <div class="toc-head">Contents</div>
+      <ul class="toc-list">
+        <li><a href="#s1">
+          <span class="toc-chip" style="background:var(--c1-bg);color:var(--c1-fg);">01</span>
+          Interpersonal Skills
+        </a></li>
+        <li><a href="#s2">
+          <span class="toc-chip" style="background:var(--c2-bg);color:var(--c2-fg);">02</span>
+          Executive Presence
+        </a></li>
+        <li><a href="#s3">
+          <span class="toc-chip" style="background:var(--c3-bg);color:var(--c3-fg);">03</span>
+          Confidence & Credibility
+        </a></li>
+        <li><a href="#s4">
+          <span class="toc-chip" style="background:var(--c4-bg);color:var(--c4-fg);">04</span>
+          Problem Solving
+        </a></li>
+        <li><a href="#s5">
+          <span class="toc-chip" style="background:var(--c5-bg);color:var(--c5-fg);">05</span>
+          Decision Making
+        </a></li>
+        <li><a href="#quiz">
+          <span class="toc-chip" style="background:var(--c9-bg);color:var(--c9-fg);">Q</span>
+          Practice Quiz
+        </a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content-area">
+
+    <!-- SECTION 1 -->
+    <div class="section-card s1" id="s1">
+      <div class="section-header" onclick="toggle('body1')">
+        <div class="sec-title-row">
+          <div class="sec-icon" style="background:var(--c1-bg);">🤝</div>
+          <div>
+            <div class="sec-title">Interpersonal Skills of Leaders</div>
+            <div class="sec-sub">Why human-centric leadership matters</div>
+          </div>
+        </div>
+        <div class="toggle-btn" id="tog1">−</div>
+      </div>
+      <div class="section-body" id="body1">
+
+        <div class="en-only">
+        <span class="section-tag" style="background:var(--c1-bg);color:var(--c1-fg);">EN Explanation</span>
+
+        <div class="explain-text">
+          <span class="term">Interpersonal skills</span> are the people skills that allow a leader to connect with, motivate, and guide others effectively. In today's workplace, technical skills alone are not enough — how you relate to people determines how far you go as a leader.
+        </div>
+
+        <div class="explain-text">
+          The modern workplace needs <span class="term">human-centric leadership</span> — meaning leaders who put people first. These skills help with communication, conflict resolution, employee engagement, and retention. The five key competencies are: <span class="highlight">empathy, emotional intelligence, problem solving, and active listening</span>.
+        </div>
+
+        <h3>Why Interpersonal Skills Matter</h3>
+
+        <ol class="steps">
+          <li><span><strong>Building Trust:</strong> When leaders show respect and create a safe environment, teams feel they can take risks, share ideas, and be honest — this is the core of team cohesion.</span></li>
+          <li><span><strong>Enhanced Communication:</strong> Clear verbal and nonverbal communication ensures the team understands goals and receives useful feedback. 50.66% of surveyed leaders rank this as their top skill.</span></li>
+          <li><span><strong>Motivating Employees:</strong> Empathy — genuinely caring about your team — creates engagement and resilience, not just compliance.</span></li>
+          <li><span><strong>Conflict Management:</strong> Handling disagreements with objectivity and empathy turns conflicts into growth opportunities.</span></li>
+          <li><span><strong>Navigating Change:</strong> Leaders with high <span class="code-inline">EQ</span> provide calm and direction during organizational uncertainty.</span></li>
+          <li><span><strong>Fostering Collaboration:</strong> Connecting diverse team members creates more inclusive, innovative teams.</span></li>
+        </ol>
+
+        <div class="block block-analogy">
+          <div class="block-title">💡 Analogy</div>
+          <p>Think of a leader like the operating system of a computer. Technical skills are the apps — they do specific jobs. But interpersonal skills are the OS — without them, nothing runs smoothly, no matter how powerful the apps are.</p>
+        </div>
+
+        <div class="block block-example">
+          <div class="block-title">▶ Real-World Example</div>
+          <p>A project manager at a tech company notices two developers are constantly clashing over code reviews. Instead of ignoring it or just enforcing rules, she listens to both separately (active listening + empathy), identifies a misunderstanding about code standards, and sets up a team agreement session. The conflict turns into a shared documentation that helps the whole team — that's interpersonal leadership in action.</p>
+        </div>
+        </div><!-- end en-only -->
+
+        <div class="ar-only">
+        <span class="section-tag" style="background:var(--c2-bg);color:var(--c2-fg);">الشرح بالعربي</span>
+
+        <div class="block block-ar">
+          <div class="block-title">🇸🇦 الشرح بالعربي</div>
+          <p>الـ <strong>interpersonal skills</strong> هي مهارات التعامل مع الناس — وهي اللي بتفرق بين leader حقيقي ومجرد مدير بيدي أوامر.</p>
+          <p>دلوقتي الشغل بيحتاج <strong>human-centric leadership</strong> — يعني قائد بيفكر في الناس الأول. المهارات دي بتساعدك تتواصل صح، تحل conflicts، وتخلي الفريق motivated ومش عايز يمشي.</p>
+          <p>أهم المهارات: الـ <strong>empathy</strong> (تحس بغيرك)، الـ <strong>emotional intelligence / EQ</strong>، الـ <strong>active listening</strong> (تسمع فعلاً مش بس تتظاهر)، وحل المشاكل.</p>
+          <p>مثال: لو في خلاف في الفريق، الـ leader الكويس مش بيصرخ أو بيتجاهل — بيتكلم مع كل واحد بشكل منفصل، بيفهم المشكلة الحقيقية، وبيحلها بطريقة تقوي العلاقة.</p>
+          <h3 style="direction:rtl;text-align:right;margin-top:16px;">أهم مهارات القائد</h3>
+          <p>١. بناء الثقة (Building Trust) — خلق بيئة آمنة يقدر فيها الفريق يتكلم بحرية.</p>
+          <p>٢. التواصل الفعال (Enhanced Communication) — توصيل الأهداف بوضوح وإعطاء feedback بناء.</p>
+          <p>٣. تحفيز الموظفين (Motivating Employees) — الاهتمام الحقيقي بالفريق بيزود الإنتاجية.</p>
+          <p>٤. إدارة الصراعات (Conflict Management) — تحويل الخلافات لفرص تطوير.</p>
+          <p>٥. التعامل مع التغيير — القائد اللي عنده EQ عالي بيديّ ثبات للفريق في أوقات عدم اليقين.</p>
+          <p>٦. تعزيز التعاون (Fostering Collaboration) — ربط أعضاء الفريق ببعض لبيئة أكثر شمولاً.</p>
+        </div>
+        </div><!-- end ar-only -->
+
+        <div class="block block-summary">
+          <div class="block-title">✦ Summary</div>
+          <p>Interpersonal skills are the foundation of effective leadership. The five key reasons they matter are: trust-building, better communication, employee motivation, conflict management, and fostering collaboration. Leaders who master these skills create teams that are engaged, productive, and loyal.</p>
+        </div>
+
+        <h3>Key Skills Framework</h3>
+        <div class="fw-grid">
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c1-fg);">Executive Presence</div><div class="fw-card-text">How you show up — confidence, composure, and credibility in high-stakes situations.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c2-fg);">Problem Solving & DM</div><div class="fw-card-text">Structured thinking to analyze problems and make sound decisions under pressure.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Building Teams & Motivation</div><div class="fw-card-text">Creating cohesive, motivated teams that can achieve shared goals.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c4-fg);">EQ + Agility & Resilience</div><div class="fw-card-text">Emotional intelligence and the ability to adapt and recover in changing environments.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section-card s2" id="s2">
+      <div class="section-header" onclick="toggle('body2')">
+        <div class="sec-title-row">
+          <div class="sec-icon" style="background:var(--c2-bg);">👔</div>
+          <div>
+            <div class="sec-title">Executive Presence</div>
+            <div class="sec-sub">Confidence, composure, credibility, authenticity</div>
+          </div>
+        </div>
+        <div class="toggle-btn" id="tog2">−</div>
+      </div>
+      <div class="section-body" id="body2">
+        <span class="section-tag" style="background:var(--c2-bg);color:var(--c2-fg);">EN Explanation</span>
+
+        <div class="explain-text">
+          <span class="term">Executive Presence</span> is the combination of how you look, how you speak, and how you make people feel — especially when the stakes are high. It's what makes people want to follow you, trust you, and believe in your decisions.
+        </div>
+        <div class="explain-text">
+          The four pillars are: <span class="highlight">Confidence, Composure, Credibility, and Authenticity</span>. These are not about being perfect — they're about consistently showing up in a way that inspires trust.
+        </div>
+
+        <h3>Self-Confidence Explained</h3>
+        <div class="explain-text"><span class="term">Self-confidence</span> means believing in your own abilities, judgment, and capacity to face challenges. It's not arrogance — arrogance is thinking you're better than others. Confidence is trusting yourself enough to act.</div>
+
+        <h3>High vs Low Confidence Behaviors</h3>
+        <table>
+          <thead><tr><th>High Self-Confidence</th><th>Low Self-Confidence</th></tr></thead>
+          <tbody>
+            <tr><td class="td-high">Acts on beliefs even when criticized</td><td class="td-low">Changes behavior based on what others think</td></tr>
+            <tr><td class="td-high">Takes calculated risks to achieve more</td><td class="td-low">Stays in comfort zone, avoids failure</td></tr>
+            <tr><td class="td-high">Admits mistakes and learns from them</td><td class="td-low">Brags about talents constantly</td></tr>
+            <tr><td class="td-high">Speaks only in areas of expertise</td><td class="td-low">Covers up mistakes</td></tr>
+            <tr><td class="td-high">Accepts compliments gracefully</td><td class="td-low">Dismisses compliments ("it was nothing")</td></tr>
+          </tbody>
+        </table>
+
+        <div class="block block-example">
+          <div class="block-title">▶ Example</div>
+          <p><strong>High Confidence:</strong> In a team meeting, a manager says "I made the wrong call last month on that campaign — here's what I learned and what we'll do differently." This builds trust, not damage.</p>
+          <p style="margin-top:8px;"><strong>Low Confidence:</strong> The same manager quietly blames the marketing team in side conversations and never acknowledges the error publicly. The team loses respect.</p>
+        </div>
+
+        <h3>How to Build Confidence</h3>
+        <div class="bullet-grid">
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c2-fg)"></span>Strengths Inventory — list what you're genuinely good at</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c3-fg)"></span>Evidence List — document past wins and successes</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c4-fg)"></span>Recall Confidence Situations — revisit moments you felt powerful</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c1-fg)"></span>Micro Challenges — do one uncomfortable action every day</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c5-fg)"></span>Positive Visualization — mentally rehearse success</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c9-fg)"></span>Teach Something — teaching reinforces mastery</div>
+        </div>
+
+        <div class="block block-analogy">
+          <div class="block-title">💡 Analogy</div>
+          <p>Confidence is like a muscle. You don't get strong by reading about the gym — you get strong by showing up and doing reps, even when it's hard. Micro challenges are your daily reps.</p>
+        </div>
+
+        <div class="divider"></div>
+        <span class="section-tag" style="background:var(--c2-bg);color:var(--c2-fg);">AR Explanation</span>
+
+        <div class="block block-ar">
+          <div class="block-title">🇸🇦 الشرح بالعربي</div>
+          <p>الـ <strong>Executive Presence</strong> هي الطريقة اللي بتظهر بيها — كيف بتتكلم، كيف بتتصرف، وكيف بتخلي الناس تحس إنك قائد حقيقي. محتاج أربع حاجات: <strong>confidence، composure، credibility، authenticity</strong>.</p>
+          <p>الـ <strong>self-confidence</strong> مش معناها إنك متكبر — معناها إنك بتثق في نفسك وفي قراراتك. الواحد اللي عنده confidence بيعترف بغلطاته ويتعلم منها، بياخد risks محسوبة، ومش بيعتمد على رأي الناس عشان يتصرف.</p>
+          <p>عشان تبني confidence: اعمل <strong>strengths inventory</strong> (اكتب إيه اللي بتتميز فيه)، اتحدى نفسك بحاجة صعبة كل يوم (<strong>micro challenges</strong>)، وافتكر المواقف اللي نجحت فيها قبل كده.</p>
+        </div>
+
+        <div class="block block-summary">
+          <div class="block-title">✦ Summary</div>
+          <p>Executive Presence = Confidence + Composure + Credibility + Authenticity. Self-confidence means trusting your own judgment and acting decisively. High-confidence leaders admit mistakes, take risks, and accept feedback — while low-confidence leaders hide mistakes and seek constant validation. Build confidence through daily micro-challenges and documenting your wins.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section-card s3" id="s3">
+      <div class="section-header" onclick="toggle('body3')">
+        <div class="sec-title-row">
+          <div class="sec-icon" style="background:var(--c3-bg);">⚖️</div>
+          <div>
+            <div class="sec-title">Credibility & Accountability</div>
+            <div class="sec-sub">The 6 A's framework and building professional trust</div>
+          </div>
+        </div>
+        <div class="toggle-btn" id="tog3">−</div>
+      </div>
+      <div class="section-body" id="body3">
+        <span class="section-tag" style="background:var(--c3-bg);color:var(--c3-fg);">EN Explanation</span>
+
+        <div class="explain-text">
+          <span class="term">Credibility</span> is being trusted and believed — it's your professional reputation. <span class="term">Accountability</span> is taking responsibility for your actions and their results, whether those results are good or bad.
+        </div>
+        <div class="explain-text">
+          These two concepts are deeply linked: consistent accountability is what builds and protects credibility over time. If you only take credit for wins and disappear when things go wrong, you lose credibility fast.
+        </div>
+
+        <h3>Key Connections</h3>
+        <ol class="steps">
+          <li><span><strong>Trust and Reliability:</strong> Owning both successes and failures builds reliability, which feeds credibility.</span></li>
+          <li><span><strong>Consistency is Key:</strong> If accountability is selective or delayed, it destroys credibility — especially as a leader.</span></li>
+          <li><span><strong>Transparency:</strong> Sharing progress openly and admitting mistakes proves accountability and strengthens your reputation.</span></li>
+          <li><span><strong>Cultural Impact:</strong> A culture of accountability in the workplace creates responsibility and trust across the whole organization.</span></li>
+        </ol>
+
+        <h3>The 6 A's of Accountability</h3>
+        <div class="fw-grid">
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Accept</div><div class="fw-card-text">Accept that something went wrong and that you had a role in it.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Admit</div><div class="fw-card-text">Openly admit the mistake or failure — don't minimize it.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Apologize</div><div class="fw-card-text">Offer a genuine apology to those affected.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Act</div><div class="fw-card-text">Take concrete steps to fix the problem.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Amend</div><div class="fw-card-text">Make it right — compensate or restore what was damaged.</div></div>
+          <div class="fw-card"><div class="fw-card-title" style="color:var(--c3-fg);">Attend</div><div class="fw-card-text">Follow through and ensure it doesn't happen again.</div></div>
+        </div>
+
+        <h3>Actionable Practices</h3>
+        <div class="bullet-grid">
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c3-fg)"></span>Take ownership — no excuses, no blame-shifting</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c4-fg)"></span>Set clear expectations with deadlines</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c1-fg)"></span>Follow through — do what you say</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c2-fg)"></span>Admit mistakes openly and with integrity</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c9-fg)"></span>Seek feedback actively</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c5-fg)"></span>Be responsible for results</div>
+        </div>
+
+        <div class="block block-example">
+          <div class="block-title">▶ Real-World Example</div>
+          <p>A team leader delivers a project three days late because of poor planning. A credible, accountable leader says: "I should have flagged the risk earlier. I didn't allocate enough buffer time. Here's what I'm changing in my process going forward." A non-accountable leader says: "The team didn't deliver fast enough." The first builds trust. The second destroys it.</p>
+        </div>
+
+        <div class="block block-analogy">
+          <div class="block-title">💡 Analogy</div>
+          <p>Credibility is like a bank account. Accountability deposits trust into it — every time you own a mistake or deliver on a promise. But blame-shifting and broken promises are withdrawals. If the account hits zero, no one believes anything you say.</p>
+        </div>
+
+        <div class="divider"></div>
+        <span class="section-tag" style="background:var(--c2-bg);color:var(--c2-fg);">AR Explanation</span>
+
+        <div class="block block-ar">
+          <div class="block-title">🇸🇦 الشرح بالعربي</div>
+          <p>الـ <strong>credibility</strong> هي إنك موثوق فيك — يعني لما تقول حاجة الناس تصدقك وتعتمد عليك. الـ <strong>accountability</strong> هي إنك بتاخد مسؤولية نتائج شغلك، سواء كانت كويسة أو وحشة.</p>
+          <p>الاتنين مترابطين: لما بتكون accountable باستمرار، ده بيبني credibility. لما بتاخد الكريدت بس وتهرب لما الأمور بتبقى وحشة، بتفقد ثقة الناس.</p>
+          <p>الـ <strong>6 A's of Accountability</strong>: Accept (اعترف)، Admit (صرح)، Apologize (اعتذر)، Act (تصرف)، Amend (صلح)، Attend (تابع).</p>
+          <p>ابقى responsible لنتائجك، متلومش حد تاني، واعمل اللي بتقوله — ده هو الـ accountability الحقيقي.</p>
+        </div>
+
+        <div class="block block-summary">
+          <div class="block-title">✦ Summary</div>
+          <p>Credibility = being trusted. Accountability = owning your actions. They reinforce each other: consistent accountability builds long-term credibility. The 6 A's framework (Accept, Admit, Apologize, Act, Amend, Attend) is a practical process for restoring credibility when things go wrong. The four rules to remember: Be responsible for results, Do what you say, No blame, No excuses.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="section-card s4" id="s4">
+      <div class="section-header" onclick="toggle('body4')">
+        <div class="sec-title-row">
+          <div class="sec-icon" style="background:var(--c4-bg);">🔍</div>
+          <div>
+            <div class="sec-title">Problem Solving</div>
+            <div class="sec-sub">Root cause analysis, 5 Whys, Fishbone diagram</div>
+          </div>
+        </div>
+        <div class="toggle-btn" id="tog4">−</div>
+      </div>
+      <div class="section-body" id="body4">
+        <span class="section-tag" style="background:var(--c4-bg);color:var(--c4-fg);">EN Explanation</span>
+
+        <div class="explain-text">
+          A <span class="term">problem</span> is the gap between where you are now (current situation) and where you want to be (desired situation). The key insight is that what most people react to is the <span class="term">symptom</span> — the surface signal. The real work is finding and fixing the <span class="term">root cause</span>.
+        </div>
+
+        <h3>Vague vs Well-Defined Problems</h3>
+        <table>
+          <thead><tr><th>Vague Problem</th><th>Well-Defined Problem</th></tr></thead>
+          <tbody>
+            <tr><td>Client is unhappy</td><td>Client satisfaction score dropped from 8.2 to 6.1 in Q3 due to response delays</td></tr>
+            <tr><td>My startup isn't growing</td><td>Monthly active users plateaued at 4,200 for 3 consecutive months</td></tr>
+            <tr><td>Team is demotivated</td><td>Absenteeism increased 40% since the new workflow was implemented in March</td></tr>
+            <tr><td>Sales are down</td><td>Monthly sales dropped 25% in the last 2 months after price increase</td></tr>
+          </tbody>
+        </table>
+
+        <div class="block block-warning">
+          <div class="block-title">⚠ Important Distinction</div>
+          <p>A symptom is what you SEE. A problem is what you FIND after investigation. Most leaders fix symptoms — great leaders fix root causes. Treating a symptom gives temporary relief; fixing the root cause gives lasting change.</p>
+        </div>
+
+        <h3>The 5-Step Problem Solving Process</h3>
+        <ol class="steps">
+          <li><span><strong>Define the Problem:</strong> Identify the root cause, not just the symptom. Make it specific and measurable.</span></li>
+          <li><span><strong>Generate Solutions:</strong> Brainstorm multiple options without judgment. Quantity first, quality later.</span></li>
+          <li><span><strong>Evaluate Alternatives:</strong> Weigh each option against key criteria (feasibility, cost, risk, impact, time).</span></li>
+          <li><span><strong>Implement the Solution:</strong> Execute the chosen plan with clarity and accountability.</span></li>
+          <li><span><strong>Evaluate / Monitor Outcomes:</strong> Track whether it worked and adjust if necessary.</span></li>
+        </ol>
+
+        <h3>The 5 Whys — Root Cause Analysis</h3>
+        <div class="explain-text">The <span class="term">5 Whys</span> technique involves asking "why?" repeatedly (usually 5 times) until you get to the true root cause. Each answer becomes the next question.</div>
+
+        <div class="block block-example">
+          <div class="block-title">▶ 5 Whys Example (Freelancer)</div>
+          <p><strong>Symptom:</strong> A freelance developer keeps missing project deadlines.</p>
+          <p>Why? → Tasks take longer than planned.</p>
+          <p>Why? → He underestimates time needed.</p>
+          <p>Why? → Requirements aren't fully clarified upfront.</p>
+          <p>Why? → He rushes into work without detailed questions.</p>
+          <p>Why? → He fears losing the client if he seems too slow.</p>
+          <p style="margin-top:10px;color:var(--c3-fg);font-weight:700;">Root Cause: Fear of losing clients drives him to skip proper scoping, causing systematic deadline failures.</p>
+        </div>
+
+        <h3>The Fishbone (Ishikawa) Diagram</h3>
+        <div class="explain-text">The <span class="term">Fishbone Diagram</span> is a visual tool that maps all possible causes of a problem, grouped into categories (like People, Process, Equipment, Environment). The head of the fish = the effect/problem. The bones = categories of causes. It helps teams see all contributing factors at once.</div>
+
+        <h3>Evaluating Alternatives — Key Criteria</h3>
+        <div class="bullet-grid">
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c1-fg)"></span><strong>Feasibility</strong> — Can it realistically be done given your constraints?</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c2-fg)"></span><strong>Cost</strong> — What are the financial implications or ROI?</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c4-fg)"></span><strong>Risk</strong> — What could go wrong? What's the failure probability?</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c3-fg)"></span><strong>Impact</strong> — How well does it solve the actual problem?</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c9-fg)"></span><strong>Time</strong> — How long will implementation take?</div>
+        </div>
+
+        <div class="divider"></div>
+        <span class="section-tag" style="background:var(--c2-bg);color:var(--c2-fg);">AR Explanation</span>
+
+        <div class="block block-ar">
+          <div class="block-title">🇸🇦 الشرح بالعربي</div>
+          <p>الـ <strong>problem</strong> هي الفرق بين الوضع الحالي والوضع المطلوب. اللي بنشوفه على السطح ده الـ <strong>symptom</strong> — بس المشكلة الحقيقية هي الـ <strong>root cause</strong> اللي محتاج تتحفر عشان توصلها.</p>
+          <p>تقنية الـ <strong>5 Whys</strong>: اسأل "ليه؟" خمس مرات متتالية لحد ما توصل للسبب الجذري الحقيقي. كل إجابة بتبقى السؤال الجاي.</p>
+          <p>الـ <strong>Fishbone Diagram</strong>: رسمة بتشبه عظمة السمكة — الرأس هو المشكلة، والعظام هي الأسباب المختلفة من كل جهة. بيساعدك تشوف كل الأسباب الممكنة مع بعض.</p>
+          <p>لما بتقيّم الحلول، شوف: هل ممكن التنفيذ (feasibility)؟ بكام (cost)؟ إيه المخاطر (risk)؟ أد إيه هيحل المشكلة (impact)؟ هياخد أد إيه وقت (time)؟</p>
+        </div>
+
+        <div class="block block-summary">
+          <div class="block-title">✦ Summary</div>
+          <p>Problem = gap between current and desired state. Always distinguish symptoms (visible signals) from root causes (real issues). Use the 5-step process: Define → Generate → Evaluate → Implement → Monitor. The 5 Whys technique drills down to root causes by repeatedly asking "why." The Fishbone diagram maps all possible causes visually. When choosing solutions, evaluate against feasibility, cost, risk, impact, and time.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5 -->
+    <div class="section-card s5" id="s5">
+      <div class="section-header" onclick="toggle('body5')">
+        <div class="sec-title-row">
+          <div class="sec-icon" style="background:var(--c5-bg);">🎯</div>
+          <div>
+            <div class="sec-title">Decision Making</div>
+            <div class="sec-sub">Frameworks, criteria, and real-world scenarios</div>
+          </div>
+        </div>
+        <div class="toggle-btn" id="tog5">−</div>
+      </div>
+      <div class="section-body" id="body5">
+        <span class="section-tag" style="background:var(--c5-bg);color:var(--c5-fg);">EN Explanation</span>
+
+        <div class="explain-text">
+          A <span class="term">decision</span> is the act of choosing between two or more options to move toward a desired outcome. The key reality of decision making is: <span class="highlight">there are no perfect decisions — only consequences</span>. Your job as a leader is not to find the "right" answer but to make the best possible choice given the information and constraints you have.
+        </div>
+
+        <h3>Decision Making Criteria</h3>
+        <div class="explain-text">Before choosing, establish criteria. Example: choosing between a low-paying long-term client vs a high-paying short-term project.</div>
+        <div class="bullet-grid">
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c5-fg)"></span>Current financial obligations</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c4-fg)"></span>Type of client (strategic key account?)</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c1-fg)"></span>Number of current active clients</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c3-fg)"></span>Project scope and complexity</div>
+          <div class="bullet-item"><span class="bullet-dot" style="background:var(--c2-fg)"></span>Team availability and capacity</div>
+        </div>
+
+        <h3>Decision Making Frameworks</h3>
+        <div class="fw-grid">
+          <div class="fw-card">
+            <div class="fw-card-title" style="color:var(--c5-fg);">Pros & Cons List</div>
+            <div class="fw-card-text">Write out all advantages and disadvantages of each option. Simple but powerful for clear trade-offs.</div>
+          </div>
+          <div class="fw-card">
+            <div class="fw-card-title" style="color:var(--c4-fg);">Eisenhower Matrix</div>
+            <div class="fw-card-text">Categorize decisions by Urgent/Important. Helps you prioritize what to decide now vs later vs delegate.</div>
+          </div>
+          <div class="fw-card">
+            <div class="fw-card-title" style="color:var(--c1-fg);">Circle of Influence</div>
+            <div class="fw-card-text">Focus decisions on what you can actually control and influence. Avoid wasting energy on what you can't change.</div>
+          </div>
+          <div class="fw-card">
+            <div class="fw-card-title" style="color:var(--c3-fg);">10-10-10 Rule</div>
+            <div class="fw-card-text">Ask: How will I feel about this in 10 minutes? 10 months? 10 years? Best for emotional or personal decisions.</div>
+          </div>
+        </div>
+
+        <h3>Real Leadership Scenarios</h3>
+
+        <div class="block block-example">
+          <div class="block-title">▶ Scenario 1: Stable job vs exciting startup</div>
+          <p>You have a well-paying stable job you find boring. A startup offers less pay, less security, but more passion and benefits. Decision criteria: your financial runway, career goals, risk tolerance, and personal values. Neither is objectively "right" — it depends on your criteria.</p>
+        </div>
+
+        <div class="block block-example">
+          <div class="block-title">▶ Scenario 2: Hiring — Culture fit vs Expert</div>
+          <p>Candidate A: less experience but perfect culture fit + high potential. Candidate B: proven expert but history of team conflict. Most leadership research favors A — culture and team dynamics are hard to fix, while skills can be developed. However, if the role is highly specialized and short-term, B might be justified.</p>
+        </div>
+
+        <div class="block block-warning">
+          <div class="block-title">⚠ Scenario 3: Ethical Decision</div>
+          <p>Your UI change makes users spend 20% more without realizing it. It hits quarterly targets. Launching this is ethically problematic — it manipulates users without informed consent. Short-term gains vs long-term trust and reputation. A leader with strong values rejects this. A leader with only financial incentives might not.</p>
+        </div>
+
+        <div class="block block-example">
+          <div class="block-title">▶ Scenario 4: Top performer showing behavior change</div>
+          <p>Your top performer (30% of output) starts coming in late and being short with colleagues. Ignoring it enables bad behavior and affects team morale. Confronting it professionally and with empathy is correct — not to threaten, but to check in: "I've noticed a change, and I'm concerned. Is everything okay?" This respects them while addressing the issue.</p>
+        </div>
+
+        <div class="divider"></div>
+        <span class="section-tag" style="background:var(--c2-bg);color:var(--c2-fg);">AR Explanation</span>
+
+        <div class="block block-ar">
+          <div class="block-title">🇸🇦 الشرح بالعربي</div>
+          <p>الـ <strong>decision making</strong> هو إنك بتختار بين أكتر من option عشان توصل لنتيجة معينة. اللي لازم تفتكره: مفيش قرار مثالي — كل قرار ليه consequences — مهمتك إنك تاخد أحسن قرار ممكن بناءً على المعطيات اللي عندك.</p>
+          <p>قبل ما تاخد أي قرار، حدد معايير تقييم (criteria) زي: التكلفة، الوقت، الأثر، المخاطر، والموارد المتاحة.</p>
+          <p>أهم الـ frameworks: الـ <strong>Pros & Cons List</strong> (مزايا وعيوب)، الـ <strong>Eisenhower Matrix</strong> (عاجل/مهم)، الـ <strong>Circle of Influence</strong> (ركز على اللي تقدر تأثر فيه)، والـ <strong>10-10-10 Rule</strong> (هل هتندم بعد 10 دقايق / 10 شهور / 10 سنين؟ — كويس جداً للقرارات العاطفية).</p>
+        </div>
+
+        <div class="block block-summary">
+          <div class="block-title">✦ Summary</div>
+          <p>Decisions are choices between options — and there are no perfect ones, only consequences. Establish clear criteria before deciding. Four main frameworks: Pros/Cons (simple trade-offs), Eisenhower Matrix (urgency vs importance), Circle of Influence (focus on what you control), and 10-10-10 Rule (long-term perspective on emotional decisions). The scenarios show that leadership decisions always involve trade-offs between performance, ethics, culture, and business outcomes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ SECTION -->
+    <div class="quiz-section" id="quiz">
+      <div class="quiz-header">
+        <h2>Practice Quiz</h2>
+        <p>Test your understanding of Leadership Skills Module 3. Click "Show Answer" to reveal each answer with explanation.</p>
+        <div class="quiz-stats">
+          <div class="qstat"><div class="qstat-n">35</div><div class="qstat-l">MCQ</div></div>
+          <div class="qstat"><div class="qstat-n">15</div><div class="qstat-l">True / False</div></div>
+          <div class="qstat"><div class="qstat-n">50</div><div class="qstat-l">Total</div></div>
+        </div>
+      </div>
+      <div class="quiz-body">
+
+        <!-- MCQ 1 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 1</div>
+          <div class="q-text">Which of the following best defines "interpersonal skills" in a leadership context?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Technical abilities that help complete tasks faster</li>
+            <li><span class="q-opt-letter">B</span>People skills that enable leaders to connect, motivate, and guide others</li>
+            <li><span class="q-opt-letter">C</span>Financial analysis and reporting skills</li>
+            <li><span class="q-opt-letter">D</span>Digital tools and software proficiency</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — People skills that enable leaders to connect, motivate, and guide others</div>
+            <div class="ans-explain">Interpersonal skills are specifically about human connection — empathy, communication, conflict resolution. They are distinct from technical or financial skills.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 2 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 2</div>
+          <div class="q-text">According to the material, what percentage of surveyed leaders ranked enhanced communication as their top skill?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>42.5%</li>
+            <li><span class="q-opt-letter">B</span>65.3%</li>
+            <li><span class="q-opt-letter">C</span>50.66%</li>
+            <li><span class="q-opt-letter">D</span>38.1%</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — 50.66%</div>
+            <div class="ans-explain">The handout specifically states that 50.66% of surveyed leaders found enhanced communication to be a top skill, confirming its primacy among interpersonal competencies.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 3 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 3</div>
+          <div class="q-text">Executive Presence is described as a dynamic blend of which four elements?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Charisma, power, authority, and intelligence</li>
+            <li><span class="q-opt-letter">B</span>Confidence, composure, credibility, and authenticity</li>
+            <li><span class="q-opt-letter">C</span>Communication, collaboration, creativity, and critical thinking</li>
+            <li><span class="q-opt-letter">D</span>Empathy, humility, resilience, and vision</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Confidence, composure, credibility, and authenticity</div>
+            <div class="ans-explain">The module defines Executive Presence as exactly this blend: the ability to command respect, inspire trust, and influence others — particularly in high-stakes situations.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 4 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 4</div>
+          <div class="q-text">A manager openly says in a team meeting: "I made a bad call last week. Here's what I learned." This is an example of:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Low self-confidence behavior</li>
+            <li><span class="q-opt-letter">B</span>Weakness in leadership</li>
+            <li><span class="q-opt-letter">C</span>High self-confidence behavior</li>
+            <li><span class="q-opt-letter">D</span>Avoiding accountability</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — High self-confidence behavior</div>
+            <div class="ans-explain">High self-confidence includes admitting mistakes and learning from them. This requires more courage than covering up errors. It builds trust and credibility, not undermines them.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 5 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 5</div>
+          <div class="q-text">Which of the following is a LOW self-confidence behavior?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Accepting compliments gracefully</li>
+            <li><span class="q-opt-letter">B</span>Taking calculated risks to achieve better results</li>
+            <li><span class="q-opt-letter">C</span>Staying in your comfort zone to avoid failure</li>
+            <li><span class="q-opt-letter">D</span>Acting on your beliefs even when criticized</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Staying in your comfort zone to avoid failure</div>
+            <div class="ans-explain">Low confidence leaders avoid risks because they fear failure. High confidence leaders take calculated risks to grow and achieve more. The comfort zone is a symptom of low confidence.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 6 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 6</div>
+          <div class="q-text">The "6 A's of Accountability" framework is used to:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Conduct performance reviews</li>
+            <li><span class="q-opt-letter">B</span>Restore credibility after something goes wrong</li>
+            <li><span class="q-opt-letter">C</span>Set annual goals for teams</li>
+            <li><span class="q-opt-letter">D</span>Analyze root causes of problems</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Restore credibility after something goes wrong</div>
+            <div class="ans-explain">The 6 A's (Accept, Admit, Apologize, Act, Amend, Attend) is specifically a framework for restoring credibility and professional trust when accountability has been breached.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 7 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 7</div>
+          <div class="q-text">What is the correct definition of a "problem" in the problem-solving framework?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Any negative event that happens at work</li>
+            <li><span class="q-opt-letter">B</span>A complaint from a client or customer</li>
+            <li><span class="q-opt-letter">C</span>The gap between the current situation and the desired situation</li>
+            <li><span class="q-opt-letter">D</span>A symptom that is visible on the surface</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — The gap between the current situation and the desired situation</div>
+            <div class="ans-explain">This is the formal definition from the module. Understanding a problem as a gap helps leaders focus on what state they want to achieve, not just what's wrong right now.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 8 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 8</div>
+          <div class="q-text">Which of these is a WELL-DEFINED problem statement?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Sales are down</li>
+            <li><span class="q-opt-letter">B</span>The team is not performing well</li>
+            <li><span class="q-opt-letter">C</span>60% of users stopped using the app within the first 7 days</li>
+            <li><span class="q-opt-letter">D</span>Clients seem unhappy lately</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — 60% of users stopped using the app within the first 7 days</div>
+            <div class="ans-explain">This is specific, measurable, and time-bound. Vague problems like "sales are down" give you nothing to act on. Well-defined problems include numbers, timeframes, and context.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 9 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 9</div>
+          <div class="q-text">In the 5 Whys example, what was the ROOT CAUSE of the freelancer missing deadlines?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>The client kept changing requirements</li>
+            <li><span class="q-opt-letter">B</span>The freelancer was too busy with other projects</li>
+            <li><span class="q-opt-letter">C</span>The freelancer lacked coding skills</li>
+            <li><span class="q-opt-letter">D</span>Fear of losing clients drove skipping proper project scoping</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">D — Fear of losing clients drove skipping proper project scoping</div>
+            <div class="ans-explain">The 5 Whys revealed that the fear of appearing slow caused the freelancer to rush into work without clarifying requirements — creating the downstream deadline failures.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 10 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 10</div>
+          <div class="q-text">The Fishbone (Ishikawa) Diagram is primarily used to:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Track project timelines</li>
+            <li><span class="q-opt-letter">B</span>Map all possible causes of a problem visually</li>
+            <li><span class="q-opt-letter">C</span>Compare decision-making options</li>
+            <li><span class="q-opt-letter">D</span>Monitor employee performance</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Map all possible causes of a problem visually</div>
+            <div class="ans-explain">The Fishbone diagram shows the effect (problem) at the head and branches out to categories of potential causes, allowing teams to see all contributing factors simultaneously.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 11 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 11</div>
+          <div class="q-text">Which decision-making framework is BEST suited for emotional or personal decisions?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Pros and Cons List</li>
+            <li><span class="q-opt-letter">B</span>Eisenhower Matrix</li>
+            <li><span class="q-opt-letter">C</span>10-10-10 Rule</li>
+            <li><span class="q-opt-letter">D</span>Circle of Influence</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — 10-10-10 Rule</div>
+            <div class="ans-explain">The 10-10-10 Rule asks how you'll feel in 10 minutes, 10 months, and 10 years — introducing long-term perspective to emotionally charged decisions, reducing reactivity.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 12 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 12</div>
+          <div class="q-text">When accountability is inconsistent or selective, what happens to credibility?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>It improves because people see you're being flexible</li>
+            <li><span class="q-opt-letter">B</span>It stays the same as long as results are good</li>
+            <li><span class="q-opt-letter">C</span>It suffers and erodes, especially in leadership</li>
+            <li><span class="q-opt-letter">D</span>It becomes irrelevant</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — It suffers and erodes, especially in leadership</div>
+            <div class="ans-explain">Selective accountability — holding some people responsible but not others — is seen as favoritism and hypocrisy. It destroys the trust that credibility depends on.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 13 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 13</div>
+          <div class="q-text">Which step in the Problem Solving Process comes IMMEDIATELY after "Generate Solutions"?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Implement the Solution</li>
+            <li><span class="q-opt-letter">B</span>Define the Problem</li>
+            <li><span class="q-opt-letter">C</span>Evaluate/Monitor Outcomes</li>
+            <li><span class="q-opt-letter">D</span>Evaluate Alternatives</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">D — Evaluate Alternatives</div>
+            <div class="ans-explain">The 5-step process is: Define → Generate Solutions → Evaluate Alternatives → Implement → Monitor. After brainstorming, you must weigh options before acting.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 14 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 14</div>
+          <div class="q-text">A leader who provides "stability and confidence during rapid organizational change" primarily demonstrates which skill?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Technical expertise</li>
+            <li><span class="q-opt-letter">B</span>High emotional intelligence (EQ)</li>
+            <li><span class="q-opt-letter">C</span>Strong financial acumen</li>
+            <li><span class="q-opt-letter">D</span>Advanced communication technology</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — High emotional intelligence (EQ)</div>
+            <div class="ans-explain">The module explicitly states that leaders with high EQ provide stability and confidence to their team during high stress and rapid organizational change.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 15 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 15</div>
+          <div class="q-text">How many steps are in the Problem Solving Process described in the module?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>3</li>
+            <li><span class="q-opt-letter">B</span>4</li>
+            <li><span class="q-opt-letter">C</span>5</li>
+            <li><span class="q-opt-letter">D</span>7</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — 5</div>
+            <div class="ans-explain">The five steps are: Define the Problem, Generate Solutions, Evaluate Alternatives, Implement the Solution, and Evaluate/Monitor Outcomes.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 16 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 16</div>
+          <div class="q-text">Which criteria for evaluating alternatives asks "Can this be realistically achieved within constraints?"</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Impact</li>
+            <li><span class="q-opt-letter">B</span>Time</li>
+            <li><span class="q-opt-letter">C</span>Feasibility</li>
+            <li><span class="q-opt-letter">D</span>Risk</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Feasibility</div>
+            <div class="ans-explain">Feasibility assesses whether the solution can realistically be implemented given your current resources, budget, time, and constraints. It's the first reality check on any proposed solution.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 17 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 17</div>
+          <div class="q-text">What does the "Circle of Influence" framework focus on?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Making decisions based on team consensus</li>
+            <li><span class="q-opt-letter">B</span>Focusing decisions on what you can actually control and influence</li>
+            <li><span class="q-opt-letter">C</span>Mapping stakeholders around a decision</li>
+            <li><span class="q-opt-letter">D</span>Dividing work by urgency and importance</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Focusing decisions on what you can actually control and influence</div>
+            <div class="ans-explain">The Circle of Influence helps leaders avoid wasting energy on factors outside their control. Effective decision-making focuses energy on the controllable aspects of a situation.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 18 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 18</div>
+          <div class="q-text">A leader who bridges connections between diverse team members to facilitate better teamwork is demonstrating:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Executive Presence</li>
+            <li><span class="q-opt-letter">B</span>Fostering Collaboration</li>
+            <li><span class="q-opt-letter">C</span>Effective Conflict Management</li>
+            <li><span class="q-opt-letter">D</span>Motivating Employees</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Fostering Collaboration</div>
+            <div class="ans-explain">Fostering Collaboration is specifically about bridging connections between diverse team members to create a more inclusive, innovative environment and better teamwork outcomes.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 19 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 19</div>
+          <div class="q-text">In decision making, the statement "There are no perfect decisions — only CONSEQUENCES" means:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>You should avoid making decisions when possible</li>
+            <li><span class="q-opt-letter">B</span>All decisions lead to negative outcomes</li>
+            <li><span class="q-opt-letter">C</span>Leaders must make the best possible choice given available information, accepting trade-offs</li>
+            <li><span class="q-opt-letter">D</span>Decision making should always be delegated to experts</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Leaders must make the best possible choice given available information, accepting trade-offs</div>
+            <div class="ans-explain">This principle reminds leaders not to seek perfection (which causes paralysis) but to make informed decisions, accept responsibility for the consequences, and adapt.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 20 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 20</div>
+          <div class="q-text">Which confidence-building strategy involves doing one uncomfortable action every day?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Evidence list</li>
+            <li><span class="q-opt-letter">B</span>Positive visualization</li>
+            <li><span class="q-opt-letter">C</span>Micro challenges</li>
+            <li><span class="q-opt-letter">D</span>Strengths inventory</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Micro challenges</div>
+            <div class="ans-explain">Micro challenges involve taking one small uncomfortable action daily. Over time, these small actions compound into significantly greater confidence as you expand your comfort zone.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 21 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 21</div>
+          <div class="q-text">What is the SYMPTOM in the freelancer deadline example?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>The freelancer lacks coding skills</li>
+            <li><span class="q-opt-letter">B</span>Project requirements change mid-development</li>
+            <li><span class="q-opt-letter">C</span>Clients are becoming dissatisfied due to missed deadlines</li>
+            <li><span class="q-opt-letter">D</span>The freelancer fears losing clients</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Clients are becoming dissatisfied due to missed deadlines</div>
+            <div class="ans-explain">The symptom is what's visible on the surface — missed deadlines and client dissatisfaction. The root cause (fear of losing clients → skipping scoping) requires deeper investigation.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 22 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 22</div>
+          <div class="q-text">Transparency in leadership is most directly linked to which aspect of accountability?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Setting aggressive targets</li>
+            <li><span class="q-opt-letter">B</span>Openly sharing progress and admitting mistakes to strengthen reputation</li>
+            <li><span class="q-opt-letter">C</span>Delegating responsibility to team members</li>
+            <li><span class="q-opt-letter">D</span>Reducing the number of decisions made</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Openly sharing progress and admitting mistakes to strengthen reputation</div>
+            <div class="ans-explain">Transparency proves accountability. When you openly share what's working and what isn't, you signal that you're not hiding from responsibility — which builds long-term credibility.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 23 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 23</div>
+          <div class="q-text">In Scenario 3 (the UI change that makes users spend 20% more unknowingly), which leadership value is being tested?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Team motivation</li>
+            <li><span class="q-opt-letter">B</span>Technical innovation</li>
+            <li><span class="q-opt-letter">C</span>Ethical decision making</li>
+            <li><span class="q-opt-letter">D</span>Strategic planning</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Ethical decision making</div>
+            <div class="ans-explain">This scenario tests whether a leader prioritizes short-term financial targets over user trust and ethics. Manipulating users without consent violates transparency and authentic leadership values.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 24 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 24</div>
+          <div class="q-text">What is the first step in the 5 Whys technique?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Brainstorm solutions</li>
+            <li><span class="q-opt-letter">B</span>Identify who is responsible</li>
+            <li><span class="q-opt-letter">C</span>Define the problem clearly</li>
+            <li><span class="q-opt-letter">D</span>Implement a quick fix</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Define the problem clearly</div>
+            <div class="ans-explain">The 5 Whys process begins by clearly defining the problem, then progressively asking "Why is this happening?" to drill down to the root cause. You can't diagnose what you haven't defined.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 25 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 25</div>
+          <div class="q-text">Which of these is NOT one of the 6 A's of Accountability?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Apologize</li>
+            <li><span class="q-opt-letter">B</span>Analyze</li>
+            <li><span class="q-opt-letter">C</span>Amend</li>
+            <li><span class="q-opt-letter">D</span>Accept</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Analyze</div>
+            <div class="ans-explain">The 6 A's are: Accept, Admit, Apologize, Act, Amend, and Attend. "Analyze" is not part of this framework — it belongs to problem-solving frameworks instead.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 26 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 26</div>
+          <div class="q-text">According to the module, what is the relationship between empathy and employee motivation?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Empathy reduces productivity by being too soft</li>
+            <li><span class="q-opt-letter">B</span>Empathy has no direct link to motivation</li>
+            <li><span class="q-opt-letter">C</span>Leaders who demonstrate empathy create a more motivated, resilient, and productive workforce</li>
+            <li><span class="q-opt-letter">D</span>Empathy is only relevant during conflicts, not day-to-day motivation</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Leaders who demonstrate empathy create a more motivated, resilient, and productive workforce</div>
+            <div class="ans-explain">The module explicitly links empathy to higher engagement and motivation. When employees feel genuinely cared about, they are more invested in their work and more resilient during challenges.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 27 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 27</div>
+          <div class="q-text">Which interpersonal skill allows leaders to "turn conflicts into positive outcomes"?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Active listening</li>
+            <li><span class="q-opt-letter">B</span>Effective Conflict Management</li>
+            <li><span class="q-opt-letter">C</span>Enhanced Communication</li>
+            <li><span class="q-opt-letter">D</span>Fostering Collaboration</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Effective Conflict Management</div>
+            <div class="ans-explain">The module states that addressing disagreements with objectivity and empathy allows leaders to turn conflicts into positive outcomes that improve team dynamics.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 28 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 28</div>
+          <div class="q-text">A person who "governs their behavior based on what other people think" is displaying:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Strong interpersonal awareness</li>
+            <li><span class="q-opt-letter">B</span>Low self-confidence</li>
+            <li><span class="q-opt-letter">C</span>High emotional intelligence</li>
+            <li><span class="q-opt-letter">D</span>Collaborative leadership</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Low self-confidence</div>
+            <div class="ans-explain">The module's table lists "governing behavior based on what others think" as a low self-confidence behavior. High confidence means acting on your own beliefs and values despite external pressure.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 29 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 29</div>
+          <div class="q-text">In the Eisenhower Matrix, decisions are categorized by which two dimensions?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Cost and Time</li>
+            <li><span class="q-opt-letter">B</span>Urgency and Importance</li>
+            <li><span class="q-opt-letter">C</span>Risk and Impact</li>
+            <li><span class="q-opt-letter">D</span>Feasibility and Quality</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Urgency and Importance</div>
+            <div class="ans-explain">The Eisenhower Matrix creates four quadrants based on Urgent/Not Urgent vs Important/Not Important, helping leaders prioritize what to do now, schedule, delegate, or eliminate.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 30 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 30</div>
+          <div class="q-text">According to the Key Skills framework, which 5 areas are identified as key skills of leaders?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Strategy, Finance, Marketing, Operations, HR</li>
+            <li><span class="q-opt-letter">B</span>Executive Presence, Problem Solving & DM, Building Teams & Motivation, EQ, Agility & Resilience</li>
+            <li><span class="q-opt-letter">C</span>Communication, Delegation, Coaching, Planning, Control</li>
+            <li><span class="q-opt-letter">D</span>Vision, Mission, Goals, Values, Culture</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Executive Presence, Problem Solving & DM, Building Teams & Motivation, EQ, Agility & Resilience</div>
+            <div class="ans-explain">The module's framework diagram shows exactly these five areas as the key leadership skill domains covered in the Digilians program.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 31 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 31</div>
+          <div class="q-text">Which confidence-building strategy involves writing down past wins and achievements?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Micro challenges</li>
+            <li><span class="q-opt-letter">B</span>Positive visualization</li>
+            <li><span class="q-opt-letter">C</span>Strengths inventory</li>
+            <li><span class="q-opt-letter">D</span>Evidence list</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">D — Evidence list</div>
+            <div class="ans-explain">The evidence list involves documenting concrete proof of your past successes, which counteracts self-doubt by providing real evidence that you are capable.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 32 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 32</div>
+          <div class="q-text">A leader who "follows through" on commitments is building which quality?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Technical expertise</li>
+            <li><span class="q-opt-letter">B</span>Charisma</li>
+            <li><span class="q-opt-letter">C</span>Predictable, trustworthy behavior → credibility</li>
+            <li><span class="q-opt-letter">D</span>Conflict avoidance</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Predictable, trustworthy behavior → credibility</div>
+            <div class="ans-explain">Follow-through means aligning actions with promises. This consistency creates predictability, which is a core building block of trustworthiness and long-term credibility.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 33 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 33</div>
+          <div class="q-text">In the hiring scenario, why might Candidate A (culture fit, high potential) be preferred over Candidate B (expert, conflict history)?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Because experience is always less important than personality</li>
+            <li><span class="q-opt-letter">B</span>Because culture fit and team harmony are hard to fix, while skills can be developed</li>
+            <li><span class="q-opt-letter">C</span>Because Candidate A will cost less to hire</li>
+            <li><span class="q-opt-letter">D</span>Because leadership always prefers potential over proven results</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">B — Culture fit and team harmony are hard to fix, while skills can be developed</div>
+            <div class="ans-explain">One poor team player can damage the dynamics of an entire team. Skills can often be trained, but attitude and cultural fit are much harder to change in an established team environment.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 34 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 34</div>
+          <div class="q-text">Teaching something to others is listed as a confidence-building strategy because:</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>It earns money and financial security</li>
+            <li><span class="q-opt-letter">B</span>It forces you to confront uncomfortable topics</li>
+            <li><span class="q-opt-letter">C</span>Teaching reinforces mastery and confirms your expertise to yourself</li>
+            <li><span class="q-opt-letter">D</span>It creates visibility in the organization</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Teaching reinforces mastery and confirms your expertise to yourself</div>
+            <div class="ans-explain">The process of teaching requires you to organize and articulate your knowledge clearly, which deepens your own understanding and confirms to yourself that you truly know the subject.</div>
+          </div>
+        </div>
+
+        <!-- MCQ 35 -->
+        <div class="q-item">
+          <div class="q-num q-type-mcq">MCQ · Question 35</div>
+          <div class="q-text">In the scenario about the top performer showing behavior changes, what is the RECOMMENDED leadership approach?</div>
+          <ul class="q-options">
+            <li><span class="q-opt-letter">A</span>Let it slide to maintain current productivity levels</li>
+            <li><span class="q-opt-letter">B</span>Immediately escalate to HR and place them on a performance plan</li>
+            <li><span class="q-opt-letter">C</span>Have a private, empathetic check-in to understand what's happening</li>
+            <li><span class="q-opt-letter">D</span>Publicly address the behavior change in the next team meeting</li>
+          </ul>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Correct Answer</div>
+            <div class="ans-correct">C — Have a private, empathetic check-in to understand what's happening</div>
+            <div class="ans-explain">A leader uses empathy and concern first ("I've noticed a change and I'm worried about you") rather than threats or ignoring the issue. This respects the person while addressing the behavior.</div>
+          </div>
+        </div>
+
+        <!-- TRUE/FALSE SECTION -->
+        <div style="margin: 30px 0 16px; padding: 16px 0; border-top: 2px dashed var(--border);">
+          <div class="q-num q-type-tf" style="font-size:13px; font-weight:800; letter-spacing:0.05em;">TRUE / FALSE QUESTIONS</div>
+        </div>
+
+        <!-- TF 1 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q36</div>
+          <div class="q-text">Self-confidence is the same as arrogance — both involve believing you are better than others.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">Self-confidence is trusting your own abilities and judgment. Arrogance is believing you are superior to others. Confident leaders admit mistakes; arrogant ones do not. They are fundamentally different.</div>
+          </div>
+        </div>
+
+        <!-- TF 2 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q37</div>
+          <div class="q-text">A well-defined problem always includes specific, measurable information rather than vague descriptions.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">The module contrasts vague problems ("sales are down") with well-defined ones that include numbers and timeframes ("sales dropped 25% in 2 months after price increase"). Specificity enables action.</div>
+          </div>
+        </div>
+
+        <!-- TF 3 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q38</div>
+          <div class="q-text">In the 5-step problem-solving process, you should implement the solution BEFORE evaluating alternatives.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">The correct sequence is: Define → Generate → Evaluate Alternatives → Implement → Monitor. Evaluating alternatives comes BEFORE implementation. Acting before evaluating options is reactive, not strategic.</div>
+          </div>
+        </div>
+
+        <!-- TF 4 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q39</div>
+          <div class="q-text">Credibility and accountability are unrelated concepts in leadership.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">They are deeply connected. The module states that consistent accountability builds and reinforces long-term credibility. One directly feeds the other — without accountability, credibility erodes.</div>
+          </div>
+        </div>
+
+        <!-- TF 5 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q40</div>
+          <div class="q-text">The 10-10-10 Rule is specifically recommended for emotional decisions.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">The module explicitly notes the 10-10-10 Rule is "good for emotional decisions." It helps by introducing perspective: how will you feel about this choice in 10 minutes, 10 months, and 10 years?</div>
+          </div>
+        </div>
+
+        <!-- TF 6 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q41</div>
+          <div class="q-text">High self-confidence leaders often dismiss compliments to appear humble.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">Dismissing compliments ("Oh, it was nothing") is listed as a LOW self-confidence behavior. High confidence leaders accept compliments gracefully: "Thanks, I worked hard on that and appreciate your recognition."</div>
+          </div>
+        </div>
+
+        <!-- TF 7 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q42</div>
+          <div class="q-text">A symptom is the ROOT CAUSE of a problem, which is why we should treat it directly.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">A symptom is the SURFACE SIGNAL — what you see or feel. The root cause is the underlying issue that must be uncovered through analysis. Treating only symptoms gives temporary relief, not lasting solutions.</div>
+          </div>
+        </div>
+
+        <!-- TF 8 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q43</div>
+          <div class="q-text">Leaders with high EQ are better at providing stability to their teams during rapid organizational change.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">The module explicitly states that in times of high stress and rapid change, leaders with high emotional intelligence (EQ) provide stability and confidence to their teams.</div>
+          </div>
+        </div>
+
+        <!-- TF 9 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q44</div>
+          <div class="q-text">The Fishbone Diagram shows the problem at the tail of the fish and causes along the bones.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">In the Fishbone diagram, the EFFECT (problem) is at the HEAD of the fish (the right side), and the various categories of causes branch off like bones toward the left. Not the tail.</div>
+          </div>
+        </div>
+
+        <!-- TF 10 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q45</div>
+          <div class="q-text">Seeking feedback is listed as an actionable way to build both accountability and credibility.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">The module lists "Seek Feedback: Actively ask for input to ensure accountability is being met and to improve performance" as one of the actionable ways to build accountability and credibility.</div>
+          </div>
+        </div>
+
+        <!-- TF 11 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q46</div>
+          <div class="q-text">The first step of the 5 Whys technique is to generate solutions immediately.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">The first step of the 5 Whys is to define the problem clearly. You then repeatedly ask "why" to dig down to the root cause. Jumping to solutions before understanding root causes is a common and costly mistake.</div>
+          </div>
+        </div>
+
+        <!-- TF 12 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q47</div>
+          <div class="q-text">The module lists exactly 5 key reasons why interpersonal skills are critical for leaders.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">FALSE</div>
+            <div class="ans-explain">The module lists SIX key reasons: Building Trust, Enhanced Communication, Motivating Employees, Effective Conflict Management, Navigating Change and Uncertainty, and Fostering Collaboration.</div>
+          </div>
+        </div>
+
+        <!-- TF 13 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q48</div>
+          <div class="q-text">In the Credibility & Accountability section, "No blame, No excuses" is one of the core principles remembered.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">The module's REMEMBER section shows four principles: Be responsible for results, Do what you say, No blame, No excuses. These represent the essence of accountability in practice.</div>
+          </div>
+        </div>
+
+        <!-- TF 14 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q49</div>
+          <div class="q-text">Positive visualization — mentally rehearsing success — is one of the confidence-building strategies mentioned in the module.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">Positive visualization is explicitly listed as one of the seven confidence-building strategies. Mental rehearsal of success helps program the mind for confident action.</div>
+          </div>
+        </div>
+
+        <!-- TF 15 -->
+        <div class="q-item">
+          <div class="q-num q-type-tf">True/False · Q50</div>
+          <div class="q-text">An accountability system that has consistent consequences for everyone equally actually STRENGTHENS credibility.</div>
+          <button class="show-ans-btn" onclick="showAnswer(this)">Show Answer</button>
+          <div class="q-answer">
+            <div class="ans-label">Answer</div>
+            <div class="ans-correct">TRUE</div>
+            <div class="ans-explain">The module states that accountability loses credibility when consequences are inconsistent or selective. Therefore, consistent accountability — applied equally — directly strengthens credibility and trust in leadership.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Section toggle
+function toggle(id) {
+  const body = document.getElementById(id);
+  const num = id.replace('body','');
+  const tog = document.getElementById('tog'+num);
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    tog.textContent = '−';
+  } else {
+    body.classList.add('collapsed');
+    tog.textContent = '+';
+  }
+}
+
+// Show answer
+function showAnswer(btn) {
+  const ans = btn.nextElementSibling;
+  if (ans.classList.contains('visible')) {
+    ans.classList.remove('visible');
+    btn.textContent = 'Show Answer';
+  } else {
+    ans.classList.add('visible');
+    btn.textContent = 'Hide Answer';
+  }
+}
+
+// Language switch
+function setLang(lang) {
+  document.documentElement.setAttribute('data-lang', lang);
+  document.getElementById('enBtn').classList.toggle('active', lang === 'en');
+  document.getElementById('arBtn').classList.toggle('active', lang === 'ar');
+  // Never flip page direction — Arabic blocks handle their own RTL internally
+}
+
+// Theme toggle
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isDark ? '☀ Light' : '☾ Dark';
+}
+
+// Progress bar
+window.addEventListener('scroll', () => {
+  const doc = document.documentElement;
+  const scrolled = (doc.scrollTop || document.body.scrollTop) / ((doc.scrollHeight || document.body.scrollHeight) - doc.clientHeight) * 100;
+  document.getElementById('progressBar').style.width = scrolled + '%';
+});
+</script>
+</body>
+</html>
