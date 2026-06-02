@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leadership Skills – Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1117;
+    --card: #161b27;
+    --card2: #1c2333;
+    --accent: #00e5a0;
+    --accent2: #4f8ef7;
+    --accent3: #f7c34f;
+    --danger: #f75f5f;
+    --text: #e8eaf2;
+    --muted: #8b92ab;
+    --border: #252d42;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0e1117 0%, #111827 60%, #0d1f1a 100%);
+    padding: 60px 24px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 480px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 24px 24px 0;
+    max-width: 900px;
+    margin: 0 auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 10px 20px;
+    border-radius: 40px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+
+  /* MODULE PANEL */
+  .module-panel { display: none; padding: 24px; max-width: 900px; margin: 0 auto; animation: fadeUp 0.3s ease; }
+  .module-panel.active { display: block; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+
+  /* SUMMARY CARD */
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .summary-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: var(--accent2);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .summary-card h3 .icon { font-size: 1.1rem; }
+  .summary-card p, .summary-card li {
+    color: #c5c9d8;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+  .summary-card ul { padding-left: 18px; }
+  .summary-card ul li { margin-bottom: 5px; }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .tag {
+    background: rgba(79,142,247,0.12);
+    border: 1px solid rgba(79,142,247,0.25);
+    color: var(--accent2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  .tag.green { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.25); color: var(--accent); }
+  .tag.yellow { background: rgba(247,195,79,0.1); border-color: rgba(247,195,79,0.25); color: var(--accent3); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:600px) { .two-col { grid-template-columns: 1fr; } }
+
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  @media(max-width:500px) { .compare-row { grid-template-columns: 1fr; } }
+  .compare-col { padding: 14px; border-radius: 10px; }
+  .compare-col.left { background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2); }
+  .compare-col.right { background: rgba(247,95,95,0.08); border: 1px solid rgba(247,95,95,0.2); }
+  .compare-col strong { display: block; margin-bottom: 8px; font-size: 0.85rem; }
+  .compare-col.left strong { color: var(--accent); }
+  .compare-col.right strong { color: var(--danger); }
+  .compare-col li { font-size: 0.84rem; color: #bfc3d4; margin-bottom: 4px; }
+
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+  /* QUIZ */
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .quiz-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: #fff;
+  }
+  .progress-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; }
+  .progress-bar { height: 4px; background: var(--accent); border-radius: 2px; transition: width 0.4s; }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .q-num { font-size: 0.75rem; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .q-text { font-size: 1rem; color: #e8eaf2; font-weight: 500; margin-bottom: 16px; line-height: 1.55; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: var(--card2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #c5c9d8;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.18s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--accent2); color: #fff; }
+  .option-btn.correct { border-color: var(--accent); background: rgba(0,229,160,0.1); color: var(--accent); }
+  .option-btn.wrong { border-color: var(--danger); background: rgba(247,95,95,0.1); color: var(--danger); }
+  .option-btn:disabled { cursor: default; }
+  .option-letter {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .option-btn.correct .option-letter { background: var(--accent); color: #000; }
+  .option-btn.wrong .option-letter { background: var(--danger); color: #fff; }
+
+  .feedback { margin-top: 12px; padding: 12px 16px; border-radius: 8px; font-size: 0.88rem; line-height: 1.5; display: none; }
+  .feedback.show { display: block; }
+  .feedback.correct { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.25); color: #7af5c8; }
+  .feedback.wrong { background: rgba(247,95,95,0.1); border: 1px solid rgba(247,95,95,0.25); color: #f5a0a0; }
+
+  .quiz-controls { display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 40px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-secondary { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent2); }
+
+  /* RESULT */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    animation: fadeUp 0.4s ease;
+  }
+  .result-emoji { font-size: 3rem; margin-bottom: 12px; }
+  .result-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .result-msg { color: var(--muted); font-size: 1rem; margin-bottom: 24px; line-height: 1.6; }
+
+  /* GLOBAL SCORE */
+  .global-score-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 24px 24px 0;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .gs-label { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
+  .gs-modules { display: flex; gap: 10px; flex-wrap: wrap; }
+  .gs-dot {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .gs-dot.done { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.08); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero__inner">
+    <h1>Leadership Skills<br><span>Study Guide</span></h1>
+    <p>Summaries + quizzes for all 3 modules. Read each summary, then test yourself!</p>
+    <div class="score-badge" id="globalBadge">📊 0 / 3 modules completed</div>
+  </div>
+</div>
+
+<!-- Global score tracker -->
+<div class="global-score-bar">
+  <span class="gs-label">Progress:</span>
+  <div class="gs-modules">
+    <span class="gs-dot" id="dot1">Module 1</span>
+    <span class="gs-dot" id="dot2">Module 2</span>
+    <span class="gs-dot" id="dot3">Module 3</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab(0)">📘 Module 1 – Foundations</button>
+  <button class="tab-btn" onclick="switchTab(1)">📗 Module 2 – Leadership Styles</button>
+  <button class="tab-btn" onclick="switchTab(2)">📙 Module 3 – Interpersonal Skills</button>
+</div>
+
+<!-- ===================== MODULE 1 ===================== -->
+<div class="module-panel active" id="panel-0">
+  <div class="section-label">Module 1</div>
+  <div class="section-title">Foundation of Leadership</div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🎯</span> What is Leadership?</h3>
+    <p>Leadership is the ability to <strong>influence, inspire, and guide others</strong> toward a common goal — without necessarily having a formal title. It's about empowering people, not controlling them.</p>
+    <div class="tag-row">
+      <span class="tag green">Vision</span>
+      <span class="tag green">Influence</span>
+      <span class="tag green">Inspiration</span>
+      <span class="tag green">Empowerment</span>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="summary-card">
+      <h3><span class="icon">🔄</span> Modern Leadership</h3>
+      <ul>
+        <li>Fosters agility & innovation</li>
+        <li>Human-centered & inclusive</li>
+        <li>Empathy-driven collaboration</li>
+        <li>Moves beyond top-down management</li>
+        <li>Networked & adaptive style</li>
+      </ul>
+    </div>
+    <div class="summary-card">
+      <h3><span class="icon">🧘</span> Self-Leadership</h3>
+      <ul>
+        <li>Influencing <em>yourself</em> to achieve goals</li>
+        <li>Uses goal-setting, self-talk, discipline</li>
+        <li>Manages thoughts, feelings & actions</li>
+        <li>Foundation for leading others</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">⚖️</span> Leadership vs. Management</h3>
+    <div class="compare-row">
+      <div class="compare-col left">
+        <strong>Leadership</strong>
+        <ul>
+          <li>Focuses on vision</li>
+          <li>Inspires people</li>
+          <li>Drives change & innovation</li>
+          <li>Works through influence</li>
+          <li>Leads people</li>
+        </ul>
+      </div>
+      <div class="compare-col right">
+        <strong>Management</strong>
+        <ul>
+          <li>Focuses on execution</li>
+          <li>Coordinates people</li>
+          <li>Maintains stability & control</li>
+          <li>Works through authority</li>
+          <li>Manages work</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🚀</span> Leading Without Authority (5 Ways)</h3>
+    <ul>
+      <li><strong>Build Trust & Relationships</strong> – be reliable, support others without expectation</li>
+      <li><strong>Communicate Clearly & Confidently</strong> – ask thoughtful questions, listen actively</li>
+      <li><strong>Take Initiative</strong> – volunteer, spot problems, propose solutions</li>
+      <li><strong>Become a Subject Matter Resource</strong> – build expertise, share knowledge</li>
+      <li><strong>Model a Growth Mindset</strong> – embrace challenges, act on feedback, lift others up</li>
+    </ul>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🧠</span> Growth vs. Fixed Mindset</h3>
+    <div class="compare-row">
+      <div class="compare-col left">
+        <strong>Growth Mindset</strong>
+        <ul>
+          <li>Abilities can be developed</li>
+          <li>Embraces challenges</li>
+          <li>Learns from failure</li>
+          <li>Believes effort leads to mastery</li>
+          <li>Seeks & uses feedback</li>
+        </ul>
+      </div>
+      <div class="compare-col right">
+        <strong>Fixed Mindset</strong>
+        <ul>
+          <li>Abilities are static</li>
+          <li>Avoids challenges (fear of failure)</li>
+          <li>Sees failure as proof of inadequacy</li>
+          <li>Thinks effort is pointless</li>
+          <li>Ignores or deflects feedback</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">⭐</span> Key Skills of Successful Leaders</h3>
+    <div class="tag-row">
+      <span class="tag">Communication</span>
+      <span class="tag">Decision-Making</span>
+      <span class="tag yellow">Emotional Intelligence</span>
+      <span class="tag">Conflict Resolution</span>
+      <span class="tag">Adaptability</span>
+      <span class="tag">Team Building</span>
+      <span class="tag yellow">Strategic Thinking</span>
+    </div>
+    <ul style="margin-top:14px">
+      <li><strong>EI includes:</strong> self-awareness, self-regulation, empathy, social skills</li>
+      <li><strong>Good decisions are:</strong> timely, informed, ethical & accountable</li>
+      <li><strong>Team building requires:</strong> trust, empowerment, inclusivity, recognition</li>
+    </ul>
+  </div>
+
+  <div class="divider"></div>
+  <!-- QUIZ 1 -->
+  <div id="quiz-0"></div>
+</div>
+
+<!-- ===================== MODULE 2 ===================== -->
+<div class="module-panel" id="panel-1">
+  <div class="section-label">Module 2</div>
+  <div class="section-title">Leadership Styles</div>
+
+  <div class="summary-card">
+    <h3><span class="icon">📐</span> Situational Leadership (Hersey & Blanchard)</h3>
+    <p>Leaders adjust their style based on the <strong>competence + commitment</strong> of the follower for a specific task.</p>
+    <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:10px;">
+        <div style="background:rgba(0,229,160,0.07);border:1px solid rgba(0,229,160,0.2);padding:10px;border-radius:8px;font-size:0.85rem;"><strong style="color:var(--accent)">D1</strong> – Low competence, High commitment → <strong>DIRECTING</strong></div>
+        <div style="background:rgba(79,142,247,0.07);border:1px solid rgba(79,142,247,0.2);padding:10px;border-radius:8px;font-size:0.85rem;"><strong style="color:var(--accent2)">D2</strong> – Some competence, Low commitment → <strong>COACHING</strong></div>
+        <div style="background:rgba(247,195,79,0.07);border:1px solid rgba(247,195,79,0.2);padding:10px;border-radius:8px;font-size:0.85rem;"><strong style="color:var(--accent3)">D3</strong> – High competence, Variable commitment → <strong>SUPPORTING</strong></div>
+        <div style="background:rgba(247,95,95,0.07);border:1px solid rgba(247,95,95,0.2);padding:10px;border-radius:8px;font-size:0.85rem;"><strong style="color:var(--danger)">D4</strong> – High competence, High commitment → <strong>DELEGATING</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🎭</span> Goleman's 6 Leadership Styles</h3>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+      <div style="padding:10px 14px;background:var(--card2);border-radius:8px;font-size:0.88rem;"><strong style="color:#f75f5f">1. Coercive</strong> "Do what I tell you" → Best in crisis, turnaround. Use sparingly – easily misused.</div>
+      <div style="padding:10px 14px;background:var(--card2);border-radius:8px;font-size:0.88rem;"><strong style="color:var(--accent2)">2. Authoritative (Visionary)</strong> "Come with me" → Best when new vision/direction is needed.</div>
+      <div style="padding:10px 14px;background:var(--card2);border-radius:8px;font-size:0.88rem;"><strong style="color:var(--accent)">3. Affiliative</strong> "People come first" → Best to heal rifts, boost morale, reduce conflict.</div>
+      <div style="padding:10px 14px;background:var(--card2);border-radius:8px;font-size:0.88rem;"><strong style="color:var(--accent3)">4. Democratic</strong> "What do you think?" → Best to build consensus and buy-in.</div>
+      <div style="padding:10px 14px;background:var(--card2);border-radius:8px;font-size:0.88rem;"><strong style="color:#b794f4">5. Pacesetting</strong> "Do as I do, now" → Best with highly skilled, motivated teams needing fast results.</div>
+      <div style="padding:10px 14px;background:var(--card2);border-radius:8px;font-size:0.88rem;"><strong style="color:#68d391">6. Coaching</strong> "Try this" → Best for long-term skill development and mentoring.</div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">💡</span> Key Principle</h3>
+    <p>No style is universally right or wrong. Great leaders assess: <strong>urgency of the task, team's skill & motivation, organizational culture,</strong> and <strong>long-term vs short-term needs.</strong></p>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🪞</span> Personal SWOT Analysis</h3>
+    <p>A self-assessment tool to evaluate <strong>Strengths, Weaknesses, Opportunities, and Threats</strong> — helping leaders leverage strengths and identify blind spots. After the analysis, ask: Which strength do I over-rely on? Could overusing it cause challenges?</p>
+  </div>
+
+  <div class="divider"></div>
+  <div id="quiz-1"></div>
+</div>
+
+<!-- ===================== MODULE 3 ===================== -->
+<div class="module-panel" id="panel-2">
+  <div class="section-label">Module 3</div>
+  <div class="section-title">Interpersonal Skills of Leaders</div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🤝</span> Why Interpersonal Skills Matter</h3>
+    <ul>
+      <li><strong>Build Trust & Relationships</strong> – safe environment, team cohesion</li>
+      <li><strong>Enhance Communication</strong> – clear goals, constructive feedback</li>
+      <li><strong>Motivate Employees</strong> – empathy drives engagement</li>
+      <li><strong>Manage Conflict</strong> – objectivity turns disagreements into positives</li>
+      <li><strong>Navigate Change</strong> – high EQ provides stability</li>
+      <li><strong>Foster Collaboration</strong> – inclusivity & teamwork</li>
+    </ul>
+    <div class="tag-row" style="margin-top:14px">
+      <span class="tag green">Executive Presence</span>
+      <span class="tag green">Problem Solving & DM</span>
+      <span class="tag green">Building Teams</span>
+      <span class="tag green">EQ</span>
+      <span class="tag green">Agility & Resilience</span>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">👑</span> Executive Presence</h3>
+    <p>A blend of <strong>confidence, composure, credibility & authenticity</strong> that allows leaders to command respect and inspire trust in high-stakes situations.</p>
+    <div class="compare-row">
+      <div class="compare-col left">
+        <strong>High Confidence</strong>
+        <ul>
+          <li>Does what's right, even if criticized</li>
+          <li>Takes risks to achieve better things</li>
+          <li>Admits & learns from mistakes</li>
+          <li>Accepts compliments gracefully</li>
+        </ul>
+      </div>
+      <div class="compare-col right">
+        <strong>Low Confidence</strong>
+        <ul>
+          <li>Governed by others' opinions</li>
+          <li>Stays in comfort zone, avoids risk</li>
+          <li>Covers up mistakes</li>
+          <li>Dismisses compliments</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🏅</span> Credibility & Accountability</h3>
+    <p><strong>Credibility</strong> = being trusted & believed. <strong>Accountability</strong> = taking responsibility for actions & results. Together they form professional trust.</p>
+    <p style="margin-top:10px">The <strong>6 A's of Accountability:</strong> Accept → Admit → Apologize → Act → Amend → Attend</p>
+    <div class="tag-row" style="margin-top:12px">
+      <span class="tag">Be responsible for results</span>
+      <span class="tag">Do what you say</span>
+      <span class="tag">No blame</span>
+      <span class="tag">No excuses</span>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🔍</span> Problem Solving (5-Step Process)</h3>
+    <ul>
+      <li><strong>1. Define the Problem</strong> – identify root cause, not just symptoms</li>
+      <li><strong>2. Generate Solutions</strong> – brainstorm without judgment</li>
+      <li><strong>3. Evaluate Alternatives</strong> – use criteria: feasibility, cost, risk, impact, time</li>
+      <li><strong>4. Implement the Solution</strong> – put the plan into action</li>
+      <li><strong>5. Evaluate/Monitor Outcomes</strong> – assess & refine</li>
+    </ul>
+    <p style="margin-top:12px;font-size:0.88rem;color:var(--accent)">💡 Distinguish symptom (what you see on the surface) from the root cause (the real issue underneath).</p>
+  </div>
+
+  <div class="summary-card">
+    <h3><span class="icon">🗂️</span> Decision-Making Tools</h3>
+    <ul>
+      <li><strong>The 5 Whys</strong> – keep asking "why" to find root cause</li>
+      <li><strong>Fishbone Diagram</strong> – map all possible causes of a problem</li>
+      <li><strong>Pros & Cons list</strong> – simple comparison</li>
+      <li><strong>Eisenhower Matrix</strong> – urgent/important prioritization</li>
+      <li><strong>10-10-10 Rule</strong> – how will I feel in 10 mins / 10 months / 10 years?</li>
+    </ul>
+    <p style="margin-top:10px;font-size:0.85rem;color:var(--muted)">Remember: There are no perfect decisions — only consequences.</p>
+  </div>
+
+  <div class="divider"></div>
+  <div id="quiz-2"></div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const quizData = [
+  // ===================== MODULE 1 – Foundation of Leadership (30 questions) =====================
+  [
+    { q: "Leadership is best described as:", opts: [
+      "Having a formal title and authority over others, which is not the essence of leadership.",
+      "The ability to influence, inspire, and guide others toward a common goal",
+      "Managing tasks and ensuring processes run smoothly, which is more about management.",
+      "Being the most experienced person in a team, though experience alone doesn't make a leader."
+    ], ans: 1, fb: "Leadership is about influence and inspiration — not titles or formal power." },
+    { q: "What does 'self-leadership' primarily involve?", opts: [
+      "Leading a team of junior employees by giving them instructions and monitoring their work.",
+      "Influencing yourself to achieve goals through goal-setting, self-talk, and self-discipline",
+      "Delegating tasks effectively to others to distribute workload, which is a management skill.",
+      "Avoiding conflict with colleagues to keep peace, which does not represent self-leadership."
+    ], ans: 1, fb: "Self-leadership is about managing your own thoughts, feelings, and actions — it's the foundation for leading others." },
+    { q: "Which of the following is a key difference between leadership and management?", opts: [
+      "Leaders manage work through inspiration; managers lead people through organization.",
+      "Leaders focus on execution by aligning teams; managers focus on vision by planning.",
+      "Leaders drive change through influence; managers maintain stability through authority",
+      "There is no difference — the terms are interchangeable and refer to identical functions."
+    ], ans: 2, fb: "Leadership focuses on vision, influence, and change. Management focuses on execution, coordination, and control." },
+    { q: "How can a new graduate lead without formal authority?", opts: [
+      "Wait until they receive a promotion before taking initiative, missing early opportunities.",
+      "Rely on their title to gain credibility, but a new graduate typically has no formal title.",
+      "Take ownership of tasks, bring fresh ideas, and build trust through relationships",
+      "Avoid giving opinions to stay out of trouble, thus never demonstrating leadership potential."
+    ], ans: 2, fb: "Leading without authority means relying on relationships, credibility, communication, and initiative — not position power." },
+    { q: "A leader with a growth mindset would most likely:", opts: [
+      "Avoid difficult tasks to prevent failure, which limits growth.",
+      "See failure as proof they are not talented, which hinders development.",
+      "Seek feedback and use it as a tool for improvement",
+      "Believe abilities are fixed from birth and cannot be improved."
+    ], ans: 2, fb: "Growth mindset leaders embrace feedback, learn from failure, and believe effort leads to mastery." },
+    { q: "Which of these is NOT listed as a key skill of successful leaders?", opts: [
+      "Emotional Intelligence",
+      "Conflict Resolution",
+      "Technical Coding Skills",
+      "Adaptability"
+    ], ans: 2, fb: "The key leadership skills are: Communication, Decision-Making, EI, Conflict Resolution, Adaptability, Team Building, and Strategic Thinking." },
+    { q: "Emotional Intelligence (EI) in leadership includes all of the following EXCEPT:", opts: [
+      "Self-awareness of personal emotions",
+      "Self-regulation of impulses and moods",
+      "Empathy toward team members' feelings",
+      "Delegating all emotional tasks to HR"
+    ], ans: 3, fb: "EI includes self-awareness, self-regulation, empathy, and social skills — not delegating emotional situations." },
+    { q: "The World Economic Forum's Future of Jobs Report 2025 emphasizes that by 2030, the MOST valuable combination will be:", opts: [
+      "Only technical skills like AI and coding, without human-centric abilities.",
+      "Physical strength and manual labor, which are not the future focus.",
+      "Uniquely human skills combined with strong digital literacy",
+      "Social media marketing and content creation, though not the core human-tech blend."
+    ], ans: 2, fb: "The WEF report highlights that human-centric skills (creativity, leadership, resilience) combined with tech fluency will be most valuable." },
+    { q: "Modern leadership is characterized by which approach?", opts: [
+      "Top-down command and control, where orders flow from the top without input.",
+      "A dynamic, human-centered approach with empathy and collaboration",
+      "Strict hierarchy and rule enforcement, typical of traditional management styles.",
+      "Focusing only on financial outcomes, ignoring employee well-being and culture."
+    ], ans: 1, fb: "Modern leadership moves beyond top-down management toward a networked, adaptive, human-centered approach." },
+    { q: "Which statement about leadership is TRUE?", opts: [
+      "You need a formal title to be a leader, though this is untrue.",
+      "Leadership is only for senior executives, excluding junior staff.",
+      "Leadership occurs at all levels — you don't need a title",
+      "Leadership and management are the same thing, without distinction."
+    ], ans: 2, fb: "Leadership can happen at any level. You don't need a formal title — you lead through influence, initiative, and inspiration." },
+    { q: "What is the core idea of 'Leading Without Authority'?", opts: [
+      "Bypassing your manager to get things done by ignoring the chain of command, which often backfires.",
+      "Influencing and driving positive change without a formal title, relying on credibility and relationships",
+      "Pretending to have authority you don't have, which undermines trust and credibility in the long run.",
+      "Waiting for someone else to step up first, thereby missing the opportunity to demonstrate leadership yourself."
+    ], ans: 1, fb: "Leading without authority is about impact, not hierarchy — relying on relationships, credibility, communication, and initiative." },
+    { q: "Which of the following is a Growth Mindset behavior for leaders?", opts: [
+      "Avoiding challenges to protect their reputation, thus limiting learning and development.",
+      "Seeing feedback as an attack on their character, which prevents personal improvement.",
+      "Using 'I can't do this yet' to acknowledge current limits while focusing on future growth",
+      "Believing effort is pointless if you lack natural talent, a fixed mindset perspective."
+    ], ans: 2, fb: "The 'Not Yet' mindset acknowledges current limitations while keeping focus on future growth — a key growth mindset behavior." },
+    { q: "A fixed mindset leader is most likely to:", opts: [
+      "Coach team members to grow into new roles, which is a growth mindset behavior.",
+      "Celebrate team members' successes enthusiastically, fostering a positive environment.",
+      "See a junior employee's mistake as proof they aren't 'cut out' for leadership",
+      "Actively seek difficult challenges to learn from them, a growth mindset trait."
+    ], ans: 2, fb: "Fixed mindset leaders limit growth by avoiding risk and failing to invest in others' potential." },
+    { q: "Which personal trait is listed as common among effective leaders?", opts: [
+      "Arrogance",
+      "Perfectionism",
+      "Integrity",
+      "Introversion"
+    ], ans: 2, fb: "Common leadership traits include: self-awareness, integrity, accountability, courage, assertiveness, positive outlook, resilience, continuous learning, and decisiveness." },
+    { q: "Strategic Thinking as a leadership skill means:", opts: [
+      "Doing everything yourself to ensure quality, which is not strategic thinking.",
+      "Seeing the big picture and aligning actions with long-term goals",
+      "Focusing only on day-to-day operational tasks, missing the broader vision.",
+      "Avoiding innovation to maintain stability, limiting long-term growth."
+    ], ans: 1, fb: "Strategic thinking involves vision-orientation, prioritization, systems thinking, and looking for innovation opportunities." },
+    { q: "Which of the following best describes 'Adaptability' as a leadership skill?", opts: [
+      "Changing your values to please others, which is not adaptability but a lack of integrity.",
+      "Refusing to change strategy when things don't go as planned, showing rigidity.",
+      "Adjusting to change and guiding your team through transitions while staying curious",
+      "Delegating all decisions to avoid being wrong, which is avoidance, not adaptability."
+    ], ans: 2, fb: "Adaptability means flexibility, resilience, change leadership, and continuous learning — key for navigating a fast-changing world." },
+    { q: "What does 'Conflict Resolution' involve for leaders?", opts: [
+      "Ignoring conflicts and hoping they resolve themselves, which usually makes things worse.",
+      "Choosing a winner in every disagreement, creating resentment and future problems.",
+      "Addressing issues early, mediating calmly, and focusing on solutions that benefit the team",
+      "Always siding with the senior team member, disregarding fairness and team morale."
+    ], ans: 2, fb: "Good conflict resolution means addressing early, mediating, maintaining respect, and staying solution-oriented." },
+    { q: "In the context of leadership communication, 'Active Listening' means:", opts: [
+      "Waiting for your turn to speak while planning your response, which is not active listening.",
+      "Pretending to listen while doing other tasks, a sign of poor communication.",
+      "Genuinely hearing others, encouraging feedback, and ensuring people feel understood",
+      "Only listening to senior team members, ignoring input from the whole team."
+    ], ans: 2, fb: "Active listening is a core communication skill — great communicators listen well, encourage feedback, and make others feel heard." },
+    { q: "According to the course, which of the following is a strategy for 'Leading Without Authority'?", opts: [
+      "Demand respect from colleagues based on your education alone. This rarely works.",
+      "Become a subject matter resource by building expertise others value",
+      "Avoid taking initiative so as not to overstep, thereby missing chances to lead.",
+      "Keep your ideas to yourself until promoted, delaying potential contributions."
+    ], ans: 1, fb: "Becoming a go-to expert in a valuable area is one of the five key strategies for leading without a formal title." },
+    { q: "What is the primary focus of 'Team Building' as a leadership skill?", opts: [
+      "Hiring only the most technically skilled people, without considering team culture and collaboration.",
+      "Creating a positive, collaborative team culture through trust, empowerment, inclusivity, and recognition",
+      "Managing project timelines and budgets, which is project management, not team building.",
+      "Organizing team social events, which can help but is not the core of team building."
+    ], ans: 1, fb: "Team building is about creating an environment of trust, empowerment, diversity, and recognition — not just social activities." },
+    { q: "Self-leadership forms the basis for leading others because:", opts: [
+      "It teaches you to ignore your weaknesses, as ignoring weaknesses leads to blind spots.",
+      "Before leading others effectively, you must be able to manage your own thoughts, feelings, and actions",
+      "It gives you authority over others automatically, but leadership is earned, not given.",
+      "It makes you more popular in the workplace, though popularity is not leadership."
+    ], ans: 1, fb: "Self-leadership — influencing yourself through goal-setting, self-discipline, and self-talk — is the prerequisite for leading others." },
+    { q: "Which of the following best describes a 'growth mindset' leader's approach to team development?", opts: [
+      "They believe people cannot significantly change or grow, limiting team potential.",
+      "They coach and mentor others, believing people can grow into roles",
+      "They only invest in top performers who already show talent, neglecting others.",
+      "They avoid delegating because others might fail, stunting team development."
+    ], ans: 1, fb: "Growth mindset leaders coach and mentor others, believing every person has the potential to develop and grow." },
+    { q: "Resilience as a personal leadership trait means:", opts: [
+      "Never experiencing failure or setbacks, which is unrealistic and not resilience.",
+      "Bouncing back from difficulties and maintaining drive despite challenges",
+      "Avoiding any situation that might be risky, thereby missing growth opportunities.",
+      "Delegating difficult tasks to avoid stress, showing avoidance rather than resilience."
+    ], ans: 1, fb: "Resilience is the ability to recover from setbacks and keep going — a critical personal trait for effective leaders." },
+    { q: "The concept of 'Decisiveness' as a leadership trait refers to:", opts: [
+      "Making quick decisions without gathering any information, which can be reckless.",
+      "Always asking others to make decisions for you, avoiding personal responsibility.",
+      "Making timely, confident decisions based on available information",
+      "Only making decisions when 100% certain of the outcome, leading to paralysis."
+    ], ans: 2, fb: "Decisiveness means making timely, informed choices — not impulsive ones, but not endlessly delayed either." },
+    { q: "Why does integrity matter in leadership?", opts: [
+      "It makes a leader appear more formal, but integrity is about trust, not formality.",
+      "It has little practical impact on team performance, which is incorrect.",
+      "It builds trust through consistent honesty and ethical behaviour",
+      "It only matters during performance reviews, overlooking daily ethical conduct."
+    ], ans: 2, fb: "Integrity is fundamental — transparent, honest leaders build lasting trust, which is the foundation of effective influence." },
+    { q: "What does 'self-awareness' mean as a leadership trait?", opts: [
+      "Being aware of everyone else's problems, which is empathy, not self-awareness.",
+      "Recognizing your own emotional triggers, biases, strengths, and weaknesses",
+      "Monitoring your team's performance constantly, which is oversight, not self-awareness.",
+      "Being confident in every situation, which may mask lack of self-awareness."
+    ], ans: 1, fb: "Self-awareness — knowing your own emotional triggers and blind spots — is the first component of emotional intelligence." },
+    { q: "A leader practicing 'continuous learning' would:", opts: [
+      "Stick to what they know and avoid new approaches, thereby missing opportunities to improve.",
+      "Consider themselves fully trained after completing a degree, ignoring lifelong learning.",
+      "Stay curious, seek new knowledge, and remain open to feedback and new tools",
+      "Only learn when forced to by their organization, showing a lack of initiative."
+    ], ans: 2, fb: "Commitment to continuous learning is a core personal leadership trait — it keeps leaders relevant in a fast-changing world." },
+    { q: "Which is an example of 'Taking Initiative' as a way to lead without authority?", opts: [
+      "Waiting to be assigned tasks before acting, which is reactive, not proactive.",
+      "Volunteering for new projects and proposing solutions to spotted problems",
+      "Only completing the minimum required work, avoiding extra responsibility.",
+      "Asking for a promotion before contributing extra effort, putting self-interest first."
+    ], ans: 1, fb: "Taking initiative — volunteering, spotting problems, proposing solutions — is a proactive leadership behavior that gets noticed." },
+    { q: "What does it mean for a leader to have an 'Assertive' communication style?", opts: [
+      "Being aggressive and dismissive of others' views, which is not assertiveness but aggression.",
+      "Being overly passive and avoiding any disagreement, which lacks confidence.",
+      "Expressing opinions and needs confidently and respectfully without undermining others",
+      "Only speaking up in one-on-one settings, missing opportunities to influence groups."
+    ], ans: 2, fb: "Assertiveness means expressing yourself clearly and confidently while respecting others — a key personal trait of effective leaders." },
+    { q: "Ronaldo Mouchawar, co-founder of Souq.com, is used in the course as an example of which mindset?", opts: [
+      "Fixed mindset — he refused to change his original business model despite market feedback.",
+      "Growth mindset — he adapted to challenges, innovated, and learned from the market",
+      "Coercive mindset — he commanded his team strictly, which does not match his adaptive approach.",
+      "Passive mindset — he waited for conditions to improve before taking action, lacking proactivity."
+    ], ans: 1, fb: "Mouchawar exemplifies a growth mindset — adapting to regional constraints (e.g. cash-on-delivery), persisting, and eventually selling to Amazon." },
+  ],
+
+  // ===================== MODULE 2 – Leadership Styles (30 questions) =====================
+  [
+    { q: "In the Situational Leadership Model, a team member with high competence and high commitment (D4) should be led with which style?", opts: [
+      "Directing (S1)",
+      "Coaching (S2)",
+      "Supporting (S3)",
+      "Delegating (S4)"
+    ], ans: 3, fb: "D4 = Delegating. Highly skilled, motivated workers can be trusted to work independently with minimal oversight." },
+    { q: "Which Goleman leadership style is described as 'People come first' and is best used to heal team rifts or boost morale?", opts: [
+      "Democratic",
+      "Coercive",
+      "Affiliative",
+      "Pacesetting"
+    ], ans: 2, fb: "Affiliative leadership prioritizes relationships and emotions — ideal during team tension or after trust has been broken." },
+    { q: "The Coercive (Commanding) leadership style is BEST used when:", opts: [
+      "Building long-term team skills",
+      "Needing input from the whole team",
+      "In a crisis or turnaround situation",
+      "Working with a highly experienced team"
+    ], ans: 2, fb: "The Coercive style demands immediate compliance — it's most appropriate in genuine crises. It should be used sparingly." },
+    { q: "A new employee is enthusiastic but has very low competence for their role (D1). What leadership style should their manager use?", opts: [
+      "Delegating – give them full ownership, which would overwhelm a low-competence employee.",
+      "Supporting – share decision-making, but they lack skills to contribute effectively.",
+      "Directing – give clear instructions and supervise closely because they need guidance.",
+      "Democratic – ask them what they want to do, which requires informed input they don't have."
+    ], ans: 2, fb: "D1 = Directing (S1). New, enthusiastic employees need clear guidance and close supervision until they build competence." },
+    { q: "The Democratic leadership style is LEAST effective when used with:", opts: [
+      "Experienced, motivated team members who already have the capability to contribute.",
+      "Inexperienced staff who lack knowledge about a situation, leading to poor decisions.",
+      "Teams that need to build consensus on an idea, which is exactly when democratic style works.",
+      "People who need to buy in to a decision, where democratic input is helpful."
+    ], ans: 1, fb: "Democratic leadership requires capable, informed team members. Using it with inexperienced staff leads to poor decisions." },
+    { q: "What is the primary purpose of a personal SWOT analysis for leaders?", opts: [
+      "To evaluate competitors in the market, which is organizational SWOT, not personal.",
+      "To identify team members' weaknesses, which is not the purpose of a personal SWOT.",
+      "To self-assess strengths, weaknesses, opportunities, and threats for personal growth",
+      "To plan a company's business strategy, which is a corporate application of SWOT."
+    ], ans: 2, fb: "A personal SWOT analysis is a self-reflection tool that helps leaders leverage strengths and address blind spots." },
+    { q: "The Visionary (Authoritative) leadership style is LESS effective when:", opts: [
+      "A new strategic direction is needed, which is exactly when visionary style excels.",
+      "The organization is going through a turnaround, requiring a strong vision.",
+      "You are working with a team that is more experienced than you, making visionary direction less needed.",
+      "A clear vision needs to be communicated, which is the strength of visionary style."
+    ], ans: 2, fb: "Visionary leadership can feel overbearing to highly experienced teams — democratic leadership is more suitable there." },
+    { q: "Which Goleman style is characterized by setting extremely high performance standards and the phrase 'Do as I do, now'?", opts: [
+      "Coaching",
+      "Affiliative",
+      "Pacesetting",
+      "Authoritative"
+    ], ans: 2, fb: "Pacesetting leaders hold high standards and exemplify them personally — best for motivated, skilled teams needing fast results." },
+    { q: "The Situational Leadership Model was developed by:", opts: [
+      "Daniel Goleman and Peter Drucker",
+      "Paul Hersey and Ken Blanchard",
+      "Warren Buffett and Bill Gates",
+      "Stephen Covey and John Maxwell"
+    ], ans: 1, fb: "The Situational Leadership Model was developed by Paul Hersey and Ken Blanchard — leaders adapt their style to followers' readiness." },
+    { q: "In Goleman's model, the Coaching leadership style is best described as:", opts: [
+      "'Do what I tell you' — a directive approach with no development focus.",
+      "'Do as I do, now' — a pacesetting command focused on immediate performance.",
+      "'Try this' — focused on developing people's long-term skills",
+      "'What do you think?' — focused on building consensus, which is democratic style."
+    ], ans: 2, fb: "Coaching leadership ('Try this') is about helping people build long-term skills and is best for employees needing mentoring." },
+    { q: "A team member has high competence but variable commitment (D3). Which leadership style is most appropriate?", opts: [
+      "Directing (S1)",
+      "Coaching (S2)",
+      "Supporting (S3)",
+      "Delegating (S4)"
+    ], ans: 2, fb: "D3 = Supporting (S3). The leader shares decision-making and provides emotional support to boost commitment." },
+    { q: "Which of these correctly matches the Situational Leadership development levels to styles?", opts: [
+      "D1 → Delegating, D2 → Directing — which incorrectly matches low readiness with delegation.",
+      "D1 → Directing, D2 → Coaching, D3 → Supporting, D4 → Delegating, the correct alignment.",
+      "D1 → Coaching, D2 → Supporting — misaligns development levels and styles.",
+      "D4 → Directing, D3 → Coaching — reversing the appropriate leadership responses."
+    ], ans: 1, fb: "The correct match: D1→Directing, D2→Coaching, D3→Supporting, D4→Delegating." },
+    { q: "The Affiliative leader shares their own emotional challenges with team members. This is done:", opts: [
+      "To appear weak and vulnerable, which is not the intention of affiliative sharing.",
+      "Never — leaders must always hide emotions, which contradicts affiliative principles.",
+      "In an appropriate manner to build human connection, strengthening trust and morale.",
+      "Only during performance reviews, limiting emotional connection to formal settings."
+    ], ans: 2, fb: "The Affiliative style involves caring for the whole person — sharing emotional challenges appropriately builds connection and trust." },
+    { q: "When developing a Visionary leadership style, what should a leader focus on improving?", opts: [
+      "Their ability to micromanage, which is not related to visionary leadership.",
+      "Expertise, vision, self-confidence, empathy, and presentation skills",
+      "Their technical coding skills, though helpful, are not central to visionary leadership.",
+      "Strict discipline and rule enforcement, which are more coercive than visionary."
+    ], ans: 1, fb: "To develop the Visionary style, focus on expertise, self-confidence, empathy, and the ability to communicate and sell your vision." },
+    { q: "The Pacesetting leadership style can have a negative effect when:", opts: [
+      "Used with highly skilled, motivated teams, which are actually a good fit.",
+      "Applied in fast-paced environments, where pacesetting can be appropriate.",
+      "Overused — it can overwhelm or demoralize teams who can't keep up",
+      "Used alongside coaching techniques, which may balance its intensity."
+    ], ans: 2, fb: "Pacesetting, if overused, can create burnout and low morale — it works best as a targeted style, not a default approach." },
+    { q: "The Coaching leadership style may FAIL when:", opts: [
+      "The employee is enthusiastic and eager to learn, which is ideal for coaching.",
+      "The employee needs long-term skill development, exactly what coaching provides.",
+      "The employee is not making an effort or needs a lot of direction",
+      "The team is high-performing, which may not require intensive coaching but can still benefit."
+    ], ans: 2, fb: "Coaching fails with disengaged employees or those needing clear direction — in those cases, pacesetting or coercive styles may work better." },
+    { q: "What is the KEY principle to remember about choosing a leadership style?", opts: [
+      "Always use the democratic style as it involves everyone, ignoring situational demands.",
+      "The coercive style is most effective in all situations, which is a dangerous oversimplification.",
+      "No style is universally right or wrong — context determines which is most appropriate",
+      "The visionary style should always be the default, even when other styles are more fitting."
+    ], ans: 2, fb: "Context is everything. Great leaders assess task urgency, team skill, motivation, culture, and long-term vs short-term needs." },
+    { q: "The Democratic leader is best described as:", opts: [
+      "Someone who tells people what to do and monitors tightly, which is more coercive.",
+      "Someone who trusts individuals to develop direction and reaches decisions by consensus",
+      "Someone who sets extremely high personal performance standards, characteristic of pacesetting.",
+      "Someone who places emphasis on building emotional bonds, which is affiliative."
+    ], ans: 1, fb: "Democratic leaders build consensus, invite team input into decisions, and trust people to find their own direction." },
+    { q: "A team experiencing severe conflict and low trust would benefit most from which leadership style?", opts: [
+      "Pacesetting",
+      "Coercive",
+      "Affiliative",
+      "Democratic"
+    ], ans: 2, fb: "The Affiliative style is ideal when there's team tension, conflict, or a need to rebuild trust and morale." },
+    { q: "The Coaching leadership style is described as trading off:", opts: [
+      "Employee satisfaction for higher profits, which is not the trade-off described.",
+      "Short-term performance for longer-term development, investing in people's growth.",
+      "Innovation for stability, a different trade-off unrelated to coaching.",
+      "Team cohesion for individual achievement, not the focus of coaching style."
+    ], ans: 1, fb: "Coaching leaders may accept lower short-term results to invest in people's long-term growth and capability." },
+    { q: "Which EI competency is MOST associated with the Affiliative leadership style?", opts: [
+      "Initiative and conscientiousness, more linked to pacesetting or coercive.",
+      "Self-control, important but not the hallmark of affiliative style.",
+      "Empathy and communication, central to building emotional bonds.",
+      "Self-confidence and change catalyst ability, tied to visionary style."
+    ], ans: 2, fb: "Affiliative leadership relies heavily on empathy and communication — the leader focuses deeply on people's emotional needs." },
+    { q: "A leader who involves their team in problem-solving and decision-making and teaches them the necessary skills is developing which style?", opts: [
+      "Pacesetting",
+      "Coercive",
+      "Coaching",
+      "Democratic"
+    ], ans: 3, fb: "Developing a Democratic style means involving the team in decisions and teaching them active listening and facilitation skills." },
+    { q: "The Commanding (Coercive) style motivates people primarily through:", opts: [
+      "Intrinsic motivation and passion, which is more characteristic of visionary style.",
+      "Emphasizing the consequences of getting it wrong, using fear of failure.",
+      "Building emotional bonds and shared purpose, which is affiliative.",
+      "Encouraging personal growth and development, which is coaching."
+    ], ans: 1, fb: "The Commanding style relies on consequences for non-compliance — it's effective in crisis but harmful long-term." },
+    { q: "Which Goleman leadership style builds consensus and is characterized by 'What do you think?'", opts: [
+      "Coaching",
+      "Affiliative",
+      "Democratic",
+      "Pacesetting"
+    ], ans: 2, fb: "The Democratic style ('What do you think?') builds consensus and is effective when you need team buy-in or input." },
+    { q: "After completing a personal SWOT analysis, a leader should ask which of the following?", opts: [
+      "How can I hide my weaknesses from the team? — avoiding rather than addressing gaps.",
+      "Which strengths do I rely on most, and could overusing them cause challenges?",
+      "How do I eliminate all my weaknesses immediately? — unrealistic and not the goal.",
+      "What does my competitor's SWOT look like? — focusing externally rather than on self."
+    ], ans: 1, fb: "After SWOT, leaders must reflect on which strengths they over-rely on and whether that creates blind spots or challenges." },
+    { q: "In Goleman's Authoritative style, which EI competencies are MOST essential?", opts: [
+      "Collaboration and communication, more associated with affiliative or democratic.",
+      "Self-confidence, empathy, and the ability to be a change catalyst",
+      "Initiative and conscientiousness, which are more pacesetting or coercive.",
+      "Self-control and initiative, important but not the primary authoritative drivers."
+    ], ans: 1, fb: "The Authoritative style requires self-confidence to declare a vision, empathy to bring people along, and the drive to catalyze change." },
+    { q: "The Situational Leadership Model prioritizes which two follower characteristics?", opts: [
+      "Age and education level, which are not the focus of situational leadership.",
+      "Personality and culture, interesting but not the model's primary criteria.",
+      "Competence and commitment for a specific task, the core readiness factors.",
+      "Seniority and technical skills, which may not reflect readiness for a task."
+    ], ans: 2, fb: "The Situational Leadership Model matches leadership style to the follower's competence and commitment for a specific task." },
+    { q: "Which leadership style is used by a leader who 'rescues the situation' if others don't perform, by taking over the task themselves?", opts: [
+      "Democratic",
+      "Coaching",
+      "Pacesetting",
+      "Affiliative"
+    ], ans: 2, fb: "The Pacesetting leader takes over or gives detailed 'how-to' instructions when others underperform — they have little sympathy for poor results." },
+    { q: "When is the Pacesetting style BEST to use?", opts: [
+      "With a new team that lacks experience, where pacesetting would overwhelm them.",
+      "When healing conflict within a team, which calls for affiliative style.",
+      "When you need high-quality results from a skilled, motivated team quickly",
+      "When building long-term employee capabilities, better suited to coaching."
+    ], ans: 2, fb: "Pacesetting works best with already-skilled, motivated teams when fast, high-quality output is required." },
+    { q: "The Visionary leader 'sells the vision' because they see this as:", opts: [
+      "A waste of time — results speak for themselves, ignoring the power of shared purpose.",
+      "Part of the leader's job — people need to believe in and align with the vision",
+      "An act of manipulation, mischaracterizing the genuine sharing of direction.",
+      "Only necessary during company announcements, underestimating ongoing communication."
+    ], ans: 1, fb: "Visionary leaders see communicating and selling the vision as a core leadership responsibility — people perform better when they understand the 'why'." },
+  ],
+
+  // ===================== MODULE 3 – Interpersonal Skills of Leaders (30 questions) =====================
+  [
+    { q: "Executive presence is best described as:", opts: [
+      "Having the highest salary in the organization, which does not guarantee executive presence.",
+      "A dynamic blend of confidence, composure, credibility, and authenticity that commands respect.",
+      "Always wearing formal attire and speaking loudly, superficial aspects not core.",
+      "Having the most years of experience on the team, which is not presence."
+    ], ans: 1, fb: "Executive presence allows leaders to command respect, inspire trust, and influence others — especially in high-stakes situations." },
+    { q: "Which behavior demonstrates HIGH self-confidence?", opts: [
+      "Governing your behavior based on what others think",
+      "Staying in your comfort zone and avoiding risk",
+      "Admitting your mistakes and learning from them",
+      "Talking about your talents to everyone constantly"
+    ], ans: 2, fb: "High self-confidence includes admitting mistakes and learning from them — not hiding them or seeking constant validation." },
+    { q: "According to the 6 A's of Accountability, which of the following is the correct sequence?", opts: [
+      "Admit, Apologize, Avoid, Act, Amend, Attend",
+      "Accept, Admit, Apologize, Act, Amend, Attend",
+      "Apologize, Accept, Act, Avoid, Attend, Amend",
+      "Act, Admit, Accept, Apologize, Amend, Attend"
+    ], ans: 1, fb: "The 6 A's are: Accept → Admit → Apologize → Act → Amend → Attend — a framework for restoring credibility." },
+    { q: "In problem solving, what is the difference between a 'symptom' and a 'problem'?", opts: [
+      "They mean the same thing, which is incorrect as they are distinct concepts.",
+      "A symptom is the root cause; a problem is what you observe on the surface, which reverses the truth.",
+      "A symptom is what you observe on the surface; a problem is the root cause requiring deeper analysis",
+      "A problem is always financial; a symptom is always behavioral, an oversimplification."
+    ], ans: 2, fb: "Symptoms are visible signs something is wrong. The actual problem is the root cause underneath — which requires investigation to uncover." },
+    { q: "A freelance developer keeps missing deadlines. Using the '5 Whys', the root cause is identified as fear of losing clients causing them to skip proper scoping. This is an example of:", opts: [
+      "Decision-Making using the Eisenhower Matrix",
+      "Root cause analysis using the 5 Whys method",
+      "Using the Fishbone Diagram to map options",
+      "Evaluating alternatives based on feasibility"
+    ], ans: 1, fb: "The 5 Whys method drills down through repeated 'why' questions to identify the true root cause of a problem." },
+    { q: "When evaluating decision-making alternatives, which criterion focuses on potential negative consequences or failure points?", opts: [
+      "Feasibility",
+      "Cost",
+      "Risk",
+      "Impact"
+    ], ans: 2, fb: "Risk evaluates potential negative consequences or failure points — one of 5 key criteria alongside feasibility, cost, impact, and time." },
+    { q: "A leader who openly shares progress and admits mistakes is demonstrating which key connection between credibility and accountability?", opts: [
+      "Cultural Impact",
+      "Consistency",
+      "Transparency",
+      "Trust and Reliability"
+    ], ans: 2, fb: "Transparency — openly sharing progress and admitting mistakes — proves accountability and strengthens reputation and credibility." },
+    { q: "Which of the following is a well-defined problem statement?", opts: [
+      "The team is demotivated — a vague statement lacking specifics on who and why.",
+      "Sales are down — a vague claim without metrics, time period, or root cause.",
+      "My startup isn't growing — lacks measurable data and specifics on which metrics.",
+      "Monthly sales dropped 25% in the last 2 months after a price increase"
+    ], ans: 3, fb: "A well-defined problem is specific, measurable, and contextual — vague statements like 'sales are down' lack these details." },
+    { q: "The need for interpersonal skills in leadership has increased sharply because:", opts: [
+      "Leaders no longer need technical skills, which is false; they still need both.",
+      "Organizations have become more hierarchical, but flatter structures demand more interpersonal skills.",
+      "Human-centric leadership is now essential for trust, motivation, and navigating change",
+      "Interpersonal skills are easier to teach than technical skills, which is debatable."
+    ], ans: 2, fb: "Interpersonal skills are vital for building trust, motivating teams, managing conflict, and driving collaboration in modern organizations." },
+    { q: "Credibility is defined as:", opts: [
+      "The quality of being feared by others",
+      "The quality of being trusted and believed",
+      "Having the most impressive job title",
+      "Always delivering results above targets"
+    ], ans: 1, fb: "Credibility is the quality of being trusted and believed — built through consistent accountability and transparent behaviour." },
+    { q: "Which of these is one of the 5 steps in the Problem Solving Process?", opts: [
+      "Blame the responsible party, which is counterproductive and not a step.",
+      "Generate solutions by brainstorming multiple options without judgment",
+      "Implement the first idea that comes to mind, skipping analysis and evaluation.",
+      "Avoid defining the problem to save time, leading to solving the wrong issue."
+    ], ans: 1, fb: "Step 2 is: Generate Solutions — brainstorm multiple ideas without judgment before evaluating them." },
+    { q: "The relationship between credibility and accountability means that:", opts: [
+      "Accountability is only important for senior leaders",
+      "Credibility is built independently of how you handle results",
+      "Consistent accountability reinforces long-term credibility",
+      "Credibility can be maintained even without taking responsibility"
+    ], ans: 2, fb: "Consistent accountability — owning outcomes, following through, being transparent — is what builds and sustains credibility." },
+    { q: "A leader who accepts a compliment by saying 'Thanks, I really worked hard on that project. I appreciate you recognizing my efforts.' is demonstrating:", opts: [
+      "Arrogance and self-promotion, but this response is humble acknowledgment.",
+      "Low self-confidence, though accepting praise confidently is the opposite.",
+      "High self-confidence — gracefully accepting recognition",
+      "A fixed mindset, unrelated to the response about effort and recognition."
+    ], ans: 2, fb: "Gracefully accepting compliments is a sign of high self-confidence — low confidence leads to dismissing or deflecting praise." },
+    { q: "What does the Fishbone (Ishikawa) Diagram help a leader do?", opts: [
+      "Plan a project timeline, which is done with a Gantt chart, not a Fishbone diagram.",
+      "Visually map the possible causes contributing to a problem or effect",
+      "Track employee performance over time, which is performance management.",
+      "Compare the cost of different solutions, which is a cost-benefit analysis, not root cause mapping."
+    ], ans: 1, fb: "The Fishbone Diagram is a root cause analysis tool that visually maps multiple categories of causes linked to a central problem or effect." },
+    { q: "Which of the following is an example of a VAGUE problem statement?", opts: [
+      "60% of users stopped using the app within the first 7 days",
+      "Client satisfaction scores dropped 30% after the product update in Q2",
+      "The team is demotivated — no metrics, timeframe, or specifics provided.",
+      "Response time increased from 2 hours to 18 hours after the server migration"
+    ], ans: 2, fb: "'The team is demotivated' is vague — it doesn't specify who, by how much, when, or why. Good problem statements are specific and measurable." },
+    { q: "Accountability loses credibility when consequences are:", opts: [
+      "Applied consistently and fairly, which actually builds credibility.",
+      "Based on clear expectations, which is a foundation of accountability.",
+      "Inconsistent, delayed, or perceived as selective, which erodes trust.",
+      "Communicated transparently to the whole team, promoting trust."
+    ], ans: 2, fb: "Inconsistent or selective consequences erode trust in accountability systems — fairness and consistency are essential." },
+    { q: "What does the '10-10-10 Rule' help leaders with?", opts: [
+      "Ranking the top 10 priorities in a project, which is a prioritization method, not the 10-10-10 rule.",
+      "Making emotional decisions by considering how they'd feel in 10 minutes, 10 months, and 10 years",
+      "Allocating 10% of the budget to risk management, unrelated to the 10-10-10 decision framework.",
+      "Setting 10 measurable KPIs per quarter, a goal-setting practice, not the 10-10-10 rule."
+    ], ans: 1, fb: "The 10-10-10 Rule is a decision-making framework — it helps with emotional decisions by adding time perspective." },
+    { q: "When should the 5 Whys process STOP?", opts: [
+      "After exactly 5 questions, no more and no less, but it's a guideline, not a rule.",
+      "When you reach a root cause that can be directly addressed, even if not exactly five.",
+      "When the team gets tired of answering, which is not a valid stopping criterion.",
+      "When the first plausible answer is found, potentially missing deeper issues."
+    ], ans: 1, fb: "The 5 Whys process stops when you've uncovered the underlying root cause — the number five is a guide, not a strict rule." },
+    { q: "Which interpersonal skill helps leaders turn conflicts into positive outcomes?", opts: [
+      "Avoidance, which allows conflicts to fester and worsen over time.",
+      "Effective Conflict Management using objectivity and empathy",
+      "Delegating the conflict to HR, sidestepping the leader's responsibility.",
+      "Taking sides with the most senior team member, undermining fairness."
+    ], ans: 1, fb: "Effective conflict management — using objectivity and empathy — allows leaders to turn disagreements into positive outcomes that improve team dynamics." },
+    { q: "What does 'Feasibility' mean when evaluating decision-making alternatives?", opts: [
+      "How popular the option is among the team, which is about buy-in, not feasibility.",
+      "Whether the alternative can realistically be achieved within the current constraints",
+      "How much the alternative costs, which is a separate evaluation criterion.",
+      "How quickly the alternative can be implemented, which addresses time, not feasibility."
+    ], ans: 1, fb: "Feasibility asks: Can this solution realistically be achieved given our constraints (time, budget, skills, resources)?" },
+    { q: "A leader says 'I take full responsibility for the mistake — here is what I am doing to fix it.' Which accountability behavior does this demonstrate?", opts: [
+      "Blame shifting",
+      "Taking Ownership",
+      "Setting Clear Expectations",
+      "Seeking Feedback"
+    ], ans: 1, fb: "Taking Ownership means accepting personal responsibility for actions and outcomes rather than deflecting or making excuses." },
+    { q: "What is a key reason interpersonal skills increase employee retention?", opts: [
+      "They make employees work longer hours, which is not a retention strategy.",
+      "Leaders who use EQ and empathy create more motivated, engaged, and resilient teams",
+      "They allow managers to monitor employees more closely, which can reduce trust.",
+      "They reduce the need for salary increases, which is not true and may backfire."
+    ], ans: 1, fb: "Leaders who demonstrate empathy and genuinely care increase engagement — leading to a more motivated, resilient, and loyal workforce." },
+    { q: "According to the course, a decision is:", opts: [
+      "Always the right or wrong choice, which ignores the ambiguity of decisions.",
+      "The act of choosing between two or more options to move toward a desired outcome",
+      "Only valid when approved by senior management, which is not always required.",
+      "Only necessary when facing a crisis, but decisions are constant in leadership."
+    ], ans: 1, fb: "A decision is the act of choosing between two or more options to move toward a desired outcome. There are no perfect decisions — only consequences." },
+    { q: "The Eisenhower Matrix is a decision-making tool that helps leaders:", opts: [
+      "Analyze the root causes of a problem, which is a root cause analysis tool.",
+      "Visualize all possible causes of an issue, which is a Fishbone diagram.",
+      "Prioritize tasks based on urgency and importance, the core function of the matrix.",
+      "Calculate financial return on investment, a financial analysis, not prioritization."
+    ], ans: 2, fb: "The Eisenhower Matrix helps leaders prioritize by sorting tasks into four quadrants based on urgency and importance." },
+    { q: "Which of the following correctly pairs the key skills of leaders with their description?", opts: [
+      "Agility & Resilience = Making fast financial decisions — actually, it's about adapting and bouncing back.",
+      "Executive Presence = Commanding respect through confidence, composure, credibility, and authenticity",
+      "Building Teams = Monitoring individual employee performance, rather than fostering collaboration.",
+      "EQ = Managing company budgets effectively, which confuses emotional intelligence with financial management."
+    ], ans: 1, fb: "Executive Presence is specifically about confidence, composure, credibility, and authenticity — enabling leaders to command respect and trust." },
+    { q: "How does a leader 'Follow Through' to build accountability and credibility?", opts: [
+      "By setting new promises whenever old ones are broken, undermining trust further.",
+      "By ensuring their actions consistently align with their promises, building trust over time.",
+      "By avoiding commitments so they are never broken, which avoids accountability.",
+      "By delegating all commitments to team members, losing personal accountability."
+    ], ans: 1, fb: "Follow Through means consistently doing what you said you would do — creating predictable, trustworthy behavior that builds credibility." },
+    { q: "The first step in the Problem Solving Process is:", opts: [
+      "Generate Solutions, which comes after defining the problem clearly.",
+      "Evaluate Alternatives, which happens after generating potential solutions.",
+      "Define the Problem — identify root cause, not just symptoms",
+      "Implement the Solution, the final step after evaluation and planning."
+    ], ans: 2, fb: "Step 1 is to Define the Problem — specifically by identifying the root cause rather than treating surface-level symptoms." },
+    { q: "Which of the following helps build self-confidence according to the course?", opts: [
+      "Avoiding challenges that might expose weaknesses, which limits growth and confidence.",
+      "Completing a 'strengths inventory' and documenting your successes, building evidence of capability.",
+      "Copying the behavior of leaders you admire exactly, without authenticity.",
+      "Pretending to be more confident than you feel at all times, which is not genuine."
+    ], ans: 1, fb: "Building confidence involves practical steps like a strengths inventory, evidence lists, documenting successes, and taking micro-challenges daily." },
+    { q: "Leaders with high Emotional Intelligence (EQ) are MOST valuable during:", opts: [
+      "Routine administrative tasks, which require less emotional regulation.",
+      "Times of high stress and rapid organizational change, providing stability to the team",
+      "Annual budget planning cycles, which benefit from EQ but are not the peak.",
+      "New product design sessions, which involve creativity more than EQ support."
+    ], ans: 1, fb: "High EQ is especially valuable during change and uncertainty — emotionally intelligent leaders provide stability, calm, and confidence to their teams." },
+    { q: "What is the final step in the Problem Solving Process?", opts: [
+      "Celebrate the solution with the team, which is important but not the final analytical step.",
+      "Generate more alternative solutions, which belongs earlier in the process.",
+      "Evaluate and Monitor Outcomes — assess results and refine the approach if needed",
+      "Assign blame if the solution doesn't work, which is counterproductive."
+    ], ans: 2, fb: "The final step is Evaluate/Monitor Outcomes — check if the solution worked, and refine as necessary. Problem solving is an ongoing cycle." },
+  ]
+];
+
+// ===================== QUIZ ENGINE =====================
+const quizState = [
+  { current: 0, score: 0, answered: [], completed: false },
+  { current: 0, score: 0, answered: [], completed: false },
+  { current: 0, score: 0, answered: [], completed: false },
+];
+
+function renderQuiz(mIdx) {
+  const container = document.getElementById(`quiz-${mIdx}`);
+  const state = quizState[mIdx];
+  const data = quizData[mIdx];
+
+  if (state.completed) {
+    renderResult(mIdx);
+    return;
+  }
+
+  const q = data[state.current];
+  const pct = Math.round((state.current / data.length) * 100);
+  const letters = ['A','B','C','D'];
+
+  container.innerHTML = `
+    <div class="quiz-header">
+      <div class="quiz-title">🧪 Quick Quiz</div>
+      <span style="color:var(--muted);font-size:0.85rem">${state.current + 1} / ${data.length}</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+    <div class="question-card">
+      <div class="q-num">Question ${state.current + 1}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="options" id="opts-${mIdx}">
+        ${q.opts.map((o,i) => `
+          <button class="option-btn" onclick="selectAnswer(${mIdx},${i})" id="opt-${mIdx}-${i}">
+            <span class="option-letter">${letters[i]}</span>
+            ${o}
+          </button>
+        `).join('')}
+      </div>
+      <div class="feedback" id="fb-${mIdx}"></div>
+    </div>
+    <div class="quiz-controls">
+      <button class="btn btn-secondary" onclick="renderQuiz(${mIdx})" id="next-${mIdx}" style="display:none">Next Question →</button>
+    </div>
+  `;
+}
+
+function selectAnswer(mIdx, chosen) {
+  const state = quizState[mIdx];
+  const q = quizData[mIdx][state.current];
+  const correct = q.ans;
+  const letters = ['A','B','C','D'];
+
+  // Disable all buttons
+  for (let i = 0; i < q.opts.length; i++) {
+    const btn = document.getElementById(`opt-${mIdx}-${i}`);
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    if (i === chosen && chosen !== correct) btn.classList.add('wrong');
+  }
+
+  const fb = document.getElementById(`fb-${mIdx}`);
+  if (chosen === correct) {
+    state.score++;
+    fb.className = 'feedback correct show';
+    fb.innerHTML = `✅ <strong>Correct!</strong> ${q.fb}`;
+  } else {
+    fb.className = 'feedback wrong show';
+    fb.innerHTML = `❌ <strong>Incorrect.</strong> The right answer was <strong>${letters[correct]}: ${q.opts[correct]}</strong>. ${q.fb}`;
+  }
+
+  state.answered.push(chosen);
+
+  const nextBtn = document.getElementById(`next-${mIdx}`);
+  if (nextBtn) {
+    nextBtn.style.display = 'block';
+    nextBtn.onclick = () => {
+      state.current++;
+      if (state.current >= quizData[mIdx].length) {
+        state.completed = true;
+        updateGlobalScore();
+      }
+      renderQuiz(mIdx);
+    };
+  }
+}
+
+function renderResult(mIdx) {
+  const state = quizState[mIdx];
+  const total = quizData[mIdx].length;
+  const pct = Math.round((state.score / total) * 100);
+  let emoji = '😅', msg = 'Keep reviewing the summary above!';
+  if (pct >= 90) { emoji = '🏆'; msg = "Excellent! You've mastered this module!"; }
+  else if (pct >= 75) { emoji = '🎉'; msg = "Great job! Review any missed concepts and you're set."; }
+  else if (pct >= 50) { emoji = '📖'; msg = "Good effort! Re-read the summary and try again."; }
+
+  const container = document.getElementById(`quiz-${mIdx}`);
+  container.innerHTML = `
+    <div class="result-card">
+      <div class="result-emoji">${emoji}</div>
+      <div class="result-score">${state.score}/${total}</div>
+      <div style="color:var(--muted);font-size:0.9rem;margin-bottom:8px">${pct}% correct</div>
+      <div class="result-msg">${msg}</div>
+      <div class="quiz-controls">
+        <button class="btn btn-primary" onclick="retakeQuiz(${mIdx})">🔁 Retake Quiz</button>
+      </div>
+    </div>
+  `;
+}
+
+function retakeQuiz(mIdx) {
+  quizState[mIdx] = { current: 0, score: 0, answered: [], completed: false };
+  renderQuiz(mIdx);
+}
+
+function updateGlobalScore() {
+  const done = quizState.filter(s => s.completed).length;
+  document.getElementById('globalBadge').textContent = `📊 ${done} / 3 modules completed`;
+  for (let i = 0; i < 3; i++) {
+    const dot = document.getElementById(`dot${i+1}`);
+    if (quizState[i].completed) dot.classList.add('done');
+  }
+}
+
+// ===================== TABS =====================
+function switchTab(idx) {
+  document.querySelectorAll('.module-panel').forEach((p,i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === idx);
+  });
+}
+
+// ===================== INIT =====================
+renderQuiz(0);
+renderQuiz(1);
+renderQuiz(2);
+</script>
+</body>
+</html>
