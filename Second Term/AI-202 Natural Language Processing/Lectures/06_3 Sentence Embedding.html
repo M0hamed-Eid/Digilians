@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 6 — Sentence Embedding | NLP Study Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   ROOT VARIABLES
+═══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#0d1117; --bg2:#161b22; --bg3:#21262d; --bg4:#2d333b;
+  --border:#30363d; --border2:#444c56;
+  --text:#e6edf3; --text2:#8b949e; --text3:#6e7681;
+  --c1:#58a6ff; --c1b:rgba(88,166,255,.12); --c1m:rgba(88,166,255,.25);
+  --c2:#3fb950; --c2b:rgba(63,185,80,.12); --c2m:rgba(63,185,80,.25);
+  --c3:#d29922; --c3b:rgba(210,153,34,.12); --c3m:rgba(210,153,34,.25);
+  --c4:#f78166; --c4b:rgba(247,129,102,.12); --c4m:rgba(247,129,102,.25);
+  --c5:#bc8cff; --c5b:rgba(188,140,255,.12); --c5m:rgba(188,140,255,.25);
+  --c6:#39d353; --c6b:rgba(57,211,83,.12);
+  --c7:#ff7b72; --c7b:rgba(255,123,114,.12);
+  --c8:#79c0ff; --c8b:rgba(121,192,255,.12);
+  --c9:#e3b341; --c9b:rgba(227,179,65,.12);
+  --radius:10px; --radius2:6px;
+  --font-body:'Sora',sans-serif; --font-code:'IBM Plex Mono',monospace;
+  --sidebar:280px; --progress:3px;
+  --shadow:0 4px 24px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.75;min-height:100vh;display:flex}
+
+/* ═══ PROGRESS BAR ═══ */
+#progress-bar{position:fixed;top:0;left:0;height:var(--progress);background:linear-gradient(90deg,var(--c1),var(--c5));width:0%;z-index:9999;transition:width .1s}
+
+/* ═══ SIDEBAR ═══ */
+#sidebar{position:fixed;left:0;top:0;width:var(--sidebar);height:100vh;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:24px 0 40px;z-index:100;display:flex;flex-direction:column;gap:0}
+#sidebar-header{padding:0 20px 20px;border-bottom:1px solid var(--border)}
+#sidebar-header .badge{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--c1);background:var(--c1b);border:1px solid var(--c1m);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px}
+#sidebar-header h2{font-size:14px;font-weight:600;color:var(--text);line-height:1.4}
+#sidebar-header p{font-size:11px;color:var(--text3);margin-top:4px}
+.toc-section{padding:16px 20px 8px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.toc-link{display:flex;align-items:center;gap:10px;padding:8px 20px;font-size:12.5px;color:var(--text2);text-decoration:none;transition:all .2s;border-left:3px solid transparent;cursor:pointer}
+.toc-link:hover{color:var(--text);background:var(--bg3);border-left-color:var(--c1)}
+.toc-link.active{color:var(--c1);background:var(--c1b);border-left-color:var(--c1);font-weight:500}
+.toc-link .dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .2s}
+.toc-link.active .dot{background:var(--c1)}
+.toc-chip{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;margin-left:auto;flex-shrink:0}
+
+/* ═══ MAIN CONTENT ═══ */
+#main{margin-left:var(--sidebar);flex:1;padding:0 48px 80px;max-width:calc(100vw - var(--sidebar))}
+.lecture-hero{padding:60px 0 40px;border-bottom:1px solid var(--border)}
+.lecture-hero .tag{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--c5);background:var(--c5b);border:1px solid var(--c5m);padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:16px}
+.lecture-hero h1{font-size:36px;font-weight:700;line-height:1.2;color:var(--text);max-width:680px}
+.lecture-hero h1 span{background:linear-gradient(135deg,var(--c1),var(--c5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lecture-hero p{margin-top:14px;font-size:15px;color:var(--text2);max-width:620px;line-height:1.7}
+.toc-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.toc-chips a{font-size:12px;font-weight:500;padding:6px 14px;border-radius:20px;text-decoration:none;transition:all .2s;border:1px solid}
+
+/* ═══ SECTION CARDS ═══ */
+.section{margin-top:56px;scroll-margin-top:24px}
+.section-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.section-header{display:flex;align-items:center;gap:14px;padding:20px 24px;cursor:pointer;user-select:none;transition:background .2s}
+.section-header:hover{background:var(--bg3)}
+.section-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.section-title{flex:1}
+.section-title h2{font-size:18px;font-weight:600;color:var(--text)}
+.section-title p{font-size:12px;color:var(--text3);margin-top:2px}
+.section-toggle{font-size:18px;color:var(--text3);transition:transform .3s}
+.section-toggle.open{transform:rotate(180deg)}
+.section-body{padding:24px;border-top:1px solid var(--border);display:none}
+.section-body.open{display:block}
+
+/* ═══ LANGUAGE TAB SWITCHER ═══ */
+.lang-tabs{display:flex;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content;margin-bottom:20px}
+.lang-tab{padding:8px 20px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--text2);border:none;background:none}
+.lang-tab.active{background:var(--c1);color:#000;font-weight:600}
+.lang-content{display:none}
+.lang-content.active{display:block}
+.lang-content[lang="ar"]{direction:rtl;text-align:right;font-size:15px;line-height:1.9}
+
+/* ═══ BOX TYPES ═══ */
+.box{border-radius:var(--radius2);padding:16px 20px;margin:16px 0;border-left:4px solid}
+.box-analogy{background:var(--c3b);border-color:var(--c3)}
+.box-example{background:var(--c2b);border-color:var(--c2)}
+.box-summary{background:var(--c5b);border-color:var(--c5)}
+.box-warning{background:var(--c4b);border-color:var(--c4)}
+.box-info{background:var(--c1b);border-color:var(--c1)}
+.box-title{font-weight:600;font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.box-analogy .box-title{color:var(--c3)}
+.box-example .box-title{color:var(--c2)}
+.box-summary .box-title{color:var(--c5)}
+.box-warning .box-title{color:var(--c4)}
+.box-info .box-title{color:var(--c1)}
+
+/* ═══ INLINE SPANS ═══ */
+.term{color:var(--c1);font-weight:500}
+.highlight{background:var(--c9b);color:var(--c9);padding:1px 6px;border-radius:4px;font-size:13px}
+.code-inline{font-family:var(--font-code);background:var(--bg3);color:var(--c2);padding:2px 8px;border-radius:4px;font-size:13px;border:1px solid var(--border)}
+.ar-term{color:var(--c3);font-weight:600}
+
+/* ═══ CODE BLOCKS ═══ */
+.code-block{background:#0d1117;border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;margin:16px 0}
+.code-block-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;justify-content:space-between;align-items:center}
+.code-block-header span{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+pre{padding:16px 20px;overflow-x:auto;font-family:var(--font-code);font-size:13px;line-height:1.7;color:#e6edf3}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.st{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}.nb{color:#ffa657}.op{color:#79c0ff}.nu{color:#79c0ff}
+
+/* ═══ COMPARE TABLE ═══ */
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+.compare-table thead tr{background:linear-gradient(90deg,var(--c1b),var(--c5b))}
+.compare-table th{padding:12px 16px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--c1);font-size:13px}
+.compare-table td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2)}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--bg3)}
+
+/* ═══ QA ACCORDION ═══ */
+.qa-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.qa-item{border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden}
+.qa-q{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer;font-weight:500;font-size:14px;color:var(--text);transition:background .2s}
+.qa-q:hover{background:var(--bg3)}
+.qa-q .arrow{flex-shrink:0;transition:transform .3s;color:var(--text3);font-size:14px}
+.qa-q.open .arrow{transform:rotate(180deg)}
+.qa-a{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s}
+.qa-a.open{max-height:1000px;padding:14px 16px;border-top:1px solid var(--border);background:var(--bg3)}
+.qa-a p{font-size:13.5px;color:var(--text2);line-height:1.7}
+
+/* ═══ CHIPS / TAGS ═══ */
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid}
+
+/* ═══ STEP LIST ═══ */
+.steps{display:flex;flex-direction:column;gap:14px;margin:14px 0}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+.step-body h4{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px}
+.step-body p{font-size:13.5px;color:var(--text2)}
+
+/* ═══ FORMULA BOX ═══ */
+.formula{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius2);padding:16px 20px;margin:14px 0;text-align:center;font-family:var(--font-code);font-size:14px;color:var(--c5);overflow-x:auto}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* ═══ UTILITY ═══ */
+p{margin:10px 0;color:var(--text2)}
+ul,ol{padding-left:20px;color:var(--text2)}
+li{margin:6px 0;font-size:14px;line-height:1.7}
+h3{font-size:16px;font-weight:600;color:var(--text);margin:20px 0 10px}
+h4{font-size:14px;font-weight:600;color:var(--text2);margin:14px 0 6px}
+strong{color:var(--text);font-weight:600}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+
+/* Memorize box */
+.memorize{background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(188,140,255,.08));border:1px solid var(--c5m);border-radius:var(--radius2);padding:16px 20px;margin:16px 0}
+.memorize-title{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--c5);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.memorize li{font-size:13.5px;color:var(--text)}
+.memorize li::marker{color:var(--c5)}
+
+/* SVG Diagram */
+.diagram-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius2);padding:20px;margin:16px 0;overflow-x:auto;text-align:center}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+
+<!-- ═══════════════════════ SIDEBAR ═══════════════════════ -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <div class="badge">NLP Course</div>
+    <h2>Lecture 6 — Sentence Embedding</h2>
+    <p>Tapping Into The Power of Text Similarity</p>
+  </div>
+
+  <div class="toc-section">Contents</div>
+  <a class="toc-link" onclick="scrollTo('s1')"><span class="dot"></span>Introduction</a>
+  <a class="toc-link" onclick="scrollTo('s2')"><span class="dot"></span>Why CBOW Fails</a>
+  <a class="toc-link" onclick="scrollTo('s3')"><span class="dot"></span>RNN — The Basics</a>
+  <a class="toc-link" onclick="scrollTo('s4')"><span class="dot"></span>RNN — How It Works</a>
+  <a class="toc-link" onclick="scrollTo('s5')"><span class="dot"></span>RNN Task Types</a>
+  <a class="toc-link" onclick="scrollTo('s6')"><span class="dot"></span>Gradients & Problems</a>
+  <a class="toc-link" onclick="scrollTo('s7')"><span class="dot"></span>LSTM</a>
+  <a class="toc-link" onclick="scrollTo('s8')"><span class="dot"></span>Skip-Thought Vectors</a>
+  <a class="toc-link" onclick="scrollTo('s9')"><span class="dot"></span>Sent2Vec</a>
+  <a class="toc-link" onclick="scrollTo('s10')"><span class="dot"></span>Short Answer Grading</a>
+  <a class="toc-link" onclick="scrollTo('s11')"><span class="dot"></span>Text Similarity Types</a>
+  <a class="toc-link" onclick="scrollTo('s12')"><span class="dot"></span>Essay Scoring (AES)</a>
+  <a class="toc-link" onclick="scrollTo('s13')"><span class="dot"></span>Question Answering</a>
+  <a class="toc-link" onclick="scrollTo('s14')"><span class="dot"></span>Interview Questions</a>
+</nav>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════ -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="lecture-hero">
+    <div class="tag">Lecture 6 · Natural Language Processing</div>
+    <h1>Sentence <span>Embedding</span></h1>
+    <p>From naive word averaging to deep RNN encoders — how we teach machines to understand the meaning of a full sentence, not just individual words.</p>
+    <div class="toc-chips">
+      <a href="#s1" style="color:var(--c1);border-color:var(--c1m);background:var(--c1b)">Introduction</a>
+      <a href="#s3" style="color:var(--c2);border-color:var(--c2m);background:var(--c2b)">RNN</a>
+      <a href="#s7" style="color:var(--c5);border-color:var(--c5m);background:var(--c5b)">LSTM</a>
+      <a href="#s8" style="color:var(--c3);border-color:var(--c3m);background:var(--c3b)">Skip-Thought</a>
+      <a href="#s9" style="color:var(--c4);border-color:var(--c4m);background:var(--c4b)">Sent2Vec</a>
+      <a href="#s10" style="color:var(--c8);border-color:rgba(121,192,255,.3);background:var(--c8b)">Applications</a>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 1 ════════════════ -->
+  <div class="section" id="s1">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c1b);color:var(--c1)">01</div>
+        <div class="section-title"><h2>Introduction to Sentence Embedding</h2><p>What it is and why we need it</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s1')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s1')">Arabic</button>
+        </div>
+
+        <!-- EN -->
+        <div class="lang-content active" data-sec="s1" lang="en">
+          <p><span class="term">Sentence Embedding</span> is the collective name for techniques in NLP where entire sentences are converted (mapped) into <strong>vectors of real numbers</strong>. Think of it as a "fingerprint" of a sentence — a list of numbers that captures what the sentence means.</p>
+          <p>There are three main approaches:</p>
+          <ul>
+            <li><strong>Transformer-based models (BERT / SBERT):</strong> Use the hidden layer outputs of a pre-trained transformer to produce a rich vector per sentence. This is the most powerful modern approach.</li>
+            <li><strong>Aggregate word embeddings:</strong> Take word vectors (like Word2Vec) and combine them into one sentence vector.</li>
+            <li><strong>CBOW (Continuous Bag-of-Words):</strong> Simply compute the average or sum of all word vectors in the sentence. Very fast, but loses word-order information.</li>
+          </ul>
+
+          <div class="box box-analogy">
+            <div class="box-title">Analogy</div>
+            Just as a GPS coordinate (latitude + longitude) can pinpoint a physical location on Earth, a sentence embedding "coordinates" a sentence inside a high-dimensional meaning-space. Sentences with similar meaning end up with coordinates that are close to each other.
+          </div>
+        </div>
+
+        <!-- AR -->
+        <div class="lang-content" data-sec="s1" lang="ar">
+          <p><span class="ar-term">Sentence Embedding</span> هي تقنية في الـ NLP بنحوّل فيها الجمل الكاملة لـ <strong>vectors من الأرقام</strong>. بدل ما نتعامل مع كلمة كلمة، بنحوّل الجملة كلها لرقم أو مجموعة أرقام تعبّر عن معناها.</p>
+          <p>في 3 طرق رئيسية:</p>
+          <ul>
+            <li><strong>Transformer models زي BERT:</strong> بتاخد output من داخل الشبكة العصبية — النتيجة vector غني جداً بالمعنى.</li>
+            <li><strong>تجميع word embeddings:</strong> بناخد vectors الكلمات من Word2Vec ونجمعهم في vector واحد للجملة.</li>
+            <li><strong>CBOW:</strong> أبسط طريقة — بناخد متوسط أو مجموع vectors كل الكلمات في الجملة.</li>
+          </ul>
+          <div class="box box-analogy">
+            <div class="box-title">تشبيه</div>
+            تخيّل إن كل جملة عندها "إحداثيات جغرافية" في عالم المعنى. الجمل اللي معناها متشابه بتكون إحداثياتها قريبة من بعض. الـ embedding هو اللي بيحدد الإحداثيات دي.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 2 ════════════════ -->
+  <div class="section" id="s2">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c4b);color:var(--c4)">02</div>
+        <div class="section-title"><h2>Why CBOW Fails — The Word-Order Problem</h2><p>The fundamental limitation of averaging word vectors</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s2')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s2')">Arabic</button>
+        </div>
+
+        <div class="lang-content active" data-sec="s2" lang="en">
+          <p>The CBOW approach (averaging word vectors) has a critical flaw: it completely ignores the <strong>order of words</strong>. Watch what happens:</p>
+          <div class="formula">
+            vec("dog") = (0.2, −0.3, 1.5, ...)<br/>
+            vec("bites") = (0.5, 1.0, −0.4, ...)<br/>
+            vec("man") = (−0.1, 2.3, −1.5, ...)<br/>
+            <br/>
+            Sum: vec("dog bites man") = (0.6, 3.0, −0.4, ...)<br/>
+            Avg: vec("dog bites man") = (0.2, 1.0, −0.133, ...)
+          </div>
+          <p>The problem: since we just add or average the vectors, the result for "dog bites man" is <strong>identical</strong> to the result for "man bites dog" — they use the same three word vectors!</p>
+
+          <div class="box box-warning">
+            <div class="box-title">Critical Problem</div>
+            <p>"man bites dog" = (same vector as) = "dog bites man" under CBOW. But these sentences have completely opposite meanings! CBOW cannot distinguish them.</p>
+          </div>
+
+          <p>Another example: "the quick brown fox jumps over the lazy dog" produces the same CBOW vector as "the lazy fox over the brown dog jumps quick" — completely different meaning, same representation.</p>
+
+          <p>This is why we need models that <strong>read sentences sequentially</strong> and keep track of word order — this is the motivation for RNNs.</p>
+        </div>
+
+        <div class="lang-content" data-sec="s2" lang="ar">
+          <p>الـ CBOW بيجمع أو يعمل متوسط لـ vectors الكلمات — المشكلة إنه بيتجاهل <strong>ترتيب الكلمات</strong> تماماً.</p>
+          <div class="box box-warning">
+            <div class="box-title">المشكلة الأساسية</div>
+            <p>"كلب عض رجل" و"رجل عض كلب" هيطلعوا نفس الـ vector في CBOW — لأن فيهم نفس الكلمات! لكن المعنى مختلف تماماً. الـ CBOW مش قادر يميّز بينهم.</p>
+          </div>
+          <p>عشان كده محتاجين model يقرأ الجملة كلمة كلمة ويفتكر الترتيب — وده اللي بيعمله الـ RNN.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 3 ════════════════ -->
+  <div class="section" id="s3">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c2b);color:var(--c2)">03</div>
+        <div class="section-title"><h2>Recurrent Neural Networks (RNN) — The Basics</h2><p>Sequential processing with memory</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s3')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s3')">Arabic</button>
+        </div>
+
+        <div class="lang-content active" data-sec="s3" lang="en">
+          <h3>What is an RNN?</h3>
+          <p>A <span class="term">Recurrent Neural Network (RNN)</span> is a neural network designed to process <strong>sequences of data</strong>. Instead of treating each input independently, it processes inputs one-by-one while maintaining a <strong>"memory"</strong> of what it has seen so far.</p>
+
+          <p>Formally: it processes a sequence x(1), x(2), ..., x(t) where t is the time step. The key: the output h(t) at each step depends not just on the current input x(t) but also on the previous hidden state h(t-1).</p>
+
+          <div class="box box-analogy">
+            <div class="box-title">Analogy — Reading a Book</div>
+            Imagine reading a mystery novel. When you reach page 50, your understanding depends on everything you've read on pages 1 through 49. An RNN works the same way — each word is processed while carrying forward all previous context.
+          </div>
+
+          <h3>Applications of RNNs (Sequential tasks)</h3>
+          <div class="compare-table" style="overflow-x:auto">
+            <table class="compare-table">
+              <thead><tr><th>Task Type</th><th>Input</th><th>Output</th><th>Example</th></tr></thead>
+              <tbody>
+                <tr><td>Many-to-One</td><td>Sequence of words</td><td>Single label</td><td>Sentiment Analysis ("great movie" → Positive)</td></tr>
+                <tr><td>One-to-Many</td><td>Single image</td><td>Sequence of words</td><td>Image Captioning</td></tr>
+                <tr><td>Many-to-Many</td><td>Sentence in English</td><td>Sentence in French</td><td>Machine Translation</td></tr>
+                <tr><td>Many-to-Many (same length)</td><td>Words in a sentence</td><td>Label per word</td><td>Named Entity Recognition (NER)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="memorize">
+            <div class="memorize-title">Things to Memorize</div>
+            <ul>
+              <li>RNNs process sequences one step at a time</li>
+              <li>Each step produces a hidden state h(t) that acts as "memory"</li>
+              <li>h(t) depends on both the current input x(t) AND the previous state h(t-1)</li>
+              <li>This is why they're called "recurrent" — the same network cell is reused at every step</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s3" lang="ar">
+          <h3>إيه هو الـ RNN؟</h3>
+          <p><span class="ar-term">الشبكة العصبية المتكررة (RNN)</span> هي شبكة عصبية بتعالج <strong>البيانات المتسلسلة</strong>. فبدل ما تعالج كل input لوحده، بتقرأ الـ input واحدة واحدة وعندها <strong>"ذاكرة"</strong> بتفتكر اللي حصل قبل كده.</p>
+
+          <div class="box box-analogy">
+            <div class="box-title">تشبيه</div>
+            لما بتقرأ رواية وتوصل للصفحة 50، فهمك بيعتمد على كل اللي قرأته قبل كده. الـ RNN بالظبط زي كده — كل كلمة بتتعالج وهي شايلة كل السياق اللي قبلها.
+          </div>
+
+          <h3>تطبيقات الـ RNN</h3>
+          <ul>
+            <li><strong>Many-to-One:</strong> تحليل المشاعر — جملة كاملة → تصنيف واحد (إيجابي/سلبي)</li>
+            <li><strong>One-to-Many:</strong> وصف الصور — صورة واحدة → جملة وصفية</li>
+            <li><strong>Many-to-Many:</strong> الترجمة الآلية — جملة إنجليزية → جملة فرنسية</li>
+            <li><strong>Many-to-Many (نفس الطول):</strong> NER — كلمة كلمة → تصنيف لكل كلمة</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 4 ════════════════ -->
+  <div class="section" id="s4">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c2b);color:var(--c2)">04</div>
+        <div class="section-title"><h2>How an RNN Actually Works — Step by Step</h2><p>The unrolling concept explained</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s4')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s4')">Arabic</button>
+        </div>
+
+        <div class="lang-content active" data-sec="s4" lang="en">
+          <p>Let's trace through how an RNN processes the sentence "What time is it?":</p>
+
+          <!-- SVG Diagram of RNN unrolling -->
+          <div class="diagram-wrap">
+            <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:700px">
+              <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+                </marker>
+              </defs>
+              <!-- Step 0 -->
+              <rect x="30" y="60" width="80" height="40" rx="6" fill="#21262d" stroke="#58a6ff" stroke-width="1.5"/>
+              <text x="70" y="85" text-anchor="middle" fill="#58a6ff" font-size="13" font-family="Sora,sans-serif" font-weight="600">A</text>
+              <text x="70" y="140" text-anchor="middle" fill="#8b949e" font-size="12" font-family="Sora,sans-serif">What</text>
+              <line x1="70" y1="100" x2="70" y2="118" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <line x1="70" y1="60" x2="70" y2="42" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <text x="70" y="36" text-anchor="middle" fill="#3fb950" font-size="11" font-family="Sora,sans-serif">h₀</text>
+
+              <!-- Arrow 1 -->
+              <line x1="110" y1="80" x2="160" y2="80" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+              <!-- Step 1 -->
+              <rect x="160" y="60" width="80" height="40" rx="6" fill="#21262d" stroke="#58a6ff" stroke-width="1.5"/>
+              <text x="200" y="85" text-anchor="middle" fill="#58a6ff" font-size="13" font-family="Sora,sans-serif" font-weight="600">A</text>
+              <text x="200" y="140" text-anchor="middle" fill="#8b949e" font-size="12" font-family="Sora,sans-serif">time</text>
+              <line x1="200" y1="100" x2="200" y2="118" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <line x1="200" y1="60" x2="200" y2="42" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <text x="200" y="36" text-anchor="middle" fill="#3fb950" font-size="11" font-family="Sora,sans-serif">h₁</text>
+
+              <!-- Arrow 2 -->
+              <line x1="240" y1="80" x2="290" y2="80" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+              <!-- Step 2 -->
+              <rect x="290" y="60" width="80" height="40" rx="6" fill="#21262d" stroke="#58a6ff" stroke-width="1.5"/>
+              <text x="330" y="85" text-anchor="middle" fill="#58a6ff" font-size="13" font-family="Sora,sans-serif" font-weight="600">A</text>
+              <text x="330" y="140" text-anchor="middle" fill="#8b949e" font-size="12" font-family="Sora,sans-serif">is</text>
+              <line x1="330" y1="100" x2="330" y2="118" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <line x1="330" y1="60" x2="330" y2="42" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <text x="330" y="36" text-anchor="middle" fill="#3fb950" font-size="11" font-family="Sora,sans-serif">h₂</text>
+
+              <!-- Arrow 3 -->
+              <line x1="370" y1="80" x2="420" y2="80" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+              <!-- Step 3 -->
+              <rect x="420" y="60" width="80" height="40" rx="6" fill="#21262d" stroke="#58a6ff" stroke-width="1.5"/>
+              <text x="460" y="85" text-anchor="middle" fill="#58a6ff" font-size="13" font-family="Sora,sans-serif" font-weight="600">A</text>
+              <text x="460" y="140" text-anchor="middle" fill="#8b949e" font-size="12" font-family="Sora,sans-serif">it</text>
+              <line x1="460" y1="100" x2="460" y2="118" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <line x1="460" y1="60" x2="460" y2="42" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <text x="460" y="36" text-anchor="middle" fill="#3fb950" font-size="11" font-family="Sora,sans-serif">h₃</text>
+
+              <!-- Arrow 4 -->
+              <line x1="500" y1="80" x2="550" y2="80" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+              <text x="580" y="84" fill="#8b949e" font-size="12" font-family="Sora,sans-serif">...</text>
+
+              <!-- Labels -->
+              <text x="350" y="20" text-anchor="middle" fill="#58a6ff" font-size="11" font-family="Sora,sans-serif" font-style="italic">Same cell A reused at every step — carries memory forward</text>
+            </svg>
+          </div>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c1b);color:var(--c1)">1</div>
+              <div class="step-body"><h4>Process first word: "What"</h4><p>Cell A takes x(0) = vec("What") as input, produces hidden state h(0). There's no previous context yet.</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c1b);color:var(--c1)">2</div>
+              <div class="step-body"><h4>Process second word: "time"</h4><p>Cell A now receives BOTH x(1) = vec("time") AND h(0) from the previous step. Output is h(1) which contains context about "What time".</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c1b);color:var(--c1)">3</div>
+              <div class="step-body"><h4>This continues word by word...</h4><p>h(1) and x(2) → h(2), then h(2) and x(3) → h(3), and so on. Each step's hidden state is a summary of everything read so far.</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">Final</div>
+              <div class="step-body"><h4>The final hidden state h(t) is the sentence embedding</h4><p>After the last word, h(t) encodes the meaning of the entire sentence — this becomes the sentence's vector representation.</p></div>
+            </div>
+          </div>
+
+          <div class="box box-info">
+            <div class="box-title">Key Insight — Why "Recurrent"?</div>
+            The same neural network cell (A) is applied at every time step. It's "recurrent" because the same weights are reused repeatedly. This makes it memory-efficient — you don't need a new network for each position in the sentence.
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s4" lang="ar">
+          <p>خلينا نتتبع إزاي الـ RNN بيعالج جملة "What time is it?":</p>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c1b);color:var(--c1)">1</div>
+              <div class="step-body"><h4>أول كلمة: "What"</h4><p>الـ cell بياخد vec("What") كـ input ويطلع h(0). لسه مفيش سياق قبله.</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c1b);color:var(--c1)">2</div>
+              <div class="step-body"><h4>تاني كلمة: "time"</h4><p>الـ cell بياخد x(1)=vec("time") وكمان h(0) من الخطوة اللي قبلها. الـ output هو h(1) اللي فيه سياق "What time".</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">آخر خطوة</div>
+              <div class="step-body"><h4>الـ hidden state الأخير هو الـ sentence embedding</h4><p>بعد آخر كلمة، h(t) بيكون فيه معنى الجملة كلها — وده بيبقى الـ vector اللي بيمثل الجملة.</p></div>
+            </div>
+          </div>
+          <div class="box box-info">
+            <div class="box-title">ليه اسمه "Recurrent"؟</div>
+            لأن نفس الـ cell بيتكرر في كل خطوة — بياخد input الحالية + ذاكرة الخطوة السابقة. الـ weights نفسها بتتستخدم في كل خطوة.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 5 ════════════════ -->
+  <div class="section" id="s5">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c2b);color:var(--c2)">05</div>
+        <div class="section-title"><h2>RNN Task Types</h2><p>One-to-Many, Many-to-One, Many-to-Many</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s5')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s5')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s5" lang="en">
+          <p>RNNs can be configured in different ways depending on whether the input and output are sequences or single items:</p>
+          <table class="compare-table">
+            <thead><tr><th>Type</th><th>Description</th><th>Real-World Example</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="term">One-to-Many</span></td>
+                <td>Single fixed input → sequence output</td>
+                <td><strong>Image Captioning:</strong> Feed one image, generate a sentence like "A dog is running in the park."</td>
+              </tr>
+              <tr>
+                <td><span class="term">Many-to-One</span></td>
+                <td>Sequence input → single fixed output</td>
+                <td><strong>Sentiment Analysis:</strong> Feed a whole review → output "Positive" or "Negative"</td>
+              </tr>
+              <tr>
+                <td><span class="term">Many-to-Many</span></td>
+                <td>Sequence input → sequence output (different lengths)</td>
+                <td><strong>Machine Translation:</strong> English sentence → French sentence</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="box box-example">
+            <div class="box-title">Example — Sentence Embedding Context</div>
+            <p>For sentence embedding specifically, we use the <strong>Many-to-One</strong> configuration: we feed the entire sequence of words into the RNN and take the final hidden state as the sentence's embedding vector.</p>
+          </div>
+        </div>
+        <div class="lang-content" data-sec="s5" lang="ar">
+          <p>الـ RNN ممكن يتستخدم بأشكال مختلفة حسب نوع المهمة:</p>
+          <ul>
+            <li><strong>One-to-Many:</strong> input واحد (صورة) → sequence (جملة وصفية) — مثال: Image Captioning</li>
+            <li><strong>Many-to-One:</strong> sequence كاملة → output واحد — مثال: تحليل المشاعر</li>
+            <li><strong>Many-to-Many:</strong> جملة إنجليزية → جملة فرنسية — مثال: الترجمة</li>
+          </ul>
+          <div class="box box-info">
+            <div class="box-title">في الـ Sentence Embedding</div>
+            بنستخدم Many-to-One: بنديّ الـ RNN الجملة كاملة وباخد الـ hidden state الأخيرة كـ embedding للجملة.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 6 ════════════════ -->
+  <div class="section" id="s6">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c4b);color:var(--c4)">06</div>
+        <div class="section-title"><h2>Gradients, Vanishing & Exploding</h2><p>Why training RNNs is hard — and how LSTM helps</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s6')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s6')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s6" lang="en">
+          <h3>What is a Gradient?</h3>
+          <p>A <span class="term">gradient</span> is the derivative of a function with respect to its inputs. Intuitively: <em>"if I change the weights a little bit, by how much does the error change?"</em></p>
+          <ul>
+            <li>Higher gradient = steeper slope = model learns faster</li>
+            <li>Gradient of zero = model stops learning entirely</li>
+            <li>Gradient measures how we should adjust each weight to reduce error</li>
+          </ul>
+
+          <h3>Problem 1: Exploding Gradients</h3>
+          <p>When the gradient values become <strong>extremely large</strong>, the model assigns massive importance to certain weights, causing chaotic updates. The fix is simple: <strong>gradient clipping</strong> — cap the gradient value at a threshold so it can't explode.</p>
+
+          <h3>Problem 2: Vanishing Gradients</h3>
+          <p>When gradients become <strong>extremely small</strong> (close to zero) during backpropagation through many time steps, the model effectively "forgets" information from early in the sequence. This is the major reason standard RNNs struggle with long sequences.</p>
+
+          <div class="box box-analogy">
+            <div class="box-title">Analogy — Vanishing Gradient</div>
+            Imagine trying to whisper a message through 20 people. By the time it reaches the last person, the message is so faint (the gradient is so small) that they can't hear it. The RNN at the end can't learn from mistakes that happened at the beginning of a long sequence.
+          </div>
+
+          <p>The solution to vanishing gradients is the <span class="term">LSTM</span> architecture, covered in the next section.</p>
+        </div>
+        <div class="lang-content" data-sec="s6" lang="ar">
+          <h3>الـ Gradient إيه؟</h3>
+          <p>الـ <span class="ar-term">gradient</span> هو الـ derivative — بيقيس "لو غيّرت الـ weights شوية، الـ error هيتغير قد إيه؟". الـ model بيتعلم لما بيعدّل الـ weights في الاتجاه اللي بيقلل الـ error.</p>
+
+          <h3>مشكلة 1: Exploding Gradients</h3>
+          <p>لما الـ gradient يبقى كبير جداً — الحل سهل: <strong>gradient clipping</strong> (قص الـ gradient لو كبر أوي).</p>
+
+          <h3>مشكلة 2: Vanishing Gradients</h3>
+          <p>ده أخطر — لما الـ gradient يبقى صغير جداً (قريب من صفر)، الـ model بينسى المعلومات اللي في أول الجملة. ده بيأثر كتير لما الجملة تكون طويلة.</p>
+          <div class="box box-analogy">
+            <div class="box-title">تشبيه</div>
+            تخيل إنك بتمرر رسالة همساً لـ 20 شخص — لحد ما توصل للأخير، تكون بقت خفية جداً ومحدش يقدر يسمعها. الـ RNN في آخر الجملة مش قادر يتعلم من أخطاء حصلت في الأول.
+          </div>
+          <p>الحل: <span class="ar-term">LSTM</span> اللي هنتعلمه دلوقتي.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 7 ════════════════ -->
+  <div class="section" id="s7">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c5b);color:var(--c5)">07</div>
+        <div class="section-title"><h2>LSTM — Long Short-Term Memory</h2><p>The memory-enhanced RNN that solves vanishing gradients</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s7')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s7')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s7" lang="en">
+          <p><span class="term">Long Short-Term Memory (LSTM)</span> is an extension of the standard RNN that adds a <strong>cell state</strong> (a separate long-term memory channel) and three <strong>gates</strong> that control what information flows through.</p>
+
+          <h3>The Three Gates</h3>
+          <table class="compare-table">
+            <thead><tr><th>Gate</th><th>Question it answers</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><span class="term" style="color:var(--c2)">Input Gate</span></td><td>"Should I let new information IN?"</td><td>Decides which parts of the new input to add to cell state</td></tr>
+              <tr><td><span class="term" style="color:var(--c4)">Forget Gate</span></td><td>"Should I FORGET old information?"</td><td>Decides which parts of the old cell state to erase</td></tr>
+              <tr><td><span class="term" style="color:var(--c5)">Output Gate</span></td><td>"What should I OUTPUT right now?"</td><td>Decides which parts of cell state to expose as the hidden state h(t)</td></tr>
+            </tbody>
+          </table>
+
+          <div class="box box-analogy">
+            <div class="box-title">Analogy — LSTM as a Smart Notebook</div>
+            <p>Imagine the LSTM has a notebook (cell state) and a pen. At each step:</p>
+            <ul>
+              <li><strong>Forget gate:</strong> "Let me erase things that are no longer relevant" (eraser)</li>
+              <li><strong>Input gate:</strong> "Let me write down the new important info" (pen)</li>
+              <li><strong>Output gate:</strong> "What part of my notes should I read aloud now?" (mouth)</li>
+            </ul>
+            <p>This way, important information from the beginning of a long sentence (like the subject) can be preserved all the way to the end without the gradient vanishing.</p>
+          </div>
+
+          <h3>GRU — A Simpler Alternative</h3>
+          <p>The <span class="term">Gated Recurrent Unit (GRU)</span> is a simplified version of LSTM with only two gates (reset gate + update gate). It performs similarly but is computationally cheaper. The diagram in the lecture shows both LSTM and GRU architectures side by side.</p>
+
+          <div class="memorize">
+            <div class="memorize-title">Things to Memorize</div>
+            <ul>
+              <li>LSTM has 3 gates: Input, Forget, Output</li>
+              <li>LSTM maintains two states: cell state (long-term) + hidden state (short-term)</li>
+              <li>LSTM solves the vanishing gradient problem of standard RNNs</li>
+              <li>GRU is a simplified LSTM with 2 gates</li>
+              <li>LSTMs are the building blocks of the layers in RNN-based sentence encoders</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s7" lang="ar">
+          <p><span class="ar-term">LSTM</span> هو نسخة متطورة من الـ RNN — بتضيف <strong>ذاكرة طويلة الأمد</strong> (cell state) و<strong>3 gates</strong> بتتحكم في المعلومات اللي بتدخل وبتخرج وبتتمسح.</p>
+          <h3>الـ 3 Gates</h3>
+          <ul>
+            <li><strong>Input Gate:</strong> "هل أخلّي المعلومة الجديدة دي تدخل؟"</li>
+            <li><strong>Forget Gate:</strong> "هل أمسح معلومات قديمة مش محتاجها؟"</li>
+            <li><strong>Output Gate:</strong> "إيه اللي هقوله دلوقتي بناءً على الذاكرة؟"</li>
+          </ul>
+          <div class="box box-analogy">
+            <div class="box-title">تشبيه</div>
+            تخيّل إن الـ LSTM عنده دفتر ملاحظات (cell state). في كل خطوة: بيمسح اللي مش مهم (Forget Gate)، بيكتب اللي جديد ومهم (Input Gate)، وبيقرأ جزء من الملاحظات بصوت عالي (Output Gate). كده بيقدر يفتكر معلومات من أول الجملة حتى لو الجملة طويلة.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 8 ════════════════ -->
+  <div class="section" id="s8">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c3b);color:var(--c3)">08</div>
+        <div class="section-title"><h2>Skip-Thought Vectors</h2><p>Learning sentence meaning from context sentences</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s8')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s8')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s8" lang="en">
+          <p><span class="term">Skip-Thought Vectors</span> are a method for learning sentence embeddings that was directly inspired by Word2Vec's skip-gram model. Just as Word2Vec learns word meanings by predicting surrounding words, Skip-Thought learns <em>sentence meanings</em> by predicting <strong>surrounding sentences</strong>.</p>
+
+          <h3>The Architecture</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c3b);color:var(--c3)">1</div>
+              <div class="step-body"><h4>Encoder RNN</h4><p>Takes the current sentence S(i) and encodes it into a fixed-size vector h(i). The encoder is built from an RNN (LSTM or GRU).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c3b);color:var(--c3)">2</div>
+              <div class="step-body"><h4>Previous Decoder RNN</h4><p>Takes the vector h(i) as input and tries to reconstruct the <strong>previous sentence</strong> S(i-1).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c3b);color:var(--c3)">3</div>
+              <div class="step-body"><h4>Next Decoder RNN</h4><p>Takes the same vector h(i) and tries to predict the <strong>next sentence</strong> S(i+1).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">Goal</div>
+              <div class="step-body"><h4>Training Objective</h4><p>The model is trained to minimize the reconstruction error of both surrounding sentences. The result: h(i) must capture the full meaning of sentence S(i) since it has to reconstruct both neighbors.</p></div>
+            </div>
+          </div>
+
+          <div class="box box-example">
+            <div class="box-title">Example — Recipe Sentences</div>
+            <p>S(i-1): "Fry steak for about 30 seconds on both sides."<br/>
+            S(i): "Set aside for 5 minutes."<br/>
+            S(i+1): "Take puff pastry out of fridge and let reach room temperature."</p>
+            <p>The encoder must encode S(i) so well that the decoders can reconstruct both neighbors. This forces the vector to capture the cooking context.</p>
+          </div>
+
+          <h3>Encoder Types</h3>
+          <table class="compare-table">
+            <thead><tr><th>Type</th><th>Description</th><th>Vector Size</th></tr></thead>
+            <tbody>
+              <tr><td><span class="term">Uni-skip</span></td><td>Reads sentence in forward direction only</td><td>2400</td></tr>
+              <tr><td><span class="term">Bi-skip</span></td><td>Reads both forwards AND backwards, concatenates results</td><td>2×2400 = 4800</td></tr>
+              <tr><td><span class="term">Combined-skip</span></td><td>Concatenates uni-skip and bi-skip vectors</td><td>4800</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Training Data</h3>
+          <p>The model was trained on the <span class="term">BookCorpus Dataset</span>: 11,038 books, 74 million sentences, 984 million words, 1.3 million unique words, average 13 words per sentence.</p>
+
+          <h3>Evaluation</h3>
+          <p>Skip-Thought was evaluated on 8 tasks including:</p>
+          <div class="chip-row">
+            <span class="chip" style="color:var(--c1);border-color:var(--c1m);background:var(--c1b)">Semantic Relatedness</span>
+            <span class="chip" style="color:var(--c2);border-color:var(--c2m);background:var(--c2b)">Paraphrase Detection</span>
+            <span class="chip" style="color:var(--c3);border-color:var(--c3m);background:var(--c3b)">Image-Sentence Ranking</span>
+            <span class="chip" style="color:var(--c5);border-color:var(--c5m);background:var(--c5b)">5 Classification Benchmarks</span>
+          </div>
+          <p>On the <strong>Semantic Relatedness (SICK dataset)</strong> task: Pearson correlation of <span class="highlight">0.86</span>, which means the model's similarity scores agree strongly with human-assigned similarity scores. The SICK dataset has 4500 training pairs, 500 dev pairs, and 4927 test pairs with scores from 1 (unrelated) to 5 (highly related), averaged across 10 human annotators.</p>
+        </div>
+
+        <div class="lang-content" data-sec="s8" lang="ar">
+          <p><span class="ar-term">Skip-Thought Vectors</span> طريقة لتعلم الـ sentence embeddings متأثرة بـ Word2Vec. فبدل ما Word2Vec يتعلم معنى الكلمة من الكلمات اللي حواليها، الـ Skip-Thought بيتعلم معنى الجملة من <strong>الجمل اللي حواليها</strong>.</p>
+
+          <h3>الفكرة</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c3b);color:var(--c3)">1</div>
+              <div class="step-body"><h4>Encoder</h4><p>بياخد الجملة الحالية S(i) ويحوّلها لـ vector h(i).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c3b);color:var(--c3)">2</div>
+              <div class="step-body"><h4>Previous Decoder</h4><p>بياخد h(i) ويحاول يتنبأ بالجملة اللي <strong>قبلها</strong> S(i-1).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c3b);color:var(--c3)">3</div>
+              <div class="step-body"><h4>Next Decoder</h4><p>بياخد نفس h(i) ويحاول يتنبأ بالجملة اللي <strong>بعدها</strong> S(i+1).</p></div>
+            </div>
+          </div>
+          <p>النتيجة: الـ vector h(i) لازم يكون عنده معنى كامل للجملة عشان يقدر يتنبأ بالجملتين الجانبيتين.</p>
+
+          <h3>أنواع الـ Encoder</h3>
+          <ul>
+            <li><strong>Uni-skip:</strong> بيقرأ الجملة في اتجاه واحد بس (للأمام)</li>
+            <li><strong>Bi-skip:</strong> بيقرأ للأمام وللخلف ويدمجهم — أقوى</li>
+            <li><strong>Combined-skip:</strong> بيدمج الاتنين مع بعض</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 9 ════════════════ -->
+  <div class="section" id="s9">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c4b);color:var(--c4)">09</div>
+        <div class="section-title"><h2>Sent2Vec</h2><p>Fast, unsupervised sentence embeddings using n-grams</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s9')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s9')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s9" lang="en">
+          <p><span class="term">Sent2Vec</span> extends the Word2Vec CBOW training objective to train <em>sentence embeddings</em> instead of word embeddings. It is a <strong>simple, fast, unsupervised</strong> model.</p>
+
+          <p>Key idea: compose sentence embeddings using <strong>word vectors + n-gram embeddings</strong>. N-grams are groups of consecutive words — bigrams (2-word groups) capture short phrases like "machine learning" or "natural language".</p>
+
+          <div class="box box-warning">
+            <div class="box-title">Surprising Finding</div>
+            For constructing sentence embeddings, the <strong>naively averaged word vectors</strong> (CBOW style) was shown to actually <em>outperform</em> RNNs and LSTMs on many tasks! This is a well-known surprising result in NLP. It doesn't mean CBOW is always better — but it shows that for certain tasks, simple averaging works surprisingly well.
+          </div>
+
+          <h3>Pre-trained Models Available</h3>
+          <table class="compare-table">
+            <thead><tr><th>Model Name</th><th>Size</th><th>Dimensions</th><th>Training Data</th></tr></thead>
+            <tbody>
+              <tr><td><code class="code-inline">sent2vec_wiki_unigrams</code></td><td>5 GB</td><td>600</td><td>English Wikipedia</td></tr>
+              <tr><td><code class="code-inline">sent2vec_wiki_bigrams</code></td><td>16 GB</td><td>700</td><td>English Wikipedia</td></tr>
+              <tr><td><code class="code-inline">sent2vec_twitter_unigrams</code></td><td>13 GB</td><td>700</td><td>English Tweets</td></tr>
+              <tr><td><code class="code-inline">sent2vec_toronto_books_unigrams</code></td><td>2 GB</td><td>700</td><td>Toronto Books</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Code Walkthrough</h3>
+          <div class="code-block">
+            <div class="code-block-header"><span>Python — Sent2Vec Usage</span></div>
+            <pre><span class="kw">from</span> sent2vec.vectorizer <span class="kw">import</span> Vectorizer
+<span class="kw">from</span> scipy <span class="kw">import</span> spatial
+
+<span class="cm"># Define sentences to embed</span>
+sentences <span class="op">=</span> [
+    <span class="st">"This is an awesome book to learn NLP."</span>,
+    <span class="st">"Sent2Vec is an amazing NLP model."</span>,
+    <span class="st">"We can interchangeably use embedding, encoding, or vectorizing."</span>,
+]
+
+<span class="cm"># Create vectorizer and run it</span>
+vectorizer <span class="op">=</span> Vectorizer()
+vectorizer.run(sentences)
+vectors <span class="op">=</span> vectorizer.vectors
+
+<span class="cm"># Each vector has 768 dimensions</span>
+<span class="nb">print</span>(<span class="nb">len</span>(vectors[<span class="nu">0</span>]))  <span class="cm"># → 768</span>
+
+<span class="cm"># Compute cosine DISTANCE between sentence 0 and 1</span>
+dist_1 <span class="op">=</span> spatial.distance.cosine(vectors[<span class="nu">0</span>], vectors[<span class="nu">1</span>])
+<span class="cm"># dist_1 = 0.0509  → very SIMILAR (small cosine distance)</span>
+
+dist_2 <span class="op">=</span> spatial.distance.cosine(vectors[<span class="nu">0</span>], vectors[<span class="nu">2</span>])
+<span class="cm"># dist_2 = 0.1921  → less similar (larger cosine distance)</span></pre>
+          </div>
+
+          <div class="box box-info">
+            <div class="box-title">Important Note — Cosine Distance vs Cosine Similarity</div>
+            <p>Here we use <code class="code-inline">spatial.distance.cosine</code> which returns the <strong>cosine distance</strong> (1 - cosine similarity). Lower distance = more similar. Sentence 0 and 1 both talk about NLP books/models, so their distance is small (0.05). Sentence 2 is about a broader topic, so its distance is larger (0.19).</p>
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s9" lang="ar">
+          <p><span class="ar-term">Sent2Vec</span> بيمدّد فكرة الـ Word2Vec CBOW عشان يتعلم embeddings للجمل بدل الكلمات. هو model <strong>بسيط وسريع وغير supervised</strong>.</p>
+          <p>الفكرة: بيدمج <strong>word vectors + n-gram embeddings</strong> (مجموعات من كلمتين أو أكتر متجاورة).</p>
+
+          <div class="box box-warning">
+            <div class="box-title">نتيجة مفاجئة</div>
+            متوسط الـ word vectors (CBOW) ثبت إنه بيتفوق على الـ RNN و LSTM في بعض المهام! ده مش معناه إن CBOW دايماً أفضل — لكنه بيوضح إن بعض الأحيان البساطة بتشتغل زي الجِدّة.
+          </div>
+
+          <h3>الكود</h3>
+          <div class="code-block">
+            <div class="code-block-header"><span>Python</span></div>
+            <pre><span class="kw">from</span> sent2vec.vectorizer <span class="kw">import</span> Vectorizer
+vectorizer <span class="op">=</span> Vectorizer()
+vectorizer.run(sentences)
+vectors <span class="op">=</span> vectorizer.vectors
+<span class="cm"># كل جملة بتتحول لـ vector بـ 768 dimension</span></pre>
+          </div>
+          <p>لقياس التشابه بنستخدم <strong>cosine distance</strong>: كلما صغرت القيمة، الجملتين أكثر تشابهاً.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 10 ════════════════ -->
+  <div class="section" id="s10">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c8b);color:var(--c8)">10</div>
+        <div class="section-title"><h2>Short Answer Grading (SAG)</h2><p>Using sentence embeddings to automatically grade student answers</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s10')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s10')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s10" lang="en">
+          <p><span class="term">Short Answer Grading (SAG)</span>, also called Automatic Answer Grading (AAG), is a system that automatically assigns a grade to a student's answer by comparing it with one or more <strong>model (correct) answers</strong> using text similarity.</p>
+
+          <h3>Why Automatic Scoring?</h3>
+          <div class="chip-row">
+            <span class="chip" style="color:var(--c2);border-color:var(--c2m);background:var(--c2b)">Reduces grading time</span>
+            <span class="chip" style="color:var(--c1);border-color:var(--c1m);background:var(--c1b)">Consistent scoring</span>
+            <span class="chip" style="color:var(--c3);border-color:var(--c3m);background:var(--c3b)">Handles varied responses</span>
+            <span class="chip" style="color:var(--c5);border-color:var(--c5m);background:var(--c5b)">Provides instant feedback</span>
+          </div>
+
+          <p>Easy for: Multiple Choice, True/False, Fill-in-the-blank. <strong>Hard for: Free-text answers</strong> — because students can express the same correct concept in many different ways.</p>
+
+          <h3>Real Example (from the lecture)</h3>
+          <div class="box box-example">
+            <div class="box-title">Example — Grading "Define Plankton?"</div>
+            <p><strong>Question:</strong> "عرف الهائمات؟" (Define Plankton?)</p>
+            <p><strong>Model Answer:</strong> "Small sized plant or animal organisms that are carried by waves without resistance due to their small bodies."</p>
+            <hr/>
+            <p><strong>Student 1:</strong> "Tiny microscopic plant or animal organisms that live in surface water of seas that are carried by waves without resistance." → Grade: 5/5 (predicted: 4/5)</p>
+            <p><strong>Student 2:</strong> "Organisms that spread in the surface layer of seas and are carried by waves without resistance." → Grade: 3/5 (predicted: 3/5)</p>
+          </div>
+
+          <h3>The SAG Pipeline</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">1</div>
+              <div class="step-body"><h4>Embed both texts</h4><p>Convert the student's answer AND the model answer into sentence embedding vectors.</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">2</div>
+              <div class="step-body"><h4>Compute similarity</h4><p>Calculate a similarity score between the two vectors (e.g., cosine similarity).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">3</div>
+              <div class="step-body"><h4>Normalize and scale</h4><p>Normalize the similarity value and scale it to the grading range (e.g., 0–5).</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">4</div>
+              <div class="step-body"><h4>Feed into classifier</h4><p>Use the similarity value(s) as features into an ML/DL model that predicts the final grade.</p></div>
+            </div>
+          </div>
+
+          <h3>Challenges</h3>
+          <ul>
+            <li><strong>Lack of annotated datasets:</strong> Hard to find labeled data with human-graded answers.</li>
+            <li><strong>Multiple valid similarity levels:</strong> "slightly correct", "partially correct", "fully correct" — need fine-grained measurement.</li>
+            <li><strong>Evaluation biases:</strong> Different human graders may score the same answer differently.</li>
+            <li><strong>Difficulty forming feedback:</strong> Not enough to give a grade — systems should also explain WHY.</li>
+          </ul>
+
+          <h3>Evaluation Metrics for SAG</h3>
+          <div class="chip-row">
+            <span class="chip" style="color:var(--c5);border-color:var(--c5m);background:var(--c5b)">Quadratic Weighted Kappa (QWK)</span>
+            <span class="chip" style="color:var(--c3);border-color:var(--c3m);background:var(--c3b)">Mean Absolute Error (MAE)</span>
+            <span class="chip" style="color:var(--c1);border-color:var(--c1m);background:var(--c1b)">Pearson Correlation Coefficient</span>
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s10" lang="ar">
+          <p><span class="ar-term">Short Answer Grading (SAG)</span> نظام بيديّ الطالب درجة على إجابته تلقائياً — بالمقارنة مع الإجابة النموذجية باستخدام <strong>text similarity</strong>.</p>
+          <p>الإجابات القصيرة بتبقى صعبة لأن كل طالب ممكن يعبّر عن نفس المعنى بطريقة مختلفة — ومحتاج الـ model يفهم المعنى مش يطابق الكلمات.</p>
+
+          <h3>الخطوات</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">1</div>
+              <div class="step-body"><h4>Embed النصين</h4><p>بنحوّل إجابة الطالب + الإجابة النموذجية لـ sentence vectors.</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">2</div>
+              <div class="step-body"><h4>بنحسب التشابه</h4><p>Cosine Similarity بين الـ vectors الاتنين.</p></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c8b);color:var(--c8)">3</div>
+              <div class="step-body"><h4>Normalize وScale</h4><p>بنحوّل قيمة التشابه لدرجة في النطاق المطلوب (0–5 مثلاً).</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 11 ════════════════ -->
+  <div class="section" id="s11">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c6b);color:var(--c6)">11</div>
+        <div class="section-title"><h2>Types of Text Similarity</h2><p>String-based vs Semantic-based approaches</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s11')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s11')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s11" lang="en">
+          <p>When measuring how similar two texts are, there are two fundamentally different approaches:</p>
+
+          <table class="compare-table">
+            <thead><tr><th>Category</th><th>Subcategory</th><th>How it works</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr>
+                <td rowspan="2"><strong>String-Based</strong><br/>(surface level)</td>
+                <td>Character-Based</td>
+                <td>Compare texts character by character (edit distance, Levenshtein)</td>
+                <td>"cat" vs "bat" → 1 edit apart</td>
+              </tr>
+              <tr>
+                <td>Term-Based</td>
+                <td>Compare overlapping words/terms (TF-IDF, Jaccard)</td>
+                <td>Count shared words between two texts</td>
+              </tr>
+              <tr>
+                <td rowspan="3"><strong>Semantic-Based</strong><br/>(meaning level)</td>
+                <td>Corpus-Based</td>
+                <td>Use a large text corpus to learn word/sentence similarity (LSA, Word2Vec)</td>
+                <td>"car" and "automobile" have high similarity</td>
+              </tr>
+              <tr>
+                <td>Knowledge-Based</td>
+                <td>Use an ontology or knowledge graph (WordNet)</td>
+                <td>Words in the same category = similar</td>
+              </tr>
+              <tr>
+                <td><strong>Embedding-Based</strong></td>
+                <td>Use sentence/word embedding vectors and cosine similarity</td>
+                <td>BERT embeddings, Skip-Thought, Sent2Vec</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="box box-info">
+            <div class="box-title">For NLP Applications Today</div>
+            <p>Embedding-based similarity (under Semantic-Based) is the dominant modern approach. It captures nuanced meaning that string-based methods completely miss. "A dog attacked a man" and "A man was bitten by a canine" are very similar semantically but have almost no word overlap.</p>
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s11" lang="ar">
+          <p>في طريقتين أساسيتين لقياس التشابه بين نصين:</p>
+          <ul>
+            <li><strong>String-Based (مبني على الحروف والكلمات):</strong>
+              <ul>
+                <li>Character-Based: بيقارن حرف حرف (مثل: Levenshtein distance)</li>
+                <li>Term-Based: بيعد الكلمات المشتركة (مثل: Jaccard, TF-IDF)</li>
+              </ul>
+            </li>
+            <li><strong>Semantic-Based (مبني على المعنى):</strong>
+              <ul>
+                <li>Corpus-Based: بيتعلم التشابه من corpus كبير (Word2Vec, LSA)</li>
+                <li>Knowledge-Based: بيستخدم قاموس معرفي زي WordNet</li>
+                <li>Embedding-Based: بيستخدم vectors وCosine Similarity — ده الأقوى حالياً</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 12 ════════════════ -->
+  <div class="section" id="s12">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c9b);color:var(--c9)">12</div>
+        <div class="section-title"><h2>Automated Essay Scoring (AES)</h2><p>From essay text to a quality score</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s12')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s12')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s12" lang="en">
+          <p><span class="term">Automated Essay Scoring (AES)</span> is a computer-based system that automatically grades an essay by analyzing various features. It is a form of NLP applied to educational assessment.</p>
+          <p>Unlike SAG (which compares with a model answer), AES typically has <strong>no model answer to compare against</strong> — it evaluates the essay on its own merit.</p>
+
+          <h3>Types of Features Extracted</h3>
+          <table class="compare-table">
+            <thead><tr><th>Feature Type</th><th>Examples</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="term">Statistical</span></td>
+                <td>Essay length, number of sentences, sentence length, word length, N-grams, spelling error count</td>
+              </tr>
+              <tr>
+                <td><span class="term">Style-Based</span></td>
+                <td>Word choice, sentence structure/syntax, punctuation, conjunctions, Part-of-Speech (POS) counts (nouns, verbs, adjectives, adverbs)</td>
+              </tr>
+              <tr>
+                <td><span class="term">Content-Based</span></td>
+                <td>Cohesion, coherence, relevance of information, <strong>semantic similarity</strong>, domain knowledge coverage</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>AES Techniques</h3>
+          <div class="chip-row">
+            <span class="chip" style="color:var(--c1);border-color:var(--c1m);background:var(--c1b)">ML Regression Models</span>
+            <span class="chip" style="color:var(--c2);border-color:var(--c2m);background:var(--c2b)">ML Classification Models</span>
+            <span class="chip" style="color:var(--c3);border-color:var(--c3m);background:var(--c3b)">Ontology-Based Models</span>
+            <span class="chip" style="color:var(--c5);border-color:var(--c5m);background:var(--c5b)">Deep Learning / Neural Networks</span>
+          </div>
+
+          <h3>AES Challenges</h3>
+          <ul>
+            <li><strong>No model answer:</strong> Unlike SAG, there's nothing to compare against — the model must judge quality holistically.</li>
+            <li><strong>Lack of annotated datasets:</strong> Hard to get large amounts of human-graded essays.</li>
+            <li><strong>Evaluation biases:</strong> Even human graders disagree on essay scores.</li>
+            <li><strong>Plagiarism:</strong> Students might copy text that "looks good" to the model but isn't original work.</li>
+          </ul>
+
+          <h3>Evaluation Metrics</h3>
+          <p>Same as SAG: Quadratic Weighted Kappa, Mean Absolute Error, Pearson Correlation Coefficient.</p>
+        </div>
+
+        <div class="lang-content" data-sec="s12" lang="ar">
+          <p><span class="ar-term">Automated Essay Scoring (AES)</span> نظام بيقيّم المقالات تلقائياً عن طريق استخراج features متعددة من النص.</p>
+          <p>الفرق عن SAG: هنا <strong>مفيش إجابة نموذجية</strong> نقارن بيها — الـ model لازم يحكم على جودة المقالة لوحده.</p>
+
+          <h3>أنواع الـ Features</h3>
+          <ul>
+            <li><strong>Statistical:</strong> طول المقالة، عدد الجمل، عدد الكلمات، أخطاء الإملاء</li>
+            <li><strong>Style-Based:</strong> اختيار الكلمات، بنية الجمل، علامات الترقيم، أجزاء الكلام (أسماء، أفعال، صفات)</li>
+            <li><strong>Content-Based:</strong> التماسك، الاتساق، الصلة بالموضوع، <strong>semantic similarity</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 13 ════════════════ -->
+  <div class="section" id="s13">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c2b);color:var(--c2)">13</div>
+        <div class="section-title"><h2>Question Answering (QA) Systems</h2><p>The three-module pipeline for automatic QA</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <div class="lang-tabs">
+          <button class="lang-tab active" onclick="switchLang(this,'en','s13')">English</button>
+          <button class="lang-tab" onclick="switchLang(this,'ar','s13')">Arabic</button>
+        </div>
+        <div class="lang-content active" data-sec="s13" lang="en">
+          <p>A <span class="term">Question Answering (QA)</span> system takes a natural language question and automatically finds or generates an answer from a knowledge source. Think Google, Siri, Alexa — all are QA systems.</p>
+
+          <h3>Three-Module Architecture</h3>
+
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">1</div>
+              <div class="step-body">
+                <h4>Module 1 — Question Analysis</h4>
+                <p>The incoming question goes through: <strong>Preprocessing</strong> → <strong>Syntactic &amp; Semantic Analysis</strong> → <strong>Question Classification</strong> (What type of answer is expected? A person? A place? A date?) → <strong>Answer Type Recognition</strong> → <strong>Focus &amp; Intent Recognition</strong> (What exactly is the user asking for?)</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">2</div>
+              <div class="step-body">
+                <h4>Module 2 — Passage Retrieval</h4>
+                <p>From a large Document Corpus + Knowledge Base → <strong>Indexing</strong> → <strong>Candidate Document Retrieval</strong> → <strong>Candidate Passage Extraction</strong> → <strong>Candidate Passage Ranking</strong>. The goal: find the paragraphs most likely to contain the answer.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">3</div>
+              <div class="step-body">
+                <h4>Module 3 — Answer Extraction</h4>
+                <p>From the retrieved passages: <strong>Candidate Answers Extraction</strong> → <strong>Candidate Answers Ranking</strong> → <strong>Answer Generation</strong> → <strong>Answer Validation</strong>. The final output is the best answer.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="box box-info">
+            <div class="box-title">How Sentence Embedding Helps Here</div>
+            <p>Sentence embeddings power the <strong>Passage Retrieval</strong> step — by embedding both the question and candidate passages, the system can rank passages by semantic similarity (not just keyword matching). This is the foundation of modern retrieval-augmented generation (RAG) systems used in AI today.</p>
+          </div>
+        </div>
+
+        <div class="lang-content" data-sec="s13" lang="ar">
+          <p><span class="ar-term">Question Answering (QA)</span> نظام بياخد سؤال طبيعي ويرد عليه تلقائياً من مصدر معرفة. زي Google أو Siri.</p>
+
+          <h3>المكونات الـ 3</h3>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">1</div>
+              <div class="step-body">
+                <h4>تحليل السؤال (Question Analysis)</h4>
+                <p>Preprocessing → تحليل نحوي ودلالي → تصنيف السؤال (هل الإجابة شخص؟ مكان؟ تاريخ؟) → التعرف على نوع الإجابة وهدف السؤال</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">2</div>
+              <div class="step-body">
+                <h4>استرجاع الفقرات (Passage Retrieval)</h4>
+                <p>من Corpus الوثائق → Indexing → استرجاع الوثائق المرشحة → استخراج الفقرات → ترتيبها حسب الصلة</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="background:var(--c2b);color:var(--c2)">3</div>
+              <div class="step-body">
+                <h4>استخراج الإجابة (Answer Extraction)</h4>
+                <p>استخراج إجابات مرشحة → ترتيبها → توليد الإجابة → التحقق منها</p>
+              </div>
+            </div>
+          </div>
+          <div class="box box-info">
+            <div class="box-title">دور الـ Sentence Embedding</div>
+            الـ sentence embeddings بتساعد في الـ Passage Retrieval — بنحوّل السؤال والفقرات لـ vectors ونرتبهم حسب الـ cosine similarity. ده أساس أنظمة الـ RAG الحديثة.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ SECTION 14 — INTERVIEW ════════════════ -->
+  <div class="section" id="s14">
+    <div class="section-card">
+      <div class="section-header" onclick="toggleSection(this)">
+        <div class="section-icon" style="background:var(--c5b);color:var(--c5)">14</div>
+        <div class="section-title"><h2>Interview &amp; HR Questions</h2><p>Technical + behavioral questions to prepare</p></div>
+        <span class="section-toggle open">&#9660;</span>
+      </div>
+      <div class="section-body open">
+        <h3 style="color:var(--c1);margin-bottom:16px">Technical Interview Questions</h3>
+        <div class="qa-list">
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">What is sentence embedding and how does it differ from word embedding? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>Word embeddings (like Word2Vec) produce one vector per word. Sentence embeddings produce one vector for an entire sentence, capturing not just individual word meanings but their combination and order. Methods range from naive CBOW averaging (sum/avg of word vectors) to sophisticated approaches like Skip-Thought, Sent2Vec, and BERT-based sentence encoders (SBERT).</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">Why does CBOW fail for sentence representation? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>CBOW ignores word order. "Dog bites man" and "Man bites dog" produce identical CBOW vectors since they contain the same words. These sentences have opposite meanings, so any system relying on CBOW would treat them as equivalent. CBOW also loses contextual relationships between words in a sentence.</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">Explain the vanishing gradient problem in RNNs and how LSTM solves it. <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>During backpropagation through time (BPTT), gradients are multiplied at each time step. If these values are less than 1, repeated multiplication causes them to shrink exponentially — effectively reaching zero for steps far back in the sequence. The network can no longer learn from early inputs. LSTM solves this by adding a cell state (a direct "highway" for gradient flow) and a forget gate that can learn to preserve gradients unchanged, allowing gradients to flow unchanged across many time steps.</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">What is the training objective of Skip-Thought Vectors? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>Skip-Thought uses an encoder-decoder architecture. The encoder converts a sentence S(i) into a fixed vector h(i). Two decoders then attempt to reconstruct the previous sentence S(i-1) and the next sentence S(i+1) from h(i). The model is trained to minimize reconstruction error. This forces h(i) to capture the full semantic content of the sentence, since it must encode enough information to reconstruct both surrounding sentences.</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">How does Short Answer Grading work as an NLP problem? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>SAG is fundamentally a text similarity problem. Both the student's answer and the model answer are converted to sentence embeddings. A similarity score (e.g., cosine similarity) is computed between the vectors. This similarity value is then normalized/scaled to a grading range and optionally fed into an ML classifier to predict the final grade. The key insight: we want semantic similarity, not just word overlap — "automobile" and "car" should match even though they're different words.</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">What's the difference between String-Based and Semantic-Based text similarity? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>String-based similarity compares texts at the surface level — counting character edits (Levenshtein) or overlapping words (Jaccard, TF-IDF). It requires texts to share actual characters/words to be considered similar. Semantic-based similarity compares meaning — two sentences with no words in common can still score high similarity if their embeddings point in the same direction in vector space. "The child is running" and "The kid is sprinting" might have zero word overlap but very high semantic similarity.</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">What is an n-gram and how does Sent2Vec use it? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>An n-gram is a contiguous sequence of n words. Unigrams are individual words; bigrams are pairs of consecutive words (e.g., "machine learning", "natural language"); trigrams are triples. Sent2Vec composes sentence embeddings from both unigram word vectors AND n-gram embeddings. Including bigrams lets the model capture short phrases as units, giving better representations than word-only approaches.</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">What are the three modules of a QA system? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>1. <strong>Question Analysis</strong>: Preprocesses the question, performs syntactic/semantic analysis, classifies the question type, and determines what kind of answer is expected (person, place, date, etc.). 2. <strong>Passage Retrieval</strong>: Searches a document corpus, retrieves candidate documents, extracts relevant passages, and ranks them. 3. <strong>Answer Extraction</strong>: From ranked passages, extracts candidate answers, ranks them, generates the final answer text, and validates it.</p></div>
+          </div>
+        </div>
+
+        <h3 style="color:var(--c3);margin:28px 0 16px">Behavioral / HR Questions</h3>
+        <div class="qa-list">
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">How would you explain sentence embeddings to a non-technical stakeholder? <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>I'd say: "Imagine every sentence gets a GPS coordinate — a set of numbers that pinpoints its meaning in space. Sentences that mean similar things get similar coordinates. Once sentences are turned into these coordinates, a computer can mathematically compare them, even if they use completely different words. This is what allows our system to understand that a student who wrote 'tiny aquatic microorganisms carried by currents' understood the same concept as the model answer about plankton."</p></div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-q" onclick="toggleQA(this)">Describe a real-world application where sentence embeddings provide clear business value. <span class="arrow">&#9660;</span></div>
+            <div class="qa-a"><p>Customer support automation: Rather than keyword matching, a company can embed both customer messages and their resolved support ticket database. New messages are embedded and matched to the most semantically similar past ticket, surfacing the correct resolution instantly. This reduces ticket handling time and improves consistency. Sentence embeddings enable true semantic search — "my app keeps crashing" matches "application instability" even without shared words.</p></div>
+          </div>
+        </div>
+
+        <div class="memorize" style="margin-top:24px">
+          <div class="memorize-title">Quick Summary</div>
+          <ul>
+            <li>Sentence embedding = converting a full sentence to a vector of numbers that captures its meaning</li>
+            <li>CBOW (sum/avg word vectors) ignores word order — "dog bites man" == "man bites dog"</li>
+            <li>RNN processes sequences step-by-step, maintains a hidden state (memory)</li>
+            <li>LSTM solves vanishing gradients with 3 gates: Input, Forget, Output + a cell state</li>
+            <li>Skip-Thought learns sentence meaning by predicting surrounding sentences (encoder-decoder)</li>
+            <li>Sent2Vec extends CBOW to sentence level using word + n-gram vectors</li>
+            <li>SAG = text similarity between student answer and model answer → grade</li>
+            <li>Text similarity: String-Based (surface) vs Semantic-Based (meaning/embeddings)</li>
+            <li>AES grades essays using Statistical, Style-Based, and Content-Based features</li>
+            <li>QA systems: Question Analysis → Passage Retrieval → Answer Extraction</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// Progress bar
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const prog = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  document.getElementById('progress-bar').style.width = prog + '%';
+});
+
+// Section toggle
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.section-toggle');
+  body.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+
+// Language switcher
+function switchLang(btn, lang, sec) {
+  const tabs = btn.parentElement.querySelectorAll('.lang-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const contents = btn.closest('.section-body').querySelectorAll('.lang-content');
+  contents.forEach(c => {
+    c.classList.remove('active');
+    if (c.getAttribute('lang') === lang) c.classList.add('active');
+  });
+}
+
+// QA accordion
+function toggleQA(q) {
+  const a = q.nextElementSibling;
+  q.classList.toggle('open');
+  a.classList.toggle('open');
+}
+
+// Scroll to section
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// Active sidebar link
+const sections = document.querySelectorAll('.section');
+const links = document.querySelectorAll('.toc-link');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc-link[onclick="scrollTo('${id}')"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

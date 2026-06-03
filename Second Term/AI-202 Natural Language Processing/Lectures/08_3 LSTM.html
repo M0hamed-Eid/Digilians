@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSTM Study Guide — بيلنغوال</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e29;
+    --border: #252a38;
+    --text: #e2e6f0;
+    --text-muted: #7a849a;
+    --text-dim: #4a5268;
+
+    --a1: #64d4b8; --a1-bg: #0e2e27; --a1-mid: #1a4a3d;
+    --a2: #7eb8f7; --a2-bg: #0e1f35; --a2-mid: #1a3250;
+    --a3: #c084fc; --a3-bg: #1e1030; --a3-mid: #301848;
+    --a4: #f9a74b; --a4-bg: #2d1c08; --a4-mid: #4a2e0e;
+    --a5: #f76c7c; --a5-bg: #2d0e14; --a5-mid: #4a1820;
+    --a6: #a3e635; --a6-bg: #1a2a08; --a6-mid: #2a420e;
+
+    --font-main: 'Sora', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-ar: 'Noto Naskh Arabic', serif;
+    --r: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-main);
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    background: linear-gradient(135deg, #0d0f14 0%, #161c2e 40%, #1a1030 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 70% 50%, rgba(100,212,184,.08) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 60% at 20% 80%, rgba(126,184,247,.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--a1);
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    margin-bottom: .6rem;
+  }
+  .header h1 {
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 700;
+    background: linear-gradient(120deg, var(--a1), var(--a2), var(--a3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    margin-bottom: .5rem;
+  }
+  .header-sub {
+    color: var(--text-muted);
+    font-size: .95rem;
+    font-family: var(--font-ar);
+    direction: rtl;
+  }
+
+  /* ─── TOC ─── */
+  .toc {
+    padding: 1.2rem 2rem;
+    display: flex; flex-wrap: wrap; gap: .5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .toc-chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: .28rem .75rem;
+    border-radius: 99px;
+    cursor: pointer;
+    border: 1px solid;
+    transition: all .2s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .toc-chip:nth-child(1) { color: var(--a1); border-color: var(--a1-mid); background: var(--a1-bg); }
+  .toc-chip:nth-child(2) { color: var(--a2); border-color: var(--a2-mid); background: var(--a2-bg); }
+  .toc-chip:nth-child(3) { color: var(--a3); border-color: var(--a3-mid); background: var(--a3-bg); }
+  .toc-chip:nth-child(4) { color: var(--a4); border-color: var(--a4-mid); background: var(--a4-bg); }
+  .toc-chip:nth-child(5) { color: var(--a5); border-color: var(--a5-mid); background: var(--a5-bg); }
+  .toc-chip:nth-child(6) { color: var(--a6); border-color: var(--a6-mid); background: var(--a6-bg); }
+  .toc-chip:hover { transform: translateY(-1px); filter: brightness(1.2); }
+
+  /* ─── MAIN LAYOUT ─── */
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+  /* ─── SECTION CARD ─── */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .section-card[data-accent="1"] { border-left: 4px solid var(--a1); }
+  .section-card[data-accent="2"] { border-left: 4px solid var(--a2); }
+  .section-card[data-accent="3"] { border-left: 4px solid var(--a3); }
+  .section-card[data-accent="4"] { border-left: 4px solid var(--a4); }
+  .section-card[data-accent="5"] { border-left: 4px solid var(--a5); }
+  .section-card[data-accent="6"] { border-left: 4px solid var(--a6); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+  }
+  .section-header:hover { background: var(--surface2); }
+
+  .icon-badge {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+  [data-accent="1"] .icon-badge { background: var(--a1-mid); color: var(--a1); }
+  [data-accent="2"] .icon-badge { background: var(--a2-mid); color: var(--a2); }
+  [data-accent="3"] .icon-badge { background: var(--a3-mid); color: var(--a3); }
+  [data-accent="4"] .icon-badge { background: var(--a4-mid); color: var(--a4); }
+  [data-accent="5"] .icon-badge { background: var(--a5-mid); color: var(--a5); }
+  [data-accent="6"] .icon-badge { background: var(--a6-mid); color: var(--a6); }
+
+  .section-title { font-size: 1rem; font-weight: 600; flex: 1; }
+  .toggle-btn { color: var(--text-muted); font-size: 1.2rem; transition: transform .3s; }
+  .section-card.collapsed .toggle-btn { transform: rotate(-90deg); }
+  .section-body { padding: 1.4rem; }
+  .section-card.collapsed .section-body { display: none; }
+
+  /* ─── LANG TABS ─── */
+  .lang-tabs { display: flex; gap: .4rem; margin-bottom: 1.2rem; }
+  .lang-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: .3rem .8rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .lang-btn.active { background: var(--surface2); color: var(--text); border-color: var(--text-dim); }
+
+  .lang-en { display: block; }
+  .lang-ar { display: none; direction: rtl; font-family: var(--font-ar); font-size: 1.05rem; line-height: 2; }
+
+  /* ─── BOXES ─── */
+  .box {
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    margin: 1.1rem 0;
+    border-left: 3px solid;
+  }
+  .box-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: .4rem;
+    display: block;
+  }
+
+  .analogy  { background: var(--a4-bg); border-color: var(--a4); }
+  .analogy .box-label { color: var(--a4); }
+
+  .example  { background: var(--a2-bg); border-color: var(--a2); }
+  .example .box-label { color: var(--a2); }
+
+  .summary  { background: var(--a1-bg); border-color: var(--a1); }
+  .summary .box-label { color: var(--a1); }
+
+  .warning  { background: var(--a5-bg); border-color: var(--a5); }
+  .warning .box-label { color: var(--a5); }
+
+  /* ─── INLINE ─── */
+  .term { color: var(--a3); font-weight: 600; }
+  .highlight { background: var(--a4-bg); color: var(--a4); padding: 1px 5px; border-radius: 4px; }
+  .code-inline { font-family: var(--font-mono); background: var(--surface2); color: var(--a6); padding: 1px 6px; border-radius: 4px; font-size: .88em; }
+
+  /* ─── LISTS ─── */
+  ul, ol { padding-left: 1.4rem; margin: .6rem 0; }
+  li { margin: .3rem 0; }
+  [dir="rtl"] ul, [dir="rtl"] ol { padding-left: 0; padding-right: 1.4rem; }
+
+  p { margin: .6rem 0; }
+
+  /* ─── SVG DIAGRAMS ─── */
+  .diagram-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin: 1.1rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .diagram-wrap svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: .6rem;
+    text-align: center;
+  }
+
+  /* ─── TABLE ─── */
+  .compare-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .9rem; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--a2-mid), var(--a3-mid));
+    color: var(--text);
+    padding: .6rem .9rem;
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+  }
+  .compare-table td { padding: .55rem .9rem; border-bottom: 1px solid var(--border); }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:hover td { background: var(--surface2); }
+
+  h3 { font-size: .95rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin: 1.2rem 0 .4rem; font-family: var(--font-mono); }
+  h4 { font-size: 1rem; font-weight: 600; margin: .8rem 0 .3rem; }
+
+  .math {
+    font-family: var(--font-mono);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: .6rem 1rem;
+    margin: .6rem 0;
+    color: var(--a6);
+    font-size: .92rem;
+    overflow-x: auto;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-label">NLP Deep Dive • Lecture 08</div>
+  <h1>Long Short-Term Memory<br>دليل دراسي شامل</h1>
+  <div class="header-sub">شرح مبسط بالعربي والإنجليزي — مع أمثلة ورسوم توضيحية</div>
+</div>
+
+<!-- TOC -->
+<nav class="toc">
+  <a class="toc-chip" href="#s1">1. What is LSTM?</a>
+  <a class="toc-chip" href="#s2">2. The Gates</a>
+  <a class="toc-chip" href="#s3">3. The Math</a>
+  <a class="toc-chip" href="#s4">4. Worked Example</a>
+  <a class="toc-chip" href="#s5">5. Full Network</a>
+  <a class="toc-chip" href="#s6">6. Why LSTM Wins</a>
+</nav>
+
+<div class="container">
+
+<!-- ══════════ SECTION 1 ══════════ -->
+<div class="section-card" data-accent="1" id="s1">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="icon-badge">&#9632;</div>
+    <div class="section-title">1 — What is LSTM?</div>
+    <div class="toggle-btn">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-btn active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-btn" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-en">
+      <p>Normal neural networks process one input and forget everything before. <span class="term">Recurrent Neural Networks (RNNs)</span> tried to fix this by keeping a "memory" from previous steps — but they had trouble remembering things that happened <em>far back</em> in the sequence (this is called the <span class="term">vanishing gradient problem</span>).</p>
+      <p><span class="term">LSTM (Long Short-Term Memory)</span> solves this by using a special neuron with an internal <span class="highlight">memory cell</span> and three "gates" that control what gets stored, what gets forgotten, and what gets output.</p>
+
+      <div class="analogy">
+        <span class="box-label">Analogy</span>
+        Think of LSTM like a notepad with a selective editor. As you read a book, you can choose which facts to write down, which old facts to erase, and which facts to look at when you need to answer a question. You don't rewrite everything on every page — only what matters.
+      </div>
+
+      <h3>Key Idea</h3>
+      <ul>
+        <li>An LSTM neuron has <span class="highlight">4 inputs</span> and <span class="highlight">1 output</span></li>
+        <li>It holds a persistent <span class="term">cell state</span> <span class="code-inline">c</span> that can carry information across many time steps</li>
+        <li>Three sigmoid gates control information flow: <span class="term">Input Gate</span>, <span class="term">Forget Gate</span>, <span class="term">Output Gate</span></li>
+      </ul>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="12">
+          <!-- cell block -->
+          <rect x="160" y="30" width="240" height="180" rx="10" fill="#1a1e29" stroke="#252a38" stroke-width="1.5"/>
+          <text x="280" y="225" fill="#4a5268" text-anchor="middle" font-size="10">LSTM Block</text>
+          <!-- memory cell circle -->
+          <circle cx="280" cy="120" r="30" fill="#0e2e27" stroke="#64d4b8" stroke-width="2"/>
+          <text x="280" y="115" fill="#64d4b8" text-anchor="middle" font-size="11">Memory</text>
+          <text x="280" y="130" fill="#64d4b8" text-anchor="middle" font-size="11">Cell</text>
+          <!-- input gate label -->
+          <text x="195" y="175" fill="#7eb8f7" text-anchor="middle" font-size="10">Input Gate</text>
+          <rect x="168" y="155" width="54" height="20" rx="4" fill="#0e1f35" stroke="#7eb8f7" stroke-width="1"/>
+          <text x="195" y="169" fill="#7eb8f7" text-anchor="middle" font-size="10">f(zi)</text>
+          <!-- forget gate label -->
+          <text x="370" y="125" fill="#f9a74b" text-anchor="middle" font-size="10">Forget</text>
+          <text x="370" y="138" fill="#f9a74b" text-anchor="middle" font-size="10">Gate</text>
+          <rect x="343" y="108" width="54" height="20" rx="4" fill="#2d1c08" stroke="#f9a74b" stroke-width="1"/>
+          <text x="370" y="122" fill="#f9a74b" text-anchor="middle" font-size="10">f(zf)</text>
+          <!-- output gate label -->
+          <text x="195" y="65" fill="#c084fc" text-anchor="middle" font-size="10">Output Gate</text>
+          <rect x="168" y="45" width="54" height="20" rx="4" fill="#1e1030" stroke="#c084fc" stroke-width="1"/>
+          <text x="195" y="59" fill="#c084fc" text-anchor="middle" font-size="10">f(zo)</text>
+          <!-- arrows input -->
+          <line x1="60" y1="165" x2="168" y2="165" stroke="#7eb8f7" stroke-width="1.5" marker-end="url(#arr-b)"/>
+          <text x="50" y="165" fill="#7eb8f7" text-anchor="end" font-size="11">zi</text>
+          <line x1="60" y1="120" x2="160" y2="120" stroke="#64d4b8" stroke-width="1.5" marker-end="url(#arr-g)"/>
+          <text x="50" y="120" fill="#64d4b8" text-anchor="end" font-size="11">z</text>
+          <line x1="60" y1="55" x2="168" y2="55" stroke="#c084fc" stroke-width="1.5" marker-end="url(#arr-p)"/>
+          <text x="50" y="55" fill="#c084fc" text-anchor="end" font-size="11">zo</text>
+          <line x1="500" y1="120" x2="400" y2="120" stroke="#f9a74b" stroke-width="1.5" marker-end="url(#arr-o)"/>
+          <text x="510" y="120" fill="#f9a74b" font-size="11">zf</text>
+          <!-- output arrow -->
+          <line x1="280" y1="30" x2="280" y2="10" stroke="#e2e6f0" stroke-width="1.5" marker-end="url(#arr-w)"/>
+          <text x="290" y="8" fill="#e2e6f0" font-size="11">a (output)</text>
+          <defs>
+            <marker id="arr-b" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7eb8f7"/></marker>
+            <marker id="arr-g" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64d4b8"/></marker>
+            <marker id="arr-p" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c084fc"/></marker>
+            <marker id="arr-o" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f9a74b"/></marker>
+            <marker id="arr-w" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e2e6f0"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">Fig 1 — LSTM cell with 4 inputs (z, zi, zf, zo) and 1 output (a)</div>
+      </div>
+
+      <div class="summary">
+        <span class="box-label">Summary</span>
+        LSTM is a special RNN unit with a built-in memory cell and three gates. Instead of forgetting everything between time steps, it selectively remembers and forgets — making it powerful for sequences like text, speech, and time series.
+      </div>
+    </div>
+
+    <div class="lang-ar">
+      <p>الشبكات العصبية العادية بتعالج كل input لوحده وبتنسى كل اللي قبله. الـ <span class="term">RNN</span> حاولت تحل المشكلة دي بإنها تحتفظ بـ"ذاكرة" من الخطوات السابقة — بس كانت بتنسى الأحداث اللي حصلت <em>بعيد</em> في التسلسل (وده اسمه مشكلة الـ <span class="term">vanishing gradient</span>).</p>
+      <p>الـ <span class="term">LSTM</span> حل المشكلة دي بخلية عصبية خاصة فيها <span class="highlight">memory cell</span> و3 بوابات (gates) بتتحكم في المعلومات.</p>
+      <div class="analogy">
+        <span class="box-label">تشبيه</span>
+        تخيل الـ LSTM زي دفتر ملاحظات ذكي: وأنت بتقرأ كتاب، بتختار إيه تكتبه، إيه تمسحه، وإيه تبص عليه لما تحتاج تجاوب سؤال. مش بتعيد كتابة كل حاجة في كل صفحة.
+      </div>
+      <ul>
+        <li>الـ LSTM عنده <span class="highlight">4 inputs</span> و<span class="highlight">output واحد</span></li>
+        <li>بيحتفظ بـ <span class="term">cell state</span> <span class="code-inline">c</span> بيعدي معلومات عبر الوقت</li>
+        <li>3 gates بتتحكم في المعلومات: <span class="term">Input Gate</span>، <span class="term">Forget Gate</span>، <span class="term">Output Gate</span></li>
+      </ul>
+      <div class="summary">
+        <span class="box-label">ملخص</span>
+        الـ LSTM هو وحدة RNN خاصة فيها ذاكرة داخلية و3 بوابات. بدل ما تنسى كل حاجة، بتختار إيه تتذكر وإيه تنسى — وده بيخليها قوية جداً في معالجة النصوص والكلام والسلاسل الزمنية.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 2 ══════════ -->
+<div class="section-card" data-accent="2" id="s2">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="icon-badge">&#9650;</div>
+    <div class="section-title">2 — The Three Gates</div>
+    <div class="toggle-btn">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-btn active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-btn" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-en">
+      <p>Each gate uses a <span class="term">sigmoid activation function</span> — which outputs a value between 0 and 1. Think of this as a "valve": 0 means fully closed (block everything), 1 means fully open (let everything through).</p>
+
+      <table class="compare-table">
+        <tr><th>Gate</th><th>Signal</th><th>What It Controls</th><th>Effect</th></tr>
+        <tr><td><span style="color:var(--a2)">Input Gate</span></td><td><span class="code-inline">f(zi)</span></td><td>How much new info enters the cell</td><td>0 = block input, 1 = accept input</td></tr>
+        <tr><td><span style="color:var(--a4)">Forget Gate</span></td><td><span class="code-inline">f(zf)</span></td><td>How much old memory is kept</td><td>0 = erase memory, 1 = keep memory</td></tr>
+        <tr><td><span style="color:var(--a3)">Output Gate</span></td><td><span class="code-inline">f(zo)</span></td><td>How much cell state to expose as output</td><td>0 = silent, 1 = full output</td></tr>
+      </table>
+
+      <h3>Why Sigmoid?</h3>
+      <p>The sigmoid function maps any value to <span class="highlight">(0, 1)</span>. This "soft" on/off is differentiable — meaning the network can learn the gate weights by backpropagation. A hard 0/1 switch wouldn't allow gradient-based training.</p>
+
+      <div class="analogy">
+        <span class="box-label">Analogy</span>
+        Think of the three gates as three security guards at a data center.<br>
+        — The <strong>input guard</strong> decides whether new data trucks are allowed in.<br>
+        — The <strong>forget guard</strong> decides whether old data stored inside stays or gets wiped.<br>
+        — The <strong>output guard</strong> decides which data is shared with the outside world.
+      </div>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="11">
+          <!-- timeline bar -->
+          <rect x="40" y="90" width="480" height="20" rx="4" fill="#1a1e29" stroke="#252a38"/>
+          <text x="280" y="105" fill="#4a5268" text-anchor="middle" font-size="10">cell state c flows through time ────────────────────────────────</text>
+
+          <!-- forget gate -->
+          <rect x="80" y="50" width="80" height="30" rx="6" fill="#2d1c08" stroke="#f9a74b" stroke-width="1.5"/>
+          <text x="120" y="70" fill="#f9a74b" text-anchor="middle">Forget</text>
+          <line x1="120" y1="80" x2="120" y2="90" stroke="#f9a74b" stroke-width="1.5"/>
+          <text x="120" y="45" fill="#7a849a" text-anchor="middle">erase or keep?</text>
+
+          <!-- input gate -->
+          <rect x="220" y="50" width="80" height="30" rx="6" fill="#0e1f35" stroke="#7eb8f7" stroke-width="1.5"/>
+          <text x="260" y="70" fill="#7eb8f7" text-anchor="middle">Input</text>
+          <line x1="260" y1="80" x2="260" y2="90" stroke="#7eb8f7" stroke-width="1.5"/>
+          <text x="260" y="45" fill="#7a849a" text-anchor="middle">add new info?</text>
+
+          <!-- output gate -->
+          <rect x="360" y="50" width="80" height="30" rx="6" fill="#1e1030" stroke="#c084fc" stroke-width="1.5"/>
+          <text x="400" y="70" fill="#c084fc" text-anchor="middle">Output</text>
+          <line x1="400" y1="80" x2="400" y2="90" stroke="#c084fc" stroke-width="1.5"/>
+          <text x="400" y="45" fill="#7a849a" text-anchor="middle">expose to next?</text>
+
+          <!-- sigma symbols -->
+          <text x="120" y="155" fill="#f9a74b" text-anchor="middle" font-size="18">σ</text>
+          <text x="260" y="155" fill="#7eb8f7" text-anchor="middle" font-size="18">σ</text>
+          <text x="400" y="155" fill="#c084fc" text-anchor="middle" font-size="18">σ</text>
+          <text x="120" y="175" fill="#7a849a" text-anchor="middle" font-size="9">0 = close, 1 = open</text>
+          <text x="260" y="175" fill="#7a849a" text-anchor="middle" font-size="9">0 = close, 1 = open</text>
+          <text x="400" y="175" fill="#7a849a" text-anchor="middle" font-size="9">0 = close, 1 = open</text>
+          <line x1="120" y1="110" x2="120" y2="138" stroke="#f9a74b" stroke-width="1" stroke-dasharray="3"/>
+          <line x1="260" y1="110" x2="260" y2="138" stroke="#7eb8f7" stroke-width="1" stroke-dasharray="3"/>
+          <line x1="400" y1="110" x2="400" y2="138" stroke="#c084fc" stroke-width="1" stroke-dasharray="3"/>
+        </svg>
+        <div class="diagram-caption">Fig 2 — Three gates controlling the cell state stream</div>
+      </div>
+
+      <div class="summary">
+        <span class="box-label">Summary</span>
+        The three sigmoid gates are the heart of LSTM. They turn information flow on/off smoothly (not hard switches), so the network can learn — via backpropagation — exactly when to remember, forget, and output.
+      </div>
+    </div>
+
+    <div class="lang-ar">
+      <p>كل gate بيستخدم <span class="term">sigmoid activation function</span> — اللي بتطلع قيمة بين 0 و1. فكر فيها زي "صمام": 0 يعني مقفول تماماً، 1 يعني مفتوح تماماً.</p>
+      <table class="compare-table">
+        <tr><th>Gate</th><th>وظيفتها</th><th>التأثير</th></tr>
+        <tr><td><span style="color:var(--a2)">Input Gate</span></td><td>بتتحكم إزاي المعلومات الجديدة تدخل</td><td>0 = امنع، 1 = اسمح</td></tr>
+        <tr><td><span style="color:var(--a4)">Forget Gate</span></td><td>بتتحكم كام من الذاكرة القديمة يتحفظ</td><td>0 = امسح، 1 = احتفظ</td></tr>
+        <tr><td><span style="color:var(--a3)">Output Gate</span></td><td>بتتحكم كام من الـ cell state يطلع كـ output</td><td>0 = صامت، 1 = طلّع كل حاجة</td></tr>
+      </table>
+      <div class="analogy">
+        <span class="box-label">تشبيه</span>
+        فكر في الـ3 gates كأنهم 3 حراس أمن في مركز بيانات:<br>
+        — <strong>حارس الـ Input</strong>: يقرر هل تدخل بيانات جديدة؟<br>
+        — <strong>حارس الـ Forget</strong>: يقرر هل البيانات القديمة تتمسح؟<br>
+        — <strong>حارس الـ Output</strong>: يقرر أيه اللي يطلع للعالم برا؟
+      </div>
+      <div class="summary">
+        <span class="box-label">ملخص</span>
+        الـ3 gates هم قلب الـ LSTM. بيتحكموا في تدفق المعلومات بطريقة سلسة (مش on/off حاد)، عشان الشبكة تقدر تتعلم إمتى تتذكر وإمتى تنسى وإمتى تطلع المعلومة.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 3 ══════════ -->
+<div class="section-card" data-accent="3" id="s3">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="icon-badge">&#8721;</div>
+    <div class="section-title">3 — The Math Step by Step</div>
+    <div class="toggle-btn">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-btn active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-btn" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-en">
+      <p>There are two key equations inside every LSTM cell. Let's break them down one by one.</p>
+
+      <h4>Step 1 — Update the Cell State</h4>
+      <div class="math">c' = g(z) · f(zi) + c · f(zf)</div>
+      <ul>
+        <li><span class="code-inline">g(z)</span> — the new candidate value (processed through a tanh-like activation <span class="code-inline">g</span>)</li>
+        <li><span class="code-inline">f(zi)</span> — input gate: how much of the new value to let in (0–1)</li>
+        <li><span class="code-inline">c</span> — the previous cell state (old memory)</li>
+        <li><span class="code-inline">f(zf)</span> — forget gate: how much of the old memory to keep (0–1)</li>
+        <li>The result <span class="code-inline">c'</span> is the new cell state — a blend of new info and old memory</li>
+      </ul>
+
+      <h4>Step 2 — Compute the Output</h4>
+      <div class="math">a = h(c') · f(zo)</div>
+      <ul>
+        <li><span class="code-inline">h(c')</span> — the new cell state passed through activation function <span class="code-inline">h</span></li>
+        <li><span class="code-inline">f(zo)</span> — output gate: how much of the cell state to expose as output</li>
+        <li><span class="code-inline">a</span> — the final output of the LSTM cell at this time step</li>
+      </ul>
+
+      <div class="example">
+        <span class="box-label">Concrete Example</span>
+        Suppose <span class="code-inline">f(zi) = 1</span> (input fully open), <span class="code-inline">f(zf) = 1</span> (nothing erased), <span class="code-inline">g(z) = 3</span>, and old memory <span class="code-inline">c = 0</span>.<br>
+        Then: <span class="code-inline">c' = 3 · 1 + 0 · 1 = 3</span><br>
+        If <span class="code-inline">f(zo) = 0</span> (output closed), then <span class="code-inline">a = h(3) · 0 = 0</span>. The value 3 is stored but not shown yet.
+      </div>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 580 180" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="11">
+          <!-- flow left to right: g(z)xf(zi) + c*f(zf) -> c' -> h -> x f(zo) -> a -->
+          <!-- g(z) -->
+          <rect x="20" y="70" width="60" height="28" rx="5" fill="#1a2a08" stroke="#a3e635" stroke-width="1.2"/>
+          <text x="50" y="88" fill="#a3e635" text-anchor="middle">g(z)</text>
+          <!-- multiply1 -->
+          <circle cx="130" cy="84" r="14" fill="#0e1f35" stroke="#7eb8f7" stroke-width="1.5"/>
+          <text x="130" y="89" fill="#7eb8f7" text-anchor="middle" font-size="14">×</text>
+          <line x1="80" y1="84" x2="116" y2="84" stroke="#a3e635" stroke-width="1.2" marker-end="url(#arrs)"/>
+          <!-- f(zi) -->
+          <rect x="100" y="120" width="60" height="22" rx="5" fill="#0e1f35" stroke="#7eb8f7" stroke-width="1.2"/>
+          <text x="130" y="135" fill="#7eb8f7" text-anchor="middle">f(zi)</text>
+          <line x1="130" y1="120" x2="130" y2="98" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arrs2)"/>
+          <!-- plus -->
+          <circle cx="210" cy="84" r="14" fill="#1e1030" stroke="#c084fc" stroke-width="1.5"/>
+          <text x="210" y="89" fill="#c084fc" text-anchor="middle" font-size="16">+</text>
+          <line x1="144" y1="84" x2="196" y2="84" stroke="#7eb8f7" stroke-width="1.2" marker-end="url(#arrs3)"/>
+          <!-- c * f(zf) path -->
+          <rect x="180" y="120" width="60" height="22" rx="5" fill="#2d1c08" stroke="#f9a74b" stroke-width="1.2"/>
+          <text x="210" y="135" fill="#f9a74b" text-anchor="middle">c·f(zf)</text>
+          <line x1="210" y1="120" x2="210" y2="98" stroke="#f9a74b" stroke-width="1.2" marker-end="url(#arrs4)"/>
+          <!-- c' cell -->
+          <circle cx="290" cy="84" r="20" fill="#0e2e27" stroke="#64d4b8" stroke-width="2"/>
+          <text x="290" y="80" fill="#64d4b8" text-anchor="middle">c'</text>
+          <text x="290" y="93" fill="#64d4b8" text-anchor="middle" font-size="9">new cell</text>
+          <line x1="224" y1="84" x2="270" y2="84" stroke="#c084fc" stroke-width="1.2" marker-end="url(#arrs5)"/>
+          <!-- h activation -->
+          <rect x="330" y="70" width="50" height="28" rx="5" fill="#1a1e29" stroke="#252a38" stroke-width="1.2"/>
+          <text x="355" y="88" fill="#e2e6f0" text-anchor="middle">h(c')</text>
+          <line x1="310" y1="84" x2="330" y2="84" stroke="#64d4b8" stroke-width="1.2" marker-end="url(#arrs6)"/>
+          <!-- multiply2 -->
+          <circle cx="440" cy="84" r="14" fill="#1e1030" stroke="#c084fc" stroke-width="1.5"/>
+          <text x="440" y="89" fill="#c084fc" text-anchor="middle" font-size="14">×</text>
+          <line x1="380" y1="84" x2="426" y2="84" stroke="#e2e6f0" stroke-width="1.2" marker-end="url(#arrs7)"/>
+          <!-- f(zo) -->
+          <rect x="410" y="120" width="60" height="22" rx="5" fill="#1e1030" stroke="#c084fc" stroke-width="1.2"/>
+          <text x="440" y="135" fill="#c084fc" text-anchor="middle">f(zo)</text>
+          <line x1="440" y1="120" x2="440" y2="98" stroke="#c084fc" stroke-width="1.2" marker-end="url(#arrs8)"/>
+          <!-- a output -->
+          <rect x="490" y="70" width="60" height="28" rx="5" fill="#2d0e14" stroke="#f76c7c" stroke-width="1.5"/>
+          <text x="520" y="88" fill="#f76c7c" text-anchor="middle">a (out)</text>
+          <line x1="454" y1="84" x2="490" y2="84" stroke="#c084fc" stroke-width="1.2" marker-end="url(#arrs9)"/>
+          <!-- equation label -->
+          <text x="290" y="165" fill="#4a5268" text-anchor="middle" font-size="10">c' = g(z)·f(zi) + c·f(zf)     a = h(c')·f(zo)</text>
+          <defs>
+            <marker id="arrs" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a3e635"/></marker>
+            <marker id="arrs2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7eb8f7"/></marker>
+            <marker id="arrs3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7eb8f7"/></marker>
+            <marker id="arrs4" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f9a74b"/></marker>
+            <marker id="arrs5" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c084fc"/></marker>
+            <marker id="arrs6" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64d4b8"/></marker>
+            <marker id="arrs7" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e2e6f0"/></marker>
+            <marker id="arrs8" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c084fc"/></marker>
+            <marker id="arrs9" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c084fc"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">Fig 3 — Data flow inside one LSTM cell</div>
+      </div>
+
+      <div class="summary">
+        <span class="box-label">Summary</span>
+        Two equations run every time step: one updates the cell state (blending new info with old memory), and one computes the output (filtering the cell state through the output gate). Both are learned end-to-end by gradient descent.
+      </div>
+    </div>
+
+    <div class="lang-ar">
+      <p>في معادلتين أساسيتين جوه كل LSTM cell. خليني أشرحهم خطوة خطوة.</p>
+      <h4>الخطوة 1 — تحديث الـ Cell State</h4>
+      <div class="math">c' = g(z) · f(zi) + c · f(zf)</div>
+      <ul>
+        <li><span class="code-inline">g(z)</span> — القيمة الجديدة المقترحة (بتعدي على activation function)</li>
+        <li><span class="code-inline">f(zi)</span> — Input gate: كام من القيمة الجديدة يدخل (من 0 لـ 1)</li>
+        <li><span class="code-inline">c</span> — الذاكرة القديمة (cell state السابق)</li>
+        <li><span class="code-inline">f(zf)</span> — Forget gate: كام من الذاكرة القديمة يتحفظ (من 0 لـ 1)</li>
+        <li>النتيجة <span class="code-inline">c'</span> هي الـ cell state الجديد — مزيج من المعلومات الجديدة والقديمة</li>
+      </ul>
+      <h4>الخطوة 2 — حساب الـ Output</h4>
+      <div class="math">a = h(c') · f(zo)</div>
+      <ul>
+        <li><span class="code-inline">h(c')</span> — الـ cell state الجديد بعد ما يعدي على دالة تنشيط</li>
+        <li><span class="code-inline">f(zo)</span> — Output gate: كام منه يطلع كـ output</li>
+        <li><span class="code-inline">a</span> — الـ output النهائي للـ LSTM cell في هذه اللحظة</li>
+      </ul>
+      <div class="example">
+        <span class="box-label">مثال عملي</span>
+        لو <span class="code-inline">f(zi)=1</span> (مفتوح كامل)، <span class="code-inline">f(zf)=1</span> (مفيش مسح)، <span class="code-inline">g(z)=3</span>، والذاكرة القديمة <span class="code-inline">c=0</span>.<br>
+        إذن: <span class="code-inline">c' = 3×1 + 0×1 = 3</span><br>
+        لو <span class="code-inline">f(zo)=0</span> (Output مقفول)، إذن <span class="code-inline">a = h(3)×0 = 0</span>. القيمة 3 اتحفظت بس مش اتاخدت بعد.
+      </div>
+      <div class="summary">
+        <span class="box-label">ملخص</span>
+        في كل خطوة زمنية، معادلتان بيتنفذوا: واحدة بتحدث الـ cell state (بتمزج المعلومات الجديدة مع القديمة)، والتانية بتحسب الـ output (بتفلتر الـ cell state عن طريق Output gate). الاتنين بيتعلموا تلقائياً بالـ gradient descent.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 4 ══════════ -->
+<div class="section-card" data-accent="4" id="s4">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="icon-badge">&#9654;</div>
+    <div class="section-title">4 — Worked Example (x1, x2, x3)</div>
+    <div class="toggle-btn">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-btn active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-btn" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-en">
+      <p>The slides walk through a manual LSTM example with 3-dimensional input <span class="code-inline">[x1, x2, x3]</span>. Here are the rules:</p>
+      <ul>
+        <li>When <span class="code-inline">x2 = 1</span> — <strong>add</strong> the value in <span class="code-inline">x1</span> to memory</li>
+        <li>When <span class="code-inline">x2 = -1</span> — <strong>reset</strong> (erase) the memory</li>
+        <li>When <span class="code-inline">x3 = 1</span> — <strong>output</strong> the current memory value</li>
+        <li>Otherwise — keep memory unchanged, output 0</li>
+      </ul>
+
+      <table class="compare-table">
+        <tr><th>x1</th><th>x2</th><th>x3</th><th>Memory after</th><th>y (output)</th></tr>
+        <tr><td>3</td><td>1</td><td>0</td><td>3</td><td>0</td></tr>
+        <tr><td>4</td><td>1</td><td>0</td><td>7</td><td>0</td></tr>
+        <tr><td>2</td><td>0</td><td>0</td><td>7</td><td>0</td></tr>
+        <tr><td>1</td><td>0</td><td>1</td><td>7</td><td>7</td></tr>
+        <tr><td>3</td><td>-1</td><td>0</td><td>0</td><td>0</td></tr>
+      </table>
+
+      <h3>How LSTM Achieves This</h3>
+      <p>The weights in the LSTM are set so that:</p>
+      <ul>
+        <li><span class="highlight">x2 = 1</span> drives the <span class="term">Input Gate</span> open (≈1) — x1's value flows into memory</li>
+        <li><span class="highlight">x2 = -1</span> drives the <span class="term">Forget Gate</span> closed (≈0) — old memory is erased</li>
+        <li><span class="highlight">x3 = 1</span> drives the <span class="term">Output Gate</span> open (≈1) — memory value is shown</li>
+        <li>Large weights (e.g., 100) on x2 push the sigmoid far toward 0 or 1, making gates behave like hard switches</li>
+      </ul>
+
+      <div class="example">
+        <span class="box-label">Step-by-Step: t=1 (x1=3, x2=1, x3=0)</span>
+        Input gate signal: <span class="code-inline">100 × x2 = 100</span> → sigmoid → <span class="code-inline">≈ 1</span> (open)<br>
+        Forget gate signal: <span class="code-inline">100 × x2 = 100</span> → sigmoid → <span class="code-inline">≈ 1</span> (keep memory)<br>
+        g(z): passes <span class="code-inline">x1 = 3</span> through<br>
+        <span class="code-inline">c' = 3 × 1 + 0 × 1 = 3</span><br>
+        Output gate signal: <span class="code-inline">100 × x3 = 0</span> → sigmoid → <span class="code-inline">≈ 0.5... ≈ 0</span> (closed)<br>
+        <span class="code-inline">a ≈ 0</span> — memory stores 3, but nothing is output yet.
+      </div>
+
+      <div class="summary">
+        <span class="box-label">Summary</span>
+        This example shows that LSTM can act like a programmable register: a control signal (x2, x3) tells it when to write, erase, and read. The network learns these control weights from data — you don't have to program the gates manually.
+      </div>
+    </div>
+
+    <div class="lang-ar">
+      <p>في الـ slides، في مثال LSTM يدوي بـ input من 3 أبعاد <span class="code-inline">[x1, x2, x3]</span>. القواعد:</p>
+      <ul>
+        <li>لما <span class="code-inline">x2 = 1</span> — <strong>أضف</strong> قيمة <span class="code-inline">x1</span> للذاكرة</li>
+        <li>لما <span class="code-inline">x2 = -1</span> — <strong>امسح</strong> الذاكرة</li>
+        <li>لما <span class="code-inline">x3 = 1</span> — <strong>اطلع</strong> قيمة الذاكرة</li>
+        <li>غير كده — الذاكرة ثابتة والـ output = 0</li>
+      </ul>
+      <h3>إزاي الـ LSTM بيعمل ده؟</h3>
+      <ul>
+        <li><span class="highlight">x2 = 1</span> بيفتح الـ <span class="term">Input Gate</span> (≈1) — قيمة x1 بتدخل الذاكرة</li>
+        <li><span class="highlight">x2 = -1</span> بيقفل الـ <span class="term">Forget Gate</span> (≈0) — الذاكرة القديمة بتتمسح</li>
+        <li><span class="highlight">x3 = 1</span> بيفتح الـ <span class="term">Output Gate</span> (≈1) — قيمة الذاكرة بتطلع</li>
+        <li>الـ weights الكبيرة (زي 100) على x2 بتدفع الـ sigmoid ناحية 0 أو 1، وبتخلي الـ gates تشتغل زي switches حقيقية</li>
+      </ul>
+      <div class="example">
+        <span class="box-label">خطوة بخطوة: t=1 (x1=3, x2=1, x3=0)</span>
+        Input gate signal: <span class="code-inline">100 × x2 = 100</span> → sigmoid → <span class="code-inline">≈ 1</span> (مفتوح)<br>
+        <span class="code-inline">c' = 3 × 1 + 0 × 1 = 3</span><br>
+        Output gate: <span class="code-inline">100 × x3 = 0</span> → sigmoid → <span class="code-inline">≈ 0</span> (مقفول)<br>
+        <span class="code-inline">a ≈ 0</span> — الذاكرة فيها 3، بس مفيش output لسه.
+      </div>
+      <div class="summary">
+        <span class="box-label">ملخص</span>
+        المثال ده بيوضح إن الـ LSTM يقدر يشتغل زي register قابل للبرمجة: إشارة تحكم (x2، x3) بتقوله إمتى يكتب، يمسح، ويقرأ. الشبكة بتتعلم الـ weights دي تلقائياً من البيانات.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 5 ══════════ -->
+<div class="section-card" data-accent="5" id="s5">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="icon-badge">&#9733;</div>
+    <div class="section-title">5 — Full LSTM Network (Through Time)</div>
+    <div class="toggle-btn">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-btn active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-btn" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-en">
+      <p>In a real LSTM network, you replace every neuron with an LSTM block. Each block receives three things at every time step:</p>
+      <ul>
+        <li><span class="code-inline">x^t</span> — the input at this time step</li>
+        <li><span class="code-inline">h^(t-1)</span> — the output from the <em>previous</em> time step (hidden state)</li>
+        <li><span class="code-inline">c^(t-1)</span> — the cell state from the <em>previous</em> time step (long-term memory)</li>
+      </ul>
+
+      <p>Both <span class="code-inline">c</span> and <span class="code-inline">h</span> flow forward in time like a chain, connecting each step to the next.</p>
+
+      <div class="warning">
+        <span class="box-label">Important Note</span>
+        Because each LSTM block has 4 internal weight matrices (for z, zi, zf, zo), replacing neurons with LSTM blocks gives you <span class="highlight">4 times more parameters</span> than a regular RNN. This is a trade-off: more expressive but more computationally expensive.
+      </div>
+
+      <h3>Multiple Layers</h3>
+      <p>In practice, LSTMs are stacked: the output of one layer becomes the input of the next. This is called a <span class="term">deep LSTM</span> or <span class="term">multi-layer LSTM</span>. Libraries like <span class="code-inline">Keras</span> handle this with a single line: <span class="code-inline">model.add(LSTM(units))</span>.</p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 580 140" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace" font-size="10">
+          <!-- three lstm blocks -->
+          <rect x="30" y="30" width="100" height="70" rx="8" fill="#1a1e29" stroke="#f76c7c" stroke-width="1.5"/>
+          <text x="80" y="68" fill="#f76c7c" text-anchor="middle" font-size="11">LSTM</text>
+          <text x="80" y="82" fill="#7a849a" text-anchor="middle">t-1</text>
+
+          <rect x="240" y="30" width="100" height="70" rx="8" fill="#1a1e29" stroke="#f76c7c" stroke-width="1.5"/>
+          <text x="290" y="68" fill="#f76c7c" text-anchor="middle" font-size="11">LSTM</text>
+          <text x="290" y="82" fill="#7a849a" text-anchor="middle">t</text>
+
+          <rect x="450" y="30" width="100" height="70" rx="8" fill="#1a1e29" stroke="#f76c7c" stroke-width="1.5"/>
+          <text x="500" y="68" fill="#f76c7c" text-anchor="middle" font-size="11">LSTM</text>
+          <text x="500" y="82" fill="#7a849a" text-anchor="middle">t+1</text>
+
+          <!-- c arrows -->
+          <line x1="130" y1="45" x2="240" y2="45" stroke="#64d4b8" stroke-width="2" marker-end="url(#arrc)"/>
+          <text x="185" y="40" fill="#64d4b8" text-anchor="middle" font-size="9">c^t</text>
+          <line x1="340" y1="45" x2="450" y2="45" stroke="#64d4b8" stroke-width="2" marker-end="url(#arrc)"/>
+          <text x="395" y="40" fill="#64d4b8" text-anchor="middle" font-size="9">c^(t+1)</text>
+
+          <!-- h arrows -->
+          <line x1="130" y1="80" x2="240" y2="80" stroke="#7eb8f7" stroke-width="2" marker-end="url(#arrh)"/>
+          <text x="185" y="75" fill="#7eb8f7" text-anchor="middle" font-size="9">h^t</text>
+          <line x1="340" y1="80" x2="450" y2="80" stroke="#7eb8f7" stroke-width="2" marker-end="url(#arrh)"/>
+          <text x="395" y="75" fill="#7eb8f7" text-anchor="middle" font-size="9">h^(t+1)</text>
+
+          <!-- x inputs -->
+          <line x1="80" y1="100" x2="80" y2="125" stroke="#e2e6f0" stroke-width="1.2"/>
+          <text x="80" y="138" fill="#e2e6f0" text-anchor="middle">x^(t-1)</text>
+          <line x1="290" y1="100" x2="290" y2="125" stroke="#e2e6f0" stroke-width="1.2"/>
+          <text x="290" y="138" fill="#e2e6f0" text-anchor="middle">x^t</text>
+          <line x1="500" y1="100" x2="500" y2="125" stroke="#e2e6f0" stroke-width="1.2"/>
+          <text x="500" y="138" fill="#e2e6f0" text-anchor="middle">x^(t+1)</text>
+
+          <!-- y outputs -->
+          <line x1="80" y1="30" x2="80" y2="10" stroke="#f9a74b" stroke-width="1.2"/>
+          <text x="80" y="8" fill="#f9a74b" text-anchor="middle">y^(t-1)</text>
+          <line x1="290" y1="30" x2="290" y2="10" stroke="#f9a74b" stroke-width="1.2"/>
+          <text x="290" y="8" fill="#f9a74b" text-anchor="middle">y^t</text>
+          <line x1="500" y1="30" x2="500" y2="10" stroke="#f9a74b" stroke-width="1.2"/>
+          <text x="500" y="8" fill="#f9a74b" text-anchor="middle">y^(t+1)</text>
+
+          <defs>
+            <marker id="arrc" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#64d4b8"/></marker>
+            <marker id="arrh" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7eb8f7"/></marker>
+          </defs>
+        </svg>
+        <div class="diagram-caption">Fig 4 — LSTM unrolled through time. c (cell state) and h (hidden state) pass forward at each step.</div>
+      </div>
+
+      <div class="summary">
+        <span class="box-label">Summary</span>
+        At each time step, the LSTM takes the current input plus the previous hidden state (h) and cell state (c), producing a new output and updated states. This chain lets information flow across the full sequence — even long sequences — without vanishing.
+      </div>
+    </div>
+
+    <div class="lang-ar">
+      <p>في الشبكة الحقيقية، بتستبدل كل neuron بـ LSTM block. كل block بياخد 3 حاجات في كل خطوة زمنية:</p>
+      <ul>
+        <li><span class="code-inline">x^t</span> — الـ input الحالي</li>
+        <li><span class="code-inline">h^(t-1)</span> — الـ output من الخطوة السابقة (hidden state)</li>
+        <li><span class="code-inline">c^(t-1)</span> — الـ cell state من الخطوة السابقة (الذاكرة طويلة الأمد)</li>
+      </ul>
+      <p>الـ <span class="code-inline">c</span> والـ <span class="code-inline">h</span> بيتحركوا للأمام في الوقت زي سلسلة، بتربط كل خطوة بالتالية.</p>
+      <div class="warning">
+        <span class="box-label">ملاحظة مهمة</span>
+        لأن كل LSTM block عنده 4 مصفوفات weights داخلية (لـ z, zi, zf, zo)، استبدال الـ neurons بـ LSTM بيديك <span class="highlight">4 أضعاف عدد الـ parameters</span> مقارنة بالـ RNN العادي. ده trade-off: أكتر تعبيراً بس أكتر تكلفة حسابية.
+      </div>
+      <h3>Multiple Layers</h3>
+      <p>عملياً، الـ LSTMs بتتكوم فوق بعض: output الطبقة الأولى بيبقى input الطبقة التانية. ده اسمه <span class="term">deep LSTM</span>. مكتبات زي <span class="code-inline">Keras</span> بتتعامل معاها بسطر واحد: <span class="code-inline">model.add(LSTM(units))</span>.</p>
+      <div class="summary">
+        <span class="box-label">ملخص</span>
+        في كل خطوة زمنية، الـ LSTM بياخد الـ input الحالي + الـ hidden state + الـ cell state السابقين، وبيطلع output جديد وحالات محدثة. السلسلة دي بتخلي المعلومات تعدي عبر التسلسل كله — حتى لو طويل — من غير ما تختفي.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SECTION 6 ══════════ -->
+<div class="section-card" data-accent="6" id="s6">
+  <div class="section-header" onclick="toggle(this)">
+    <div class="icon-badge">&#9650;</div>
+    <div class="section-title">6 — Why LSTM Solves Gradient Vanishing</div>
+    <div class="toggle-btn">&#9660;</div>
+  </div>
+  <div class="section-body">
+    <div class="lang-tabs">
+      <button class="lang-btn active" onclick="switchLang(this,'en')">EN</button>
+      <button class="lang-btn" onclick="switchLang(this,'ar')">AR</button>
+    </div>
+
+    <div class="lang-en">
+      <p>In a standard RNN, the hidden state is multiplied by a weight matrix at every step. If that weight is less than 1, repeated multiplication makes it shrink to zero (<span class="term">vanishing gradient</span>). If it's greater than 1, it explodes.</p>
+
+      <p>LSTM solves the vanishing gradient because the cell state <span class="code-inline">c</span> is updated by <strong>addition</strong>, not multiplication:</p>
+
+      <div class="math">c' = g(z) · f(zi)  +  c · f(zf)</div>
+
+      <p>As long as the <span class="term">Forget Gate</span> is open (<span class="code-inline">f(zf) ≈ 1</span>), old information is added, not scaled down. The gradient can flow back through time without vanishing.</p>
+
+      <div class="warning">
+        <span class="box-label">Limitation</span>
+        LSTM solves gradient <em>vanishing</em> but not gradient <em>exploding</em>. Exploding gradients are handled separately (e.g., by gradient clipping).
+      </div>
+
+      <h3>GRU — A Simpler Alternative</h3>
+      <p>The <span class="term">Gated Recurrent Unit (GRU)</span>, introduced in <em>Cho et al., EMNLP 2014</em>, achieves similar results with only 2 gates instead of 3 — making it faster to train. Keras supports both: <span class="code-inline">LSTM</span>, <span class="code-inline">GRU</span>, <span class="code-inline">SimpleRNN</span>.</p>
+
+      <table class="compare-table">
+        <tr><th>Model</th><th>Gates</th><th>Parameters</th><th>Strength</th></tr>
+        <tr><td>SimpleRNN</td><td>0</td><td>Fewest</td><td>Fast but forgets</td></tr>
+        <tr><td>GRU</td><td>2</td><td>Medium</td><td>Fast, handles long sequences</td></tr>
+        <tr><td>LSTM</td><td>3</td><td>Most (4×)</td><td>Powerful, handles very long sequences</td></tr>
+      </table>
+
+      <div class="summary">
+        <span class="box-label">Summary</span>
+        LSTM beats standard RNNs because its additive cell state update prevents gradient shrinkage. The forget gate acts like a memory lifeline — keeping important information alive across hundreds of time steps. GRU achieves a good balance with fewer parameters.
+      </div>
+    </div>
+
+    <div class="lang-ar">
+      <p>في الـ RNN العادي، الـ hidden state بيتضرب في weight matrix في كل خطوة. لو الـ weight أقل من 1، الضرب المتكرر بيخليه يوصل للصفر (<span class="term">vanishing gradient</span>). لو أكبر من 1، بينفجر.</p>
+      <p>الـ LSTM بيحل المشكلة عشان الـ cell state <span class="code-inline">c</span> بيتحدث بالـ <strong>جمع</strong> مش الضرب:</p>
+      <div class="math">c' = g(z) · f(zi)  +  c · f(zf)</div>
+      <p>طالما الـ <span class="term">Forget Gate</span> مفتوح (<span class="code-inline">f(zf) ≈ 1</span>)، المعلومات القديمة بتتضاف مش بتتصغر. الـ gradient يقدر يرجع للخلف من غير ما يختفي.</p>
+      <div class="warning">
+        <span class="box-label">حد للـ LSTM</span>
+        الـ LSTM بيحل الـ gradient <em>vanishing</em> بس مش الـ <em>exploding</em>. الـ exploding بيتعالج بطريقة تانية (زي gradient clipping).
+      </div>
+      <h3>الـ GRU — بديل أبسط</h3>
+      <p>الـ <span class="term">GRU (Gated Recurrent Unit)</span>، من بحث Cho وآخرون 2014، بيحقق نتائج مشابهة بـ 2 gates بدل 3 — وده بيخليه أسرع في التدريب. Keras بيدعم: <span class="code-inline">LSTM</span>، <span class="code-inline">GRU</span>، <span class="code-inline">SimpleRNN</span>.</p>
+      <table class="compare-table">
+        <tr><th>النموذج</th><th>Gates</th><th>Parameters</th><th>المميز</th></tr>
+        <tr><td>SimpleRNN</td><td>0</td><td>أقل</td><td>سريع بس بينسى</td></tr>
+        <tr><td>GRU</td><td>2</td><td>متوسط</td><td>سريع، يتعامل مع تسلسلات طويلة</td></tr>
+        <tr><td>LSTM</td><td>3</td><td>أكتر (4×)</td><td>قوي جداً، يتعامل مع تسلسلات طويلة جداً</td></tr>
+      </table>
+      <div class="summary">
+        <span class="box-label">ملخص</span>
+        الـ LSTM أفضل من الـ RNN العادي لأن تحديث الـ cell state بالجمع بيمنع تقلص الـ gradient. الـ Forget gate زي شريان حياة للذاكرة — بيخلي المعلومات المهمة موجودة عبر مئات الخطوات. الـ GRU بيحقق توازن جيد بعدد parameters أقل.
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+function toggle(header) {
+  const card = header.closest('.section-card');
+  card.classList.toggle('collapsed');
+}
+
+function switchLang(btn, lang) {
+  const body = btn.closest('.section-body');
+  body.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  body.querySelector('.lang-en').style.display = lang === 'en' ? 'block' : 'none';
+  body.querySelector('.lang-ar').style.display = lang === 'ar' ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

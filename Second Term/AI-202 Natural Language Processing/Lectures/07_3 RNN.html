@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recurrent Neural Networks — Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── Reset & Base ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0e0f14;
+  --bg2:      #14161e;
+  --bg3:      #1b1e2a;
+  --bg4:      #222638;
+  --border:   #2e3348;
+  --text:     #e2e4f0;
+  --muted:    #7c84a8;
+  --faint:    #3a3f5c;
+
+  --purple:   #a78bfa;
+  --purple-bg:#1e1a38;
+  --teal:     #34d399;
+  --teal-bg:  #0d2b20;
+  --amber:    #fbbf24;
+  --amber-bg: #2a1f06;
+  --coral:    #f87171;
+  --coral-bg: #2b1010;
+  --blue:     #60a5fa;
+  --blue-bg:  #0e1e38;
+
+  --radius:   12px;
+  --radius-sm: 7px;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Sora', sans-serif;
+  --arabic: 'Noto Naskh Arabic', serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+  min-height: 100vh;
+}
+
+/* ─── Header ─── */
+.site-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 2.5rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 20% 50%, rgba(167,139,250,0.08) 0%, transparent 70%),
+              radial-gradient(ellipse 40% 60% at 80% 30%, rgba(52,211,153,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-inner { position: relative; max-width: 860px; margin: 0 auto; }
+.header-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--purple);
+  background: var(--purple-bg);
+  border: 1px solid rgba(167,139,250,.25);
+  padding: 3px 10px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+.site-header h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.site-header h1 span { color: var(--purple); }
+.site-header p { color: var(--muted); font-size: 14px; max-width: 520px; }
+
+/* ─── Lang switcher ─── */
+.lang-bar {
+  display: flex;
+  gap: 6px;
+  margin: 1.5rem 0 0;
+}
+.lang-btn {
+  padding: 6px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.lang-btn:hover { border-color: var(--purple); color: var(--purple); }
+.lang-btn.active {
+  background: var(--purple-bg);
+  border-color: rgba(167,139,250,.5);
+  color: var(--purple);
+  font-weight: 500;
+}
+
+/* ─── TOC ─── */
+.toc-wrap {
+  max-width: 860px;
+  margin: 2rem auto 0;
+  padding: 0 2rem;
+}
+.toc {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.toc-label { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-right: 4px; }
+.toc-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all .15s;
+  text-decoration: none;
+  display: inline-block;
+}
+.toc-chip:nth-child(2)  { background: var(--purple-bg); color: var(--purple); border-color: rgba(167,139,250,.3); }
+.toc-chip:nth-child(3)  { background: var(--teal-bg);   color: var(--teal);   border-color: rgba(52,211,153,.3); }
+.toc-chip:nth-child(4)  { background: var(--purple-bg); color: var(--purple); border-color: rgba(167,139,250,.3); }
+.toc-chip:nth-child(5)  { background: var(--teal-bg);   color: var(--teal);   border-color: rgba(52,211,153,.3); }
+.toc-chip:nth-child(6)  { background: var(--amber-bg);  color: var(--amber);  border-color: rgba(251,191,36,.3); }
+.toc-chip:hover { filter: brightness(1.2); transform: translateY(-1px); }
+
+/* ─── Main layout ─── */
+.main { max-width: 860px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+/* ─── Section card ─── */
+.section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.section:hover { border-color: var(--faint); }
+
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg3);
+  border-bottom: 1px solid transparent;
+  transition: background .2s;
+}
+.sec-header:hover { background: var(--bg4); }
+.sec-header.open { border-bottom-color: var(--border); }
+
+.sec-badge {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 500;
+  flex-shrink: 0;
+}
+.badge-purple { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(167,139,250,.3); }
+.badge-teal   { background: var(--teal-bg);   color: var(--teal);   border: 1px solid rgba(52,211,153,.3); }
+.badge-amber  { background: var(--amber-bg);  color: var(--amber);  border: 1px solid rgba(251,191,36,.3); }
+.badge-coral  { background: var(--coral-bg);  color: var(--coral);  border: 1px solid rgba(248,113,113,.3); }
+.badge-blue   { background: var(--blue-bg);   color: var(--blue);   border: 1px solid rgba(96,165,250,.3); }
+
+.sec-title { font-size: 15px; font-weight: 500; color: #fff; flex: 1; }
+.sec-chevron { color: var(--muted); font-size: 18px; transition: transform .25s; line-height: 1; }
+.sec-chevron.open { transform: rotate(180deg); }
+
+.sec-body {
+  padding: 22px 22px 22px;
+  display: none;
+}
+.sec-body.open { display: block; }
+
+/* ─── Language blocks ─── */
+.lang-block { display: none; }
+.lang-block.show { display: block; }
+.ar { direction: rtl; text-align: right; font-family: var(--arabic); font-size: 16px; line-height: 1.9; }
+
+/* ─── Typography in sections ─── */
+p { color: var(--text); margin-bottom: 12px; }
+p:last-child { margin-bottom: 0; }
+.term { color: var(--purple); font-weight: 500; }
+.highlight {
+  background: rgba(251,191,36,.12);
+  color: var(--amber);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+code, .code-inline {
+  font-family: var(--mono);
+  font-size: 13px;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 7px;
+  color: var(--teal);
+}
+
+/* ─── Info boxes ─── */
+.box {
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin: 14px 0;
+  font-size: 14px;
+  line-height: 1.75;
+}
+.box-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-weight: 500;
+  margin-bottom: 7px;
+  display: block;
+}
+.box p { margin-bottom: 8px; font-size: 14px; }
+.box p:last-child { margin-bottom: 0; }
+
+.box-analogy  { background: var(--amber-bg); border-left: 3px solid var(--amber); }
+.box-analogy .box-label { color: var(--amber); }
+
+.box-example  { background: var(--teal-bg); border-left: 3px solid var(--teal); }
+.box-example .box-label { color: var(--teal); }
+
+.box-summary  { background: var(--blue-bg); border-left: 3px solid var(--blue); }
+.box-summary .box-label { color: var(--blue); }
+
+.box-warning  { background: var(--coral-bg); border-left: 3px solid var(--coral); }
+.box-warning .box-label { color: var(--coral); }
+
+/* ─── Code block ─── */
+.codeblock {
+  font-family: var(--mono);
+  font-size: 13px;
+  background: #0a0c12;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin: 12px 0;
+  line-height: 1.8;
+  color: #c0c8e8;
+  overflow-x: auto;
+}
+.codeblock .kw  { color: #c084fc; }
+.codeblock .fn  { color: #34d399; }
+.codeblock .op  { color: #fbbf24; }
+.codeblock .cm  { color: #4a5180; font-style: italic; }
+
+/* ─── SVG diagrams ─── */
+.diagram-wrap {
+  margin: 18px 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg3);
+}
+.diagram-caption {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 6px 0 10px;
+  font-family: var(--mono);
+}
+
+svg text { font-family: var(--sans); }
+
+/* ─── Compare table ─── */
+.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 14px 0;
+}
+.compare-table th {
+  background: var(--bg4);
+  color: var(--purple);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--faint);
+  color: var(--text);
+  vertical-align: top;
+}
+.compare-table tr:last-child td { border-bottom: none; }
+.compare-table tr:hover td { background: var(--bg4); }
+
+/* ─── Animations ─── */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.section { animation: fadeIn .3s ease both; }
+.section:nth-child(2) { animation-delay: .05s; }
+.section:nth-child(3) { animation-delay: .10s; }
+.section:nth-child(4) { animation-delay: .15s; }
+.section:nth-child(5) { animation-delay: .20s; }
+
+/* ─── Footer ─── */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ HEADER ══════ -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-tag">NLP · Deep Learning</div>
+    <h1>Recurrent Neural <span>Networks</span></h1>
+    <p>A bilingual study guide covering RNN motivation, architecture, variants, and training challenges.</p>
+    <div class="lang-bar">
+      <button class="lang-btn active" onclick="setLang('en')">English</button>
+      <button class="lang-btn" onclick="setLang('ar')">العربية</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════ TOC ══════ -->
+<div class="toc-wrap">
+  <div class="toc">
+    <span class="toc-label">Jump to:</span>
+    <a class="toc-chip" href="#s1">Why RNNs?</a>
+    <a class="toc-chip" href="#s2">Word Vectors</a>
+    <a class="toc-chip" href="#s3">How RNN Works</a>
+    <a class="toc-chip" href="#s4">Variants</a>
+    <a class="toc-chip" href="#s5">Training</a>
+  </div>
+</div>
+
+<!-- ══════ MAIN ══════ -->
+<main class="main">
+
+<!-- ─── Section 1 ─── -->
+<div class="section" id="s1">
+  <div class="sec-header open" onclick="toggle(this)">
+    <div class="sec-badge badge-purple">1</div>
+    <span class="sec-title">Why do we need RNNs? — The memory problem</span>
+    <span class="sec-chevron open">▾</span>
+  </div>
+  <div class="sec-body open">
+
+    <div class="lang-block en show">
+      <p>A regular <span class="term">feedforward neural network</span> processes each input in isolation — it has no memory of previous inputs. That works for classifying a single image, but it fails for language, where <span class="term">word order and context</span> determine meaning.</p>
+
+      <div class="box box-example">
+        <span class="box-label">▶ Motivating Example — Slot Filling</span>
+        <p>Given the sentence "I would like to <strong>arrive Taipei</strong> on November 2nd", a ticket-booking system must tag each word with its role:</p>
+        <p><code>arrive</code> → other &nbsp;|&nbsp; <code>Taipei</code> → <strong style="color:var(--teal)">destination</strong> &nbsp;|&nbsp; <code>November 2nd</code> → time</p>
+        <p>But consider: "I would like to <strong>leave Taipei</strong> on November 2nd"</p>
+        <p><code>Taipei</code> → <strong style="color:var(--coral)">place of departure</strong></p>
+        <p>The word "Taipei" is <em>identical</em> in both sentences. A feedforward net gives the same output for the same input — it cannot distinguish the two cases without remembering the preceding verb.</p>
+      </div>
+
+      <p>This shows that the network needs <span class="term">memory</span>: a way to carry context from earlier words into the processing of the current word.</p>
+
+      <div class="box box-analogy">
+        <span class="box-label">💡 Analogy</span>
+        <p>Imagine reading a novel one word at a time, but forgetting every word the instant you move to the next. You couldn't tell who "he" refers to, or whether "bank" means a riverbank or a financial institution. That is exactly the limitation of a feedforward network on text.</p>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ Summary</span>
+        <p>Feedforward networks process each input independently — no memory of past inputs. Language tasks require context. RNNs solve this by maintaining a <span class="term">hidden state</span> that carries information across time steps.</p>
+      </div>
+    </div>
+
+    <div class="lang-block ar">
+      <p class="ar">الشبكة العصبية العادية (<span class="term">feedforward network</span>) بتشوف كل input لوحده — مفيش ذاكرة لأي حاجة اتقالت قبل كده. ده بيكون مشكلة في اللغة، لأن <span class="term">ترتيب الكلام والسياق</span> بيفرقوا جداً في تحديد المعنى.</p>
+
+      <div class="box box-example">
+        <span class="box-label">▶ مثال أساسي — Slot Filling</span>
+        <p class="ar">في جملة "I would like to arrive Taipei on November 2nd"، النظام لازم يحدد دور كل كلمة:</p>
+        <p class="ar"><code>Taipei</code> ← <strong style="color:var(--teal)">وجهة السفر (destination)</strong></p>
+        <p class="ar">لكن في جملة "I would like to leave Taipei on November 2nd":</p>
+        <p class="ar"><code>Taipei</code> ← <strong style="color:var(--coral)">مكان المغادرة</strong></p>
+        <p class="ar">كلمة "Taipei" واحدة في الجملتين. الشبكة العادية بتديها نفس الناتج لأنها مش عارفة الفعل اللي قبلها — محتاج ذاكرة!</p>
+      </div>
+
+      <div class="box box-analogy">
+        <span class="box-label">💡 تشبيه</span>
+        <p class="ar">تخيل إنك بتقرأ رواية كلمة كلمة، وبتنسى كل كلمة فور ما بتقرأ التالية. مش هتعرف "هو" بيشير لمين، ولا "بنك" يعني مصرف ولا ضفة نهر. ده بالظبط قصور الـ feedforward network في فهم النصوص.</p>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ الفكرة</span>
+        <p class="ar">الشبكات العادية بتعالج كل input بشكل مستقل — بدون ذاكرة. مهام اللغة تحتاج سياق. الـ RNN بيحل ده بـ <span class="term">hidden state</span> بينقل المعلومات من خطوة لخطوة.</p>
+      </div>
+    </div>
+
+    <!-- Diagram -->
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- Feedforward side -->
+        <text x="160" y="22" text-anchor="middle" font-size="12" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">feedforward — no memory</text>
+        <rect x="80" y="35" width="160" height="40" rx="8" fill="#2a1f06" stroke="#fbbf24" stroke-width="0.8" stroke-opacity="0.4"/>
+        <text x="160" y="60" text-anchor="middle" font-size="14" fill="#fbbf24" font-weight="500">"Taipei"</text>
+        <line x1="160" y1="75" x2="160" y2="105" stroke="#3a3f5c" stroke-width="1.5" marker-end="url(#a1)"/>
+        <rect x="80" y="105" width="160" height="40" rx="8" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.8"/>
+        <text x="160" y="130" text-anchor="middle" font-size="12" fill="#7c84a8">same output always</text>
+        <text x="255" y="130" font-size="12" fill="#f87171">✗ no context</text>
+
+        <!-- Arrow divider -->
+        <line x1="380" y1="30" x2="380" y2="170" stroke="#2e3348" stroke-width="1" stroke-dasharray="4 3"/>
+
+        <!-- RNN side -->
+        <text x="610" y="22" text-anchor="middle" font-size="12" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">RNN — with memory</text>
+        <rect x="430" y="35" width="120" height="40" rx="8" fill="#2a1f06" stroke="#fbbf24" stroke-width="0.8" stroke-opacity="0.4"/>
+        <text x="490" y="60" text-anchor="middle" font-size="14" fill="#fbbf24" font-weight="500">"Taipei"</text>
+        <rect x="570" y="35" width="120" height="40" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="0.8" stroke-opacity="0.5"/>
+        <text x="630" y="55" text-anchor="middle" font-size="12" fill="#a78bfa" font-weight="500">hidden state</text>
+        <text x="630" y="68" text-anchor="middle" font-size="11" fill="#7c84a8">(memory)</text>
+        <line x1="490" y1="75" x2="490" y2="105" stroke="#3a3f5c" stroke-width="1.5" marker-end="url(#a1)"/>
+        <line x1="570" y1="55" x2="520" y2="105" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#a1)"/>
+        <rect x="430" y="105" width="220" height="40" rx="8" fill="#0d2b20" stroke="#34d399" stroke-width="0.8" stroke-opacity="0.5"/>
+        <text x="540" y="130" text-anchor="middle" font-size="12" fill="#34d399">context-aware output</text>
+        <text x="540" y="165" text-anchor="middle" font-size="11" fill="#34d399">✓ knows "arrive" came before "Taipei"</text>
+      </svg>
+      <div class="diagram-caption">Figure 1 — Feedforward vs RNN: the memory advantage</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Section 2 ─── -->
+<div class="section" id="s2">
+  <div class="sec-header open" onclick="toggle(this)">
+    <div class="sec-badge badge-teal">2</div>
+    <span class="sec-title">Representing words as vectors — 1-of-N encoding</span>
+    <span class="sec-chevron open">▾</span>
+  </div>
+  <div class="sec-body open">
+
+    <div class="lang-block en show">
+      <p>Neural networks operate on numbers, not words. Every word must be converted into a <span class="term">vector</span> before it can be processed. The simplest technique is <span class="term">1-of-N encoding</span> (also called <em>one-hot encoding</em>).</p>
+      <p>Each word in the vocabulary occupies one position in the vector. That word's vector is all zeros except for a <span class="highlight">1</span> at its own position. The vector length equals the vocabulary size.</p>
+
+      <div class="box box-example">
+        <span class="box-label">▶ Example</span>
+        <p>Vocabulary = {apple, bag, cat, dog, elephant}</p>
+        <p><code>apple</code>    = [<strong>1</strong>, 0, 0, 0, 0]</p>
+        <p><code>cat</code>      = [0, 0, <strong>1</strong>, 0, 0]</p>
+        <p><code>elephant</code> = [0, 0, 0, 0, <strong>1</strong>]</p>
+      </div>
+
+      <p>What about words not in the vocabulary (like "Gandalf" or "Sauron")? A simple fix is to add an <span class="term">"other"</span> dimension — any unknown word maps to that single slot.</p>
+
+      <table class="compare-table">
+        <thead><tr><th>Property</th><th>1-of-N encoding</th><th>Word embeddings (modern)</th></tr></thead>
+        <tbody>
+          <tr><td>Vector size</td><td>Vocabulary size (often 50,000+)</td><td>Fixed small size (e.g. 300)</td></tr>
+          <tr><td>Captures similarity?</td><td>No — every word is equally distant</td><td>Yes — similar words are nearby</td></tr>
+          <tr><td>Handles unknowns?</td><td>Via "other" dimension</td><td>Via subword tokenization</td></tr>
+          <tr><td>Complexity</td><td>Very simple</td><td>Requires pretraining</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ Summary</span>
+        <p>1-of-N encoding is a simple starting point: one vector position per word, all zeros except a single 1. It doesn't capture word meaning or similarity, and vectors can be very large. Modern systems use dense word embeddings instead, but 1-of-N builds the intuition.</p>
+      </div>
+    </div>
+
+    <div class="lang-block ar">
+      <p class="ar">الشبكات العصبية بتشتغل بأرقام مش كلام. كل كلمة لازم تتحول لـ <span class="term">vector</span> (قائمة من الأرقام) قبل ما تعالجها الشبكة. أبسط طريقة هي <span class="term">1-of-N encoding</span> أو اللي بتُعرف بـ one-hot encoding.</p>
+      <p class="ar">كل كلمة في القاموس بياخد مكان واحد في الـ vector. الـ vector كله أصفار ماعدا <span class="highlight">1</span> في مكان الكلمة دي بالذات. طول الـ vector = حجم القاموس.</p>
+
+      <div class="box box-example">
+        <span class="box-label">▶ مثال</span>
+        <p class="ar">القاموس = {apple, bag, cat, dog, elephant}</p>
+        <p><code>apple</code>    = [<strong>1</strong>, 0, 0, 0, 0]</p>
+        <p><code>cat</code>      = [0, 0, <strong>1</strong>, 0, 0]</p>
+        <p><code>elephant</code> = [0, 0, 0, 0, <strong>1</strong>]</p>
+      </div>
+
+      <p class="ar">لو الكلمة مش موجودة في القاموس؟ بنضيف خانة <span class="term">"other"</span> — أي كلمة غريبة بتروح فيها.</p>
+      <p class="ar">العيب الأكبر: الـ vectors كبيرة جداً وفارغة، ومش بتعبر عن معنى الكلمات أو التشابه بينها. الأنظمة الحديثة بتستخدم <span class="term">word embeddings</span> — vectors صغيرة ومكثفة بتحتوي على المعنى الفعلي للكلمة.</p>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ الفكرة</span>
+        <p class="ar">1-of-N encoding بيحول الكلمة لـ vector كله أصفار ما عدا 1 واحد. بسيط لكن ما بيعبرش عن معنى الكلمات. حجم الـ vector = حجم القاموس. الأنظمة الحديثة بتستخدم word embeddings بدلاً منه.</p>
+      </div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 175" xmlns="http://www.w3.org/2000/svg">
+        <!-- Words column -->
+        <text x="110" y="22" text-anchor="middle" font-size="11" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">VOCABULARY</text>
+        <rect x="40" y="32" width="140" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="110" y="49" text-anchor="middle" font-size="13" fill="#7c84a8">apple</text>
+        <rect x="40" y="59" width="140" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="110" y="76" text-anchor="middle" font-size="13" fill="#7c84a8">bag</text>
+        <rect x="40" y="86" width="140" height="24" rx="5" fill="#0d2b20" stroke="#34d399" stroke-width="1"/>
+        <text x="110" y="103" text-anchor="middle" font-size="13" fill="#34d399" font-weight="600">cat  ← query</text>
+        <rect x="40" y="113" width="140" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="110" y="130" text-anchor="middle" font-size="13" fill="#7c84a8">dog</text>
+        <rect x="40" y="140" width="140" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="110" y="157" text-anchor="middle" font-size="13" fill="#7c84a8">elephant</text>
+
+        <!-- Values column -->
+        <text x="260" y="22" text-anchor="middle" font-size="11" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">VECTOR VALUE</text>
+        <rect x="210" y="32" width="100" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="260" y="49" text-anchor="middle" font-size="14" fill="#3a3f5c">0</text>
+        <rect x="210" y="59" width="100" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="260" y="76" text-anchor="middle" font-size="14" fill="#3a3f5c">0</text>
+        <rect x="210" y="86" width="100" height="24" rx="5" fill="#0d2b20" stroke="#34d399" stroke-width="1"/>
+        <text x="260" y="103" text-anchor="middle" font-size="16" fill="#34d399" font-weight="700">1</text>
+        <rect x="210" y="113" width="100" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="260" y="130" text-anchor="middle" font-size="14" fill="#3a3f5c">0</text>
+        <rect x="210" y="140" width="100" height="24" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="260" y="157" text-anchor="middle" font-size="14" fill="#3a3f5c">0</text>
+
+        <!-- Result label -->
+        <text x="340" y="98" font-size="12" fill="#34d399">cat = [0, 0, 1, 0, 0]</text>
+        <text x="340" y="115" font-size="11" fill="#7c84a8">Only position 3 is 1.</text>
+        <text x="340" y="131" font-size="11" fill="#7c84a8">All others are 0.</text>
+        <text x="340" y="155" font-size="11" fill="#3a3f5c">Vector length = vocabulary size</text>
+      </svg>
+      <div class="diagram-caption">Figure 2 — 1-of-N encoding of the word "cat"</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Section 3 ─── -->
+<div class="section" id="s3">
+  <div class="sec-header open" onclick="toggle(this)">
+    <div class="sec-badge badge-purple">3</div>
+    <span class="sec-title">How the RNN works — hidden state and memory</span>
+    <span class="sec-chevron open">▾</span>
+  </div>
+  <div class="sec-body open">
+
+    <div class="lang-block en show">
+      <p>An RNN processes a sequence <span class="term">one step at a time</span>. At each step t it takes two inputs: the current word vector <code>x(t)</code>, and the <span class="term">hidden state</span> <code>a(t-1)</code> from the previous step. It computes a new hidden state, produces an output, and stores the hidden state as memory for the next step.</p>
+      <p>Crucially, the <span class="highlight">same weight matrices are reused</span> at every time step — the RNN is not a different network for each word, but one network run repeatedly with evolving memory.</p>
+
+      <div class="codeblock">
+<span class="cm">// At each time step t:</span>
+<span class="kw">a</span>(t) <span class="op">=</span> <span class="fn">f</span>( W_i · x(t) <span class="op">+</span> W_h · a(t-1) )   <span class="cm">// new hidden state</span>
+<span class="kw">y</span>(t) <span class="op">=</span> <span class="fn">g</span>( W_o · a(t) )                   <span class="cm">// output</span>
+
+<span class="cm">// W_i, W_h, W_o  — learned weight matrices (shared across all t)
+// a(0)           — initialised to zero</span>
+      </div>
+
+      <div class="box box-analogy">
+        <span class="box-label">💡 Analogy</span>
+        <p>Think of a person filling out a form while reading a document sentence by sentence. After each sentence they update a sticky note (the hidden state) with key facts seen so far. When the next sentence arrives, they read it <em>together with the sticky note</em>. The same brain processes each sentence, but the sticky note carries context forward.</p>
+      </div>
+
+      <p>Because the same network is reused, the sequence order matters: swapping "arrive Taipei" to "leave Taipei" changes the hidden state when "Taipei" is processed, so the output for "Taipei" is different — exactly what we want.</p>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ Summary</span>
+        <p>At each step the RNN combines the current input with the previous hidden state to produce a new hidden state and an output. The hidden state acts as memory, passing context through the entire sequence. The same weights are shared at every step.</p>
+      </div>
+    </div>
+
+    <div class="lang-block ar">
+      <p class="ar">الـ RNN بيشتغل على السيكوانس <span class="term">خطوة خطوة</span>. في كل خطوة t بياخد: الـ input الحالي <code>x(t)</code>، و<span class="term">hidden state</span> <code>a(t-1)</code> من الخطوة اللي قبلها. بيحسب hidden state جديد، وبيطلع ناتج، وبيحفظ الـ hidden state كذاكرة للخطوة الجاية.</p>
+      <p class="ar">الفكرة الأساسية: <span class="highlight">نفس الـ weights بتتكرر</span> في كل خطوة — مش شبكة مختلفة لكل كلمة، لكن نفس الشبكة بتتشغل مرات كتير مع ذاكرة بتتطور.</p>
+
+      <div class="codeblock">
+<span class="cm">// في كل خطوة زمنية t:</span>
+<span class="kw">a</span>(t) <span class="op">=</span> <span class="fn">f</span>( W_i · x(t) <span class="op">+</span> W_h · a(t-1) )   <span class="cm">// hidden state جديد</span>
+<span class="kw">y</span>(t) <span class="op">=</span> <span class="fn">g</span>( W_o · a(t) )                   <span class="cm">// الناتج</span>
+      </div>
+
+      <div class="box box-analogy">
+        <span class="box-label">💡 تشبيه</span>
+        <p class="ar">تخيل شخص بيملا استمارة وهو بيقرأ وثيقة جملة جملة. بعد كل جملة بيكتب ملاحظات على ورقة صغيرة (الـ hidden state). لما بييجي للجملة الجاية بيقرأ الجملة الجديدة + ملاحظاته مع بعض. نفس العقل بيشتغل في كل مرة، بس الورقة بتنقل السياق للأمام.</p>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ الفكرة</span>
+        <p class="ar">في كل خطوة الـ RNN بيجمع الـ input الحالي مع الـ hidden state السابق عشان ينتج hidden state جديد وناتج. الـ hidden state هو "الذاكرة" اللي بتنقل السياق عبر كل السيكوانس. نفس الـ weights بتتشارك في كل خطوة.</p>
+      </div>
+    </div>
+
+    <!-- Unrolled RNN diagram -->
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 215" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+
+        <text x="340" y="16" text-anchor="middle" font-size="11" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">SAME WEIGHTS REUSED AT EVERY STEP</text>
+
+        <!-- Step 1 -->
+        <rect x="30" y="145" width="100" height="32" rx="7" fill="#2a1f06" stroke="#fbbf24" stroke-width="0.7" stroke-opacity="0.6"/>
+        <text x="80" y="166" text-anchor="middle" font-size="13" fill="#fbbf24">"arrive"</text>
+        <line x1="80" y1="145" x2="80" y2="115" stroke="#3a3f5c" stroke-width="1.2" marker-end="url(#a3)"/>
+        <rect x="30" y="70" width="100" height="45" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="1"/>
+        <text x="80" y="88" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">RNN cell</text>
+        <text x="80" y="104" text-anchor="middle" font-size="11" fill="#7c84a8">t = 1</text>
+        <line x1="80" y1="70" x2="80" y2="42" stroke="#3a3f5c" stroke-width="1.2" marker-end="url(#a3)"/>
+        <rect x="30" y="24" width="100" height="22" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="80" y="39" text-anchor="middle" font-size="12" fill="#7c84a8">y¹</text>
+        <!-- hidden state right -->
+        <line x1="130" y1="93" x2="210" y2="93" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#a3)"/>
+        <text x="170" y="86" text-anchor="middle" font-size="11" fill="#a78bfa">a¹</text>
+
+        <!-- Step 2 -->
+        <rect x="210" y="145" width="100" height="32" rx="7" fill="#2a1f06" stroke="#fbbf24" stroke-width="0.7" stroke-opacity="0.6"/>
+        <text x="260" y="166" text-anchor="middle" font-size="13" fill="#fbbf24">"Taipei"</text>
+        <line x1="260" y1="145" x2="260" y2="115" stroke="#3a3f5c" stroke-width="1.2" marker-end="url(#a3)"/>
+        <rect x="210" y="70" width="100" height="45" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="1"/>
+        <text x="260" y="88" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">RNN cell</text>
+        <text x="260" y="104" text-anchor="middle" font-size="11" fill="#7c84a8">t = 2</text>
+        <line x1="260" y1="70" x2="260" y2="42" stroke="#3a3f5c" stroke-width="1.2" marker-end="url(#a3)"/>
+        <rect x="210" y="24" width="100" height="22" rx="5" fill="#0d2b20" stroke="#34d399" stroke-width="0.8"/>
+        <text x="260" y="39" text-anchor="middle" font-size="12" fill="#34d399">y² = dest</text>
+        <line x1="310" y1="93" x2="390" y2="93" stroke="#a78bfa" stroke-width="1.8" marker-end="url(#a3)"/>
+        <text x="350" y="86" text-anchor="middle" font-size="11" fill="#a78bfa">a²</text>
+
+        <!-- Step 3 -->
+        <rect x="390" y="145" width="100" height="32" rx="7" fill="#2a1f06" stroke="#fbbf24" stroke-width="0.7" stroke-opacity="0.6"/>
+        <text x="440" y="166" text-anchor="middle" font-size="13" fill="#fbbf24">"on"</text>
+        <line x1="440" y1="145" x2="440" y2="115" stroke="#3a3f5c" stroke-width="1.2" marker-end="url(#a3)"/>
+        <rect x="390" y="70" width="100" height="45" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="1"/>
+        <text x="440" y="88" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="600">RNN cell</text>
+        <text x="440" y="104" text-anchor="middle" font-size="11" fill="#7c84a8">t = 3</text>
+        <line x1="440" y1="70" x2="440" y2="42" stroke="#3a3f5c" stroke-width="1.2" marker-end="url(#a3)"/>
+        <rect x="390" y="24" width="100" height="22" rx="5" fill="#1b1e2a" stroke="#2e3348" stroke-width="0.7"/>
+        <text x="440" y="39" text-anchor="middle" font-size="12" fill="#7c84a8">y³</text>
+        <line x1="490" y1="93" x2="560" y2="93" stroke="#a78bfa" stroke-width="1.8" stroke-dasharray="5 3"/>
+        <text x="525" y="86" text-anchor="middle" font-size="11" fill="#7c84a8">a³ →</text>
+
+        <!-- Labels right -->
+        <text x="590" y="39" font-size="11" fill="#7c84a8">outputs</text>
+        <text x="590" y="93" font-size="11" fill="#a78bfa">memory</text>
+        <text x="590" y="165" font-size="11" fill="#fbbf24">inputs</text>
+
+        <text x="340" y="200" text-anchor="middle" font-size="11" fill="#3a3f5c" font-family="'IBM Plex Mono',monospace">W_i, W_h, W_o are identical in all three cells above</text>
+      </svg>
+      <div class="diagram-caption">Figure 3 — RNN unrolled across three time steps (shared weights shown)</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Section 4 ─── -->
+<div class="section" id="s4">
+  <div class="sec-header open" onclick="toggle(this)">
+    <div class="sec-badge badge-teal">4</div>
+    <span class="sec-title">RNN variants — Elman, Jordan, Bidirectional, Deep</span>
+    <span class="sec-chevron open">▾</span>
+  </div>
+  <div class="sec-body open">
+
+    <div class="lang-block en show">
+      <p>Several RNN architectures differ in <em>what they store as memory</em> and <em>how they read the sequence</em>:</p>
+
+      <table class="compare-table">
+        <thead><tr><th>Architecture</th><th>What goes into memory?</th><th>Key characteristic</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="term">Elman Network</span></td>
+            <td>Hidden layer activations <code>a(t)</code></td>
+            <td>The standard RNN. Memory = internal representation.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Jordan Network</span></td>
+            <td>Previous output <code>y(t)</code></td>
+            <td>Memory = what the model predicted last time. Useful when the output itself is informative context.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Bidirectional RNN</span></td>
+            <td>Hidden states from both directions</td>
+            <td>Runs two RNNs simultaneously: one left→right, one right→left. Each position sees the whole sequence.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Deep RNN</span></td>
+            <td>Multiple stacked layers</td>
+            <td>Several RNN layers stacked vertically, each layer processing the hidden states of the layer below.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="box box-example">
+        <span class="box-label">▶ Why bidirectional matters</span>
+        <p>"The animal didn't cross the street because <strong>it</strong> was too tired."</p>
+        <p>What does "it" refer to — the animal or the street? You need to read the rest of the sentence to know. A unidirectional RNN has already moved past "it" when it encounters "tired"; a bidirectional RNN's reverse pass has that information available when processing "it".</p>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ Summary</span>
+        <p>Elman stores hidden activations; Jordan stores outputs. Both are unidirectional. Bidirectional RNNs read the sequence in both directions, giving every token a view of the whole context. Deep RNNs stack multiple layers for richer representations.</p>
+      </div>
+    </div>
+
+    <div class="lang-block ar">
+      <p class="ar">في أشكال مختلفة للـ RNN بتختلف في <em>إيه اللي بيتحفظ كذاكرة</em> و<em>ازاي بيقرأ السيكوانس</em>:</p>
+
+      <table class="compare-table">
+        <thead><tr><th>المعمار</th><th>إيه اللي بيتحفظ؟</th><th>الخاصية الأساسية</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="term">Elman Network</span></td>
+            <td>Hidden layer activations <code>a(t)</code></td>
+            <td class="ar">الـ RNN الأساسي. الذاكرة = التمثيل الداخلي.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Jordan Network</span></td>
+            <td>الناتج السابق <code>y(t)</code></td>
+            <td class="ar">الذاكرة = اللي الموديل توقعه المرة اللي فاتت.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Bidirectional RNN</span></td>
+            <td>Hidden states من الاتجاهين</td>
+            <td class="ar">بيشغل RNNين: واحد من اليسار لليمين، وواحد من اليمين لليسار. كل موضع بيشوف الجملة كلها.</td>
+          </tr>
+          <tr>
+            <td><span class="term">Deep RNN</span></td>
+            <td>طبقات متعددة فوق بعض</td>
+            <td class="ar">طبقات RNN متراصة، كل طبقة بتعالج hidden states الطبقة تحتها.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="box box-example">
+        <span class="box-label">▶ ليه Bidirectional مهم</span>
+        <p class="ar">جملة: "The animal didn't cross the street because it was too tired."</p>
+        <p class="ar">كلمة "it" بترجع لإيه — الحيوان ولا الشارع؟ محتاج تقرأ باقي الجملة عشان تعرف. الـ unidirectional RNN عدى على "it" قبل ما يوصل لـ "tired"؛ الـ bidirectional RNN عنده المعلومة دي لما بيعالج "it".</p>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ الفكرة</span>
+        <p class="ar">Elman بيحفظ hidden activations؛ Jordan بيحفظ outputs. الاتنين unidirectional. Bidirectional بيقرأ السيكوانس في الاتجاهين، فكل token عنده سياق كامل. Deep RNNs بتكوّم طبقات لتمثيلات أغنى.</p>
+      </div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 160" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <text x="340" y="16" text-anchor="middle" font-size="11" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">BIDIRECTIONAL RNN — FORWARD + BACKWARD PASSES COMBINED</text>
+
+        <!-- Forward cells -->
+        <rect x="40" y="28" width="120" height="36" rx="8" fill="#0d2b20" stroke="#34d399" stroke-width="0.8"/>
+        <text x="100" y="51" text-anchor="middle" font-size="13" fill="#34d399" font-weight="500">cell t=1  →</text>
+        <rect x="200" y="28" width="120" height="36" rx="8" fill="#0d2b20" stroke="#34d399" stroke-width="0.8"/>
+        <text x="260" y="51" text-anchor="middle" font-size="13" fill="#34d399" font-weight="500">cell t=2  →</text>
+        <rect x="360" y="28" width="120" height="36" rx="8" fill="#0d2b20" stroke="#34d399" stroke-width="0.8"/>
+        <text x="420" y="51" text-anchor="middle" font-size="13" fill="#34d399" font-weight="500">cell t=3  →</text>
+        <line x1="160" y1="46" x2="198" y2="46" stroke="#34d399" stroke-width="1.5" marker-end="url(#a4)"/>
+        <line x1="320" y1="46" x2="358" y2="46" stroke="#34d399" stroke-width="1.5" marker-end="url(#a4)"/>
+
+        <!-- Backward cells -->
+        <rect x="40" y="85" width="120" height="36" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="0.8"/>
+        <text x="100" y="108" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="500">← cell t=1</text>
+        <rect x="200" y="85" width="120" height="36" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="0.8"/>
+        <text x="260" y="108" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="500">← cell t=2</text>
+        <rect x="360" y="85" width="120" height="36" rx="8" fill="#1e1a38" stroke="#a78bfa" stroke-width="0.8"/>
+        <text x="420" y="108" text-anchor="middle" font-size="13" fill="#a78bfa" font-weight="500">← cell t=3</text>
+        <line x1="358" y1="103" x2="322" y2="103" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#a4)"/>
+        <line x1="198" y1="103" x2="162" y2="103" stroke="#a78bfa" stroke-width="1.5" marker-end="url(#a4)"/>
+
+        <!-- Combined output -->
+        <line x1="480" y1="46" x2="545" y2="78" stroke="#34d399" stroke-width="1" marker-end="url(#a4)"/>
+        <line x1="480" y1="103" x2="545" y2="90" stroke="#a78bfa" stroke-width="1" marker-end="url(#a4)"/>
+        <rect x="548" y="72" width="112" height="32" rx="7" fill="#2a1f06" stroke="#fbbf24" stroke-width="0.8"/>
+        <text x="604" y="93" text-anchor="middle" font-size="12" fill="#fbbf24" font-weight="500">combined y</text>
+
+        <text x="100" y="148" text-anchor="middle" font-size="11" fill="#7c84a8">forward pass</text>
+        <text x="260" y="148" text-anchor="middle" font-size="11" fill="#7c84a8">forward pass</text>
+        <text x="420" y="148" text-anchor="middle" font-size="11" fill="#7c84a8">forward pass</text>
+      </svg>
+      <div class="diagram-caption">Figure 4 — Bidirectional RNN: forward (green) + backward (purple) hidden states merged</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Section 5 ─── -->
+<div class="section" id="s5">
+  <div class="sec-header open" onclick="toggle(this)">
+    <div class="sec-badge badge-amber">5</div>
+    <span class="sec-title">Training RNNs — BPTT and gradient problems</span>
+    <span class="sec-chevron open">▾</span>
+  </div>
+  <div class="sec-body open">
+
+    <div class="lang-block en show">
+      <p>RNNs are trained using <span class="term">Backpropagation Through Time (BPTT)</span>. The idea: unroll the RNN across all time steps to form a very deep feedforward network, then apply standard backpropagation. The weight update rule is:</p>
+
+      <div class="codeblock">w <span class="op">←</span> w <span class="op">−</span> η · ∂L/∂w</div>
+
+      <p>where η is the learning rate and L is the total loss summed over all time steps.</p>
+
+      <div class="box box-warning">
+        <span class="box-label">⚠ The gradient problem</span>
+        <p>Because the weight matrix W_h is multiplied at every step, gradients propagating backwards can either <strong>shrink exponentially to zero</strong> (vanishing gradient) or <strong>grow exponentially</strong> (exploding gradient).</p>
+        <p>From the lecture's toy example: with w multiplied 999 times…</p>
+        <p>
+          <code>w = 1.00</code> → y¹⁰⁰⁰ = 1 (stable)<br>
+          <code>w = 1.01</code> → y¹⁰⁰⁰ ≈ 20,000 (exploding)<br>
+          <code>w = 0.99</code> → y¹⁰⁰⁰ ≈ 0 (vanishing)
+        </p>
+        <p>A tiny change in w causes a massive or negligible change in output — making the gradient either huge or essentially zero.</p>
+      </div>
+
+      <p>In practice the <span class="term">error surface is very rough</span>: mostly flat (vanishing), but with sudden steep cliffs (exploding). This is visible in the lecture's training curves, where loss sometimes spikes violently.</p>
+
+      <table class="compare-table">
+        <thead><tr><th>Problem</th><th>Symptom</th><th>Common fix</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span style="color:var(--muted)">Vanishing gradient</span></td>
+            <td>Network cannot learn long-range dependencies; early layers receive near-zero gradients</td>
+            <td>Use LSTM or GRU architectures</td>
+          </tr>
+          <tr>
+            <td><span style="color:var(--coral)">Exploding gradient</span></td>
+            <td>Loss spikes wildly; NaN values; instability</td>
+            <td><span class="term">Gradient clipping</span>: cap gradient norm at a threshold before the update</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The deeper architectural fix is to use <span class="term">LSTM</span> (Long Short-Term Memory) or <span class="term">GRU</span> (Gated Recurrent Unit). These use <em>gating mechanisms</em> to explicitly control what information to store, update, or forget — largely solving the vanishing gradient problem.</p>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ Summary</span>
+        <p>BPTT unrolls the RNN through time and applies backpropagation. The main challenge is vanishing/exploding gradients due to repeated multiplication of W_h. Gradient clipping addresses explosions; LSTM and GRU architectures address vanishing gradients.</p>
+      </div>
+    </div>
+
+    <div class="lang-block ar">
+      <p class="ar">الـ RNNs بتتدرب باستخدام <span class="term">Backpropagation Through Time (BPTT)</span>. الفكرة: بنفرد الـ RNN عبر كل الخطوات الزمنية عشان يبقى شبه شبكة عميقة جداً، وبعدين نطبق الـ backpropagation العادي. قاعدة تحديث الـ weights:</p>
+
+      <div class="codeblock">w <span class="op">←</span> w <span class="op">−</span> η · ∂L/∂w</div>
+
+      <div class="box box-warning">
+        <span class="box-label">⚠ مشكلة الـ Gradients</span>
+        <p class="ar">لأن الـ weight matrix W_h بتتضرب في كل خطوة، الـ gradients اللي بترجع للخلف ممكن إما تـ<strong>تتلاشى لقريبة من الصفر</strong> (vanishing gradient) أو تـ<strong>تكبر بشكل هائل</strong> (exploding gradient).</p>
+        <p class="ar">من المثال في الشرائح: مع ضرب w ألف مرة…</p>
+        <p>
+          <code>w = 1.00</code> → y^1000 = 1 (مستقر)<br>
+          <code>w = 1.01</code> → y^1000 ≈ 20,000 (exploding)<br>
+          <code>w = 0.99</code> → y^1000 ≈ 0 (vanishing)
+        </p>
+        <p class="ar">تغيير بسيط جداً في w بيعمل فرق ضخم أو معندهوش تأثير خالص — ده بيخلي الـ gradient إما ضخم أو صفر تقريباً.</p>
+      </div>
+
+      <table class="compare-table">
+        <thead><tr><th>المشكلة</th><th>الأعراض</th><th>الحل الشائع</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span style="color:var(--muted)">Vanishing gradient</span></td>
+            <td class="ar">الشبكة مش عارفة تتعلم الروابط البعيدة</td>
+            <td>LSTM أو GRU</td>
+          </tr>
+          <tr>
+            <td><span style="color:var(--coral)">Exploding gradient</span></td>
+            <td class="ar">الـ loss بيقفز فجأة — تدريب غير مستقر</td>
+            <td><span class="term">Gradient clipping</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="ar">الحل الأعمق هو استخدام <span class="term">LSTM</span> أو <span class="term">GRU</span>. بيستخدموا <em>gating mechanisms</em> عشان يتحكموا صراحة في إيه اللي يتحفظ وإيه اللي يُنسى — ده بيحل مشكلة الـ vanishing gradient بشكل كبير.</p>
+
+      <div class="box box-summary">
+        <span class="box-label">✦ الفكرة</span>
+        <p class="ar">BPTT بيفرد الـ RNN عبر الزمن ويطبق backpropagation. التحدي الأساسي هو الـ vanishing/exploding gradients من الضرب المتكرر لـ W_h. Gradient clipping بيعالج الـ exploding؛ LSTM وGRU بيعالجوا الـ vanishing.</p>
+      </div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 175" xmlns="http://www.w3.org/2000/svg">
+        <!-- vanishing -->
+        <rect x="40" y="28" width="170" height="52" rx="8" fill="#1b1e2a" stroke="#3a3f5c" stroke-width="0.8"/>
+        <text x="125" y="50" text-anchor="middle" font-size="13" fill="#7c84a8" font-weight="500">w = 0.99</text>
+        <text x="125" y="68" text-anchor="middle" font-size="12" fill="#3a3f5c">y^1000 ≈ 0</text>
+        <text x="125" y="100" text-anchor="middle" font-size="11" fill="#7c84a8" font-family="'IBM Plex Mono',monospace">VANISHING</text>
+        <path d="M40 130 Q80 165 210 162" fill="none" stroke="#3a3f5c" stroke-width="2"/>
+        <text x="125" y="160" text-anchor="middle" font-size="11" fill="#3a3f5c">gradient → 0, no learning</text>
+
+        <!-- stable -->
+        <rect x="255" y="28" width="170" height="52" rx="8" fill="#0d2b20" stroke="#34d399" stroke-width="0.8"/>
+        <text x="340" y="50" text-anchor="middle" font-size="13" fill="#34d399" font-weight="500">w = 1.00</text>
+        <text x="340" y="68" text-anchor="middle" font-size="12" fill="#34d399">y^1000 = 1</text>
+        <text x="340" y="100" text-anchor="middle" font-size="11" fill="#34d399" font-family="'IBM Plex Mono',monospace">STABLE ✓</text>
+        <path d="M255 148 Q340 148 425 148" fill="none" stroke="#34d399" stroke-width="2"/>
+        <text x="340" y="165" text-anchor="middle" font-size="11" fill="#34d399">smooth gradient flow</text>
+
+        <!-- exploding -->
+        <rect x="470" y="28" width="170" height="52" rx="8" fill="#2b1010" stroke="#f87171" stroke-width="0.8"/>
+        <text x="555" y="50" text-anchor="middle" font-size="13" fill="#f87171" font-weight="500">w = 1.01</text>
+        <text x="555" y="68" text-anchor="middle" font-size="12" fill="#f87171">y^1000 ≈ 20,000</text>
+        <text x="555" y="100" text-anchor="middle" font-size="11" fill="#f87171" font-family="'IBM Plex Mono',monospace">EXPLODING</text>
+        <path d="M470 165 Q510 155 555 100" fill="none" stroke="#f87171" stroke-width="2"/>
+        <text x="555" y="175" text-anchor="middle" font-size="11" fill="#f87171">loss spikes, instability</text>
+      </svg>
+      <div class="diagram-caption">Figure 5 — Effect of the recurrent weight w on gradient magnitude over 1000 steps</div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  RNN Study Guide · generated from lecture slides · bilingual EN / AR
+</footer>
+
+<script>
+function toggle(header) {
+  var open = header.classList.toggle('open');
+  header.querySelector('.sec-chevron').classList.toggle('open', open);
+  header.nextElementSibling.classList.toggle('open', open);
+}
+
+function setLang(lang) {
+  document.querySelectorAll('.lang-btn').forEach(function(b) {
+    b.classList.toggle('active', (lang === 'en' ? 'English' : 'العربية') === b.textContent.trim());
+  });
+  document.querySelectorAll('.lang-block').forEach(function(b) {
+    b.classList.toggle('show', b.classList.contains(lang));
+  });
+  document.documentElement.setAttribute('lang', lang === 'ar' ? 'ar' : 'en');
+}
+
+// Open all sections by default
+document.querySelectorAll('.sec-body').forEach(function(b) { b.classList.add('open'); });
+document.querySelectorAll('.sec-header').forEach(function(h) {
+  h.classList.add('open');
+  h.querySelector('.sec-chevron').classList.add('open');
+});
+</script>
+</body>
+</html>

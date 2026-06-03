@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GRU Study Guide — Gated Recurrent Unit</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --accent1: #534AB7; --accent1-bg: #EEEDFE; --accent1-mid: #AFA9EC;
+    --accent2: #0F6E56; --accent2-bg: #E1F5EE; --accent2-mid: #5DCAA5;
+    --accent3: #993C1D; --accent3-bg: #FAECE7; --accent3-mid: #F0997B;
+    --accent4: #185FA5; --accent4-bg: #E6F1FB; --accent4-mid: #85B7EB;
+    --accent5: #3B6D11; --accent5-bg: #EAF3DE; --accent5-mid: #97C459;
+    --accent6: #854F0B; --accent6-bg: #FAEEDA; --accent6-mid: #EF9F27;
+    --bg: #f8f8f6;
+    --surface: #ffffff;
+    --text: #1a1a18;
+    --text-secondary: #5a5a56;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --radius-md: 8px;
+    --radius-lg: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent1-bg: #26215C; --accent1: #AFA9EC;
+      --accent2-bg: #04342C; --accent2: #5DCAA5;
+      --accent3-bg: #4A1B0C; --accent3: #F0997B;
+      --accent4-bg: #042C53; --accent4: #85B7EB;
+      --accent5-bg: #173404; --accent5: #97C459;
+      --accent6-bg: #412402; --accent6: #EF9F27;
+      --bg: #111110;
+      --surface: #1c1c1a;
+      --text: #e8e8e4;
+      --text-secondary: #8a8a84;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.15);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  /* HEADER */
+  .guide-header {
+    background: linear-gradient(135deg, #1a1630 0%, #3C3489 40%, #534AB7 100%);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem 2rem;
+    margin-bottom: 2rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .guide-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .guide-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: 40px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .guide-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #fff 0%, #CECBF6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+  .guide-header .subtitle {
+    font-size: 12px;
+    color: #AFA9EC;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+  .guide-header .paper-ref {
+    margin-top: 12px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* TOC */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 2rem;
+  }
+  .toc-chip {
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    border: none;
+    transition: opacity 0.15s, transform 0.1s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .toc-chip:hover { opacity: 0.75; transform: translateY(-1px); }
+  .toc-chip:nth-child(1) { background: var(--accent1-bg); color: var(--accent1); }
+  .toc-chip:nth-child(2) { background: var(--accent2-bg); color: var(--accent2); }
+  .toc-chip:nth-child(3) { background: var(--accent3-bg); color: var(--accent3); }
+  .toc-chip:nth-child(4) { background: var(--accent4-bg); color: var(--accent4); }
+  .toc-chip:nth-child(5) { background: var(--accent5-bg); color: var(--accent5); }
+  .toc-chip:nth-child(6) { background: var(--accent6-bg); color: var(--accent6); }
+
+  /* SECTION CARDS */
+  .section-card {
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .section-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .section-header:hover { background: var(--bg); }
+
+  .card-1 .section-header { border-left: 4px solid var(--accent1); }
+  .card-2 .section-header { border-left: 4px solid var(--accent2); }
+  .card-3 .section-header { border-left: 4px solid var(--accent3); }
+  .card-4 .section-header { border-left: 4px solid var(--accent4); }
+  .card-5 .section-header { border-left: 4px solid var(--accent5); }
+  .card-6 .section-header { border-left: 4px solid var(--accent6); }
+
+  .icon-badge {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .card-1 .icon-badge { background: var(--accent1-bg); }
+  .card-2 .icon-badge { background: var(--accent2-bg); }
+  .card-3 .icon-badge { background: var(--accent3-bg); }
+  .card-4 .icon-badge { background: var(--accent4-bg); }
+  .card-5 .icon-badge { background: var(--accent5-bg); }
+  .card-6 .icon-badge { background: var(--accent6-bg); }
+
+  .section-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .chevron {
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .chevron.open { transform: rotate(90deg); }
+
+  .section-body { padding: 20px 20px 20px 24px; display: none; }
+  .section-body.open { display: block; }
+
+  /* LANG TABS */
+  .lang-tabs { display: flex; gap: 5px; margin-bottom: 14px; }
+  .lang-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .lang-btn.active {
+    background: var(--text);
+    color: var(--surface);
+    border-color: var(--text);
+  }
+  .lang-en, .lang-ar { display: none; }
+  .lang-en.visible, .lang-ar.visible { display: block; }
+  .lang-ar { direction: rtl; font-size: 14.5px; line-height: 1.9; }
+
+  /* BOXES */
+  .box-analogy, .box-example, .box-summary, .box-warning {
+    border-radius: var(--radius-md);
+    padding: 11px 15px;
+    margin: 14px 0;
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .box-analogy { background: var(--accent6-bg); border-left: 3px solid var(--accent6); color: var(--text); }
+  .box-analogy::before { content: "💡  "; }
+  .box-example { background: var(--accent4-bg); border-left: 3px solid var(--accent4); }
+  .box-example::before { content: "▶  "; color: var(--accent4); font-size: 11px; }
+  .box-summary { background: var(--accent2-bg); border-left: 3px solid var(--accent2); }
+  .box-summary::before { content: "✦  Summary — "; font-weight: 700; color: var(--accent2); }
+  .box-warning { background: var(--accent3-bg); border-left: 3px solid var(--accent3); }
+  .box-warning::before { content: "⚠  "; }
+
+  /* INLINE STYLES */
+  .term {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .highlight {
+    background: var(--accent1-bg);
+    color: var(--accent1);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  /* TYPOGRAPHY */
+  p { margin-bottom: 9px; }
+  ul { margin: 8px 0 8px 20px; }
+  li { margin-bottom: 5px; }
+  h4 { font-size: 13px; font-weight: 700; margin: 16px 0 7px; color: var(--text); text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.7; }
+
+  /* FORMULA BLOCKS */
+  .formula-block {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    background: #14121e;
+    color: #cdd6f4;
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin: 11px 0;
+    line-height: 2.1;
+    overflow-x: auto;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .formula-block .comment { color: #585473; }
+  .formula-block .sym { color: #f38ba8; }
+  .formula-block .val { color: #a6e3a1; font-weight: 500; }
+  .formula-block .fn { color: #89b4fa; }
+
+  /* COMPARE TABLE */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 14px 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .compare-table th {
+    background: linear-gradient(135deg, #3C3489 0%, #534AB7 100%);
+    color: #fff;
+    padding: 10px 12px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 12px;
+    letter-spacing: 0.3px;
+  }
+  .compare-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+
+  /* SVG DIAGRAMS */
+  .diagram-wrap {
+    margin: 16px 0;
+    background: var(--bg);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    border: 1px solid var(--border);
+  }
+
+  /* FOOTER */
+  .guide-footer {
+    text-align: center;
+    margin-top: 3rem;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 1rem 0.75rem 3rem; }
+    .guide-header h1 { font-size: 22px; }
+    .section-body { padding: 16px; }
+    .formula-block { font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="guide-header">
+    <h1>Gated Recurrent Unit (GRU)</h1>
+    <div class="subtitle">NLP Study Guide — Bilingual EN / AR</div>
+    <div class="paper-ref">Cho et al., 2014 — Learning Phrase Representations using RNN Encoder-Decoder</div>
+  </div>
+
+  <div class="toc">
+    <a href="#s1" class="toc-chip" onclick="openCard('s1')">1. What is GRU?</a>
+    <a href="#s2" class="toc-chip" onclick="openCard('s2')">2. The Two Gates</a>
+    <a href="#s3" class="toc-chip" onclick="openCard('s3')">3. The Equations</a>
+    <a href="#s4" class="toc-chip" onclick="openCard('s4')">4. How It Flows</a>
+    <a href="#s5" class="toc-chip" onclick="openCard('s5')">5. GRU vs LSTM</a>
+    <a href="#s6" class="toc-chip" onclick="openCard('s6')">6. Why GRU Matters</a>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section-card card-1" id="s1">
+    <div class="section-header" onclick="toggle('s1')">
+      <div class="icon-badge">🧠</div>
+      <span class="section-title">1. What is a GRU?</span>
+      <span class="chevron open" id="s1-ch">▶</span>
+    </div>
+    <div class="section-body open" id="s1-body">
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="switchLang('s1','en',this)">EN</button>
+        <button class="lang-btn" onclick="switchLang('s1','ar',this)">AR</button>
+      </div>
+      <div class="lang-en visible" id="s1-en">
+        <p>A <span class="highlight">GRU (Gated Recurrent Unit)</span> is a type of neural network designed to handle <strong>sequences</strong> — things that come one after another, like words in a sentence, or frames in a video.</p>
+        <p>The big problem with plain sequence models is that they forget information quickly. GRUs solve this with <em>gates</em> — learned switches that decide what information to keep and what to throw away at each step.</p>
+        <div class="box-analogy">Think of GRU like reading a long book. You don't memorize every word — you keep the important plot points and forget filler details. GRU does the same with sequential data.</div>
+        <h4>Where GRU fits in the family tree</h4>
+        <div class="diagram-wrap">
+          <svg width="100%" viewBox="0 0 680 200" role="img" xmlns="http://www.w3.org/2000/svg">
+            <title>GRU in the RNN family tree</title>
+            <defs>
+              <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <rect x="250" y="20" width="180" height="44" rx="9" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+            <text x="340" y="48" text-anchor="middle" font-family="Sora,sans-serif" font-size="13" font-weight="600" fill="#534AB7">Recurrent Neural Network</text>
+            <line x1="300" y1="64" x2="195" y2="114" stroke="#aaa" stroke-width="1" marker-end="url(#a1)" fill="none"/>
+            <line x1="380" y1="64" x2="485" y2="114" stroke="#aaa" stroke-width="1" marker-end="url(#a1)" fill="none"/>
+            <rect x="110" y="114" width="170" height="46" rx="9" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+            <text x="195" y="133" text-anchor="middle" font-family="Sora,sans-serif" font-size="13" font-weight="600" fill="#0F6E56">LSTM</text>
+            <text x="195" y="150" text-anchor="middle" font-family="Sora,sans-serif" font-size="11" fill="#0F6E56">(3 gates, cell state)</text>
+            <rect x="400" y="114" width="170" height="46" rx="9" fill="#FAEEDA" stroke="#EF9F27" stroke-width="1"/>
+            <text x="485" y="133" text-anchor="middle" font-family="Sora,sans-serif" font-size="13" font-weight="600" fill="#854F0B">GRU</text>
+            <text x="485" y="150" text-anchor="middle" font-family="Sora,sans-serif" font-size="11" fill="#854F0B">(2 gates, simpler)</text>
+            <text x="340" y="188" text-anchor="middle" font-family="Sora,sans-serif" font-size="11" fill="#888">GRU is a lighter, faster cousin of LSTM — both solve the "forgetting" problem</text>
+          </svg>
+        </div>
+        <div class="box-summary">GRU is a recurrent neural network that uses gates to selectively remember or forget information across a sequence. It is simpler than LSTM but achieves comparable results on most tasks.</div>
+      </div>
+      <div class="lang-ar" id="s1-ar">
+        <p>الـ <span class="highlight">GRU</span> هو نوع من الشبكات العصبية المصممة للتعامل مع <strong>التسلسلات</strong> — يعني الأشياء اللي بتيجي واحدة ورا التانية، زي الكلام في جملة أو الإطارات في فيديو.</p>
+        <p>المشكلة الأساسية في الشبكات التكرارية العادية إنها بتنسى المعلومات بسرعة. الـ GRU حلّت المشكلة دي باستخدام <span class="term">Gates</span> — يعني "بوابات" أو مفاتيح بتقرر إيه المعلومات اللي هتتذكرها وإيه اللي هترميها.</p>
+        <div class="box-analogy">تخيل إنك بتقرأ رواية طويلة. مش بتحفظ كل كلمة — بتفضّل الأحداث المهمة وبتنسى التفاصيل الزيادة. الـ GRU بيعمل نفس الكلام مع البيانات.</div>
+        <p>الـ GRU هو نسخة أبسط وأسرع من الـ <span class="term">LSTM</span>، وبيدي نتايج قريبة منه في معظم المهام.</p>
+        <div class="box-summary">الـ GRU شبكة عصبية تكرارية بتستخدم بوابات عشان تتحكم في إيه اللي يتذكر وإيه اللي يتنسى من المعلومات في التسلسل. أبسط من LSTM وأداؤه قريب منه.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section-card card-2" id="s2">
+    <div class="section-header" onclick="toggle('s2')">
+      <div class="icon-badge">🚪</div>
+      <span class="section-title">2. The Two Gates</span>
+      <span class="chevron" id="s2-ch">▶</span>
+    </div>
+    <div class="section-body" id="s2-body">
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="switchLang('s2','en',this)">EN</button>
+        <button class="lang-btn" onclick="switchLang('s2','ar',this)">AR</button>
+      </div>
+      <div class="lang-en visible" id="s2-en">
+        <p>GRU has exactly <span class="highlight">two gates</span>. Each gate outputs a number between 0 and 1 — like a volume dial:</p>
+        <ul>
+          <li><strong>0</strong> = completely blocked (forget everything)</li>
+          <li><strong>1</strong> = fully open (keep everything)</li>
+        </ul>
+        <h4>Gate 1 — Reset Gate <span class="term">r_t</span></h4>
+        <p>Asks: <em>"How much of the past should I use when computing the new candidate memory?"</em></p>
+        <p>When <span class="term">r_t ≈ 0</span>, the past is mostly ignored — the model acts as if starting fresh. When <span class="term">r_t ≈ 1</span>, the full past is used.</p>
+        <div class="box-analogy">Imagine writing a sequel. The reset gate decides how much of the previous book's lore to consider when writing the new chapter.</div>
+        <h4>Gate 2 — Update Gate <span class="term">z_t</span></h4>
+        <p>Asks: <em>"How much should I update my memory — how much old vs new?"</em></p>
+        <ul>
+          <li><strong>z_t → 1</strong>: keep the old memory, ignore the new input</li>
+          <li><strong>z_t → 0</strong>: replace old memory with the new candidate</li>
+        </ul>
+        <div class="box-analogy">The update gate is like a DJ mixer — it decides how much of the old track (past) to fade out while fading in the new track (current input).</div>
+        <div class="diagram-wrap">
+          <svg width="100%" viewBox="0 0 680 220" role="img" xmlns="http://www.w3.org/2000/svg">
+            <title>GRU two gates</title>
+            <defs>
+              <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <!-- Inputs -->
+            <rect x="20" y="80" width="100" height="40" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+            <text x="70" y="105" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="500" fill="#444">h_(t-1)</text>
+            <rect x="20" y="160" width="100" height="40" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+            <text x="70" y="185" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="500" fill="#444">x_t</text>
+            <!-- Arrows to reset -->
+            <line x1="120" y1="100" x2="235" y2="110" stroke="#aaa" stroke-width="1" marker-end="url(#a2)" fill="none"/>
+            <line x1="120" y1="175" x2="235" y2="130" stroke="#aaa" stroke-width="1" marker-end="url(#a2)" fill="none"/>
+            <!-- Arrows to update -->
+            <line x1="120" y1="100" x2="395" y2="110" stroke="#aaa" stroke-width="1" marker-end="url(#a2)" fill="none"/>
+            <line x1="120" y1="175" x2="395" y2="130" stroke="#aaa" stroke-width="1" marker-end="url(#a2)" fill="none"/>
+            <!-- Reset gate -->
+            <rect x="235" y="95" width="140" height="54" rx="9" fill="#FAECE7" stroke="#F0997B" stroke-width="1"/>
+            <text x="305" y="117" text-anchor="middle" font-family="Sora,sans-serif" font-size="13" font-weight="600" fill="#993C1D">Reset gate</text>
+            <text x="305" y="136" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#993C1D">r_t = σ( W_r · [h,x] )</text>
+            <!-- Update gate -->
+            <rect x="395" y="95" width="140" height="54" rx="9" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+            <text x="465" y="117" text-anchor="middle" font-family="Sora,sans-serif" font-size="13" font-weight="600" fill="#0F6E56">Update gate</text>
+            <text x="465" y="136" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#0F6E56">z_t = σ( W_z · [h,x] )</text>
+            <!-- Arrow to h_t -->
+            <line x1="535" y1="122" x2="600" y2="122" stroke="#aaa" stroke-width="1" marker-end="url(#a2)" fill="none"/>
+            <rect x="600" y="100" width="66" height="44" rx="9" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+            <text x="633" y="127" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="13" font-weight="600" fill="#534AB7">h_t</text>
+            <text x="340" y="208" text-anchor="middle" font-family="Sora,sans-serif" font-size="11" fill="#888">Both gates use σ (sigmoid) — outputs are always between 0 and 1</text>
+          </svg>
+        </div>
+        <div class="box-summary">GRU has two gates: the Reset gate controls how much past context shapes the new candidate memory, and the Update gate controls how much to blend old vs new memory.</div>
+      </div>
+      <div class="lang-ar" id="s2-ar">
+        <p>الـ GRU عنده <span class="highlight">بوابتين بس</span>، وكل بوابة بتطلع رقم بين 0 و1 — زي مؤشر الصوت:</p>
+        <ul>
+          <li><strong>0</strong> = البوابة مسكّرة خالص (انسَ كل حاجة)</li>
+          <li><strong>1</strong> = البوابة مفتوحة خالص (احتفظ بكل حاجة)</li>
+        </ul>
+        <h4>البوابة الأولى — Reset Gate <span class="term">r_t</span></h4>
+        <p>بتسأل: <em>"قد إيه من الماضي هستخدمه وأنا بحسب الـ candidate memory الجديدة؟"</em></p>
+        <p>لو <span class="term">r_t</span> قريب من 0، الماضي بيتجاهل وكأن الـ model بيبدأ من أول. لو قريب من 1، الماضي بيتأخذ في الحسبان بالكامل.</p>
+        <div class="box-analogy">تخيل إنك بتكتب الجزء التاني من رواية. الـ reset gate بيقرر قد إيه هتاخد من أحداث الجزء الأول وانت بتكتب الفصل الجديد.</div>
+        <h4>البوابة التانية — Update Gate <span class="term">z_t</span></h4>
+        <p>بتسأل: <em>"قد إيه أحدّث الذاكرة — أخلط القديم بالجديد بأي نسبة؟"</em></p>
+        <ul>
+          <li><strong>z_t ← 1</strong>: احتفظ بالذاكرة القديمة، تجاهل الجديدة</li>
+          <li><strong>z_t ← 0</strong>: استبدل القديمة بالـ candidate الجديدة</li>
+        </ul>
+        <div class="box-analogy">الـ update gate زي الـ DJ mixer — بيقرر نسبة خلط الأغنية القديمة (الماضي) مع الأغنية الجديدة (الـ input الحالي).</div>
+        <div class="box-summary">الـ GRU عنده بوابتين: الـ Reset Gate بتتحكم في قد إيه الماضي بيأثر في الذاكرة الجديدة، والـ Update Gate بتقرر بأي نسبة نحدّث الـ hidden state.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section-card card-3" id="s3">
+    <div class="section-header" onclick="toggle('s3')">
+      <div class="icon-badge">📐</div>
+      <span class="section-title">3. The Math — Step by Step</span>
+      <span class="chevron" id="s3-ch">▶</span>
+    </div>
+    <div class="section-body" id="s3-body">
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="switchLang('s3','en',this)">EN</button>
+        <button class="lang-btn" onclick="switchLang('s3','ar',this)">AR</button>
+      </div>
+      <div class="lang-en visible" id="s3-en">
+        <p>GRU computes the new hidden state <span class="term">h_t</span> in four steps:</p>
+        <h4>Step 1 — Update Gate</h4>
+        <div class="formula-block"><span class="val">z_t</span> = <span class="fn">σ</span>( W_zh · h_(t-1)  +  W_zx · x_t  +  b_z )
+<span class="comment">-- σ = sigmoid, squashes output to [0, 1]</span>
+<span class="comment">-- W_zh = weight matrix for the past hidden state</span>
+<span class="comment">-- W_zx = weight matrix for the current input</span></div>
+
+        <h4>Step 2 — Reset Gate</h4>
+        <div class="formula-block"><span class="val">r_t</span> = <span class="fn">σ</span>( W_rh · h_(t-1)  +  W_rx · x_t  +  b_r )
+<span class="comment">-- Same structure as z_t, but different learned weights</span></div>
+
+        <h4>Step 3 — Candidate Hidden State h̃</h4>
+        <div class="formula-block"><span class="val">h̃_t</span> = <span class="fn">tanh</span>( W_hh · (<span class="val">r_t</span> ⊙ h_(t-1))  +  W_hx · x_t  +  b_h )
+<span class="comment">-- ⊙ = element-wise multiplication (Hadamard product)</span>
+<span class="comment">-- r_t "masks" how much of the past to include</span>
+<span class="comment">-- tanh squashes output to [-1, 1]</span></div>
+
+        <h4>Step 4 — Final Hidden State (the blend)</h4>
+        <div class="formula-block"><span class="val">h_t</span> = (1 - <span class="val">z_t</span>) ⊙ h_(t-1)  +  <span class="val">z_t</span> ⊙ h̃_t
+<span class="comment">-- z_t → 1 : h_t ≈ h̃_t      (use mostly new candidate)</span>
+<span class="comment">-- z_t → 0 : h_t ≈ h_(t-1)  (keep mostly old memory)</span></div>
+
+        <div class="box-example">If <span class="term">z_t = 0.8</span>: the new state is 80% new candidate + 20% old state. The model mostly updates its memory.</div>
+        <div class="box-example">If <span class="term">z_t = 0.1</span>: the new state is 10% new candidate + 90% old state. The model mostly preserves its memory.</div>
+        <div class="box-warning">The slide notes: "Reset acts directly on output state — no internal state and no output gate." Unlike LSTM, GRU has no separate cell state. The hidden state h_t is both the memory and the output.</div>
+        <div class="box-summary">Four equations: compute z_t → compute r_t → compute h̃_t → blend old and new into h_t. This whole process repeats at every time step in the sequence.</div>
+      </div>
+      <div class="lang-ar" id="s3-ar">
+        <p>الـ GRU بيحسب الـ <span class="term">h_t</span> الجديدة في أربع خطوات:</p>
+        <h4>الخطوة الأولى — Update Gate</h4>
+        <div class="formula-block"><span class="val">z_t</span> = <span class="fn">σ</span>( W_zh · h_(t-1)  +  W_zx · x_t  +  b_z )</div>
+        <p>بنضرب الـ hidden state السابقة والـ input الحالي في مصفوفات أوزان، وبعدين بنعدّيها على دالة الـ <span class="term">sigmoid</span> اللي بتحوّل النتيجة لرقم بين 0 و1.</p>
+        <h4>الخطوة التانية — Reset Gate</h4>
+        <div class="formula-block"><span class="val">r_t</span> = <span class="fn">σ</span>( W_rh · h_(t-1)  +  W_rx · x_t  +  b_r )</div>
+        <p>نفس التركيب تماماً، بس بأوزان مختلفة متعلّمة لوحدها.</p>
+        <h4>الخطوة التالتة — Candidate Hidden State</h4>
+        <div class="formula-block"><span class="val">h̃_t</span> = <span class="fn">tanh</span>( W_hh · (<span class="val">r_t</span> ⊙ h_(t-1))  +  W_hx · x_t  +  b_h )</div>
+        <p>هنا الـ <span class="term">r_t</span> بيعمل "قناع" على الـ hidden state القديمة. لو r_t = 0 → الماضي اتنسى تقريباً. لو r_t = 1 → الماضي اتأخد بالكامل. الـ <span class="term">tanh</span> بتحوّل النتيجة لقيمة بين -1 و1.</p>
+        <h4>الخطوة الرابعة — الـ Hidden State النهائية</h4>
+        <div class="formula-block"><span class="val">h_t</span> = (1 - <span class="val">z_t</span>) ⊙ h_(t-1)  +  <span class="val">z_t</span> ⊙ h̃_t</div>
+        <p>ده خلط بين القديم والجديد. لو <span class="term">z_t = 0.8</span>: 80% جديد + 20% قديم. لو <span class="term">z_t = 0.1</span>: 10% جديد + 90% قديم.</p>
+        <div class="box-summary">أربع معادلات: احسب z_t ← احسب r_t ← احسب h̃_t ← اخلط القديم مع الجديد في h_t. وده بيتكرر في كل خطوة زمنية في التسلسل.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section-card card-4" id="s4">
+    <div class="section-header" onclick="toggle('s4')">
+      <div class="icon-badge">🔄</div>
+      <span class="section-title">4. How Information Flows</span>
+      <span class="chevron" id="s4-ch">▶</span>
+    </div>
+    <div class="section-body" id="s4-body">
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="switchLang('s4','en',this)">EN</button>
+        <button class="lang-btn" onclick="switchLang('s4','ar',this)">AR</button>
+      </div>
+      <div class="lang-en visible" id="s4-en">
+        <p>At each time step <span class="term">t</span>, the GRU receives two inputs:</p>
+        <ul>
+          <li><span class="term">x_t</span> — the current input (e.g. the current word embedding)</li>
+          <li><span class="term">h_(t-1)</span> — the hidden state from the previous step (the "memory")</li>
+        </ul>
+        <p>And it produces <span class="term">h_t</span> — the updated hidden state, which carries forward to the next step.</p>
+        <div class="diagram-wrap">
+          <svg width="100%" viewBox="0 0 680 170" role="img" xmlns="http://www.w3.org/2000/svg">
+            <title>GRU unrolled over time</title>
+            <defs>
+              <marker id="a4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <rect x="20" y="60" width="64" height="38" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="1"/>
+            <text x="52" y="84" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="500" fill="#444">h_0</text>
+            <line x1="84" y1="79" x2="140" y2="79" stroke="#aaa" stroke-width="1.5" marker-end="url(#a4)" fill="none"/>
+            <rect x="140" y="55" width="80" height="50" rx="9" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+            <text x="180" y="74" text-anchor="middle" font-family="Sora,sans-serif" font-size="12" font-weight="600" fill="#534AB7">GRU</text>
+            <text x="180" y="92" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#534AB7">t = 1</text>
+            <text x="180" y="135" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#888">x_1</text>
+            <line x1="180" y1="125" x2="180" y2="105" stroke="#aaa" stroke-width="1" marker-end="url(#a4)" fill="none"/>
+            <line x1="220" y1="79" x2="286" y2="79" stroke="#aaa" stroke-width="1.5" marker-end="url(#a4)" fill="none"/>
+            <text x="252" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#888">h_1</text>
+            <rect x="286" y="55" width="80" height="50" rx="9" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+            <text x="326" y="74" text-anchor="middle" font-family="Sora,sans-serif" font-size="12" font-weight="600" fill="#534AB7">GRU</text>
+            <text x="326" y="92" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#534AB7">t = 2</text>
+            <text x="326" y="135" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#888">x_2</text>
+            <line x1="326" y1="125" x2="326" y2="105" stroke="#aaa" stroke-width="1" marker-end="url(#a4)" fill="none"/>
+            <line x1="366" y1="79" x2="432" y2="79" stroke="#aaa" stroke-width="1.5" marker-end="url(#a4)" fill="none"/>
+            <text x="398" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#888">h_2</text>
+            <rect x="432" y="55" width="80" height="50" rx="9" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="1"/>
+            <text x="472" y="74" text-anchor="middle" font-family="Sora,sans-serif" font-size="12" font-weight="600" fill="#534AB7">GRU</text>
+            <text x="472" y="92" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#534AB7">t = 3</text>
+            <text x="472" y="135" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" fill="#888">x_3</text>
+            <line x1="472" y1="125" x2="472" y2="105" stroke="#aaa" stroke-width="1" marker-end="url(#a4)" fill="none"/>
+            <line x1="512" y1="79" x2="578" y2="79" stroke="#aaa" stroke-width="1.5" marker-end="url(#a4)" fill="none"/>
+            <text x="544" y="70" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#888">h_3</text>
+            <rect x="578" y="60" width="80" height="38" rx="9" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="1"/>
+            <text x="618" y="84" text-anchor="middle" font-family="Sora,sans-serif" font-size="12" font-weight="600" fill="#0F6E56">Output</text>
+          </svg>
+        </div>
+        <p>The same GRU cell is reused at every time step — its learned weights are fixed. Only the hidden state changes as it moves through the sequence.</p>
+        <div class="box-example">Sentence: "The cat sat on the mat." At t=1, x_1 = "The". At t=2, x_2 = "cat". The GRU at t=2 remembers "The" because h_1 carries that memory forward.</div>
+        <div class="box-summary">GRU processes one token at a time and passes its hidden state (memory) forward. The same cell runs at every step — it just receives a different input and a different memory each time.</div>
+      </div>
+      <div class="lang-ar" id="s4-ar">
+        <p>في كل خطوة زمنية <span class="term">t</span>، الـ GRU بياخد مدخلين:</p>
+        <ul>
+          <li><span class="term">x_t</span> — الـ input الحالي (مثلاً الكلمة الحالية)</li>
+          <li><span class="term">h_(t-1)</span> — الـ hidden state من الخطوة اللي قبلها (دي "الذاكرة")</li>
+        </ul>
+        <p>وبيطلع منه <span class="term">h_t</span> — الـ hidden state المحدّثة اللي بتتنقل للخطوة الجاية.</p>
+        <div class="box-example">جملة: "القطة جلست على الحصيرة." في t=1: x_1 = "القطة". في t=2: x_2 = "جلست". الـ GRU في t=2 عارف معلومات عن "القطة" لأن h_1 نقلت الذاكرة دي.</div>
+        <p>نفس الـ GRU cell بيتكرر في كل خطوة زمنية. الأوزان ثابتة — اللي بيتغير هو الـ hidden state بس.</p>
+        <div class="box-summary">الـ GRU بيشتغل على token واحد في كل مرة، وبيمرر الـ hidden state للأمام. نفس الـ cell بيشتغل في كل خطوة — بس بياخد input مختلف وذاكرة مختلفة في كل مرة.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section-card card-5" id="s5">
+    <div class="section-header" onclick="toggle('s5')">
+      <div class="icon-badge">⚖️</div>
+      <span class="section-title">5. GRU vs LSTM</span>
+      <span class="chevron" id="s5-ch">▶</span>
+    </div>
+    <div class="section-body" id="s5-body">
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="switchLang('s5','en',this)">EN</button>
+        <button class="lang-btn" onclick="switchLang('s5','ar',this)">AR</button>
+      </div>
+      <div class="lang-en visible" id="s5-en">
+        <p>The slide specifically notes: <em>"Reset and update gates when coupled act as input and forget gates."</em> GRU merges LSTM's three gates into two.</p>
+        <table class="compare-table">
+          <thead><tr><th>Feature</th><th>LSTM</th><th>GRU</th></tr></thead>
+          <tbody>
+            <tr><td>Number of gates</td><td>3 (input, forget, output)</td><td>2 (update, reset)</td></tr>
+            <tr><td>Separate cell state</td><td>Yes — c_t alongside h_t</td><td>No — h_t only</td></tr>
+            <tr><td>Output gate</td><td>Yes</td><td>No</td></tr>
+            <tr><td>Parameter count</td><td>More (~4× hidden size)</td><td>~25% fewer</td></tr>
+            <tr><td>Training speed</td><td>Slower</td><td>Faster</td></tr>
+            <tr><td>Long-sequence performance</td><td>Slightly better</td><td>Comparable, simpler</td></tr>
+          </tbody>
+        </table>
+        <div class="box-analogy">LSTM is a luxury car with three separate control systems. GRU is a sleek sports car — two controls, less maintenance, nearly the same capability.</div>
+        <div class="box-summary">GRU simplifies LSTM by merging the input and forget gates into one update gate and removing the separate cell state. Fewer parameters, faster training, similar results.</div>
+      </div>
+      <div class="lang-ar" id="s5-ar">
+        <p>الـ slide بتقول إن الـ reset و update gates لما بيشتغلوا مع بعض، بيأدوا نفس دور الـ input gate والـ forget gate في الـ LSTM. يعني الـ GRU دمج 3 بوابات في اتنين.</p>
+        <table class="compare-table">
+          <thead><tr><th>الخاصية</th><th>LSTM</th><th>GRU</th></tr></thead>
+          <tbody>
+            <tr><td>عدد البوابات</td><td>3 بوابات</td><td>2 بوابات</td></tr>
+            <tr><td>Cell state منفصلة</td><td>نعم — c_t و h_t</td><td>لا — h_t بس</td></tr>
+            <tr><td>Output gate</td><td>نعم</td><td>لا</td></tr>
+            <tr><td>عدد الـ parameters</td><td>أكتر بحوالي 25%</td><td>أقل</td></tr>
+            <tr><td>سرعة التدريب</td><td>أبطأ</td><td>أسرع</td></tr>
+            <tr><td>الأداء على التسلسلات الطويلة</td><td>أحسن شوية</td><td>قريب، وأبسط</td></tr>
+          </tbody>
+        </table>
+        <div class="box-analogy">الـ LSTM زي عربية فاخرة فيها 3 أنظمة تحكم منفصلة. الـ GRU زي سبورت كار — اتنين كنترول، أقل تعقيد، وأداء قريب.</div>
+        <div class="box-summary">الـ GRU بيبسّط الـ LSTM بإنه بيدمج الـ input gate والـ forget gate في update gate واحدة، وبيشيل الـ cell state المنفصلة. النتيجة: parameters أقل، تدريب أسرع، أداء قريب.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section-card card-6" id="s6">
+    <div class="section-header" onclick="toggle('s6')">
+      <div class="icon-badge">🎯</div>
+      <span class="section-title">6. Why GRU Matters — Applications</span>
+      <span class="chevron" id="s6-ch">▶</span>
+    </div>
+    <div class="section-body" id="s6-body">
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="switchLang('s6','en',this)">EN</button>
+        <button class="lang-btn" onclick="switchLang('s6','ar',this)">AR</button>
+      </div>
+      <div class="lang-en visible" id="s6-en">
+        <p>GRU was introduced in the 2014 paper <em>"Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation"</em> by Cho et al. It was designed for the encoder–decoder architecture used in machine translation.</p>
+        <h4>Where GRUs are used</h4>
+        <ul>
+          <li><strong>Machine translation</strong> — encoding source sentences, decoding to target language</li>
+          <li><strong>Text generation</strong> — generating the next word or character</li>
+          <li><strong>Sentiment analysis</strong> — reading a review and classifying positive/negative</li>
+          <li><strong>Speech recognition</strong> — processing audio frames sequentially</li>
+          <li><strong>Time-series forecasting</strong> — stock prices, sensor data, weather</li>
+        </ul>
+        <div class="box-warning">Today, Transformers (BERT, GPT, etc.) have largely replaced RNNs/GRUs for NLP because they process sequences in parallel rather than one step at a time. But GRUs remain valuable in resource-constrained environments and are essential to understand for grasping the evolution of sequence modeling.</div>
+        <div class="box-summary">GRU was a landmark step in sequence modeling — simpler than LSTM, powerful enough for translation tasks. Understanding GRU is foundational for understanding the path that led to Transformers.</div>
+      </div>
+      <div class="lang-ar" id="s6-ar">
+        <p>الـ GRU اتقدّم في ورقة بحثية سنة 2014 كتبها Cho وزملاؤه. كان مصمم أصلاً لمعمارية الـ <span class="term">encoder-decoder</span> المستخدمة في الترجمة الآلية.</p>
+        <h4>فين بيتستخدم الـ GRU</h4>
+        <ul>
+          <li><strong>الترجمة الآلية</strong> — ترميز الجملة المصدر وفك ترميزها للغة الهدف</li>
+          <li><strong>توليد النص</strong> — توقع الكلمة أو الحرف الجاي</li>
+          <li><strong>تحليل المشاعر</strong> — قراءة تعليق وتوقع هل هو إيجابي أم سلبي</li>
+          <li><strong>التعرف على الكلام</strong> — معالجة إطارات الصوت بالترتيب</li>
+          <li><strong>التنبؤ بالسلاسل الزمنية</strong> — أسعار الأسهم، بيانات الحساسات، الطقس</li>
+        </ul>
+        <div class="box-warning">في الوقت الحالي، الـ Transformers (زي BERT وGPT) استبدلت الـ RNNs والـ GRUs في معظم مهام الـ NLP لأنها بتعالج التسلسلات بالتوازي. لكن الـ GRU لسّه مهم في البيئات المحدودة الموارد وضروري لفهم تطور الـ deep learning.</div>
+        <div class="box-summary">الـ GRU كان خطوة مهمة في نمذجة التسلسلات — أبسط من الـ LSTM وقوي بما يكفي لمهام الترجمة. فهمه ضروري لفهم الرحلة اللي أدّت للـ Transformers.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="guide-footer">
+    GRU Study Guide · Based on Cho et al. (2014) · NLP Course Material
+  </div>
+
+</div>
+
+<script>
+  function toggle(id) {
+    const body = document.getElementById(id + '-body');
+    const ch = document.getElementById(id + '-ch');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    ch.classList.toggle('open', !isOpen);
+  }
+
+  function openCard(id) {
+    const body = document.getElementById(id + '-body');
+    const ch = document.getElementById(id + '-ch');
+    body.classList.add('open');
+    ch.classList.add('open');
+    setTimeout(() => {
+      document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+
+  function switchLang(section, lang, btn) {
+    document.getElementById(section + '-en').classList.toggle('visible', lang === 'en');
+    document.getElementById(section + '-ar').classList.toggle('visible', lang === 'ar');
+    btn.closest('.lang-tabs').querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>
