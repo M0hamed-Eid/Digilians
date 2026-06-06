@@ -1,0 +1,2616 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spatial Filtering & Image Enhancement — Interactive Study Guide</title>
+<style>
+/* ===== ROOT VARIABLES ===== */
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --bg4: #30363d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --text3: #6e7681;
+  --accent: #58a6ff;
+  --accent2: #1f6feb;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --orange: #ffa657;
+  --teal: #39d0d8;
+  --pink: #ff7b72;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font-head: 'Georgia', serif;
+  --font-body: 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+  --sidebar-w: 280px;
+  --transition: 0.25s ease;
+}
+[data-theme="light"] {
+  --bg: #f6f8fa;
+  --bg2: #ffffff;
+  --bg3: #f0f3f6;
+  --bg4: #d0d7de;
+  --border: #d0d7de;
+  --text: #1f2328;
+  --text2: #57606a;
+  --text3: #6e7781;
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  transition: background var(--transition), color var(--transition);
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  font-family: var(--font-mono);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.88em;
+  color: var(--orange);
+}
+pre {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}
+pre code { background: none; border: none; padding: 0; color: var(--text); }
+h1,h2,h3,h4,h5 { font-family: var(--font-head); line-height: 1.3; }
+
+/* ===== LAYOUT ===== */
+#app { display: flex; min-height: 100vh; }
+
+/* ===== SIDEBAR ===== */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+}
+#sidebar-header {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+#sidebar-header h2 {
+  font-size: 0.95rem;
+  color: var(--accent);
+  margin-bottom: 0.6rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+#search-box {
+  width: 100%;
+  background: var(--bg4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+#search-box:focus { border-color: var(--accent); }
+#nav-list { list-style: none; padding: 0.75rem 0; flex: 1; }
+#nav-list li a {
+  display: block;
+  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  color: var(--text2);
+  border-left: 3px solid transparent;
+  transition: all var(--transition);
+  line-height: 1.4;
+}
+#nav-list li a:hover,
+#nav-list li a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: rgba(88,166,255,0.08);
+  text-decoration: none;
+}
+#nav-list li.nav-section > a {
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  cursor: default;
+  pointer-events: none;
+  margin-top: 0.5rem;
+}
+
+/* Progress bar */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  width: 0%;
+  z-index: 999;
+  transition: width 0.15s ease;
+}
+#progress-label {
+  position: fixed;
+  top: 6px;
+  right: 70px;
+  font-size: 0.7rem;
+  color: var(--text3);
+  z-index: 999;
+}
+
+/* ===== TOP BAR ===== */
+#topbar {
+  position: fixed;
+  top: 0; right: 0;
+  left: var(--sidebar-w);
+  height: 48px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 90;
+}
+#topbar-title {
+  font-size: 0.85rem;
+  color: var(--text2);
+  font-weight: 600;
+}
+#topbar-controls { display: flex; gap: 0.6rem; align-items: center; }
+.ctrl-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  transition: all var(--transition);
+}
+.ctrl-btn:hover { color: var(--accent); border-color: var(--accent); }
+#menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+
+/* ===== MAIN CONTENT ===== */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: 48px;
+  padding: 2.5rem 3rem;
+  max-width: 1100px;
+  flex: 1;
+}
+.section-wrapper { margin-bottom: 4rem; }
+.slide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, var(--accent2), var(--purple));
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: box-shadow var(--transition);
+  box-shadow: var(--shadow);
+}
+.card:hover { box-shadow: 0 6px 32px rgba(0,0,0,0.5); }
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.card-title .icon { font-size: 1.2rem; }
+.card-body { font-size: 0.92rem; color: var(--text2); }
+.card-body p { margin-bottom: 0.6rem; }
+
+/* ===== INFO BOXES ===== */
+.box {
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  border-left: 4px solid;
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+.box-info { background: rgba(88,166,255,0.08); border-color: var(--accent); }
+.box-success { background: rgba(63,185,80,0.08); border-color: var(--green); }
+.box-warning { background: rgba(210,153,34,0.08); border-color: var(--yellow); }
+.box-danger { background: rgba(248,81,73,0.08); border-color: var(--red); }
+.box-purple { background: rgba(188,140,255,0.08); border-color: var(--purple); }
+.box-teal { background: rgba(57,208,216,0.08); border-color: var(--teal); }
+.box-orange { background: rgba(255,166,87,0.08); border-color: var(--orange); }
+.box-title {
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.box-info .box-title { color: var(--accent); }
+.box-success .box-title { color: var(--green); }
+.box-warning .box-title { color: var(--yellow); }
+.box-danger .box-title { color: var(--red); }
+.box-purple .box-title { color: var(--purple); }
+.box-teal .box-title { color: var(--teal); }
+.box-orange .box-title { color: var(--orange); }
+
+/* ===== SECTION HEADINGS ===== */
+.sec-h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+.sec-h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 2rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+.sec-h2 span { color: var(--accent); }
+.sec-h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--orange);
+  margin: 1.5rem 0 0.6rem;
+}
+.sec-h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--purple);
+  margin: 1.2rem 0 0.4rem;
+}
+.lead {
+  font-size: 1.05rem;
+  color: var(--text2);
+  margin-bottom: 1.5rem;
+  line-height: 1.8;
+}
+
+/* ===== COLLAPSIBLE ===== */
+.collapsible { margin-bottom: 0.75rem; }
+.collapsible-header {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text);
+  transition: all var(--transition);
+  user-select: none;
+}
+.collapsible-header:hover { background: var(--bg4); border-color: var(--accent); color: var(--accent); }
+.collapsible-arrow { transition: transform var(--transition); font-size: 0.8rem; }
+.collapsible-header.open .collapsible-arrow { transform: rotate(180deg); }
+.collapsible-body {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+}
+.collapsible-body.open { padding: 1.25rem; max-height: 3000px; }
+
+/* ===== MATH / FORMULA ===== */
+.formula-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  margin: 1rem 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--teal);
+  overflow-x: auto;
+}
+.formula-label {
+  font-size: 0.75rem;
+  color: var(--text3);
+  text-align: center;
+  margin-top: 0.3rem;
+  font-style: italic;
+  font-family: var(--font-body);
+}
+
+/* ===== KERNEL / MATRIX ===== */
+.matrix-container { display: flex; justify-content: center; margin: 1rem 0; gap: 2rem; flex-wrap: wrap; }
+.matrix-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+.matrix-label { font-size: 0.75rem; color: var(--text3); }
+.matrix {
+  display: inline-grid;
+  gap: 3px;
+  background: var(--bg4);
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.matrix.g3 { grid-template-columns: repeat(3,1fr); }
+.matrix.g5 { grid-template-columns: repeat(5,1fr); }
+.matrix-cell {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.matrix-cell.center { background: rgba(88,166,255,0.2); color: var(--accent); }
+.matrix-cell.highlight { background: rgba(63,185,80,0.15); color: var(--green); }
+.matrix-cell.negative { background: rgba(248,81,73,0.15); color: var(--red); }
+
+/* ===== TABS ===== */
+.tabs { margin: 1.25rem 0; }
+.tab-list {
+  display: flex;
+  gap: 0.3rem;
+  border-bottom: 2px solid var(--border);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.5rem 1rem;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all var(--transition);
+  font-family: var(--font-body);
+  border-radius: 6px 6px 0 0;
+}
+.tab-btn:hover { color: var(--accent); background: rgba(88,166,255,0.07); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(88,166,255,0.07); }
+.tab-panel { display: none; padding: 1.25rem 0; font-size: 0.9rem; color: var(--text2); }
+.tab-panel.active { display: block; }
+
+/* ===== COMPARISON TABLE ===== */
+.comp-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin: 1rem 0; }
+.comp-table th {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  font-weight: 700;
+  color: var(--accent);
+}
+.comp-table td {
+  border: 1px solid var(--border);
+  padding: 0.65rem 1rem;
+  color: var(--text2);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.comp-table tr:hover td { background: rgba(88,166,255,0.04); }
+
+/* ===== QUIZ ===== */
+.quiz-item { margin-bottom: 1.5rem; }
+.quiz-q {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  font-size: 0.92rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.quiz-q::before {
+  content: 'Q';
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  height: fit-content;
+  margin-top: 2px;
+}
+.quiz-options { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+.quiz-options li {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.87rem;
+  color: var(--text2);
+  transition: all var(--transition);
+  user-select: none;
+}
+.quiz-options li:hover { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.07); }
+.quiz-options li.correct { background: rgba(63,185,80,0.15); border-color: var(--green); color: var(--green); }
+.quiz-options li.wrong { background: rgba(248,81,73,0.12); border-color: var(--red); color: var(--red); }
+.quiz-feedback {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  display: none;
+}
+.quiz-feedback.show { display: block; }
+.quiz-feedback.correct-fb { background: rgba(63,185,80,0.12); color: var(--green); border: 1px solid var(--green); }
+.quiz-feedback.wrong-fb { background: rgba(248,81,73,0.1); color: var(--red); border: 1px solid var(--red); }
+
+/* ===== TF + FILL ===== */
+.tf-item, .fill-item { margin-bottom: 1rem; }
+.tf-question { font-size: 0.9rem; color: var(--text); margin-bottom: 0.5rem; }
+.tf-btns { display: flex; gap: 0.5rem; }
+.tf-btn {
+  padding: 0.3rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+.tf-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tf-btn.selected-true { background: rgba(63,185,80,0.15); border-color: var(--green); color: var(--green); }
+.tf-btn.selected-false { background: rgba(248,81,73,0.12); border-color: var(--red); color: var(--red); }
+.fill-input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.87rem;
+  width: 200px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.fill-input:focus { border-color: var(--accent); }
+.fill-check {
+  margin-left: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ===== STEP FLOW ===== */
+.step-flow { display: flex; flex-direction: column; gap: 0; margin: 1rem 0; }
+.step-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.step-line { display: flex; flex-direction: column; align-items: center; }
+.step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--purple));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+.step-connector {
+  width: 2px;
+  background: var(--border);
+  flex: 1;
+  min-height: 24px;
+  margin: 4px 0;
+}
+.step-content {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.1rem;
+  flex: 1;
+  margin-bottom: 0.5rem;
+  font-size: 0.88rem;
+}
+.step-content strong { color: var(--accent); }
+
+/* ===== ARABIC SECTION ===== */
+.arabic-section {
+  direction: rtl;
+  font-family: 'Segoe UI', 'Tahoma', 'Arial Unicode MS', sans-serif;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-top: 1rem;
+  line-height: 2;
+  font-size: 0.93rem;
+  color: var(--text);
+}
+.arabic-section h3 {
+  color: var(--teal);
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  direction: rtl;
+}
+.arabic-section h4 {
+  color: var(--orange);
+  font-size: 0.95rem;
+  margin: 1rem 0 0.4rem;
+}
+.arabic-section .term {
+  color: var(--accent);
+  font-style: italic;
+  font-weight: 600;
+}
+.arabic-section .arabic-box {
+  background: var(--bg2);
+  border-right: 4px solid var(--teal);
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin: 0.75rem 0;
+  font-size: 0.88rem;
+  color: var(--text2);
+}
+.arabic-section ul { list-style: none; padding-right: 1rem; }
+.arabic-section ul li::before { content: '• '; color: var(--teal); font-size: 1.1em; }
+.arabic-section ul li { margin-bottom: 0.3rem; }
+
+/* ===== DEFINITION BOX ===== */
+.definition {
+  border: 1px solid var(--purple);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.1rem;
+  background: rgba(188,140,255,0.07);
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.definition-term {
+  font-weight: 800;
+  color: var(--purple);
+  font-size: 0.92rem;
+  margin-bottom: 0.3rem;
+}
+
+/* ===== ANALOGY BOX ===== */
+.analogy {
+  border: 1px solid var(--orange);
+  border-radius: var(--radius-sm);
+  background: rgba(255,166,87,0.07);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.analogy::before {
+  content: '💡 Analogy: ';
+  font-weight: 700;
+  color: var(--orange);
+}
+
+/* ===== MNEMONIC BOX ===== */
+.mnemonic {
+  border: 2px dashed var(--green);
+  border-radius: var(--radius-sm);
+  background: rgba(63,185,80,0.07);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.mnemonic::before {
+  content: '🧠 Memory Trick: ';
+  font-weight: 700;
+  color: var(--green);
+}
+
+/* ===== BADGE ===== */
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  margin: 0 0.2rem;
+}
+.badge-blue { background: rgba(88,166,255,0.2); color: var(--accent); }
+.badge-green { background: rgba(63,185,80,0.2); color: var(--green); }
+.badge-red { background: rgba(248,81,73,0.2); color: var(--red); }
+.badge-purple { background: rgba(188,140,255,0.2); color: var(--purple); }
+.badge-orange { background: rgba(255,166,87,0.2); color: var(--orange); }
+
+/* ===== COVERAGE TABLE ===== */
+.coverage-row td:last-child { color: var(--green); font-weight: 700; }
+
+/* ===== DIVIDER ===== */
+.divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+/* ===== VISUAL KERNEL DEMO ===== */
+.kernel-demo {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+.kernel-demo-label {
+  font-size: 0.8rem;
+  color: var(--text3);
+  text-align: center;
+  margin-top: 0.4rem;
+}
+.arrow-symbol {
+  font-size: 1.5rem;
+  color: var(--text3);
+}
+
+/* ===== PRINT ===== */
+@media print {
+  #sidebar, #topbar, #progress-bar, #progress-label { display: none !important; }
+  #main { margin: 0; padding: 1rem; max-width: 100%; }
+  .collapsible-body { max-height: none !important; padding: 1rem !important; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; padding: 1.25rem; }
+  #topbar { left: 0; }
+  #menu-btn { display: block; }
+  .sec-h1 { font-size: 1.6rem; }
+  .matrix-cell { width: 34px; height: 34px; font-size: 0.75rem; }
+}
+@media (max-width: 480px) {
+  #main { padding: 1rem; }
+  .card { padding: 1rem; }
+}
+
+/* ===== HIGHLIGHT SEARCH ===== */
+.highlight { background: rgba(210,153,34,0.35); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="progress-label">0%</div>
+
+<div id="app">
+
+<!-- ===== SIDEBAR ===== -->
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h2>📘 Study Guide</h2>
+    <input id="search-box" type="search" placeholder="🔍 Search topics…" oninput="doSearch(this.value)">
+  </div>
+  <ul id="nav-list">
+    <li class="nav-section"><a href="#">Overview</a></li>
+    <li><a href="#s0">🏠 Introduction</a></li>
+    <li class="nav-section"><a href="#">Core Concepts</a></li>
+    <li><a href="#s1">Slide 2 — Spatial Domain</a></li>
+    <li><a href="#s2">Slide 3 — Math Foundations</a></li>
+    <li><a href="#s3">Slide 4 — Correlation vs Conv.</a></li>
+    <li class="nav-section"><a href="#">Filters</a></li>
+    <li><a href="#s4">Slide 5 — Linear Filters</a></li>
+    <li><a href="#s5">Slide 6 — Non-Linear Filters</a></li>
+    <li><a href="#s6">Slide 7 — Restoration Means</a></li>
+    <li class="nav-section"><a href="#">Sharpening</a></li>
+    <li><a href="#s7">Slide 8 — Image Sharpening</a></li>
+    <li><a href="#s8">Slide 9 — Laplacian Operator</a></li>
+    <li><a href="#s9">Slide 10 — Unsharp Masking</a></li>
+    <li class="nav-section"><a href="#">Practice</a></li>
+    <li><a href="#quiz">📝 Quiz & Questions</a></li>
+    <li><a href="#cheatsheet">📋 Cheat Sheet</a></li>
+    <li><a href="#coverage">✅ Coverage Verification</a></li>
+  </ul>
+</nav>
+
+<!-- ===== TOP BAR ===== -->
+<div id="topbar">
+  <button id="menu-btn" onclick="toggleSidebar()">☰</button>
+  <div id="topbar-title">Spatial Filtering & Image Enhancement — Lecture 08</div>
+  <div id="topbar-controls">
+    <button class="ctrl-btn" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="ctrl-btn" onclick="expandAll()">＋ Expand All</button>
+    <button class="ctrl-btn" onclick="collapseAll()">－ Collapse</button>
+    <button class="ctrl-btn" onclick="window.print()">🖨 Print</button>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main id="main">
+
+<!-- ============================= INTRO ============================= -->
+<section class="section-wrapper" id="s0">
+  <div class="slide-badge">📌 Introduction</div>
+  <h1 class="sec-h1">Spatial Filtering &amp; Image Enhancement</h1>
+  <p class="lead">A comprehensive bilingual study of spatial domain enhancements, neighborhood operations, correlation, convolution, and edge optimization — by Ahmed Yousry Abdelstar Zaalook, Grand Institute for Practical Application.</p>
+
+  <div class="box box-info">
+    <div class="box-title">ℹ️ What is this lecture about?</div>
+    This lecture covers how we <strong>improve the quality</strong> of digital images by applying mathematical operations directly on the pixel values in the spatial (image) domain. You will learn how kernels (filters) work, how to remove noise, how to sharpen edges, and the mathematics behind every technique.
+  </div>
+
+  <div class="arabic-section">
+    <h3>🌟 مقدمة عن المحاضرة</h3>
+    <p>هذه المحاضرة تتناول كيفية <strong>تحسين جودة الصور الرقمية</strong> من خلال تطبيق عمليات رياضية مباشرة على قيم البيكسلات في المجال المكاني.</p>
+    <div class="arabic-box">
+      سنتعلم: كيف تعمل الـ Filters (المرشحات)، كيف نزيل الضوضاء من الصور، كيف نحسن حدة الحواف، والرياضيات الكامنة وراء كل تقنية.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 2 ============================= -->
+<section class="section-wrapper" id="s1">
+  <div class="slide-badge">📌 Slide 2</div>
+  <h2 class="sec-h2"><span>Fundamentals of</span> Spatial Domain Enhancements</h2>
+
+  <div class="definition">
+    <div class="definition-term">Spatial Filtering (التصفية المكانية)</div>
+    A technique that modifies an image by directly manipulating the intensity (brightness) values of pixels within a <strong>local neighborhood</strong> — without transforming the image to another domain (like frequency domain).
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t1a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t1b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t1c')">📊 Comparison</button>
+    </div>
+    <div class="tab-panel active" id="t1a">
+      <h3 class="sec-h3">High Frequencies vs Low Frequencies</h3>
+      <p>Every digital image can be thought of in terms of how fast pixel values change from one point to another. These changes are described using the concept of <strong>frequency</strong>:</p>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⚡</span> High Frequencies — الترددات العالية</div>
+        <div class="card-body">
+          <p>High frequencies represent <strong>rapid changes</strong> in pixel intensity over short distances. Examples:</p>
+          <ul style="padding-left:1.2rem;color:var(--text2);font-size:0.88rem;line-height:2">
+            <li>Sharp edges (e.g., boundary of an object)</li>
+            <li>Fine texture details (e.g., fabric texture, hair)</li>
+            <li>Sudden transitions (e.g., object silhouette)</li>
+          </ul>
+          <div class="box box-info" style="margin-top:0.75rem;">Crisp details and edge information live in high frequencies. Removing them causes blurring.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🌊</span> Low Frequencies — الترددات المنخفضة</div>
+        <div class="card-body">
+          <p>Low frequencies represent <strong>slow, gradual changes</strong> in brightness. Examples:</p>
+          <ul style="padding-left:1.2rem;color:var(--text2);font-size:0.88rem;line-height:2">
+            <li>Smooth background areas (e.g., sky, wall)</li>
+            <li>Broad color gradients</li>
+            <li>General illumination of a scene</li>
+          </ul>
+          <div class="box box-success" style="margin-top:0.75rem;">Low frequencies carry the "big picture" structure. Removing them leaves only fine details/noise.</div>
+        </div>
+      </div>
+
+      <div class="analogy">
+        Think of an image as music. <strong>Low frequencies = bass notes</strong> (slow, steady background hum). <strong>High frequencies = treble notes</strong> (sharp, rapid changes). A <em>Low-Pass Filter</em> lets bass through (smooth), a <em>High-Pass Filter</em> lets treble through (edges).
+      </div>
+
+      <h3 class="sec-h3">Filters in Image Processing</h3>
+      <p>A <strong>filter</strong> (also called a kernel or mask) is a small matrix of numbers that slides over the image and determines how each output pixel is computed from its neighbors. There are two broad categories:</p>
+
+      <table class="comp-table">
+        <tr><th>Category</th><th>Purpose</th><th>Effect</th><th>Example</th></tr>
+        <tr><td><strong>Low-Pass Filter</strong></td><td>Allow low frequencies; block high</td><td>Blurs/smoothens the image</td><td>Gaussian, Box</td></tr>
+        <tr><td><strong>High-Pass Filter</strong></td><td>Allow high frequencies; block low</td><td>Sharpens edges, enhances detail</td><td>Laplacian, Unsharp</td></tr>
+      </table>
+
+      <div class="mnemonic">
+        <strong>LPF = Low Pass = "Lazy Blurring"</strong> — it lets slow changes through and blurs fast ones.<br>
+        <strong>HPF = High Pass = "High Edge"</strong> — it keeps sharp edges and discards slow background.
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t1b">
+      <div class="arabic-section">
+        <h3>أساسيات التحسين في المجال المكاني</h3>
+
+        <h4>🔹 الترددات العالية (High Frequencies)</h4>
+        <div class="arabic-box">
+          تمثل التغيرات السريعة في سطوع البيكسلات على مسافات قصيرة.
+          <br>أمثلة: الحواف الحادة لحدود الكائنات، تفاصيل النسيج الدقيقة، التغيرات المفاجئة.
+          <br>إذا أزلناها: الصورة تصبح ضبابية (Blurred).
+        </div>
+
+        <h4>🔹 الترددات المنخفضة (Low Frequencies)</h4>
+        <div class="arabic-box">
+          تمثل التغيرات البطيئة والتدريجية في السطوع.
+          <br>أمثلة: الخلفيات الناعمة مثل السماء أو الجدران، التدرجات اللونية.
+          <br>إذا أزلناها: تبقى فقط التفاصيل الدقيقة والضوضاء.
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">Spatial Domain</span> — المجال المكاني: تعديل الصورة مباشرة عبر قيم البيكسلات</li>
+          <li><span class="term">High Frequency</span> — تردد عالٍ: تغيرات سريعة = حواف وتفاصيل</li>
+          <li><span class="term">Low Frequency</span> — تردد منخفض: تغيرات بطيئة = خلفيات ناعمة</li>
+          <li><span class="term">Low-Pass Filter</span> — مرشح التمرير المنخفض: يحتفظ بالترددات المنخفضة ويزيل العالية (يُنعّم)</li>
+          <li><span class="term">High-Pass Filter</span> — مرشح التمرير العالي: يحتفظ بالترددات العالية ويزيل المنخفضة (يُحدّد)</li>
+        </ul>
+
+        <h4>🎯 الفكرة المبسطة</h4>
+        <div class="arabic-box">
+          تخيل الصورة كقطعة موسيقى: الترددات المنخفضة = أصوات الباس الهادئة (الخلفية). الترددات العالية = أصوات الحدة (الحواف والتفاصيل). المرشح المنخفض يُبقي الموسيقى هادئة (يُنعّم)، والمرشح العالي يُبقي الأصوات الحادة (يُظهر الحواف).
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t1c">
+      <table class="comp-table">
+        <tr><th>Property</th><th>High Frequency</th><th>Low Frequency</th></tr>
+        <tr><td>Rate of change</td><td>Fast (sudden jumps)</td><td>Slow (gradual)</td></tr>
+        <tr><td>Examples</td><td>Edges, noise, texture</td><td>Background, sky, smooth areas</td></tr>
+        <tr><td>Removed by</td><td>Low-Pass Filter (LPF)</td><td>High-Pass Filter (HPF)</td></tr>
+        <tr><td>Preserved by</td><td>High-Pass Filter (HPF)</td><td>Low-Pass Filter (LPF)</td></tr>
+        <tr><td>Effect when removed</td><td>Image blurs</td><td>Image shows only edges/noise</td></tr>
+        <tr><td>Visual analogy</td><td>Treble in music</td><td>Bass in music</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistake</div>
+    Students often confuse "spatial domain" with "frequency domain." Spatial domain = working directly with pixel values. Frequency domain (Fourier) = transforming first, then filtering. This lecture focuses on <em>spatial domain only</em>.
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Be prepared to explain what happens to an image if you apply a Low-Pass vs High-Pass filter. LPF → blur/smooth; HPF → edge enhancement/sharpening.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 3 ============================= -->
+<section class="section-wrapper" id="s2">
+  <div class="slide-badge">📌 Slide 3</div>
+  <h2 class="sec-h2"><span>Mathematical Foundations</span> of Spatial Filtering</h2>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🔢</span> Filter Kernel (المرشح / النواة)</div>
+    <div class="card-body">
+      A <strong>filter kernel</strong> (also called a mask or window) is a small 2D matrix of coefficients that slides across the image. At each position, the kernel multiplies its values with the overlapping image pixels and sums the results to produce one output pixel.
+      <ul style="padding-left:1.2rem;line-height:2;margin-top:0.5rem;font-size:0.88rem;">
+        <li>Typical sizes: <code>3×3</code>, <code>5×5</code>, <code>7×7</code> (always odd to have a clear center)</li>
+        <li>The <strong>center cell</strong> of the kernel corresponds to the target pixel being computed</li>
+        <li>Larger kernels → smoother result but more computation</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="sec-h3">2D Convolution Equation</h3>
+  <div class="formula-box">
+    g(x, y) = Σ<sub>s</sub> Σ<sub>t</sub>  w(s, t) · f(x+s, y+t)
+  </div>
+  <div class="formula-label">Where: f = original image | g = output image | w = kernel coefficients | (x,y) = target pixel coordinates | (s,t) = kernel offsets</div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t2a')">🇬🇧 Explained</button>
+      <button class="tab-btn" onclick="switchTab(this,'t2b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t2c')">📐 Example</button>
+    </div>
+    <div class="tab-panel active" id="t2a">
+      <p>The equation says: <em>"To compute the output pixel at position (x, y), multiply each coefficient in the kernel w by the corresponding pixel in image f, then sum all results."</em></p>
+      <p>The double summation (<code>Σ Σ</code>) iterates over all rows and columns of the kernel. For a 3×3 kernel, this is 9 multiplications + 8 additions per pixel.</p>
+
+      <div class="box box-info">
+        <div class="box-title">ℹ️ Visual Intuition</div>
+        Imagine placing a small magnifying glass (kernel) on each pixel, looking at the 8 neighbors around it plus itself (3×3 window). You do a weighted average of those 9 values based on the kernel weights to produce one output pixel. Then slide the glass one pixel to the right, repeat.
+      </div>
+
+      <h3 class="sec-h3">Edge Conditions — What Happens at Image Borders?</h3>
+      <p>When the kernel is positioned near the image border, some kernel cells extend <em>outside</em> the image. There are three strategies:</p>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⬛</span> 1. Zero-Padding (Zero-Fill)</div>
+        <div class="card-body">Add a border of zeros (black pixels, value = 0) around the image before filtering. The most common and simple approach. The output image keeps the same size. <span class="badge badge-blue">Default</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">🪞</span> 2. Mirroring (Reflection)</div>
+        <div class="card-body">Reflect (mirror) edge pixels outward to create a symmetrical border. More natural results for many filters because border pixels aren't artificially set to 0. <span class="badge badge-green">Better Quality</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon">✂️</span> 3. Clipping (Cropping)</div>
+        <div class="card-body">Simply don't compute output for pixels where the kernel extends beyond the boundary. The output image is slightly smaller than the input. Easy to implement. <span class="badge badge-orange">Smaller Output</span></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t2b">
+      <div class="arabic-section">
+        <h3>الأسس الرياضية للتصفية المكانية</h3>
+
+        <h4>🔹 ما هو الـ Kernel (النواة / المرشح)؟</h4>
+        <div class="arabic-box">
+          النواة أو الـ Kernel هي مصفوفة صغيرة (عادة 3×3 أو 5×5) من الأرقام تنزلق فوق الصورة. عند كل موضع، تُضرب قيم النواة مع قيم البيكسلات المجاورة في الصورة، ثم تُجمع النتائج للحصول على قيمة البيكسل الناتج.
+        </div>
+
+        <h4>🔹 معادلة التفاف ثنائية الأبعاد</h4>
+        <div class="arabic-box">
+          <code>g(x, y) = Σ Σ w(s,t) · f(x+s, y+t)</code>
+          <br><br>
+          • <span class="term">f</span> = الصورة الأصلية (Original Image)<br>
+          • <span class="term">g</span> = الصورة الناتجة (Output Image)<br>
+          • <span class="term">w</span> = معاملات النواة (Kernel Coefficients)<br>
+          • <span class="term">(x,y)</span> = إحداثيات البيكسل المستهدف<br>
+          • <span class="term">(s,t)</span> = إزاحات النواة
+        </div>
+
+        <h4>🔹 معالجة حواف الصورة (Edge Conditions)</h4>
+        <ul>
+          <li><span class="term">Zero-Padding</span> — الحشو بالأصفار: إضافة حد من القيمة 0 (بيكسلات سوداء) حول الصورة → الأكثر شيوعاً</li>
+          <li><span class="term">Mirroring</span> — الانعكاس: عكس بيكسلات الحافة للخارج → نتائج أفضل</li>
+          <li><span class="term">Clipping</span> — القطع: عدم حساب البيكسلات الحدودية → الصورة الناتجة أصغر</li>
+        </ul>
+
+        <h4>🎯 الفكرة المبسطة للـ Kernel</h4>
+        <div class="arabic-box">
+          تخيل أنك تحمل نافذة صغيرة (النواة) وتمررها فوق كل نقطة في الصورة. في كل مكان تقف فيه، تنظر للبيكسلات القريبة وتحسب متوسطها الموزون (بحسب أوزان النواة) للحصول على قيمة جديدة للبيكسل.
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t2c">
+      <h3 class="sec-h3">Worked Example: Applying a 3×3 Kernel</h3>
+      <p>Suppose we have this 5×5 image patch and a 3×3 averaging kernel:</p>
+
+      <div class="kernel-demo">
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">10</div><div class="matrix-cell">20</div><div class="matrix-cell">30</div>
+            <div class="matrix-cell">40</div><div class="matrix-cell highlight">50</div><div class="matrix-cell">60</div>
+            <div class="matrix-cell">70</div><div class="matrix-cell">80</div><div class="matrix-cell">90</div>
+          </div>
+          <div class="kernel-demo-label">Image patch (center pixel = 50)</div>
+        </div>
+        <div class="arrow-symbol">✕</div>
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">1/9</div><div class="matrix-cell">1/9</div><div class="matrix-cell">1/9</div>
+            <div class="matrix-cell">1/9</div><div class="matrix-cell center">1/9</div><div class="matrix-cell">1/9</div>
+            <div class="matrix-cell">1/9</div><div class="matrix-cell">1/9</div><div class="matrix-cell">1/9</div>
+          </div>
+          <div class="kernel-demo-label">Average (Box) Kernel</div>
+        </div>
+        <div class="arrow-symbol">=</div>
+        <div class="matrix-wrap">
+          <div class="matrix g3" style="grid-template-columns:1fr;">
+            <div class="matrix-cell center" style="width:80px;height:80px;font-size:1.1rem;">50</div>
+          </div>
+          <div class="kernel-demo-label">Output pixel</div>
+        </div>
+      </div>
+
+      <div class="box box-success">
+        <div class="box-title">✅ Calculation</div>
+        Sum = 10+20+30+40+50+60+70+80+90 = <strong>450</strong><br>
+        Output = 450 × (1/9) = <strong>50</strong><br>
+        The center pixel value stays the same here because this is a uniform ramp — in real images, averaging changes the value.
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistake</div>
+    Students forget that kernels must be <strong>odd-sized</strong> (3×3, 5×5, 7×7) to have a well-defined center pixel. Even-sized kernels have no single center.
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    You may be asked to: (1) manually apply a kernel to a small image patch, (2) identify what edge condition is being used, or (3) write the 2D convolution equation and explain each variable.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 4 ============================= -->
+<section class="section-wrapper" id="s3">
+  <div class="slide-badge">📌 Slide 4</div>
+  <h2 class="sec-h2"><span>Correlation</span> vs <span>Convolution</span></h2>
+
+  <div class="box box-info">
+    <div class="box-title">ℹ️ The Key Difference</div>
+    Though they look almost identical in code, <strong>correlation</strong> and <strong>convolution</strong> differ in <em>how the kernel is oriented</em> before being applied. This distinction is mathematically critical.
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t3a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t3b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t3c')">⚖️ Side-by-Side</button>
+    </div>
+    <div class="tab-panel active" id="t3a">
+      <div class="card">
+        <div class="card-title"><span class="icon">📐</span> Correlation — الارتباط</div>
+        <div class="card-body">
+          <p>Correlation slides the kernel directly over the image <strong>without any rotation</strong>. At each position, it computes the sum of element-wise products.</p>
+          <div class="formula-box">
+            (f ⊛ g)(x, y) = Σ<sub>s</sub> Σ<sub>t</sub>  g(s,t) · f(x+s, y+t)
+          </div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>The kernel is <strong>not rotated</strong></li>
+            <li>Widely used for <strong>template matching</strong> (finding a small pattern in a larger image)</li>
+            <li>Used for <strong>feature detection</strong></li>
+            <li>Most deep learning frameworks use correlation when they say "convolution"</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔄</span> Convolution — الالتفاف</div>
+        <div class="card-body">
+          <p>Convolution <strong>flips (rotates) the kernel by 180°</strong> — both horizontally and vertically — before sliding it and computing the sum of products.</p>
+          <div class="formula-box">
+            (f * g)(x, y) = Σ<sub>s</sub> Σ<sub>t</sub>  g(s,t) · f(x-s, y-t)
+          </div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>The kernel is <strong>rotated 180°</strong> (flip horizontally then vertically, or equivalently rotate)</li>
+            <li>Is <strong>commutative</strong>: f * g = g * f</li>
+            <li>Is <strong>associative</strong>: (f * g) * h = f * (g * h)</li>
+            <li>Preferred in signal processing and mathematics</li>
+            <li>For <strong>symmetric kernels</strong> (like Gaussian), correlation = convolution</li>
+          </ul>
+          <div class="box box-info" style="margin-top:0.75rem;">
+            <div class="box-title">ℹ️ When does it matter?</div>
+            The difference only matters for <strong>asymmetric kernels</strong>. For symmetric kernels (Gaussian, Laplacian), both give identical results.
+          </div>
+        </div>
+      </div>
+
+      <div class="analogy">
+        Correlation = looking at your reflection in a mirror (same orientation). Convolution = looking at a page and its carbon copy (flipped). When the pattern is symmetric (like a circle), mirror and carbon copy look the same.
+      </div>
+
+      <h3 class="sec-h3">Visualizing the 180° Flip</h3>
+      <div class="kernel-demo">
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">1</div><div class="matrix-cell">2</div><div class="matrix-cell">3</div>
+            <div class="matrix-cell">4</div><div class="matrix-cell center">5</div><div class="matrix-cell">6</div>
+            <div class="matrix-cell">7</div><div class="matrix-cell">8</div><div class="matrix-cell">9</div>
+          </div>
+          <div class="kernel-demo-label">Original Kernel</div>
+        </div>
+        <div class="arrow-symbol">→ flip 180° →</div>
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell highlight">9</div><div class="matrix-cell highlight">8</div><div class="matrix-cell highlight">7</div>
+            <div class="matrix-cell highlight">6</div><div class="matrix-cell center">5</div><div class="matrix-cell highlight">4</div>
+            <div class="matrix-cell highlight">3</div><div class="matrix-cell highlight">2</div><div class="matrix-cell highlight">1</div>
+          </div>
+          <div class="kernel-demo-label">Flipped Kernel (for Convolution)</div>
+        </div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text3);text-align:center;">Element [1,1] moves to [3,3], [1,3] to [3,1], etc. Center stays at center.</p>
+    </div>
+
+    <div class="tab-panel" id="t3b">
+      <div class="arabic-section">
+        <h3>الفرق بين الارتباط والالتفاف</h3>
+
+        <h4>🔹 الارتباط (Correlation)</h4>
+        <div class="arabic-box">
+          في الارتباط، نُحرك النواة مباشرة فوق الصورة <strong>بدون أي تدوير</strong>، ثم نحسب مجموع حاصل ضرب العناصر المتناظرة.
+          <br><br>يُستخدم في: مطابقة القوالب (Template Matching) واستخراج السمات (Feature Detection).
+        </div>
+
+        <h4>🔹 الالتفاف (Convolution)</h4>
+        <div class="arabic-box">
+          في الالتفاف، نُدوّر النواة بمقدار <strong>180 درجة</strong> (نعكسها أفقياً ثم رأسياً) قبل تحريكها فوق الصورة.
+          <br><br>خصائصه الرياضية: <span class="term">Commutative</span> (التبادلية) و<span class="term">Associative</span> (التجميعية).
+          <br>يُفضّل في معالجة الإشارات والرياضيات.
+        </div>
+
+        <h4>🔹 متى يكون الفرق مهماً؟</h4>
+        <div class="arabic-box">
+          الفرق يظهر فقط مع النوى <strong>غير المتماثلة</strong>. أما النوى المتماثلة (مثل Gaussian أو Laplacian) فتُعطي نفس النتيجة في الحالتين.
+        </div>
+
+        <h4>🎯 جدول المقارنة المبسط</h4>
+        <ul>
+          <li><span class="term">Correlation</span> — بدون تدوير — للبحث عن نمط في الصورة</li>
+          <li><span class="term">Convolution</span> — مع تدوير 180° — للرياضيات الدقيقة ومعالجة الإشارات</li>
+          <li>للنوى المتماثلة: كلاهما يُعطي نفس النتيجة</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t3c">
+      <table class="comp-table">
+        <tr><th>Property</th><th>Correlation</th><th>Convolution</th></tr>
+        <tr><td>Kernel rotation</td><td>None (direct)</td><td>Flipped 180°</td></tr>
+        <tr><td>Notation</td><td>f ⊛ g</td><td>f * g</td></tr>
+        <tr><td>Commutativity</td><td>No (generally)</td><td>Yes (f*g = g*f)</td></tr>
+        <tr><td>Associativity</td><td>No</td><td>Yes</td></tr>
+        <tr><td>Primary use</td><td>Template matching, feature finding</td><td>Signal processing, math analysis</td></tr>
+        <tr><td>Symmetric kernels</td><td colspan="2" style="text-align:center;color:var(--green)">Both give identical results</td></tr>
+        <tr><td>Deep Learning usage</td><td>Usually called "convolution" in DL frameworks</td><td>Mathematically true convolution</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistake</div>
+    Students often say "convolution and correlation are the same." They are <em>only the same for symmetric kernels</em>. For asymmetric kernels, convolution = correlation with the 180°-flipped kernel.
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    A typical exam question: "Compute the correlation/convolution of this 3×3 kernel over this image patch." Show the kernel flipping step for convolution — you may lose marks if you skip it.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 5 ============================= -->
+<section class="section-wrapper" id="s4">
+  <div class="slide-badge">📌 Slide 5</div>
+  <h2 class="sec-h2"><span>Low-Pass Smoothing Operations</span> — Linear Filters</h2>
+
+  <div class="box box-info">
+    <div class="box-title">ℹ️ What are Linear Filters?</div>
+    <strong>Linear spatial filters</strong> compute the output pixel value as a <em>weighted linear combination</em> of neighborhood pixel values. They are excellent for <strong>low-pass smoothing</strong> (noise reduction, blurring).
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t4a')">📦 Box Filter</button>
+      <button class="tab-btn" onclick="switchTab(this,'t4b')">🌊 Gaussian Filter</button>
+      <button class="tab-btn" onclick="switchTab(this,'t4c')">🇸🇦 Arabic</button>
+    </div>
+    <div class="tab-panel active" id="t4a">
+      <div class="definition">
+        <div class="definition-term">Box Filter / Average Filter (مرشح المتوسط)</div>
+        Replaces each pixel with the <strong>arithmetic mean</strong> of all pixels in its neighborhood. All weights are equal (1/N).
+      </div>
+
+      <h3 class="sec-h3">3×3 Box Filter Kernel</h3>
+      <div class="matrix-container">
+        <div class="matrix-wrap">
+          <div style="font-size:0.9rem;color:var(--text3);margin-bottom:0.4rem;">1/9 ×</div>
+          <div class="matrix g3">
+            <div class="matrix-cell">1</div><div class="matrix-cell">1</div><div class="matrix-cell">1</div>
+            <div class="matrix-cell">1</div><div class="matrix-cell center">1</div><div class="matrix-cell">1</div>
+            <div class="matrix-cell">1</div><div class="matrix-cell">1</div><div class="matrix-cell">1</div>
+          </div>
+          <div class="kernel-demo-label">3×3 Box / Average Filter</div>
+        </div>
+      </div>
+      <p style="font-size:0.88rem;color:var(--text2)">All 9 coefficients = 1/9. Sum = 1 (normalized, so pixel values stay in valid range).</p>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⚙️</span> How Box Filter Works</div>
+        <div class="card-body">
+          <ol style="padding-left:1.2rem;line-height:2;font-size:0.88rem;">
+            <li>Center the 3×3 kernel over a pixel P</li>
+            <li>Read the 9 pixel values in the neighborhood (including P)</li>
+            <li>Sum all 9 values, divide by 9</li>
+            <li>Write the result as the new value of P in the output image</li>
+            <li>Slide to the next pixel, repeat</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="box box-warning">
+        <div class="box-title">⚠️ Disadvantage</div>
+        The box filter blurs <em>rapid transitions and edges aggressively</em>. It treats all neighbors equally, so a bright edge pixel and a background pixel contribute equally — flattening sharp transitions into gradual ones.
+      </div>
+
+      <div class="analogy">
+        Box filter = averaging your grades for a week. If you scored 100 on Monday but 30 every other day, your "weekly average" is dragged toward the middle. Sharp spikes get "diluted."
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t4b">
+      <div class="definition">
+        <div class="definition-term">Gaussian Filter (المرشح الغاوسي)</div>
+        Uses a <strong>2D Gaussian function</strong> to assign weights — pixels <em>closer to the center</em> get higher weights, pixels <em>farther away</em> get lower weights.
+      </div>
+
+      <div class="formula-box">
+        G(x, y) = (1 / 2πσ²) × exp(−(x² + y²) / 2σ²)
+      </div>
+      <div class="formula-label">σ (sigma) controls the spread — larger σ = wider blur | (x,y) = distance from center</div>
+
+      <h3 class="sec-h3">Example 5×5 Gaussian Kernel (σ≈1)</h3>
+      <div class="matrix-container">
+        <div class="matrix-wrap">
+          <div style="font-size:0.85rem;color:var(--text3);margin-bottom:0.4rem;">(1/273) ×</div>
+          <div class="matrix g5">
+            <div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">1</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">7</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">1</div>
+            <div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">16</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">26</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">16</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div>
+            <div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">7</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">26</div><div class="matrix-cell center" style="width:36px;height:36px;font-size:0.72rem;">41</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">26</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">7</div>
+            <div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">16</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">26</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">16</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div>
+            <div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">1</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">7</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">4</div><div class="matrix-cell" style="width:36px;height:36px;font-size:0.72rem;">1</div>
+          </div>
+          <div class="kernel-demo-label">5×5 Gaussian Kernel</div>
+        </div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text2);text-align:center;">Center (41) has the highest weight. Corner (1) has the lowest. Sum = 273, divide by 273 to normalize.</p>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">✅</span> Why Gaussian is Better than Box</div>
+        <div class="card-body">
+          <table class="comp-table">
+            <tr><th></th><th>Box Filter</th><th>Gaussian Filter</th></tr>
+            <tr><td>Edge preservation</td><td>Poor (blurs heavily)</td><td>Better (less edge distortion)</td></tr>
+            <tr><td>Weighting</td><td>Uniform (all = 1/N)</td><td>Distance-based (bell curve)</td></tr>
+            <tr><td>Ring artifacts</td><td>May appear</td><td>None (smooth roll-off)</td></tr>
+            <tr><td>Natural look</td><td>Boxy blur</td><td>Natural, smooth blur</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="analogy">
+        Gaussian filter = asking your closest friends for advice (they get more weight) vs. asking everyone equally (box filter). Your nearby friends know your context better.
+      </div>
+
+      <div class="mnemonic">
+        <strong>G for Gaussian = G for Graceful blurring</strong> — it blurs gracefully, respecting the importance of proximity. σ (sigma) controls how "wide" the bell curve is: big σ = wide, heavy blur; small σ = narrow, light blur.
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t4c">
+      <div class="arabic-section">
+        <h3>المرشحات الخطية للتنعيم</h3>
+
+        <h4>🔹 المرشح الخطي (Linear Filter)</h4>
+        <div class="arabic-box">
+          المرشح الخطي يحسب قيمة البيكسل الناتج كمجموع مرجح خطي لقيم البيكسلات المجاورة. هذا النوع ممتاز للتنعيم (<span class="term">Low-Pass Smoothing</span>).
+        </div>
+
+        <h4>🔹 مرشح المتوسط (Box / Average Filter)</h4>
+        <div class="arabic-box">
+          يستبدل كل بيكسل بالمتوسط الحسابي لجيرانه. جميع الأوزان متساوية (1/9 لنواة 3×3).
+          <br>عيبه: يُشوّه الحواف بقوة لأنه لا يفرق بين البيكسلات القريبة والبعيدة.
+        </div>
+
+        <h4>🔹 المرشح الغاوسي (Gaussian Filter)</h4>
+        <div class="arabic-box">
+          يستخدم الدالة الغاوسية ثنائية الأبعاد لتحديد الأوزان: البيكسلات الأقرب للمركز تأخذ وزناً أكبر.
+          <br><span class="term">σ (Sigma)</span> = يتحكم في مدى الانتشار — كلما كبر σ زاد التمويه.
+          <br>أفضل من مرشح المتوسط لأنه يحافظ على الحواف بشكل أفضل.
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">Linear Filter</span> — مرشح خطي: حساب موزون خطي للجيران</li>
+          <li><span class="term">Box Filter</span> — مرشح المتوسط: جميع الأوزان متساوية</li>
+          <li><span class="term">Gaussian Filter</span> — المرشح الغاوسي: أوزان تعتمد على المسافة (منحنى الجرس)</li>
+          <li><span class="term">Sigma (σ)</span> — الانحراف المعياري: يتحكم في مقدار التمويه</li>
+          <li><span class="term">Normalization</span> — التطبيع: قسمة مجموع النواة على 1 لتجنب تغيير السطوع الكلي</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Common exam question: "Given a 3×3 image patch, apply a box filter and show the output." Also: "Why is Gaussian better than box for edge preservation?" Answer: Gaussian weights by distance → less distortion.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 6 ============================= -->
+<section class="section-wrapper" id="s5">
+  <div class="slide-badge">📌 Slide 6</div>
+  <h2 class="sec-h2"><span>Non-Linear</span> Order Statistics Filters</h2>
+
+  <div class="box box-info">
+    <div class="box-title">ℹ️ What makes them Non-Linear?</div>
+    Non-linear filters do <strong>not</strong> compute a weighted sum. Instead, they <em>rank/sort</em> the neighborhood pixels and select one based on order statistics (median, max, min, midpoint).
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t5a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t5b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t5c')">⚖️ Comparison</button>
+      <button class="tab-btn" onclick="switchTab(this,'t5d')">📐 Example</button>
+    </div>
+    <div class="tab-panel active" id="t5a">
+      <div class="card">
+        <div class="card-title"><span class="icon">📊</span> Median Filter (مرشح الوسيط)</div>
+        <div class="card-body">
+          <p>Replaces each pixel with the <strong>median value</strong> of its neighborhood.</p>
+          <ol style="padding-left:1.2rem;line-height:2;font-size:0.88rem;">
+            <li>Collect all pixel values in the kernel window (e.g., 9 values for 3×3)</li>
+            <li>Sort them in ascending order</li>
+            <li>Take the <em>middle value</em> (position 5 of 9 for 3×3)</li>
+            <li>Write this as the new pixel value</li>
+          </ol>
+          <div class="box box-success" style="margin-top:0.75rem;">
+            <div class="box-title">✅ Why it's excellent</div>
+            Median filter is <strong>excellent for salt-and-pepper noise</strong> (bipolar noise) — where some pixels are stuck at maximum (white = "salt") or minimum (black = "pepper"). A single extreme outlier cannot shift the median, so edges are preserved beautifully.
+          </div>
+          <div class="analogy" style="margin-top:0.75rem;">
+            Imagine 9 students' test scores: 10, 85, 87, 88, 90, 91, 93, 94, 99. The score of 10 is an outlier (noise). <strong>Mean</strong> = ~82 (dragged down). <strong>Median</strong> = 90 (not affected by outlier). The median filter does the same for pixel noise.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⬆️</span> Max Filter (مرشح الحد الأقصى)</div>
+        <div class="card-body">
+          <p>Replaces each pixel with the <strong>maximum value</strong> in its neighborhood.</p>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Effect: <strong>Brightens</strong> the image, expands bright regions</li>
+            <li>Removes <strong>pepper noise</strong> (dark specks — value near 0 becomes replaced by a high max)</li>
+            <li>In morphology: called <strong>dilation</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⬇️</span> Min Filter (مرشح الحد الأدنى)</div>
+        <div class="card-body">
+          <p>Replaces each pixel with the <strong>minimum value</strong> in its neighborhood.</p>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Effect: <strong>Darkens</strong> the image, expands dark regions</li>
+            <li>Removes <strong>salt noise</strong> (bright specks — value near 255 becomes replaced by a low min)</li>
+            <li>In morphology: called <strong>erosion</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">⚖️</span> Midpoint Filter (مرشح نقطة المنتصف)</div>
+        <div class="card-body">
+          <p>Replaces each pixel with the <strong>average of the maximum and minimum</strong> values in the neighborhood:</p>
+          <div class="formula-box">Midpoint = (Max + Min) / 2</div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Combines properties of both max and min filters</li>
+            <li>Ideal for <strong>uniform noise</strong> (random values uniformly distributed)</li>
+            <li>Also works well for <strong>Gaussian noise</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mnemonic">
+        <strong>MaxMedMin Rule:</strong><br>
+        • <strong>Max</strong> → kills <strong>Pepper</strong> (dark noise) — "Max kills Pepper because Pepper is small"<br>
+        • <strong>Min</strong> → kills <strong>Salt</strong> (bright noise) — "Min kills Salt because Salt is big"<br>
+        • <strong>Med</strong>ian → kills <strong>both</strong> without blurring edges
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t5b">
+      <div class="arabic-section">
+        <h3>المرشحات غير الخطية — إحصاءات الرتب</h3>
+
+        <h4>🔹 ما هي المرشحات غير الخطية؟</h4>
+        <div class="arabic-box">
+          المرشحات غير الخطية لا تحسب مجموعاً مرجحاً. بدلاً من ذلك، تُرتّب قيم البيكسلات في النافذة (Neighborhood) وتختار واحدة منها بناءً على مرتبتها.
+        </div>
+
+        <h4>🔹 مرشح الوسيط (Median Filter)</h4>
+        <div class="arabic-box">
+          يستبدل كل بيكسل بالوسيط (القيمة الوسطى بعد الترتيب).
+          <br>مثال: [5, 3, 200, 8, 6] → بعد الترتيب: [3, 5, 6, 8, 200] → الوسيط = 6
+          <br>ممتاز لإزالة ضوضاء الملح والفلفل (<span class="term">Salt-and-Pepper Noise</span>) مع الحفاظ على الحواف.
+        </div>
+
+        <h4>🔹 مرشح الحد الأقصى (Max Filter)</h4>
+        <div class="arabic-box">
+          يستبدل كل بيكسل بالقيمة الأعلى في جيرانه.
+          <br>يُزيل: ضوضاء الفلفل (Pepper Noise) — البيكسلات السوداء غير المرغوبة.
+        </div>
+
+        <h4>🔹 مرشح الحد الأدنى (Min Filter)</h4>
+        <div class="arabic-box">
+          يستبدل كل بيكسل بالقيمة الأدنى في جيرانه.
+          <br>يُزيل: ضوضاء الملح (Salt Noise) — البيكسلات البيضاء غير المرغوبة.
+        </div>
+
+        <h4>🔹 مرشح نقطة المنتصف (Midpoint Filter)</h4>
+        <div class="arabic-box">
+          الناتج = (القيمة القصوى + القيمة الدنيا) / 2
+          <br>مثالي لـ: الضوضاء المنتظمة (Uniform Noise) والضوضاء الغاوسية (Gaussian Noise).
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">Median Filter</span> — مرشح الوسيط: القيمة الوسطى بعد الترتيب</li>
+          <li><span class="term">Max Filter</span> — يأخذ أعلى قيمة: يُزيل ضوضاء الفلفل</li>
+          <li><span class="term">Min Filter</span> — يأخذ أدنى قيمة: يُزيل ضوضاء الملح</li>
+          <li><span class="term">Midpoint Filter</span> — متوسط الحد الأقصى والأدنى</li>
+          <li><span class="term">Salt-and-Pepper Noise</span> — ضوضاء الملح والفلفل: بيكسلات عشوائية بيضاء وسوداء</li>
+          <li><span class="term">Bipolar Noise</span> — ضوضاء ثنائية القطب: نفس ضوضاء الملح والفلفل</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t5c">
+      <table class="comp-table">
+        <tr><th>Filter</th><th>Operation</th><th>Best For</th><th>Effect on Image</th></tr>
+        <tr><td><strong>Median</strong></td><td>Middle value after sorting</td><td>Salt &amp; Pepper noise</td><td>Noise removed, edges preserved</td></tr>
+        <tr><td><strong>Max</strong></td><td>Maximum value in window</td><td>Pepper noise (dark specks)</td><td>Image brightens, dark spots removed</td></tr>
+        <tr><td><strong>Min</strong></td><td>Minimum value in window</td><td>Salt noise (bright specks)</td><td>Image darkens, bright spots removed</td></tr>
+        <tr><td><strong>Midpoint</strong></td><td>(Max + Min) / 2</td><td>Uniform / Gaussian noise</td><td>Balanced midrange estimation</td></tr>
+      </table>
+    </div>
+
+    <div class="tab-panel" id="t5d">
+      <h3 class="sec-h3">Worked Example: Median Filter</h3>
+      <p>Consider a 3×3 neighborhood containing these pixel values:</p>
+      <div class="matrix-container">
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">100</div><div class="matrix-cell">102</div><div class="matrix-cell">255</div>
+            <div class="matrix-cell">101</div><div class="matrix-cell center">103</div><div class="matrix-cell">98</div>
+            <div class="matrix-cell">99</div><div class="matrix-cell">0</div><div class="matrix-cell">100</div>
+          </div>
+          <div class="kernel-demo-label">Image patch (contains salt=255 and pepper=0)</div>
+        </div>
+      </div>
+      <div class="box box-success">
+        <div class="box-title">✅ Step-by-Step Median Calculation</div>
+        <p><strong>Step 1:</strong> List all 9 values: {100, 102, 255, 101, 103, 98, 99, 0, 100}</p>
+        <p><strong>Step 2:</strong> Sort ascending: {0, 98, 99, 100, <strong>100</strong>, 101, 102, 103, 255}</p>
+        <p><strong>Step 3:</strong> Median = 5th value = <strong>100</strong></p>
+        <p><strong>Result:</strong> The extreme values (0 = pepper, 255 = salt) are completely ignored! Output = 100 ✓</p>
+        <p><strong>Compare with Mean:</strong> (100+102+255+101+103+98+99+0+100)/9 ≈ <strong>106</strong> — corrupted by noise.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistakes</div>
+    <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+      <li>Confusing which filter removes which noise: <strong>Max removes Pepper, Min removes Salt</strong></li>
+      <li>Forgetting to sort values before finding median</li>
+      <li>Applying the wrong filter for the noise type (e.g., using Max for salt noise — will make it worse)</li>
+    </ul>
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Frequently asked: "Apply a 3×3 median filter to this image patch" — show sorting step. Also: "What type of noise does the median filter best remove?" Answer: Salt-and-Pepper (bipolar) noise.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 7 ============================= -->
+<section class="section-wrapper" id="s6">
+  <div class="slide-badge">📌 Slide 7</div>
+  <h2 class="sec-h2"><span>Non-Linear Restoration:</span> Specialized Mean Filters</h2>
+
+  <div class="box box-info">
+    <div class="box-title">ℹ️ Why Different Means?</div>
+    Different types of noise in images respond differently to different averaging methods. Standard arithmetic mean isn't always optimal. These specialized means target specific noise patterns.
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t6a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t6b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t6c')">📊 Summary Table</button>
+    </div>
+    <div class="tab-panel active" id="t6a">
+      <div class="card">
+        <div class="card-title"><span class="icon">➕</span> 1. Arithmetic Mean Filter</div>
+        <div class="card-body">
+          <div class="formula-box">f̂(x,y) = (1/mn) Σ g(s,t)</div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Standard pixel averaging — sum all values, divide by count (mn = window area)</li>
+            <li><strong>Effect:</strong> Smoothes local noise variations</li>
+            <li><strong>Drawback:</strong> Blurs boundaries (edges) significantly</li>
+            <li><strong>Best for:</strong> Mild Gaussian noise over uniform regions</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">✖️</span> 2. Geometric Mean Filter</div>
+        <div class="card-body">
+          <div class="formula-box">f̂(x,y) = [Π g(s,t)]<sup>1/(mn)</sup></div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Multiplies all neighborhood pixel values, then takes the (1/mn)-th power</li>
+            <li><strong>Effect:</strong> Similar smoothing to arithmetic mean</li>
+            <li><strong>Advantage:</strong> <em>Retains image details better</em> than arithmetic mean</li>
+            <li><strong>Caveat:</strong> If any pixel = 0, the entire product = 0</li>
+          </ul>
+          <div class="box box-info" style="margin-top:0.75rem;">
+            Geometric mean is always ≤ arithmetic mean. For noise removal, smaller result = less over-smoothing.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔁</span> 3. Harmonic Mean Filter</div>
+        <div class="card-body">
+          <div class="formula-box">f̂(x,y) = mn / Σ (1/g(s,t))</div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Computes the harmonic mean — (count) divided by (sum of reciprocals)</li>
+            <li><strong>Excellent for:</strong> Removing <em>salt noise</em> (bright specks, high values)</li>
+            <li><strong>Struggles with:</strong> Pepper noise (values near 0 cause division by zero)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🎛️</span> 4. Contra-Harmonic Mean Filter</div>
+        <div class="card-body">
+          <div class="formula-box">f̂(x,y) = Σ g(s,t)<sup>Q+1</sup> / Σ g(s,t)<sup>Q</sup></div>
+          <div class="formula-label">Q is the order (power parameter)</div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Parameterized by <strong>Q (order)</strong> — a real number that controls behavior</li>
+            <li><strong>Q &gt; 0:</strong> Behaves like max → eliminates <em>pepper noise</em></li>
+            <li><strong>Q &lt; 0:</strong> Behaves like min → eliminates <em>salt noise</em></li>
+            <li><strong>Q = 0:</strong> Reduces to arithmetic mean filter</li>
+            <li><strong>Q = -1:</strong> Reduces to harmonic mean filter</li>
+          </ul>
+          <div class="box box-success" style="margin-top:0.75rem;">
+            The contra-harmonic filter is a <em>unified framework</em> — by changing Q, you can handle different noise types.
+          </div>
+        </div>
+      </div>
+
+      <div class="mnemonic">
+        <strong>Contra-Harmonic Q Trick:</strong><br>
+        "Q Positive → removes Pepper (dark). Q Negative → removes sN (salt is white, negative kills white)."<br>
+        Or: <strong>Q+ → kills dark; Q- → kills bright</strong>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t6b">
+      <div class="arabic-section">
+        <h3>مرشحات المتوسطات المتخصصة</h3>
+
+        <h4>🔹 المتوسط الحسابي (Arithmetic Mean)</h4>
+        <div class="arabic-box">
+          جمع جميع قيم البيكسلات في النافذة، ثم القسمة على العدد الكلي (mn).
+          <br>عيبه: يُضبّب الحواف بشكل واضح.
+        </div>
+
+        <h4>🔹 المتوسط الهندسي (Geometric Mean)</h4>
+        <div class="arabic-box">
+          ضرب جميع القيم، ثم رفع الناتج للأس (1/mn).
+          <br>أفضل من الحسابي في الحفاظ على التفاصيل.
+          <br>تحذير: إذا كانت أي قيمة = 0، يصبح الناتج = 0.
+        </div>
+
+        <h4>🔹 المتوسط التوافقي (Harmonic Mean)</h4>
+        <div class="arabic-box">
+          الناتج = mn / مجموع (1/قيمة كل بيكسل).
+          <br>ممتاز لإزالة ضوضاء الملح (Salt Noise).
+          <br>يفشل مع ضوضاء الفلفل (Pepper Noise) لأن القسمة على صفر غير ممكنة.
+        </div>
+
+        <h4>🔹 المتوسط المعاكس للتوافقي (Contra-Harmonic Mean)</h4>
+        <div class="arabic-box">
+          المعادلة: Σg^(Q+1) / Σg^Q حيث Q هو الأس/الرتبة.
+          <br>Q موجب (+) → يُزيل ضوضاء الفلفل (بيكسلات سوداء).
+          <br>Q سالب (−) → يُزيل ضوضاء الملح (بيكسلات بيضاء).
+          <br>Q = 0 → يتحول لمتوسط حسابي.
+          <br>Q = −1 → يتحول لمتوسط توافقي.
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">Arithmetic Mean</span> — متوسط حسابي: مجموع القيم / عددها</li>
+          <li><span class="term">Geometric Mean</span> — متوسط هندسي: حاصل الضرب مرفوع للأس 1/N</li>
+          <li><span class="term">Harmonic Mean</span> — متوسط توافقي: N / مجموع المقلوبات</li>
+          <li><span class="term">Contra-Harmonic</span> — المعاكس للتوافقي: يتحكم فيه الأس Q</li>
+          <li><span class="term">Order Q</span> — الأس: يتحكم في سلوك مرشح Contra-Harmonic</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t6c">
+      <table class="comp-table">
+        <tr><th>Filter</th><th>Formula</th><th>Best For</th><th>Weakness</th></tr>
+        <tr><td><strong>Arithmetic Mean</strong></td><td>(1/mn) Σ g</td><td>General/Gaussian noise</td><td>Blurs edges strongly</td></tr>
+        <tr><td><strong>Geometric Mean</strong></td><td>[Π g]^(1/mn)</td><td>Gaussian noise</td><td>Fails if any pixel = 0</td></tr>
+        <tr><td><strong>Harmonic Mean</strong></td><td>mn / Σ(1/g)</td><td>Salt noise</td><td>Fails for pepper (g→0)</td></tr>
+        <tr><td><strong>Contra-Harmonic (Q&gt;0)</strong></td><td>Σg^(Q+1)/Σg^Q</td><td>Pepper noise</td><td>Must know Q in advance</td></tr>
+        <tr><td><strong>Contra-Harmonic (Q&lt;0)</strong></td><td>Σg^(Q+1)/Σg^Q</td><td>Salt noise</td><td>Opposite Q choice ruins it</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Critical Mistake</div>
+    Using Contra-Harmonic with the wrong sign of Q makes the result <strong>worse</strong> — using Q&gt;0 on salt noise (instead of Q&lt;0) will amplify the noise instead of removing it.
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Know the formula for each mean. Know which Q sign handles which noise type. Be able to simplify: "What does the Contra-Harmonic filter become when Q=0? When Q=−1?"
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 8 ============================= -->
+<section class="section-wrapper" id="s7">
+  <div class="slide-badge">📌 Slide 8</div>
+  <h2 class="sec-h2"><span>Calculus of</span> Image Sharpening — Derivatives</h2>
+
+  <div class="box box-info">
+    <div class="box-title">ℹ️ Why Derivatives?</div>
+    Image sharpening = <em>enhancing rapid changes in intensity</em>. In calculus, derivatives measure rates of change. Therefore, spatial derivatives detect where intensity changes rapidly — i.e., edges.
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t7a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t7b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t7c')">⚖️ Comparison</button>
+    </div>
+    <div class="tab-panel active" id="t7a">
+      <div class="card">
+        <div class="card-title"><span class="icon">📈</span> 1st Derivative — Gradient Detection</div>
+        <div class="card-body">
+          <p>The <strong>first derivative</strong> measures how much intensity changes as we move from one pixel to the next.</p>
+          <div class="formula-box">
+            ∂f/∂x ≈ f(x+1) − f(x)  &nbsp;&nbsp;&nbsp;  (forward difference)
+          </div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Produces <strong>wider edges</strong> (thick edge lines in output)</li>
+            <li>Responds <strong>strongly to step transitions</strong> (abrupt brightness changes)</li>
+            <li>Produces a non-zero response at ramps (gradual transitions) too</li>
+            <li>Always zero in constant regions</li>
+          </ul>
+          <div class="analogy" style="margin-top:0.75rem;">
+            Like a car's speedometer — it tells you how fast you're going RIGHT NOW. At an edge, the "speed" of intensity change spikes.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">📉</span> 2nd Derivative — Acceleration Detection</div>
+        <div class="card-body">
+          <p>The <strong>second derivative</strong> measures the <em>rate of change of the rate of change</em> — acceleration of intensity.</p>
+          <div class="formula-box">
+            ∂²f/∂x² ≈ f(x+1) − 2f(x) + f(x−1)
+          </div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>Produces <strong>finer, thinner edge lines</strong></li>
+            <li>Responds strongly to <strong>fine details and isolated points</strong></li>
+            <li><strong>Zero-crossing</strong> property: the response crosses zero exactly at the edge location → precise edge localization</li>
+            <li>Zero in constant regions AND on linear ramps</li>
+            <li>Non-zero only at start and end of ramps (discontinuities in slope)</li>
+          </ul>
+          <div class="analogy" style="margin-top:0.75rem;">
+            Like a car's acceleration dial — it's non-zero only when speed is <em>changing</em>. At a perfectly steady speed (ramp), acceleration = 0. Only at the start/stop of acceleration does the dial move.
+          </div>
+        </div>
+      </div>
+
+      <h3 class="sec-h3">1D Example: Derivatives Along a Row</h3>
+      <div class="formula-box" style="font-size:0.85rem;text-align:left;padding:1rem 1.5rem;">
+        Pixel row: [10, 10, 10, <strong>50, 90</strong>, 90, 90, 90]<br><br>
+        1st derivative: [0, 0, <strong>+40, +40</strong>, 0, 0, 0] → non-zero at ramp<br>
+        2nd derivative: [0, 0, <strong>+40, 0, −40</strong>, 0, 0] → non-zero only at edges of ramp, crosses 0 at midpoint
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t7b">
+      <div class="arabic-section">
+        <h3>تحسين الصور عبر المشتقات</h3>
+
+        <h4>🔹 لماذا نستخدم المشتقات؟</h4>
+        <div class="arabic-box">
+          تحسين الحدة في الصور يعني تعزيز التغيرات السريعة في الشدة الضوئية. في حساب التفاضل، المشتقة تقيس معدل التغيير. لذلك، المشتقات المكانية تكتشف أين تتغير الشدة بسرعة، أي تكتشف الحواف.
+        </div>
+
+        <h4>🔹 المشتقة الأولى (First Derivative — Gradient)</h4>
+        <div class="arabic-box">
+          تقيس مدى تغير الشدة من بيكسل للآخر.
+          <br>∂f/∂x ≈ f(x+1) − f(x)
+          <br><strong>الخصائص:</strong>
+          <br>• تنتج حواف أعرض
+          <br>• تستجيب بقوة للتغيرات المفاجئة (Step Transitions)
+          <br>• تساوي صفراً في المناطق الثابتة
+        </div>
+
+        <h4>🔹 المشتقة الثانية (Second Derivative — Acceleration)</h4>
+        <div class="arabic-box">
+          تقيس معدل تغير المشتقة الأولى.
+          <br>∂²f/∂x² ≈ f(x+1) − 2f(x) + f(x−1)
+          <br><strong>الخصائص:</strong>
+          <br>• تنتج حواف أدق وأرفع
+          <br>• خاصية عبور الصفر (Zero-Crossing): تعبر الصفر عند موقع الحافة بالضبط
+          <br>• تساوي صفراً في المناطق الثابتة والمنحدرات الخطية
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">First Derivative</span> — المشتقة الأولى: معدل التغيير، يكتشف الحواف</li>
+          <li><span class="term">Second Derivative</span> — المشتقة الثانية: معدل تغير المعدل، أدق في تحديد الحواف</li>
+          <li><span class="term">Zero-Crossing</span> — عبور الصفر: ظاهرة المشتقة الثانية عند مواقع الحواف</li>
+          <li><span class="term">Step Transition</span> — تغير مفاجئ: حافة حادة في الصورة</li>
+          <li><span class="term">Ramp</span> — منحدر: تغير تدريجي في الشدة</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t7c">
+      <table class="comp-table">
+        <tr><th>Property</th><th>1st Derivative (Gradient)</th><th>2nd Derivative (Acceleration)</th></tr>
+        <tr><td>Measures</td><td>Rate of intensity change</td><td>Rate of change of rate</td></tr>
+        <tr><td>Edge thickness</td><td>Wider edges</td><td>Finer, thinner edges</td></tr>
+        <tr><td>Constant regions</td><td>Zero</td><td>Zero</td></tr>
+        <tr><td>Linear ramps</td><td>Non-zero (constant)</td><td>Zero</td></tr>
+        <tr><td>At exact edge</td><td>Maximum</td><td>Zero-crossing</td></tr>
+        <tr><td>Response to noise</td><td>Moderate</td><td>Stronger (amplifies noise)</td></tr>
+        <tr><td>Example operator</td><td>Sobel, Prewitt, Roberts</td><td>Laplacian</td></tr>
+        <tr><td>Typical use</td><td>Edge detection</td><td>Edge enhancement, sharpening</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistake</div>
+    Thinking the 2nd derivative = squares of 1st derivative. Wrong! The second derivative is the derivative <em>of</em> the first derivative, not its square.
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Know the discrete formulas for 1st and 2nd derivatives. Understand zero-crossing property. The Laplacian (next section) is a 2D extension of the 2nd derivative.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 9 ============================= -->
+<section class="section-wrapper" id="s8">
+  <div class="slide-badge">📌 Slide 9</div>
+  <h2 class="sec-h2"><span>The Laplacian</span> Sharpening Operator</h2>
+
+  <div class="definition">
+    <div class="definition-term">Laplacian (اللابلاسي)</div>
+    The Laplacian is a <strong>second-order, isotropic (rotation-independent)</strong> derivative operator used for edge enhancement and image sharpening. It detects regions of rapid intensity change in all directions equally.
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t8a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t8b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t8c')">📐 Kernels</button>
+    </div>
+    <div class="tab-panel active" id="t8a">
+      <h3 class="sec-h3">Mathematical Definition</h3>
+      <div class="formula-box">
+        ∇²f = ∂²f/∂x² + ∂²f/∂y²
+      </div>
+      <div class="formula-label">Laplacian = sum of second derivatives in x AND y directions</div>
+
+      <p>Expanding into discrete form:</p>
+      <div class="formula-box">
+        ∇²f(x,y) = f(x+1,y) + f(x−1,y) + f(x,y+1) + f(x,y−1) − 4·f(x,y)
+      </div>
+      <div class="formula-label">The discrete Laplacian: sum of 4 neighbors minus 4 times the center</div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🔢</span> Standard 3×3 Laplacian Kernel</div>
+        <div class="card-body">
+          <div class="matrix-container">
+            <div class="matrix-wrap">
+              <div class="matrix g3">
+                <div class="matrix-cell highlight">0</div><div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">0</div>
+                <div class="matrix-cell highlight">1</div><div class="matrix-cell negative">-4</div><div class="matrix-cell highlight">1</div>
+                <div class="matrix-cell highlight">0</div><div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">0</div>
+              </div>
+              <div class="kernel-demo-label">Standard 4-neighbor Laplacian</div>
+            </div>
+            <div class="matrix-wrap">
+              <div class="matrix g3">
+                <div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div>
+                <div class="matrix-cell highlight">1</div><div class="matrix-cell negative">-8</div><div class="matrix-cell highlight">1</div>
+                <div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div>
+              </div>
+              <div class="kernel-demo-label">8-neighbor Laplacian (diagonal included)</div>
+            </div>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text2);margin-top:0.75rem;">
+            Key property: The <strong>center coefficient has opposite sign</strong> to outer coefficients. This reverses local gradients to accentuate edge differences. Sum of all kernel values = <strong>0</strong> (no response in flat regions).
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">✨</span> Laplacian Sharpening Formula</div>
+        <div class="card-body">
+          <p>To sharpen the original image, add (or subtract) the Laplacian:</p>
+          <div class="formula-box">
+            g(x,y) = f(x,y) − ∇²f(x,y)  &nbsp; (if center is positive convention)<br>
+            g(x,y) = f(x,y) + ∇²f(x,y)  &nbsp; (if center is negative convention)
+          </div>
+          <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+            <li>When the Laplacian uses center <code>-4</code>: subtract from original → sharpen</li>
+            <li>When using center <code>+4</code> (negated version): add to original → sharpen</li>
+            <li>This operation <strong>adds back the high-frequency edge information</strong> that was "missing" from the smooth image</li>
+          </ul>
+
+          <h4 class="sec-h4">Combined kernel (original + Laplacian in one step):</h4>
+          <div class="matrix-container">
+            <div class="matrix-wrap">
+              <div class="matrix g3">
+                <div class="matrix-cell highlight">0</div><div class="matrix-cell negative">-1</div><div class="matrix-cell highlight">0</div>
+                <div class="matrix-cell negative">-1</div><div class="matrix-cell center">5</div><div class="matrix-cell negative">-1</div>
+                <div class="matrix-cell highlight">0</div><div class="matrix-cell negative">-1</div><div class="matrix-cell highlight">0</div>
+              </div>
+              <div class="kernel-demo-label">Laplacian sharpening kernel (original + Laplacian)</div>
+            </div>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text3);text-align:center;">Applying this kernel directly to the original image gives the sharpened result in one step.</p>
+        </div>
+      </div>
+
+      <div class="box box-teal">
+        <div class="box-title">🔵 Isotropic Property</div>
+        <strong>Isotropic</strong> means the Laplacian produces the same response regardless of edge direction — horizontal, vertical, or diagonal edges are all enhanced equally. This is because it uses second derivatives in <em>both</em> spatial axes.
+      </div>
+
+      <div class="analogy">
+        Laplacian = a "bump detector." On a flat surface (constant intensity), it returns 0. Where there's a "bump" (edge), it returns a large value. Adding the bump back to the image makes the edge stand out more.
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t8b">
+      <div class="arabic-section">
+        <h3>مشغّل اللابلاسي للتحسين الإسوتروبي</h3>
+
+        <h4>🔹 تعريف اللابلاسي</h4>
+        <div class="arabic-box">
+          اللابلاسي هو مشغّل مشتقة ثانية من الدرجة الثانية، يعمل بشكل متساوٍ في جميع الاتجاهات (Isotropic).
+          <br>∇²f = ∂²f/∂x² + ∂²f/∂y²
+          <br>يكتشف مناطق التغير السريع في الشدة (الحواف) في كل الاتجاهات بالتساوي.
+        </div>
+
+        <h4>🔹 نواة اللابلاسي القياسية 3×3</h4>
+        <div class="arabic-box">
+          القيمة المركزية = -4 (إشارة معاكسة للقيم الخارجية)
+          <br>مجموع جميع عناصر النواة = 0 → لا استجابة في المناطق المتجانسة
+          <br>الخاصية الرئيسية: معامل المركز له إشارة معاكسة للمعاملات الخارجية
+        </div>
+
+        <h4>🔹 معادلة التحسين باللابلاسي</h4>
+        <div class="arabic-box">
+          g(x,y) = f(x,y) − ∇²f(x,y)  [عندما المركز سالب]
+          <br>g(x,y) = f(x,y) + ∇²f(x,y)  [عندما المركز موجب]
+          <br>
+          <br>الفكرة: نضيف معلومات الحواف المستخرجة بواسطة اللابلاسي إلى الصورة الأصلية لتحسين الحدة.
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">Laplacian (∇²)</span> — اللابلاسي: مجموع المشتقات الثانية في محورَي x وy</li>
+          <li><span class="term">Isotropic</span> — إسوتروبي/متعادل الاتجاه: يستجيب بالتساوي لجميع اتجاهات الحواف</li>
+          <li><span class="term">Second-order derivative</span> — مشتقة ثانية الدرجة</li>
+          <li><span class="term">Sharpening Blend</span> — مزج التحسين: إضافة اللابلاسي للصورة الأصلية</li>
+          <li><span class="term">Combined Kernel</span> — النواة المدمجة: نواة واحدة تجمع العملية الكاملة</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t8c">
+      <h3 class="sec-h3">All Laplacian Kernel Variants</h3>
+      <div class="matrix-container">
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">0</div><div class="matrix-cell highlight">1</div><div class="matrix-cell">0</div>
+            <div class="matrix-cell highlight">1</div><div class="matrix-cell negative">-4</div><div class="matrix-cell highlight">1</div>
+            <div class="matrix-cell">0</div><div class="matrix-cell highlight">1</div><div class="matrix-cell">0</div>
+          </div>
+          <div class="kernel-demo-label">4-neighbor (standard)</div>
+        </div>
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div>
+            <div class="matrix-cell highlight">1</div><div class="matrix-cell negative">-8</div><div class="matrix-cell highlight">1</div>
+            <div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div><div class="matrix-cell highlight">1</div>
+          </div>
+          <div class="kernel-demo-label">8-neighbor (with diagonals)</div>
+        </div>
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">0</div><div class="matrix-cell negative">-1</div><div class="matrix-cell">0</div>
+            <div class="matrix-cell negative">-1</div><div class="matrix-cell center">4</div><div class="matrix-cell negative">-1</div>
+            <div class="matrix-cell">0</div><div class="matrix-cell negative">-1</div><div class="matrix-cell">0</div>
+          </div>
+          <div class="kernel-demo-label">Negated Laplacian (center +4)</div>
+        </div>
+        <div class="matrix-wrap">
+          <div class="matrix g3">
+            <div class="matrix-cell">0</div><div class="matrix-cell negative">-1</div><div class="matrix-cell">0</div>
+            <div class="matrix-cell negative">-1</div><div class="matrix-cell center">5</div><div class="matrix-cell negative">-1</div>
+            <div class="matrix-cell">0</div><div class="matrix-cell negative">-1</div><div class="matrix-cell">0</div>
+          </div>
+          <div class="kernel-demo-label">Combined sharpening kernel</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistakes</div>
+    <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+      <li>Forgetting to add/subtract Laplacian from original — just the Laplacian alone shows edges only, not a sharpened image</li>
+      <li>Confusing the sign: if center = −4, <em>subtract</em> Laplacian from original; if using +4 version, <em>add</em> it</li>
+      <li>Confusing Laplacian (2nd derivative, scalar) with Gradient (1st derivative, vector)</li>
+    </ul>
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Be able to: (1) write the Laplacian kernel from memory, (2) apply it to a small patch, (3) add result to original to get sharpened image, (4) explain what "isotropic" means in context.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= SLIDE 10 ============================= -->
+<section class="section-wrapper" id="s9">
+  <div class="slide-badge">📌 Slide 10</div>
+  <h2 class="sec-h2"><span>Unsharp Masking</span> Workflow</h2>
+
+  <div class="definition">
+    <div class="definition-term">Unsharp Masking (إخفاء عدم الحدة)</div>
+    A traditional image sharpening technique that works by <em>subtracting a blurred version from the original</em> to extract edge detail (the "mask"), then blending it back to create a sharpened result.
+  </div>
+
+  <div class="tabs">
+    <div class="tab-list">
+      <button class="tab-btn active" onclick="switchTab(this,'t9a')">🇬🇧 English</button>
+      <button class="tab-btn" onclick="switchTab(this,'t9b')">🇸🇦 Arabic</button>
+      <button class="tab-btn" onclick="switchTab(this,'t9c')">📐 Formula</button>
+    </div>
+    <div class="tab-panel active" id="t9a">
+      <h3 class="sec-h3">The 4-Step Workflow</h3>
+
+      <div class="step-flow">
+        <div class="step-item">
+          <div class="step-line">
+            <div class="step-num">1</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-content">
+            <strong>Smooth the Image</strong>
+            <p style="margin-top:0.3rem;color:var(--text2);font-size:0.85rem;">Apply a low-pass filter (e.g., Gaussian blur) to create a blurred version <code>f̄(x,y)</code> of the original <code>f(x,y)</code>. The blur removes all high-frequency edge detail.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-line">
+            <div class="step-num">2</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-content">
+            <strong>Compute the Mask</strong>
+            <p style="margin-top:0.3rem;color:var(--text2);font-size:0.85rem;">Subtract the blurred image from the original: <code>mask = f(x,y) − f̄(x,y)</code>. The result is the "unsharp mask" — it contains <em>only</em> the high-frequency edge/detail information that was removed by blurring.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-line">
+            <div class="step-num">3</div>
+            <div class="step-connector"></div>
+          </div>
+          <div class="step-content">
+            <strong>Scale the Mask</strong>
+            <p style="margin-top:0.3rem;color:var(--text2);font-size:0.85rem;">Multiply the mask by a weight parameter <code>k</code> (also called the "boost factor"): <code>k × mask</code>. This controls how aggressively you sharpen. k=1 = standard unsharp masking. k&gt;1 = high boost filter (extra sharpening). k between 0 and 1 = mild sharpening.</p>
+          </div>
+        </div>
+        <div class="step-item">
+          <div class="step-line">
+            <div class="step-num">4</div>
+          </div>
+          <div class="step-content">
+            <strong>Final Blend</strong>
+            <p style="margin-top:0.3rem;color:var(--text2);font-size:0.85rem;">Add the scaled mask back onto the original: <code>g(x,y) = f(x,y) + k × mask</code>. The output has the smooth tonal structure of the original plus amplified edge detail.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="formula-box" style="margin-top:1.5rem;">
+        <strong>Unsharp Masking:</strong><br><br>
+        mask(x,y) = f(x,y) − f̄(x,y)<br><br>
+        g(x,y) = f(x,y) + k · mask(x,y)<br><br>
+        g(x,y) = f(x,y) + k · [f(x,y) − f̄(x,y)]<br><br>
+        g(x,y) = (1+k)·f(x,y) − k·f̄(x,y)
+      </div>
+      <div class="formula-label">f = original | f̄ = blurred | k = boost weight | g = sharpened output</div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon">🚀</span> High Boost Filter</div>
+        <div class="card-body">
+          When <code>k &gt; 1</code>, the technique becomes the <strong>High Boost Filter</strong> — it amplifies edge detail beyond the natural level, creating an exaggerated sharpness effect (sometimes used for artistic or diagnostic purposes).
+          <div class="box box-warning" style="margin-top:0.75rem;">
+            <div class="box-title">⚠️ Over-sharpening</div>
+            Too large a value of k causes <em>halos</em> (bright/dark rings around edges) and amplifies noise.
+          </div>
+        </div>
+      </div>
+
+      <div class="analogy">
+        Unsharp masking is like editing a photo: blur it to find the "background," subtract the background to get only the "fine detail layer," amplify that detail, then add it back. This is exactly what professional photo editors do manually in Photoshop's "High Pass" workflow.
+      </div>
+
+      <div class="mnemonic">
+        <strong>USM = Unsharp-Subtract-Multiply:</strong><br>
+        <strong>U</strong> = Unsharp (blur the original)<br>
+        <strong>S</strong> = Subtract (mask = original − blurred)<br>
+        <strong>M</strong> = Multiply and add back (sharpened = original + k×mask)
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t9b">
+      <div class="arabic-section">
+        <h3>سير عمل إخفاء عدم الحدة (Unsharp Masking)</h3>
+
+        <h4>🔹 ما هو Unsharp Masking؟</h4>
+        <div class="arabic-box">
+          تقنية تقليدية لتحسين حدة الصور. الفكرة: نُضبّب الصورة أولاً، ثم نطرح النسخة المضببة من الأصلية للحصول على قناع الحواف (Mask)، ثم نُضيف هذا القناع للصورة الأصلية لتحسين الحدة.
+        </div>
+
+        <h4>🔹 خطوات العمل الأربع</h4>
+        <ul>
+          <li><strong>الخطوة 1:</strong> تنعيم الصورة — تطبيق مرشح منخفض (<span class="term">Low-Pass Filter</span>) لإنشاء نسخة مضببة</li>
+          <li><strong>الخطوة 2:</strong> حساب القناع — mask = الأصلية − المضببة (يحتوي فقط على معلومات الحواف)</li>
+          <li><strong>الخطوة 3:</strong> ضبط الوزن — ضرب القناع بمعامل k للتحكم في درجة التحسين</li>
+          <li><strong>الخطوة 4:</strong> الدمج النهائي — g = الأصلية + k × القناع</li>
+        </ul>
+
+        <h4>🔹 المعادلة الكاملة</h4>
+        <div class="arabic-box">
+          g(x,y) = f(x,y) + k × [f(x,y) − f̄(x,y)]
+          <br><br>
+          حيث: f = الأصلية | f̄ = المضببة | k = معامل التقوية | g = الناتج المحسّن
+        </div>
+
+        <h4>🔹 فلتر التقوية العالية (High Boost Filter)</h4>
+        <div class="arabic-box">
+          عندما k > 1: يصبح مرشح التقوية العالية (High Boost Filter) — تضخيم الحواف بشكل مبالغ.
+          <br>تحذير: k كبير جداً يسبب هالات (Halos) حول الحواف ويُضخّم الضوضاء.
+        </div>
+
+        <h4>🔹 المصطلحات المهمة</h4>
+        <ul>
+          <li><span class="term">Unsharp Masking</span> — إخفاء عدم الحدة: تقنية التحسين بالطرح</li>
+          <li><span class="term">Mask</span> — القناع: الفرق بين الأصلية والمضببة = معلومات الحواف</li>
+          <li><span class="term">Boost Factor (k)</span> — معامل التقوية: يتحكم في درجة التحسين</li>
+          <li><span class="term">High Boost Filter</span> — مرشح التقوية العالية: عندما k > 1</li>
+          <li><span class="term">Halo Effect</span> — تأثير الهالة: تشويه يظهر عند k كبير جداً</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="t9c">
+      <h3 class="sec-h3">Formula Derivation & Special Cases</h3>
+      <div class="formula-box">
+        <strong>General Formula:</strong>
+        g = f + k(f − f̄)<br>
+        g = f + kf − kf̄<br>
+        g = (1+k)f − kf̄<br><br>
+        <strong>Special Cases:</strong><br>
+        k = 0: g = f  (no change, original returned)<br>
+        k = 1: g = 2f − f̄  (standard unsharp masking)<br>
+        k > 1: High Boost Filter (amplified sharpening)<br>
+        k → ∞: approaches applying Laplacian sharpening
+      </div>
+
+      <h3 class="sec-h3">Worked Numerical Example</h3>
+      <div class="box box-success">
+        <div class="box-title">✅ Example</div>
+        <p><strong>Original pixel f = 100</strong></p>
+        <p><strong>Blurred pixel f̄ = 95</strong> (slightly smoothed)</p>
+        <p><strong>Boost k = 2</strong></p>
+        <br>
+        <p>mask = f − f̄ = 100 − 95 = <strong>5</strong></p>
+        <p>g = f + k × mask = 100 + 2 × 5 = 100 + 10 = <strong>110</strong></p>
+        <p>The edge pixel was brightened from 100 to 110, making it stand out more from its blurred background.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="box box-warning">
+    <div class="box-title">⚠️ Common Mistakes</div>
+    <ul style="padding-left:1.2rem;line-height:1.8;font-size:0.88rem;">
+      <li>Adding the original-blurred mask without scaling (k=0 gives no effect)</li>
+      <li>Using k that's too large → halos and noise amplification</li>
+      <li>Confusing Unsharp Masking with Laplacian sharpening: USM uses a blur-then-subtract pipeline; Laplacian directly uses 2nd derivative kernel</li>
+    </ul>
+  </div>
+  <div class="box box-purple">
+    <div class="box-title">🎓 Exam Note</div>
+    Common questions: (1) Describe the unsharp masking workflow in steps. (2) What is the high boost filter and how does k affect it? (3) Write and simplify the full USM formula. (4) What does the "mask" contain?
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= QUIZ ============================= -->
+<section class="section-wrapper" id="quiz">
+  <div class="slide-badge">📝 Practice</div>
+  <h2 class="sec-h2"><span>Quiz</span> &amp; Practice Questions</h2>
+
+  <div class="collapsible">
+    <div class="collapsible-header open" onclick="toggleCollapsible(this)">
+      🔵 Multiple Choice Questions (MCQs) <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-body open">
+      <div class="quiz-item">
+        <div class="quiz-q">What does a Low-Pass Filter do to an image?</div>
+        <ul class="quiz-options">
+          <li onclick="checkAnswer(this,'wrong')">A. Sharpens edges and enhances fine details</li>
+          <li onclick="checkAnswer(this,'correct')">B. Blurs the image by removing high frequencies</li>
+          <li onclick="checkAnswer(this,'wrong')">C. Detects zero-crossings</li>
+          <li onclick="checkAnswer(this,'wrong')">D. Inverts pixel values</li>
+        </ul>
+        <div class="quiz-feedback correct-fb">✅ Correct! LPF removes high frequencies (edges/noise) leaving only smooth low-frequency regions → blurring effect.</div>
+        <div class="quiz-feedback wrong-fb">❌ Not quite. LPF = Low-Pass = lets low frequencies through = blurs the image.</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">What is the key difference between correlation and convolution?</div>
+        <ul class="quiz-options">
+          <li onclick="checkAnswer(this,'wrong')">A. Correlation uses larger kernels</li>
+          <li onclick="checkAnswer(this,'wrong')">B. Convolution only works on grayscale images</li>
+          <li onclick="checkAnswer(this,'correct')">C. Convolution rotates the kernel 180° before applying it; correlation does not</li>
+          <li onclick="checkAnswer(this,'wrong')">D. They are completely identical operations</li>
+        </ul>
+        <div class="quiz-feedback correct-fb">✅ Correct! Convolution flips the kernel 180° (both axes). Correlation applies the kernel directly without rotation.</div>
+        <div class="quiz-feedback wrong-fb">❌ The key difference is the 180° kernel flip in convolution.</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">Which filter is BEST for removing salt-and-pepper noise while preserving edges?</div>
+        <ul class="quiz-options">
+          <li onclick="checkAnswer(this,'wrong')">A. Box (Average) filter</li>
+          <li onclick="checkAnswer(this,'wrong')">B. Gaussian filter</li>
+          <li onclick="checkAnswer(this,'correct')">C. Median filter</li>
+          <li onclick="checkAnswer(this,'wrong')">D. Max filter</li>
+        </ul>
+        <div class="quiz-feedback correct-fb">✅ Correct! The median filter replaces pixels with the sorted middle value, making it immune to extreme outliers (salt=255, pepper=0) while preserving edges.</div>
+        <div class="quiz-feedback wrong-fb">❌ The median filter is the best for salt-and-pepper noise removal with edge preservation.</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">In the Contra-Harmonic mean filter, what does Q &lt; 0 eliminate?</div>
+        <ul class="quiz-options">
+          <li onclick="checkAnswer(this,'wrong')">A. Pepper noise (dark specks)</li>
+          <li onclick="checkAnswer(this,'correct')">B. Salt noise (bright specks)</li>
+          <li onclick="checkAnswer(this,'wrong')">C. Gaussian noise</li>
+          <li onclick="checkAnswer(this,'wrong')">D. Motion blur</li>
+        </ul>
+        <div class="quiz-feedback correct-fb">✅ Correct! Q&lt;0 → Contra-Harmonic behaves like a min filter → eliminates salt (bright) noise. Q&gt;0 → eliminates pepper (dark) noise.</div>
+        <div class="quiz-feedback wrong-fb">❌ Q&lt;0 removes salt noise (bright). Q&gt;0 removes pepper noise (dark).</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">What is the sum of all values in a standard 3×3 Laplacian kernel with center = −4?</div>
+        <ul class="quiz-options">
+          <li onclick="checkAnswer(this,'wrong')">A. 4</li>
+          <li onclick="checkAnswer(this,'correct')">B. 0</li>
+          <li onclick="checkAnswer(this,'wrong')">C. −4</li>
+          <li onclick="checkAnswer(this,'wrong')">D. 9</li>
+        </ul>
+        <div class="quiz-feedback correct-fb">✅ Correct! Four neighbors = +1 each = +4 total. Center = −4. Sum = 4 + (−4) = 0. This ensures no response in flat constant-intensity regions.</div>
+        <div class="quiz-feedback wrong-fb">❌ The 4 neighbors sum to +4, center = −4, total = 0.</div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">In unsharp masking, the "mask" contains:</div>
+        <ul class="quiz-options">
+          <li onclick="checkAnswer(this,'wrong')">A. The original image's low frequencies only</li>
+          <li onclick="checkAnswer(this,'correct')">B. The high-frequency edge/detail information (original minus blurred)</li>
+          <li onclick="checkAnswer(this,'wrong')">C. The noise in the image</li>
+          <li onclick="checkAnswer(this,'wrong')">D. A Gaussian kernel</li>
+        </ul>
+        <div class="quiz-feedback correct-fb">✅ Correct! mask = f − f̄. Since f̄ keeps only low frequencies, f − f̄ = what was removed = high frequencies = edges and details.</div>
+        <div class="quiz-feedback wrong-fb">❌ The mask = original − blurred = high-frequency edge detail.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="collapsible">
+    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+      🟢 True / False Questions <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-body">
+      <div class="tf-item">
+        <div class="tf-question">1. The Gaussian filter assigns equal weights to all pixels in the neighborhood.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF(this,'false','False! Gaussian weights are distance-based — closer pixels get higher weights.')">True</button>
+          <button class="tf-btn" onclick="checkTF(this,'true','Correct! Gaussian uses distance-based weights following a bell curve.')">False</button>
+        </div>
+      </div>
+      <div class="tf-item">
+        <div class="tf-question">2. For symmetric kernels, correlation and convolution produce identical results.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF(this,'true','Correct! For symmetric kernels (like Gaussian), flipping 180° gives the same kernel → identical results.')">True</button>
+          <button class="tf-btn" onclick="checkTF(this,'false','Incorrect. For symmetric kernels, both operations are equivalent.')">False</button>
+        </div>
+      </div>
+      <div class="tf-item">
+        <div class="tf-question">3. The Max filter removes salt (white) noise from an image.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF(this,'false','Incorrect! Max filter removes Pepper (dark) noise, not salt. Min filter removes salt noise.')">True</button>
+          <button class="tf-btn" onclick="checkTF(this,'true','Correct! Max filter replaces pixels with the neighborhood maximum → eliminates dark (pepper) specks, not bright (salt) ones.')">False</button>
+        </div>
+      </div>
+      <div class="tf-item">
+        <div class="tf-question">4. The Laplacian is an isotropic operator, meaning it responds equally to edges in all directions.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF(this,'true','Correct! Isotropic means direction-independent. The Laplacian sums second derivatives in both x and y → equal response regardless of edge orientation.')">True</button>
+          <button class="tf-btn" onclick="checkTF(this,'false','Incorrect. Isotropic is a key property of the Laplacian.')">False</button>
+        </div>
+      </div>
+      <div class="tf-item">
+        <div class="tf-question">5. In Unsharp Masking, setting k=0 results in maximum sharpening.</div>
+        <div class="tf-btns">
+          <button class="tf-btn" onclick="checkTF(this,'false','Wrong! k=0 → g = f + 0×mask = f. No change. No sharpening. Larger k → more sharpening.')">True</button>
+          <button class="tf-btn" onclick="checkTF(this,'true','Correct! k=0 means no mask is added → output = original image = no sharpening.')">False</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="collapsible">
+    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+      🟡 Fill in the Blank Questions <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-body">
+      <div class="fill-item">
+        <div class="tf-question">1. A filter that ranks neighborhood pixels and selects the middle value is called a ________ filter.</div>
+        <input class="fill-input" placeholder="your answer…">
+        <button class="fill-check" onclick="checkFill(this,'median')">Check</button>
+      </div>
+      <div class="fill-item">
+        <div class="tf-question">2. In convolution, the kernel is flipped by ________ degrees before application.</div>
+        <input class="fill-input" placeholder="your answer…">
+        <button class="fill-check" onclick="checkFill(this,'180')">Check</button>
+      </div>
+      <div class="fill-item">
+        <div class="tf-question">3. The Laplacian operator is a ________ -order derivative operator.</div>
+        <input class="fill-input" placeholder="your answer…">
+        <button class="fill-check" onclick="checkFill(this,'second')">Check</button>
+      </div>
+      <div class="fill-item">
+        <div class="tf-question">4. High frequencies in an image represent ________ changes in pixel intensity.</div>
+        <input class="fill-input" placeholder="your answer…">
+        <button class="fill-check" onclick="checkFill(this,'rapid')">Check</button>
+      </div>
+      <div class="fill-item">
+        <div class="tf-question">5. When the boost factor k in Unsharp Masking is greater than 1, the technique is called ________ filter.</div>
+        <input class="fill-input" placeholder="your answer…">
+        <button class="fill-check" onclick="checkFill(this,'high boost')">Check</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="collapsible">
+    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+      🟣 Short Answer Questions <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-body">
+      <div class="quiz-item">
+        <div class="quiz-q">Explain the three methods for handling edge conditions when applying a spatial filter.</div>
+        <div class="box box-success" style="margin-top:0.5rem;">
+          <div class="box-title">📖 Model Answer</div>
+          <strong>1. Zero-Padding:</strong> A border of zero-value (black) pixels is added around the image. Simple and common; output keeps original size.<br><br>
+          <strong>2. Mirroring:</strong> Edge pixels are reflected outward, creating a symmetric virtual border. Produces more natural-looking results since edge pixels aren't artificially zero.<br><br>
+          <strong>3. Clipping:</strong> Pixels near the boundary where the kernel would extend outside are not computed. Output image is slightly smaller than input. No artificial values introduced.
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">Why is the median filter preferred over the mean filter for salt-and-pepper noise removal?</div>
+        <div class="box box-success" style="margin-top:0.5rem;">
+          <div class="box-title">📖 Model Answer</div>
+          The median filter sorts neighborhood values and selects the middle value. Extreme outliers (salt=255, pepper=0) end up at the extremes of the sorted list — not at the median position — so they are completely discarded. The mean filter, however, sums all values including the outliers, so a single extreme pixel (e.g., 255) dramatically shifts the average and corrupts the output. Additionally, the median filter does not blur edges because it selects an actual existing pixel value rather than computing a weighted average that doesn't exist in the image.
+        </div>
+      </div>
+
+      <div class="quiz-item">
+        <div class="quiz-q">Describe the Unsharp Masking process and write its final formula.</div>
+        <div class="box box-success" style="margin-top:0.5rem;">
+          <div class="box-title">📖 Model Answer</div>
+          <strong>Steps:</strong> (1) Blur original f to get f̄. (2) Compute mask = f − f̄ (edge detail). (3) Scale mask by k. (4) Add to original: g = f + k·mask.<br><br>
+          <strong>Combined formula:</strong> g(x,y) = f(x,y) + k·[f(x,y) − f̄(x,y)] = (1+k)·f(x,y) − k·f̄(x,y)<br><br>
+          When k=1: standard unsharp masking. When k&gt;1: High Boost Filter.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= CHEAT SHEET ============================= -->
+<section class="section-wrapper" id="cheatsheet">
+  <div class="slide-badge">📋 Reference</div>
+  <h2 class="sec-h2"><span>Quick</span> Cheat Sheet</h2>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📌</span> All Key Formulas</div>
+    <div class="card-body">
+      <table class="comp-table">
+        <tr><th>Concept</th><th>Formula / Key Fact</th></tr>
+        <tr><td>2D Convolution</td><td>g(x,y) = ΣΣ w(s,t)·f(x−s, y−t)</td></tr>
+        <tr><td>2D Correlation</td><td>g(x,y) = ΣΣ w(s,t)·f(x+s, y+t)</td></tr>
+        <tr><td>Gaussian Function</td><td>G(x,y) = (1/2πσ²)·exp(−(x²+y²)/2σ²)</td></tr>
+        <tr><td>1st Derivative (discrete)</td><td>∂f/∂x ≈ f(x+1) − f(x)</td></tr>
+        <tr><td>2nd Derivative (discrete)</td><td>∂²f/∂x² ≈ f(x+1) − 2f(x) + f(x−1)</td></tr>
+        <tr><td>Laplacian (2D)</td><td>∇²f = f(x+1,y)+f(x−1,y)+f(x,y+1)+f(x,y−1) − 4f(x,y)</td></tr>
+        <tr><td>Laplacian Sharpening</td><td>g = f − ∇²f (or + depending on center sign)</td></tr>
+        <tr><td>Arithmetic Mean</td><td>f̂ = (1/mn)·Σg(s,t)</td></tr>
+        <tr><td>Geometric Mean</td><td>f̂ = [Πg(s,t)]^(1/mn)</td></tr>
+        <tr><td>Harmonic Mean</td><td>f̂ = mn/Σ(1/g(s,t))</td></tr>
+        <tr><td>Contra-Harmonic</td><td>f̂ = Σg^(Q+1)/Σg^Q</td></tr>
+        <tr><td>Midpoint Filter</td><td>f̂ = (max + min)/2</td></tr>
+        <tr><td>Unsharp Masking</td><td>g = f + k·(f − f̄)</td></tr>
+        <tr><td>High Boost Filter</td><td>Same as USM with k &gt; 1</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🎯</span> Noise Type → Correct Filter</div>
+    <div class="card-body">
+      <table class="comp-table">
+        <tr><th>Noise Type</th><th>Best Filter(s)</th></tr>
+        <tr><td>Salt-and-Pepper (bipolar)</td><td>Median, Alpha-trimmed mean</td></tr>
+        <tr><td>Pepper only (dark specks)</td><td>Max filter, Contra-Harmonic (Q&gt;0)</td></tr>
+        <tr><td>Salt only (bright specks)</td><td>Min filter, Harmonic mean, Contra-Harmonic (Q&lt;0)</td></tr>
+        <tr><td>Gaussian noise</td><td>Arithmetic mean, Geometric mean</td></tr>
+        <tr><td>Uniform noise</td><td>Midpoint filter, Arithmetic mean</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============================= COVERAGE ============================= -->
+<section class="section-wrapper" id="coverage">
+  <div class="slide-badge">✅ Verification</div>
+  <h2 class="sec-h2"><span>Coverage</span> Verification</h2>
+  <p class="lead">Complete audit of all content from the source PPTX (11 slides) — confirming 100% coverage.</p>
+
+  <table class="comp-table coverage-row">
+    <tr><th>Slide</th><th>Topic / Content</th><th>Status</th></tr>
+    <tr><td>Slide 1</td><td>Title: Spatial Filtering and Image Enhancement — Author: Ahmed Yousry Abdelstar Zaalook, Grand Institute for Practical Application</td><td>✅ Covered</td></tr>
+    <tr><td>Slide 2</td><td>Fundamentals of Spatial Domain Enhancements — High Frequencies, Low Frequencies, Filters in Image Processing</td><td>✅ Covered (Section s1)</td></tr>
+    <tr><td>Slide 3</td><td>Mathematical Foundations — Filter Kernel definition, 2D Convolution Equation, Edge Conditions (Zero-padding, Mirroring, Clipping)</td><td>✅ Covered (Section s2)</td></tr>
+    <tr><td>Slide 4</td><td>Correlation vs Convolution — definitions, formulas, commutativity, associativity, use cases</td><td>✅ Covered (Section s3)</td></tr>
+    <tr><td>Slide 5</td><td>Low-Pass Smoothing — Linear Filters: Box/Average Filter, Gaussian Filter (formula, kernel, σ parameter)</td><td>✅ Covered (Section s4)</td></tr>
+    <tr><td>Slide 6 (labeled Slide 7)</td><td>Non-Linear Order Statistics — Median Filter, Max Filter, Min Filter, Midpoint Filter — noise types addressed</td><td>✅ Covered (Section s5)</td></tr>
+    <tr><td>Slide 7 (labeled Slide 8)</td><td>Specialized Restoration Means — Arithmetic, Geometric, Harmonic, Contra-Harmonic (parameter Q)</td><td>✅ Covered (Section s6)</td></tr>
+    <tr><td>Slide 8 (labeled Slide 9)</td><td>Calculus of Image Sharpening — 1st Derivative (Gradient Detection), 2nd Derivative (Acceleration Detection)</td><td>✅ Covered (Section s7)</td></tr>
+    <tr><td>Slide 9 (labeled Slide 10)</td><td>Isotropic Edge Optimization — Laplacian, Standard 3×3 kernel, Discrete form, Sharpening Blend formula</td><td>✅ Covered (Section s8)</td></tr>
+    <tr><td>Slide 10 (labeled Slide 11)</td><td>Traditional Sharpening — Unsharp Masking 4-step workflow (Smooth, Compute Mask, Scale Margin, Final Blend)</td><td>✅ Covered (Section s9)</td></tr>
+    <tr><td>Slide 11</td><td>Image Sources — dynamsoft.com, bartwronski.com, geeksforgeeks.org (figures referenced and explained in context)</td><td>✅ Sources Noted</td></tr>
+    <tr><td>All Kernels</td><td>3×3 Box, 5×5 Gaussian, 3×3 Laplacian (4-neighbor), 8-neighbor Laplacian, Negated Laplacian, Combined Sharpening Kernel</td><td>✅ Visualized</td></tr>
+    <tr><td>All Formulas</td><td>Convolution, Correlation, Gaussian, 1st/2nd Derivative, Laplacian, All 4 Mean Filters, Unsharp Masking</td><td>✅ All included</td></tr>
+    <tr><td>Bilingual Content</td><td>Every section has English + Arabic explanations with technical term glossary</td><td>✅ Complete</td></tr>
+    <tr><td>Practice</td><td>6 MCQs, 5 T/F, 5 Fill-in-blank, 3 Short answer with model answers</td><td>✅ Included</td></tr>
+    <tr><td>Cheat Sheet</td><td>All formulas table + Noise Type → Filter mapping table</td><td>✅ Included</td></tr>
+  </table>
+
+  <div class="box box-success" style="margin-top:1.5rem;">
+    <div class="box-title">🎉 100% Coverage Achieved</div>
+    All 11 slides, every formula, every filter type, every edge condition method, all derivative concepts, both Laplacian variants, and the complete Unsharp Masking workflow are covered in full — in both English and Arabic — with examples, analogies, memory tricks, comparison tables, and practice questions.
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script>
+// Theme
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', html.dataset.theme);
+}
+if (localStorage.getItem('theme')) {
+  document.documentElement.dataset.theme = localStorage.getItem('theme');
+}
+
+// Sidebar toggle (mobile)
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Tabs
+function switchTab(btn, panelId) {
+  const tabList = btn.closest('.tab-list');
+  const tabContainer = btn.closest('.tabs');
+  tabList.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  tabContainer.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+// Collapsible
+function toggleCollapsible(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function expandAll() {
+  document.querySelectorAll('.collapsible-header').forEach(h => h.classList.add('open'));
+  document.querySelectorAll('.collapsible-body').forEach(b => b.classList.add('open'));
+}
+function collapseAll() {
+  document.querySelectorAll('.collapsible-header').forEach(h => h.classList.remove('open'));
+  document.querySelectorAll('.collapsible-body').forEach(b => b.classList.remove('open'));
+}
+
+// Quiz MCQ
+function checkAnswer(li, result) {
+  const ul = li.closest('.quiz-options');
+  if (ul.dataset.answered) return;
+  ul.dataset.answered = '1';
+  const feedbacks = li.closest('.quiz-item').querySelectorAll('.quiz-feedback');
+  li.classList.add(result === 'correct' ? 'correct' : 'wrong');
+  feedbacks.forEach(fb => {
+    fb.classList.add('show');
+    if (result === 'correct') {
+      fb.classList.add(fb.classList.contains('correct-fb') ? '' : 'wrong-fb');
+    }
+  });
+  if (result === 'correct') {
+    feedbacks[0].classList.add('show');
+    feedbacks[1].classList.remove('show');
+  } else {
+    feedbacks[0].classList.remove('show');
+    feedbacks[1].classList.add('show');
+  }
+}
+
+// T/F
+function checkTF(btn, correctAnswer, explanation) {
+  const item = btn.closest('.tf-item');
+  if (item.dataset.answered) return;
+  item.dataset.answered = '1';
+  const btns = item.querySelectorAll('.tf-btn');
+  btns.forEach(b => b.disabled = true);
+  const isCorrect = (btn.textContent.trim() === 'True' && correctAnswer === 'true') ||
+                    (btn.textContent.trim() === 'False' && correctAnswer === 'false');
+  btn.classList.add(isCorrect ? 'selected-true' : 'selected-false');
+  const msg = document.createElement('div');
+  msg.style.cssText = `margin-top:0.5rem;font-size:0.82rem;padding:0.5rem 0.8rem;border-radius:6px;border:1px solid;${
+    isCorrect ? 'background:rgba(63,185,80,0.12);color:#3fb950;border-color:#3fb950;' 
+              : 'background:rgba(248,81,73,0.1);color:#f85149;border-color:#f85149;'
+  }`;
+  msg.textContent = explanation;
+  item.appendChild(msg);
+}
+
+// Fill in blank
+function checkFill(btn, answer) {
+  const input = btn.previousElementSibling;
+  const val = input.value.trim().toLowerCase();
+  const correct = answer.toLowerCase();
+  const isCorrect = val.includes(correct) || correct.includes(val);
+  input.style.borderColor = isCorrect ? 'var(--green)' : 'var(--red)';
+  const msg = document.createElement('div');
+  msg.style.cssText = `margin-top:0.4rem;font-size:0.8rem;${
+    isCorrect ? 'color:var(--green)' : 'color:var(--red)'
+  }`;
+  msg.textContent = isCorrect ? `✅ Correct! Answer: "${answer}"` : `❌ Not quite. Answer: "${answer}"`;
+  const existing = btn.parentElement.querySelector('.fill-msg');
+  if (existing) existing.remove();
+  msg.className = 'fill-msg';
+  btn.parentElement.appendChild(msg);
+}
+
+// Progress
+function updateProgress() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '%';
+}
+
+// Active nav
+function updateActiveNav() {
+  const sections = document.querySelectorAll('section.section-wrapper');
+  const links = document.querySelectorAll('#nav-list li a');
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = '#' + s.id;
+  });
+  links.forEach(l => {
+    l.classList.remove('active');
+    if (l.getAttribute('href') === current) l.classList.add('active');
+  });
+}
+
+window.addEventListener('scroll', () => { updateProgress(); updateActiveNav(); });
+
+// Search
+function doSearch(query) {
+  const q = query.trim().toLowerCase();
+  // Remove old highlights
+  document.querySelectorAll('.highlight').forEach(el => {
+    el.outerHTML = el.innerHTML;
+  });
+  if (!q) return;
+  const walker = document.createTreeWalker(document.getElementById('main'), NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(node => {
+    if (!node.textContent.toLowerCase().includes(q)) return;
+    const parent = node.parentNode;
+    if (['SCRIPT','STYLE','INPUT'].includes(parent.nodeName)) return;
+    const regex = new RegExp(`(${q})`, 'gi');
+    const span = document.createElement('span');
+    span.innerHTML = node.textContent.replace(regex, '<mark class="highlight">$1</mark>');
+    parent.replaceChild(span, node);
+  });
+}
+</script>
+</body>
+</html>

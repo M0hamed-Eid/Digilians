@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 10 — Introduction to Computer Vision | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 CV Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — Foundations</div>
+    <a href="#s1" onclick="setActive(this)">1. CV in the AI Ecosystem</a>
+    <a href="#s2" onclick="setActive(this)">2. Traditional Image Processing</a>
+    <a href="#s3" onclick="setActive(this)">3. ML vs Deep Learning</a>
+    <div class="nav-section">Part II — Core Tasks</div>
+    <a href="#s4" onclick="setActive(this)">4. Classification, Detection & Segmentation</a>
+    <a href="#s5" onclick="setActive(this)">5. Object Tracking</a>
+    <a href="#s6" onclick="setActive(this)">6. Face Mesh & Biometrics</a>
+    <a href="#s7" onclick="setActive(this)">7. OCR</a>
+    <a href="#s8" onclick="setActive(this)">8. Pose Estimation</a>
+    <a href="#s9" onclick="setActive(this)">9. Depth Estimation</a>
+    <div class="nav-section">Part III — Advanced</div>
+    <a href="#s10" onclick="setActive(this)">10. Zero-Shot Learning</a>
+    <a href="#s11" onclick="setActive(this)">11. Feature Extraction</a>
+    <a href="#s12" onclick="setActive(this)">12. Mask Generation</a>
+    <a href="#s13" onclick="setActive(this)">13. CV Task Summary Table</a>
+    <div class="nav-section">Part IV — Tools</div>
+    <a href="#s14" onclick="setActive(this)">14. OpenCV Library</a>
+    <a href="#s15" onclick="setActive(this)">15. OpenCV Code Pipeline</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 10 — INTRODUCTION TO COMPUTER VISION</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 10</div>
+  <h1>Introduction to Computer Vision</h1>
+  <p>Extracting Semantic Meaning and Quantitative Structure from Pixels</p>
+  <p class="author">Dr. Ahmed Yousry &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">19</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">15</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">6</span><span class="lbl">CV Tasks</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Image Classification</span>
+    <span class="tag tag-green">Object Detection</span>
+    <span class="tag tag-purple">Deep Learning</span>
+    <span class="tag tag-orange">OpenCV</span>
+    <span class="tag tag-blue">Pose Estimation</span>
+    <span class="tag tag-green">OCR</span>
+    <span class="tag tag-purple">Segmentation</span>
+    <span class="tag tag-orange">Object Tracking</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 2–3</span>
+    <h2>1. Computer Vision in the AI Ecosystem</h2>
+  </div>
+  <p class="section-subtitle">Positioning CV within AI, ML, and Deep Learning — the Nested Fields Diagram</p>
+
+  <!-- Original Content Box -->
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 2 — Foundations & AI Landscapes:</strong> Positioning computer vision within advanced computing, machine learning paradigms, and fundamental image-processing matrices.</p>
+    <br/>
+    <p><strong>Slide 3 — A Paradigm of Artificial Intelligence:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>CV functions as a crucial subset of AI and ML, interfacing with robotics, autonomous systems, and NLP.</li>
+      <li><strong>Nested Fields:</strong> Machine Learning and Deep Learning form the operational core of modern visual reasoning.</li>
+      <li><strong>Interdisciplinary:</strong> Combines digital signal processing, neurological simulation, and mathematical optimization.</li>
+      <li><strong>Practical Domains:</strong> Powers autonomous driving, industrial robotics, and medical diagnostics.</li>
+    </ul>
+  </div>
+
+  <!-- English Explanation -->
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Computer Vision (CV)</span> is a field of Artificial Intelligence that enables computers to <strong>"see"</strong> and understand digital images and videos — much like how the human visual cortex processes what our eyes capture.</p>
+    <br/>
+    <p>Think of it as a nested set of Russian dolls:</p>
+    <div style="margin:14px 0;padding-left:20px;border-left:2px solid var(--accent)">
+      <p>🔵 <strong>Artificial Intelligence (AI)</strong> — the outermost shell; the broadest concept of making machines intelligent</p>
+      <p style="margin-top:6px">🟢 <strong>Machine Learning (ML)</strong> — inside AI; machines learn from data instead of explicit rules</p>
+      <p style="margin-top:6px">🟣 <strong>Deep Learning (DL)</strong> — inside ML; uses multi-layer neural networks inspired by the brain</p>
+      <p style="margin-top:6px">👁️ <strong>Computer Vision (CV)</strong> — a specialized domain that uses DL to process visual data</p>
+    </div>
+    <p>CV sits at the intersection of three fields:</p>
+    <ul class="e-list" style="margin-top:8px">
+      <li>🔬 <strong>Digital Signal Processing (DSP)</strong> — the math behind manipulating image data (pixel values, frequency transforms)</li>
+      <li>🧠 <strong>Neurological Simulation</strong> — Convolutional Neural Networks (CNNs) are modeled after how the visual cortex neurons fire</li>
+      <li>📐 <strong>Mathematical Optimization</strong> — gradient descent and backpropagation train the models</li>
+    </ul>
+    <br/>
+    <p><strong>CV interfaces with:</strong></p>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Robotics</strong> — robots use CV to navigate and manipulate objects</li>
+      <li><strong>Autonomous Systems</strong> — self-driving cars read road signs, detect pedestrians</li>
+      <li><strong>NLP (Natural Language Processing)</strong> — reading text in images (OCR), image captioning</li>
+    </ul>
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+      <p>CV ≠ Image Processing. Traditional image processing applies fixed mathematical filters (blur, sharpen). CV adds <em>semantic understanding</em> — "this is a cat, not a dog."</p>
+    </div>
+  </div>
+
+  <!-- Arabic Explanation -->
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>رؤية الحاسوب (Computer Vision - CV)</strong> هي فرع من فروع الذكاء الاصطناعي يُمكّن الكمبيوتر من "رؤية" الصور ومقاطع الفيديو وفهمها — تمامًا كما يعمل الدماغ البشري عند معالجة ما تراه العين.</p>
+    <br/>
+    <p><strong>العلاقة بين المجالات (مثل دُمى الماتريوشكا الروسية):</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>🔵 <strong>الذكاء الاصطناعي (AI)</strong> — الإطار الأشمل: جعل الآلات ذكية</li>
+      <li>🟢 <strong>التعلم الآلي (Machine Learning)</strong> — داخل AI: الآلة تتعلم من البيانات</li>
+      <li>🟣 <strong>التعلم العميق (Deep Learning)</strong> — داخل ML: شبكات عصبية متعددة الطبقات</li>
+      <li>👁️ <strong>رؤية الحاسوب (CV)</strong> — تطبيق متخصص يعالج البيانات البصرية</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>Artificial Intelligence (ذكاء اصطناعي)</strong> — محاكاة الذكاء البشري في الآلات</li>
+      <li><strong>Machine Learning (تعلم آلي)</strong> — الآلة تتعلم بالتجربة لا بالبرمجة الصريحة</li>
+      <li><strong>Deep Learning (تعلم عميق)</strong> — شبكات عصبية اصطناعية عميقة</li>
+      <li><strong>Computer Vision (رؤية الحاسوب)</strong> — قدرة الكمبيوتر على تفسير الصور</li>
+      <li><strong>NLP (معالجة اللغة الطبيعية)</strong> — فهم اللغة البشرية المكتوبة أو المنطوقة</li>
+      <li><strong>Robotics (الروبوتات)</strong> — الآلات الذكية المتحركة</li>
+      <li><strong>Autonomous Systems (الأنظمة ذاتية القيادة)</strong> — مثل السيارات ذاتية القيادة</li>
+    </ul>
+    <br/>
+    <p><strong>أهم النقاط:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>✅ CV هي تخصص داخل DL داخل ML داخل AI</li>
+      <li>✅ تعتمد على ثلاثة علوم: معالجة الإشارات + محاكاة الأعصاب + الرياضيات</li>
+      <li>✅ تُستخدم في السيارات الذكية والروبوتات والطب</li>
+    </ul>
+  </div>
+
+  <!-- Simple & Practical Examples -->
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — The Nested Dolls Analogy</div>
+    <p>Imagine you're at a buffet (AI). The desserts section is ML. The chocolate cake station is DL. And the specific chocolate fondant recipe is CV. Each is more specific than the last, but they're all part of the same buffet.</p>
+  </div>
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Real World</div>
+    <ul class="e-list">
+      <li>🚗 <strong>Tesla Autopilot</strong>: Uses CV to detect lanes, cars, pedestrians in real-time</li>
+      <li>🏥 <strong>Medical Imaging AI</strong>: CV detects tumors in MRI scans with higher accuracy than some radiologists</li>
+      <li>📱 <strong>Instagram Face Filters</strong>: CV detects your face, maps landmarks, overlays digital effects</li>
+      <li>📦 <strong>Amazon Warehouses</strong>: CV-guided robots locate and sort packages</li>
+    </ul>
+  </div>
+
+  <!-- Memory Trick -->
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Nested Fields</div>
+    <p><strong>"All My Darling Children"</strong></p>
+    <p><strong>A</strong>I → <strong>M</strong>L → <strong>D</strong>eep Learning → <strong>C</strong>omputer Vision</p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Each letter is a subset of the one before it.</p>
+  </div>
+
+  <!-- Exam Notes -->
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Be able to draw and label the AI → ML → DL → CV nesting diagram</li>
+      <li>📌 Know that CV is <em>interdisciplinary</em>: DSP + Neuroscience + Optimization</li>
+      <li>📌 Common exam Q: "What is the difference between AI and Computer Vision?" → CV is a subset of AI focused on visual data</li>
+      <li>📌 Know 3 practical application domains: autonomous driving, robotics, medical diagnostics</li>
+    </ul>
+  </div>
+
+  <!-- Quick Summary -->
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>CV is a <strong>subset of AI → ML → Deep Learning</strong> that enables machines to interpret visual information. It combines signal processing, neural simulation, and mathematical optimization. Key applications: autonomous driving, robotics, medical imaging.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 4</span>
+    <h2>2. Traditional Image Processing Pipelines</h2>
+  </div>
+  <p class="section-subtitle">Mathematical Binary Heuristics — Before Deep Neural Networks</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Binarization:</strong> Maps an RGB channel to a high-contrast binary black-and-white grid.</li>
+      <li><strong>Connected Components:</strong> Groups adjacent pixel clusters using coordinate connectivity rules (4-way or 8-way).</li>
+      <li><strong>Feature Counting:</strong> Measures distinct contours and segmented elements to count geometric shapes directly.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Before deep learning dominated, engineers used <span class="hl">rule-based pixel transformations</span> to extract information from images. Here are the three key traditional techniques:</p>
+    <br/>
+    
+    <div class="def-box">
+      <div class="def-term">1. Binarization (Thresholding)</div>
+      <p style="margin-top:6px;font-size:13px">Converts a color (RGB) or grayscale image into a pure <strong>black-and-white (binary) image</strong>. Each pixel becomes either 0 (black) or 1 (white) based on a threshold value T.</p>
+      <div class="formula">If pixel_value ≥ T → White (1) &nbsp;|&nbsp; If pixel_value &lt; T → Black (0)</div>
+      <p style="font-size:13px"><strong>Why useful?</strong> Removes noise, isolates objects from backgrounds. Used in document scanning, QR code reading.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2. Connected Components Analysis</div>
+      <p style="margin-top:6px;font-size:13px">After binarization, groups of white pixels that are <strong>"touching" each other</strong> are labeled as belonging to the same component (object). Two types of connectivity:</p>
+      <div class="cmp-grid" style="margin-top:10px">
+        <div class="cmp-col">
+          <h4 style="color:var(--accent)">4-Way Connectivity</h4>
+          <p style="font-size:12px">A pixel is connected to its <strong>4 direct neighbors</strong>: up, down, left, right. Diagonal neighbors do NOT count.</p>
+        </div>
+        <div class="cmp-col">
+          <h4 style="color:var(--accent3)">8-Way Connectivity</h4>
+          <p style="font-size:12px">A pixel is connected to all <strong>8 neighbors</strong> including diagonals. More permissive, better for curved shapes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3. Feature Counting</div>
+      <p style="margin-top:6px;font-size:13px">After labeling connected components, the system <strong>counts distinct blobs/contours</strong>. Example: count how many coins are in a photo, count how many cells in a microscope slide. Measures geometric properties: area, perimeter, circularity.</p>
+    </div>
+
+    <div style="margin-top:14px">
+      <p><strong>The Classic Pipeline Step-by-Step:</strong></p>
+      <ol class="steps" style="margin-top:10px">
+        <li>Load color image (RGB, 3 channels)</li>
+        <li>Convert to grayscale (1 channel, 0–255 intensity)</li>
+        <li>Apply threshold → binary image (0 or 1)</li>
+        <li>Find connected components (label each blob)</li>
+        <li>Count/measure components to extract features</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>قبل ظهور التعلم العميق، كان علماء الحاسوب يستخدمون <strong>تحويلات رياضية صارمة على البيكسل</strong> لاستخراج المعلومات من الصور:</p>
+    <br/>
+    <p><strong>١. التحويل الثنائي (Binarization):</strong></p>
+    <p style="font-size:14px">تحويل الصورة الملونة إلى صورة ثنائية (أبيض وأسود فقط) باستخدام عتبة T. إذا كان البيكسل أفتح من T → أبيض، وإذا كان أغمق → أسود. مثال: تحويل صورة فاتورة ورقية إلى نص واضح قبل قراءتها.</p>
+    <br/>
+    <p><strong>٢. المكونات المترابطة (Connected Components):</strong></p>
+    <p style="font-size:14px">بعد التحويل الثنائي، يتم تجميع البيكسلات البيضاء المتجاورة معًا في "كتل" أو "مكونات". اتصال رباعي = يحسب 4 جيران فقط (فوق-تحت-يسار-يمين). اتصال ثماني = يحسب 8 جيران (يشمل الأركون القطرية أيضًا).</p>
+    <br/>
+    <p><strong>٣. عد الأشكال (Feature Counting):</strong></p>
+    <p style="font-size:14px">بعد تحديد المكونات، نحسبها ونقيس خصائصها (المساحة، المحيط، الشكل الدائري). مثال: عد عدد العملات في صورة، أو عد خلايا الدم في مجهر.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Binarization (التثنيئة/التحويل الثنائي)</strong> — تحويل لأبيض وأسود</li>
+      <li><strong>Threshold (العتبة)</strong> — القيمة الحدية للتمييز</li>
+      <li><strong>Connected Components (المكونات المترابطة)</strong> — تجميع البيكسلات المتجاورة</li>
+      <li><strong>Contour (المحيط/الحافة)</strong> — حدود الشكل الهندسي</li>
+      <li><strong>4-way / 8-way Connectivity (الاتصال الرباعي/الثماني)</strong></li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Counting Coins</div>
+    <ol class="steps">
+      <li>Take a photo of 5 coins on a white table</li>
+      <li>Convert to grayscale (coins are darker than white background)</li>
+      <li>Apply threshold: pixels below 128 → black (coins), above → white (background)</li>
+      <li>Find connected components: 5 distinct dark blobs labeled</li>
+      <li>Count = 5 ✓</li>
+    </ol>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">This exact approach was used in early industrial inspection systems to count manufactured parts on conveyor belts.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Confusing 4-way vs 8-way connectivity — 8-way is more common in practice</li>
+      <li>❌ Forgetting that threshold selection is critical — wrong T ruins results</li>
+      <li>❌ Thinking traditional processing is "obsolete" — it's still used when speed > accuracy</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Draw the pipeline: RGB → Grayscale → Binary → Connected Components → Count</li>
+      <li>📌 Know the binarization formula: pixel ≥ T → 1, else → 0</li>
+      <li>📌 Difference between 4-way and 8-way connectivity</li>
+      <li>📌 Limitation: works only for simple, well-separated objects; fails on complex scenes</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Traditional CV: <strong>Binarization</strong> (pixel → 0 or 1) → <strong>Connected Components</strong> (group adjacent pixels, 4-way or 8-way) → <strong>Feature Counting</strong> (count/measure blobs). Pre-DL pipeline, still used for simple/fast tasks.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 5</span>
+    <h2>3. Machine Learning vs. Deep Learning Feature Pipelines</h2>
+  </div>
+  <p class="section-subtitle">The Evolution from Hand-Crafted Features to End-to-End Learning</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Classical ML:</strong> Requires engineers to hand-craft visual descriptor matrices (HOG, SIFT) before classifying with SVMs.</li>
+      <li><strong>Deep Learning:</strong> Uses convolutional layer hierarchies to automatically detect raw edges, midpoint textures, and global semantic shapes.</li>
+      <li><strong>Unified Grid:</strong> Merges features and classifier layers into an end-to-end backpropagation loop.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This slide explains the <span class="hl">paradigm shift</span> from classical ML to Deep Learning — arguably the most important concept in modern CV.</p>
+    <br/>
+    
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent4)">Classical ML Pipeline</h4>
+        <ul>
+          <li>Human expert <strong>manually designs</strong> feature extractors</li>
+          <li>Popular descriptors: <strong>HOG</strong> (Histogram of Oriented Gradients), <strong>SIFT</strong> (Scale-Invariant Feature Transform)</li>
+          <li>Features fed into a classifier like <strong>SVM</strong> (Support Vector Machine)</li>
+          <li>Two separate stages: Feature Extraction + Classification</li>
+          <li>Time-consuming, domain-expert required</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Deep Learning Pipeline</h4>
+        <ul>
+          <li>CNN <strong>automatically learns</strong> features from raw pixels</li>
+          <li>Layer 1: detects <strong>edges</strong></li>
+          <li>Layer 2: detects <strong>textures/patterns</strong></li>
+          <li>Layer 3+: detects <strong>semantic shapes</strong> (eyes, wheels)</li>
+          <li>Feature extraction + classification = <strong>one unified model</strong></li>
+          <li>End-to-end training via <strong>backpropagation</strong></li>
+        </ul>
+      </div>
+    </div>
+
+    <br/>
+    <p><strong>Key Abbreviations Explained:</strong></p>
+    <div class="def-box">
+      <div class="def-term">HOG — Histogram of Oriented Gradients</div>
+      <p style="font-size:13px;margin-top:4px">Counts how many edges point in each direction within small cells of an image. Creates a "fingerprint" of shapes. Very effective for detecting people (pedestrian detection).</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">SIFT — Scale-Invariant Feature Transform</div>
+      <p style="font-size:13px;margin-top:4px">Finds distinctive "keypoints" in images that remain recognizable even when the image is zoomed in/out, rotated, or slightly blurred. Used in image stitching (panoramas).</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">SVM — Support Vector Machine</div>
+      <p style="font-size:13px;margin-top:4px">A classical ML classifier that finds the optimal "hyperplane" separating two classes of data. Works well with hand-crafted feature vectors.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">CNN — Convolutional Neural Network</div>
+      <p style="font-size:13px;margin-top:4px">A deep neural network with convolutional layers that slide small filters over an image to detect patterns. The backbone of modern CV.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Backpropagation</div>
+      <p style="font-size:13px;margin-top:4px">The algorithm used to train neural networks. Calculates how much each weight contributed to the error, then adjusts weights to reduce that error. Flows "backwards" from output to input.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذه الشريحة تشرح <strong>التحول الجذري</strong> في طريقة تصميم أنظمة رؤية الحاسوب:</p>
+    <br/>
+    <p><strong>التعلم الآلي التقليدي (Classical ML):</strong></p>
+    <p style="font-size:14px">المهندس البشري يُصمم يدويًا خوارزميات لاستخراج الميزات (مثل HOG وSIFT)، ثم يُمرر هذه الميزات إلى مُصنِّف مثل SVM. المشكلة: يتطلب خبراء بشريين، وكل مشكلة تحتاج تصميمًا جديدًا.</p>
+    <br/>
+    <p><strong>التعلم العميق (Deep Learning):</strong></p>
+    <p style="font-size:14px">الشبكة العصبية الالتفافية (CNN) تتعلم تلقائيًا من البيانات الخام: الطبقة الأولى تكتشف الحواف، الطبقة الثانية تكتشف الأنماط والملمس، الطبقات العليا تكتشف الأشكال الكاملة (وجه، سيارة...). كل شيء في نموذج واحد متكامل.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>HOG (مدرج التوجيهات التدريجية)</strong> — استخراج ميزات الشكل يدويًا</li>
+      <li><strong>SIFT (تحويل الميزات الثابتة بالحجم)</strong> — استخراج نقاط مميزة في الصورة</li>
+      <li><strong>SVM (آلة المتجهات الداعمة)</strong> — مُصنِّف للتعلم الآلي الكلاسيكي</li>
+      <li><strong>CNN (شبكة عصبية التفافية)</strong> — العمود الفقري لرؤية الحاسوب الحديثة</li>
+      <li><strong>Backpropagation (الانتشار العكسي)</strong> — خوارزمية تدريب الشبكات العصبية</li>
+      <li><strong>End-to-End Learning (التعلم من النهاية إلى النهاية)</strong> — نموذج واحد يفعل كل شيء</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — The Cat Identification Example (Referenced in Slide)</div>
+    <p><strong>Classical ML approach to classify "Is this a cat?":</strong></p>
+    <ol class="steps" style="margin-top:8px">
+      <li>Human engineer writes code: "look for pointy ears, whiskers, slanted eyes"</li>
+      <li>HOG descriptors extract these shape features as number vectors</li>
+      <li>SVM classifier: if features match cat template → "cat"</li>
+    </ol>
+    <p style="margin-top:10px"><strong>Deep Learning approach:</strong></p>
+    <ol class="steps" style="margin-top:8px">
+      <li>Show CNN 1 million cat/non-cat labeled photos</li>
+      <li>CNN automatically discovers that cats have pointy ears, round eyes, whiskers</li>
+      <li>No human feature engineering needed</li>
+    </ol>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — HOG & SIFT</div>
+    <p><strong>HOG = "How Objects Generally look"</strong> (counts edge directions)</p>
+    <p><strong>SIFT = "Same Image, Flexible Transformation"</strong> (scale/rotation invariant)</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Key difference: Classical ML = hand-crafted features + separate classifier. DL = automatic features + unified model</li>
+      <li>📌 HOG and SIFT are hand-crafted feature extractors used in classical CV</li>
+      <li>📌 CNNs learn hierarchically: edges → textures → shapes → semantics</li>
+      <li>📌 "End-to-end" = features and classification are learned together in one model</li>
+      <li>📌 Backpropagation is the training algorithm for neural networks</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Classical ML</strong>: Human designs features (HOG/SIFT) → SVM classifies. <strong>Deep Learning</strong>: CNN automatically learns features from pixels. DL is end-to-end — one unified backprop loop. No human feature engineering required.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 7</span>
+    <h2>4. Classification, Detection & Segmentation</h2>
+  </div>
+  <p class="section-subtitle">Understanding Spatial Resolution in Computer Vision Tasks</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Image Classification:</strong> Determines global image semantic categories (e.g., predicting a single "cat" label).</li>
+      <li><strong>Object Detection:</strong> Draws bounding coordinates around individual visual targets.</li>
+      <li><strong>Semantic Segmentation:</strong> Assigns labels to every pixel to outline clean silhouettes.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>These three tasks form a <span class="hl">spectrum of spatial precision</span>. Each provides more detailed localization of objects in an image:</p>
+    <br/>
+    
+    <div class="def-box">
+      <div class="def-term">🏷️ Image Classification — "What is in this image?"</div>
+      <p style="font-size:13px;margin-top:6px">The simplest CV task. The model looks at the <strong>entire image</strong> and outputs <strong>one label</strong> (or a probability distribution over labels). No location information.</p>
+      <p style="font-size:13px"><strong>Output:</strong> "This image contains a cat" (90% confidence)</p>
+      <p style="font-size:13px"><strong>Example models:</strong> ResNet, VGG, EfficientNet</p>
+      <p style="font-size:13px"><strong>Real-world use:</strong> Photo app organizing your gallery by subject</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">📦 Object Detection — "What AND Where?"</div>
+      <p style="font-size:13px;margin-top:6px">Finds objects AND <strong>draws a bounding box</strong> (rectangle) around each one. Can detect <strong>multiple objects</strong> of different classes in one image.</p>
+      <p style="font-size:13px"><strong>Output:</strong> [cat: (x=100, y=200, w=150, h=130, conf=0.92)] [dog: (x=300, y=180, w=120, h=140, conf=0.88)]</p>
+      <p style="font-size:13px"><strong>Example models:</strong> YOLO (You Only Look Once), Faster R-CNN, SSD</p>
+      <p style="font-size:13px"><strong>Real-world use:</strong> Traffic cameras detecting vehicles, security cameras flagging intruders</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🎭 Semantic Segmentation — "Which pixel belongs to what?"</div>
+      <p style="font-size:13px;margin-top:6px">The most precise task. Assigns a <strong>class label to every single pixel</strong> in the image. Creates a colored mask showing exact silhouettes.</p>
+      <p style="font-size:13px"><strong>Types:</strong></p>
+      <ul style="font-size:12px;padding-left:16px;margin-top:4px">
+        <li><strong>Semantic Segmentation</strong>: All cats get the same "cat" label (doesn't distinguish individual instances)</li>
+        <li><strong>Instance Segmentation</strong>: Cat1 gets a different mask from Cat2</li>
+        <li><strong>Panoptic Segmentation</strong>: Combines both</li>
+      </ul>
+      <p style="font-size:13px"><strong>Example models:</strong> U-Net (medical), Mask R-CNN, DeepLab</p>
+      <p style="font-size:13px"><strong>Real-world use:</strong> Medical MRI segmentation, autonomous car understanding road vs. sidewalk vs. pedestrian</p>
+    </div>
+
+    <br/>
+    <p><strong>Granularity Spectrum:</strong></p>
+    <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-top:8px;font-size:13px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="background:rgba(56,189,248,0.2);padding:4px 10px;border-radius:6px">Classification<br/><small>Image-level label</small></span>
+        <span style="color:var(--muted)">→ more precise →</span>
+        <span style="background:rgba(52,211,153,0.2);padding:4px 10px;border-radius:6px">Detection<br/><small>Bounding boxes</small></span>
+        <span style="color:var(--muted)">→ more precise →</span>
+        <span style="background:rgba(244,114,182,0.2);padding:4px 10px;border-radius:6px">Segmentation<br/><small>Pixel-level masks</small></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذه المهام الثلاث تمثل مستويات متزايدة من <strong>الدقة المكانية</strong> في فهم الصورة:</p>
+    <br/>
+    <p><strong>١. تصنيف الصورة (Image Classification):</strong></p>
+    <p style="font-size:14px">أبسط مهمة: النموذج ينظر للصورة كاملة ويقول "هذه صورة قطة". لا يعرف أين القطة في الصورة، يقول فقط ما الموجود.</p>
+    <br/>
+    <p><strong>٢. اكتشاف الأجسام (Object Detection):</strong></p>
+    <p style="font-size:14px">أكثر دقة: يجد الجسم ويرسم حوله مستطيلًا (bounding box). يستطيع اكتشاف أجسام متعددة مختلفة في نفس الصورة ويحدد موقع كل منها.</p>
+    <br/>
+    <p><strong>٣. التجزئة الدلالية (Semantic Segmentation):</strong></p>
+    <p style="font-size:14px">الأكثر دقة: يُعطي تصنيفًا لكل بيكسل في الصورة. مثال: كل بيكسل يرى إما "قطة" أو "أرض" أو "خلفية". يُنتج قناعًا ملونًا بدلاً من مستطيل.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Image Classification (تصنيف الصورة)</strong> — تسمية الصورة بأكملها</li>
+      <li><strong>Object Detection (كشف الأجسام)</strong> — تحديد الأجسام ورسم مستطيلات حولها</li>
+      <li><strong>Bounding Box (صندوق الإحاطة)</strong> — المستطيل المرسوم حول الجسم</li>
+      <li><strong>Semantic Segmentation (التجزئة الدلالية)</strong> — تصنيف على مستوى البيكسل</li>
+      <li><strong>Pixel-Level Mask (قناع على مستوى البيكسل)</strong> — صورة ملونة تُظهر تصنيف كل نقطة</li>
+      <li><strong>YOLO (تنظر مرة واحدة فقط)</strong> — نموذج كشف أجسام سريع جدًا</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Same Image, Three Tasks</div>
+    <p><strong>Input: Photo of a street scene with 2 people, 1 car, 1 traffic light</strong></p>
+    <br/>
+    <p>🏷️ <strong>Classification output:</strong> "Street scene" (one label for the whole image)</p>
+    <p style="margin-top:8px">📦 <strong>Detection output:</strong></p>
+    <pre><code>Person 1: [x:45, y:120, w:80, h:200] confidence: 0.97
+Person 2: [x:350, y:110, w:75, h:190] confidence: 0.94
+Car:      [x:200, y:250, w:300, h:150] confidence: 0.99
+Traffic Light: [x:500, y:50, w:30, h:80] confidence: 0.91</code></pre>
+    <p style="margin-top:8px">🎭 <strong>Segmentation output:</strong> Each pixel colored by class — red=person, blue=car, green=traffic light, gray=road, white=sky</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Important Note — Instance vs Semantic Segmentation</div>
+    <p>The slide says "Semantic Segmentation" but it's important to know:</p>
+    <ul class="e-list">
+      <li>🔷 <strong>Semantic Segmentation</strong>: Pixel-level labels, but two people both labeled "person" (same color)</li>
+      <li>🔷 <strong>Instance Segmentation</strong>: Person 1 = different color from Person 2 (each instance distinct)</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the granularity spectrum: Classification → Detection → Segmentation</li>
+      <li>📌 Classification = image-level label, no location</li>
+      <li>📌 Detection = bounding boxes + class labels + confidence scores</li>
+      <li>📌 Segmentation = pixel-level classification</li>
+      <li>📌 YOLO = popular real-time object detection model</li>
+      <li>📌 U-Net = popular segmentation model for medical images</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Classification</strong>: whole-image label. <strong>Detection</strong>: bounding boxes around each object. <strong>Segmentation</strong>: label every pixel. Increasing spatial precision from left to right.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 8</span>
+    <h2>5. Multi-Object Video Tracking</h2>
+  </div>
+  <p class="section-subtitle">Temporal Association Over Time — Maintaining Identities Across Frames</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Temporal ID Association:</strong> Connects bounding coordinates dynamically across changing frames.</li>
+      <li><strong>Surveillance Monitoring:</strong> Vital for counting people, analyzing traffic, and detecting anomalies.</li>
+      <li><strong>Algorithms:</strong> Combines Kalman Filters, Hungarian matching, and Deep SORT feature networks.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Object Tracking</span> adds the <strong>temporal dimension</strong> to object detection. While detection finds objects in a single frame, tracking follows the <strong>same object across consecutive video frames</strong>, maintaining a consistent identity.</p>
+    <br/>
+    <p><strong>The Core Problem:</strong> In frame 1, you detect Person A and Person B. In frame 2, they've moved. How do you know which detection in frame 2 corresponds to Person A and which to Person B? That's the "association problem."</p>
+    <br/>
+    <p><strong>Key Algorithms:</strong></p>
+    <div class="def-box">
+      <div class="def-term">Kalman Filter</div>
+      <p style="font-size:13px;margin-top:4px">A mathematical prediction algorithm. Given an object's current position and velocity, it <strong>predicts where the object will be in the next frame</strong> even before we detect it. Handles missed detections (occlusion).</p>
+      <p style="font-size:13px"><em>Analogy: Like predicting where a ball will land based on its current trajectory and speed.</em></p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Hungarian Algorithm (Hungarian Matching)</div>
+      <p style="font-size:13px;margin-top:4px">An optimization algorithm that solves the <strong>"assignment problem"</strong>: given N predicted positions (from Kalman) and M new detections, find the optimal one-to-one matching that minimizes total distance. Like assigning waiters to tables most efficiently.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Deep SORT (Simple Online and Realtime Tracking with Deep appearance)</div>
+      <p style="font-size:13px;margin-top:4px">Extends SORT by adding a <strong>deep neural network</strong> that extracts "appearance features" (what the person looks like) alongside position features. If two people cross paths (occlusion), appearance features help re-identify the correct one.</p>
+    </div>
+    <br/>
+    <p><strong>Applications:</strong></p>
+    <ul class="e-list">
+      <li>🏪 <strong>Retail analytics</strong>: Count customers who entered a store</li>
+      <li>🚦 <strong>Traffic analysis</strong>: Count vehicles by type, measure speed</li>
+      <li>🔒 <strong>Security</strong>: Alert when a specific person enters a restricted zone</li>
+      <li>⚽ <strong>Sports analytics</strong>: Track player positions and movement patterns</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>تتبع الأجسام المتعددة (Multi-Object Tracking)</strong> يُضيف <strong>البُعد الزمني</strong> لاكتشاف الأجسام. بدلًا من تحليل صورة واحدة، يتابع النظام نفس الجسم عبر إطارات الفيديو المتتالية مع الحفاظ على هويته.</p>
+    <br/>
+    <p><strong>المشكلة الأساسية:</strong> في الإطار الأول نكتشف شخصًا A وشخصًا B. في الإطار التالي تحركا. كيف نعرف من هو من؟ هذه هي مشكلة "الربط الزمني".</p>
+    <br/>
+    <p><strong>الخوارزميات المستخدمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>مرشح كالمان (Kalman Filter)</strong> — يتنبأ بالموقع القادم للجسم بناءً على سرعته واتجاهه الحالي. مثل توقع أين ستهبط الكرة.</li>
+      <li><strong>خوارزمية هانغريان (Hungarian Algorithm)</strong> — تحل مشكلة التعيين المثلى: تطابق كل اكتشاف جديد مع أقرب مسار متوقع.</li>
+      <li><strong>Deep SORT</strong> — نفس SORT + شبكة عصبية تستخرج "مظهر" الجسم لإعادة التعرف عليه حتى بعد الاختفاء المؤقت.</li>
+    </ul>
+    <br/>
+    <p><strong>التطبيقات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>📹 كاميرات المراقبة لعد الأشخاص</li>
+      <li>🚗 تحليل حركة المرور</li>
+      <li>⚽ تحليل حركة اللاعبين في كرة القدم</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Object Tracking (تتبع الأجسام)</strong> — متابعة نفس الجسم عبر الإطارات</li>
+      <li><strong>Temporal ID Association (الربط الهوياتي الزمني)</strong></li>
+      <li><strong>Kalman Filter (مرشح كالمان)</strong> — التنبؤ بالموقع</li>
+      <li><strong>Hungarian Algorithm (خوارزمية هانغريان)</strong> — المطابقة المثلى</li>
+      <li><strong>Deep SORT</strong> — تتبع بالمظهر البصري العميق</li>
+      <li><strong>Occlusion (الإخفاء)</strong> — اختفاء الجسم خلف شيء آخر مؤقتًا</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Sports Tracking</div>
+    <p>During a football match, AI tracking systems:</p>
+    <ol class="steps">
+      <li>Detect all 22 players + ball in each frame (object detection)</li>
+      <li>Kalman Filter predicts where each player will be in the next frame (0.04 seconds later at 25fps)</li>
+      <li>Hungarian matching assigns each new detection to its corresponding player ID</li>
+      <li>Deep SORT re-identifies players who go off-screen or get obscured</li>
+      <li>Output: heatmaps, distance covered, sprints, passing networks</li>
+    </ol>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Thinking tracking = just running detection on every frame (ignores ID consistency)</li>
+      <li>❌ Forgetting that Kalman Filter is a <em>prediction</em> model, not a detection model</li>
+      <li>❌ Confusing "tracking" with "following one object" — MOT tracks <em>multiple</em> simultaneously</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Tracking = Detection + Temporal Association (matching detections across frames)</li>
+      <li>📌 Kalman Filter = predicts next position | Hungarian = optimal assignment</li>
+      <li>📌 Deep SORT adds appearance features to handle occlusion/ID switches</li>
+      <li>📌 Applications: surveillance, traffic, sports analytics</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Tracking links object detections across video frames. Uses <strong>Kalman Filter</strong> (predict position) + <strong>Hungarian matching</strong> (optimal assignment) + <strong>Deep SORT</strong> (appearance re-ID). Used in surveillance, traffic, sports.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 9</span>
+    <h2>6. Biometrics & Face Mesh Landmark Tracking</h2>
+  </div>
+  <p class="section-subtitle">High-Dimensional Coordinate Vectors — Real-time Facial Topology</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Dense Geometry Mesh:</strong> Fits hundreds of 3D virtual markers onto facial features like the mouth, nose, and eyes.</li>
+      <li><strong>Biometric Verification:</strong> Calculates spatial ratios to accurately distinguish individual users.</li>
+      <li><strong>Expression Analysis:</strong> Interprets deformation patterns to gauge user emotions in real-time.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Face Mesh Tracking</span> maps a <strong>precise geometric model</strong> of a human face in real-time. Think of it as putting hundreds of tiny GPS pins on every part of your face.</p>
+    <br/>
+    <p><strong>How it works:</strong></p>
+    <ol class="steps">
+      <li><strong>Face Detection</strong>: Find the face bounding box in the image</li>
+      <li><strong>Landmark Detection</strong>: Predict 468+ 3D keypoint coordinates (x, y, z) for facial features</li>
+      <li><strong>Mesh Fitting</strong>: Connect keypoints to form a 3D mesh surface over the face</li>
+      <li><strong>Tracking</strong>: Update mesh positions in real-time as the face moves</li>
+    </ol>
+    <br/>
+    <p><strong>Three Applications:</strong></p>
+    <div class="def-box">
+      <div class="def-term">🔒 Biometric Verification (Face Recognition)</div>
+      <p style="font-size:13px;margin-top:4px">Calculates <strong>geometric ratios</strong> between landmarks: distance between eyes, nose-to-chin ratio, cheekbone width. These ratios form a unique "facial fingerprint" called a <strong>face embedding</strong> — a high-dimensional vector (~128 or 512 numbers) that uniquely identifies a person.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">😊 Expression Analysis (Emotion Detection)</div>
+      <p style="font-size:13px;margin-top:4px">Detects <strong>deformation patterns</strong> — how the mesh changes over time. Corners of mouth moving up + cheeks raised = smile/happy. Eyebrows pulled together + lips compressed = angry. Used in driver fatigue detection, lie detectors, UI/UX research.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">🎮 AR Effects & Animation</div>
+      <p style="font-size:13px;margin-top:4px">Snapchat/Instagram filters track your face mesh to overlay virtual glasses, hats, or animations that move with your face. Movie CGI (Character Generation Interface) uses face mesh to animate digital characters.</p>
+    </div>
+    <br/>
+    <p><strong>Why "High-Dimensional Coordinate Vectors"?</strong> The slide uses this phrase because each face is represented as a vector of (x,y,z) coordinates for hundreds of points — a high-dimensional numerical representation that can be compared mathematically.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>تتبع شبكة الوجه (Face Mesh Tracking)</strong> يضع مئات من "المسامير الافتراضية" الدقيقة على كل جزء من الوجه في الوقت الفعلي لإنشاء نموذج هندسي ثلاثي الأبعاد.</p>
+    <br/>
+    <p><strong>كيف يعمل؟</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>اكتشاف الوجه في الصورة (mounding box)</li>
+      <li>تحديد 468+ نقطة مرجعية ثلاثية الأبعاد (x, y, z) على معالم الوجه</li>
+      <li>ربط النقاط ببعضها لتكوين "شبكة ثلاثية الأبعاد" على الوجه</li>
+      <li>تحديث مواضع الشبكة في الوقت الفعلي مع حركة الوجه</li>
+    </ol>
+    <br/>
+    <p><strong>التطبيقات الثلاثة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>التحقق من الهوية (Biometric Verification)</strong>: تحسب النسب الهندسية بين النقاط (مسافة العينين، نسبة الأنف للذقن...) وتُكوّن "بصمة وجه رقمية" فريدة تُسمى face embedding.</li>
+      <li><strong>تحليل تعابير الوجه (Expression Analysis)</strong>: يرصد تغيرات شكل الشبكة: زوايا الفم ترتفع = ابتسامة. الحواجب تقترب = غضب. يُستخدم في كشف إرهاق السائق.</li>
+      <li><strong>فلاتر الواقع المعزز</strong>: فلاتر سناب شات وإنستاجرام تتبع شبكة وجهك لإضافة عناصر رقمية متحركة.</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Face Mesh (شبكة الوجه)</strong> — نموذج هندسي ثلاثي الأبعاد للوجه</li>
+      <li><strong>Landmarks (نقاط الإرساء/المعالم)</strong> — نقاط محددة على الوجه</li>
+      <li><strong>Biometric Verification (التحقق البيومتري)</strong> — التعرف بالخصائص الجسدية</li>
+      <li><strong>Face Embedding (تضمين الوجه)</strong> — متجه رياضي يمثل هوية الوجه</li>
+      <li><strong>Expression Analysis (تحليل التعابير)</strong> — كشف المشاعر من تغيرات الوجه</li>
+      <li><strong>AR (الواقع المعزز)</strong> — إضافة عناصر رقمية على الواقع</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — iPhone Face ID</div>
+    <p>Apple's Face ID uses a 3D face mesh with an infrared dot projector that maps 30,000 invisible infrared dots onto your face to create a precise depth map. The face embedding generated is compared against the stored one, and if similarity exceeds a threshold → unlocked. It updates the model as your face changes (beard growth, glasses, aging).</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Face mesh = 3D coordinate grid mapped onto face landmarks (468+ points in MediaPipe)</li>
+      <li>📌 Biometric verification uses geometric ratios → face embedding vector</li>
+      <li>📌 Expression analysis detects deformation patterns of the mesh</li>
+      <li>📌 Applications: Face ID, AR filters, emotion recognition, driver monitoring</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Face mesh fits 468+ 3D landmarks onto the face. Used for <strong>biometric verification</strong> (face embedding for recognition), <strong>expression analysis</strong> (emotion detection from deformations), and <strong>AR effects</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>7. Optical Character Recognition (OCR)</h2>
+  </div>
+  <p class="section-subtitle">Translating Handwriting and Printed Text to Digitized Text Streams</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Handwriting Challenges:</strong> Evaluates highly variable strokes and continuous cursive letters.</li>
+      <li><strong>Text Layout Analysis:</strong> Segments document structures into zones, columns, lines, and individual characters.</li>
+      <li><strong>NLP Integration:</strong> Feeds digitized text directly to downstream language models for automated parsing.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Optical Character Recognition (OCR)</span> converts <strong>visual text</strong> (in images, scans, photos) into <strong>machine-readable text</strong> that computers can process, search, and edit.</p>
+    <br/>
+    <p><strong>Types of Input OCR Handles:</strong></p>
+    <ul class="e-list">
+      <li>📄 Printed typed text (books, invoices, forms)</li>
+      <li>✍️ Handwritten text (notes, forms, historical documents)</li>
+      <li>📸 Text in natural scenes (road signs, product labels, shop fronts)</li>
+    </ul>
+    <br/>
+    <p><strong>Three Key Concepts from the Slide:</strong></p>
+    <div class="def-box">
+      <div class="def-term">1. Handwriting Challenges</div>
+      <p style="font-size:13px;margin-top:4px">Handwriting is <strong>highly variable</strong>: every person writes differently, letters connect in cursive, size/slant/spacing varies. Printed text has fixed fonts, but handwriting has infinite variation. Modern OCR uses <strong>Recurrent Neural Networks (RNNs)</strong> and <strong>Transformers</strong> to handle this variability.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">2. Text Layout Analysis (Document Understanding)</div>
+      <p style="font-size:13px;margin-top:4px">Before reading individual characters, OCR must understand the <strong>document structure</strong>:</p>
+      <ul style="font-size:12px;padding-left:14px;margin-top:4px">
+        <li><strong>Zones</strong>: Title zone, body zone, header/footer zone</li>
+        <li><strong>Columns</strong>: Newspaper-style multi-column layout</li>
+        <li><strong>Lines</strong>: Isolate each text line</li>
+        <li><strong>Characters</strong>: Segment individual letters within words</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">3. NLP Integration — The Downstream Pipeline</div>
+      <p style="font-size:13px;margin-top:4px">OCR is rarely used alone. The digitized text is fed into <strong>Natural Language Processing (NLP)</strong> models for:</p>
+      <ul style="font-size:12px;padding-left:14px;margin-top:4px">
+        <li>Invoice parsing: extract total amount, date, vendor name</li>
+        <li>Medical records: extract patient name, diagnosis, medications</li>
+        <li>Legal documents: extract parties, dates, clauses</li>
+        <li>Translation: translate text in images to another language</li>
+      </ul>
+    </div>
+    <br/>
+    <p><strong>Modern OCR Pipeline:</strong></p>
+    <ol class="steps">
+      <li>Image preprocessing (deskewing, denoising, contrast enhancement)</li>
+      <li>Text region detection (find where text is)</li>
+      <li>Layout analysis (zones, columns, lines)</li>
+      <li>Character recognition (CNN → character probabilities)</li>
+      <li>Language model correction (fix "0" vs "O" errors using context)</li>
+      <li>Output structured text + feed to NLP pipeline</li>
+    </ol>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>التعرف الضوئي على الحروف (OCR)</strong> يحول النصوص المرئية (في الصور والمستندات الممسوحة ضوئيًا) إلى نص رقمي يمكن للحاسوب قراءته وتحريره والبحث فيه.</p>
+    <br/>
+    <p><strong>تحديات الخط اليدوي:</strong></p>
+    <p style="font-size:14px">الخط اليدوي متغير جدًا: كل شخص يكتب بطريقة مختلفة، والحروف تتصل ببعضها في الكتابة المتصلة، والحجم والميل والمسافات تتفاوت. لهذا يستخدم OCR الحديث الشبكات العصبية المتكررة (RNN) والـ Transformers.</p>
+    <br/>
+    <p><strong>تحليل تخطيط النص:</strong></p>
+    <p style="font-size:14px">قبل قراءة الحروف الفردية، يجب على النظام فهم هيكل المستند: مناطق (العنوان، الجسم)، أعمدة (مثل الجريدة)، أسطر، ثم حروف فردية.</p>
+    <br/>
+    <p><strong>التكامل مع NLP:</strong></p>
+    <p style="font-size:14px">النص المُرقمَن يُغذَّى مباشرة لنماذج معالجة اللغة الطبيعية (NLP) لاستخراج المعلومات: استخراج بيانات الفاتورة، سجلات المرضى، الوثائق القانونية.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>OCR (التعرف الضوئي على الحروف)</strong> — تحويل النص المرئي إلى رقمي</li>
+      <li><strong>Layout Analysis (تحليل التخطيط)</strong> — فهم هيكل الوثيقة</li>
+      <li><strong>NLP (معالجة اللغة الطبيعية)</strong> — تحليل وفهم النص الرقمي</li>
+      <li><strong>Deskewing (تصحيح الانحراف)</strong> — تصحيح صور الوثائق المائلة</li>
+      <li><strong>Cursive (الكتابة المتصلة)</strong> — الخط العربي المتصل أو الكتابة الانجليزية المتصلة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Real-World Examples</div>
+    <ul class="e-list">
+      <li>📷 <strong>Google Lens</strong>: Point camera at menu in foreign language → OCR reads text → NLP translates</li>
+      <li>🏦 <strong>Bank check processing</strong>: OCR reads amount, account number → automated clearing</li>
+      <li>📚 <strong>Google Books</strong>: Scanned 25M+ books using OCR to make them searchable</li>
+      <li>🛂 <strong>Passport scanning</strong>: OCR reads MRZ (Machine Readable Zone) at border control</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 OCR = Visual text → digital text</li>
+      <li>📌 Three challenges: handwriting variability, layout complexity, integration with NLP</li>
+      <li>📌 Layout hierarchy: Document → Zones → Columns → Lines → Words → Characters</li>
+      <li>📌 OCR + NLP = complete document understanding pipeline</li>
+      <li>📌 Modern OCR tools: Tesseract, PaddleOCR, EasyOCR, Google Vision API</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>OCR converts visual text (printed/handwritten) to digital text. Challenges: handwriting variability, layout analysis (zones→lines→chars), integration with NLP for information extraction.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 11</span>
+    <h2>8. Human Pose Estimation & Biomechanics</h2>
+  </div>
+  <p class="section-subtitle">Skeletal Keypoint Graph Mapping — Monitoring Posture and Movement</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Joint Coordinates:</strong> Isolates key human anatomical junctions (shoulders, elbows, knees, ankles).</li>
+      <li><strong>Spatial Skeletal Graph:</strong> Connects extracted keypoints with coordinate vectors to model current posture.</li>
+      <li><strong>Use Cases:</strong> Powers athletic analysis, gesture control systems, and clinical movement therapy.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Human Pose Estimation</span> extracts a <strong>skeletal graph</strong> — a stick-figure representation — of a human body from an image or video. It identifies where key body joints are located and connects them.</p>
+    <br/>
+    <p><strong>Key Components:</strong></p>
+    <div class="def-box">
+      <div class="def-term">1. Joint/Keypoint Detection</div>
+      <p style="font-size:13px;margin-top:4px">The model predicts the (x, y) or (x, y, z) coordinates of <strong>17–33 body keypoints</strong>:</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        <span class="tag tag-blue">Nose</span><span class="tag tag-blue">Left Eye</span><span class="tag tag-blue">Right Eye</span>
+        <span class="tag tag-green">Left Shoulder</span><span class="tag tag-green">Right Shoulder</span>
+        <span class="tag tag-purple">Left Elbow</span><span class="tag tag-purple">Right Elbow</span>
+        <span class="tag tag-orange">Left Wrist</span><span class="tag tag-orange">Right Wrist</span>
+        <span class="tag tag-blue">Left Hip</span><span class="tag tag-blue">Right Hip</span>
+        <span class="tag tag-green">Left Knee</span><span class="tag tag-green">Right Knee</span>
+        <span class="tag tag-purple">Left Ankle</span><span class="tag tag-purple">Right Ankle</span>
+      </div>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2. Skeletal Graph Construction</div>
+      <p style="font-size:13px;margin-top:4px">Connects keypoints with "bones" (edges in the graph): shoulder→elbow→wrist (arm), hip→knee→ankle (leg). The graph structure encodes spatial relationships. Angles between bones encode posture information.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3. Applications</div>
+      <ul style="font-size:13px;padding-left:14px;margin-top:4px">
+        <li><strong>Athletic Analysis</strong>: Track swimmer's stroke efficiency, golfer's swing mechanics, runner's gait</li>
+        <li><strong>Gesture Control</strong>: Control a computer with hand/body gestures (no touchscreen needed)</li>
+        <li><strong>Clinical Movement Therapy</strong>: Monitor physical therapy exercises, detect Parkinson's tremors, analyze gait disorders</li>
+        <li><strong>Video Games</strong>: Motion capture for game character animation</li>
+        <li><strong>Workplace Safety</strong>: Detect ergonomically incorrect postures that cause back injuries</li>
+      </ul>
+    </div>
+    <br/>
+    <p><strong>Popular Models:</strong> OpenPose, MediaPipe Pose, AlphaPose, ViTPose</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>تقدير وضعية الإنسان (Human Pose Estimation)</strong> يستخرج "هيكلًا عظميًا افتراضيًا" من صورة أو فيديو يُظهر مواضع المفاصل الرئيسية في الجسم ويربطها ببعضها.</p>
+    <br/>
+    <p><strong>كيف يعمل؟</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>النموذج يتنبأ بإحداثيات (x,y) أو (x,y,z) لـ 17-33 نقطة مفصلية (كتف، مرفق، رسغ، ورك، ركبة، كاحل...)</li>
+      <li>يربط النقاط بـ"عظام افتراضية" لتكوين رسم هيكلي</li>
+      <li>يحسب زوايا المفاصل لتحليل الوضعية والحركة</li>
+    </ol>
+    <br/>
+    <p><strong>التطبيقات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>⚽ تحليل أداء الرياضيين (تقنية تأرجح السباحة، آلية الجري)</li>
+      <li>🎮 التحكم بالإيماءات (التفاعل مع الكمبيوتر بالجسم)</li>
+      <li>🏥 العلاج الطبيعي الرقمي (مراقبة تمارين إعادة التأهيل)</li>
+      <li>🎬 التقاط الحركة للأفلام والألعاب</li>
+      <li>🏭 سلامة العمال (كشف وضعيات العمل الخاطئة)</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Pose Estimation (تقدير الوضعية)</strong> — تحديد مواضع أجزاء الجسم</li>
+      <li><strong>Keypoints (النقاط المفصلية الرئيسية)</strong> — نقاط محددة على الجسم</li>
+      <li><strong>Skeletal Graph (الرسم الهيكلي)</strong> — مخطط العظام الافتراضية</li>
+      <li><strong>Biomechanics (الميكانيكا الحيوية)</strong> — دراسة حركة الجسم</li>
+      <li><strong>Motion Capture (التقاط الحركة)</strong> — تسجيل حركة الجسم للأفلام/الألعاب</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — AI Personal Trainer</div>
+    <p>Apps like "Kemtai" or Nike Training Club use pose estimation to act as a personal trainer:</p>
+    <ol class="steps">
+      <li>Camera detects your body keypoints via phone camera</li>
+      <li>System calculates joint angles: e.g., knee angle during squat = 75°</li>
+      <li>Ideal squat knee angle ≈ 90°; system gives real-time feedback "go lower"</li>
+      <li>Tracks reps by detecting the up/down cycle of hip keypoint</li>
+      <li>Analyzes injury risk from spine angle and knee alignment</li>
+    </ol>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Pose estimation = detect body keypoints + form skeletal graph</li>
+      <li>📌 Typically 17 COCO keypoints: nose, eyes, ears, shoulders, elbows, wrists, hips, knees, ankles</li>
+      <li>📌 Applications: sports analytics, gesture control, clinical therapy, mo-cap</li>
+      <li>📌 Graph structure: nodes = joints, edges = bones</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pose estimation detects body keypoints (joints) and connects them into a skeletal graph. Used in sports analytics, gesture control, clinical therapy, and motion capture.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 12</span>
+    <h2>9. Depth Estimation — Spatial Understanding</h2>
+  </div>
+  <p class="section-subtitle">Measuring Object Distances in 2D Images to Reconstruct 3D Environments</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p>Measures the distance of objects in a 2D image to reconstruct a 3D environment mapping.</p>
+    <ul style="padding-left:20px;font-size:14px;margin-top:8px">
+      <li>Essential for AR (Augmented Reality) placement.</li>
+      <li>Powering Robotic Navigation and collision avoidance.</li>
+      <li>Visualized through "Depth Heatmaps" where color indicates proximity.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Depth Estimation</span> infers the <strong>distance of each pixel from the camera</strong>. A standard camera captures a 2D image (x, y). Depth estimation adds the missing <strong>Z dimension</strong> (how far away each point is).</p>
+    <br/>
+    <p><strong>Two Approaches:</strong></p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Monocular Depth Estimation</h4>
+        <ul>
+          <li>Single camera input (like a phone camera)</li>
+          <li>Uses visual cues: <strong>perspective</strong> (distant objects appear smaller), <strong>texture gradient</strong> (textures become denser with distance), <strong>occlusion</strong> (nearer objects block farther ones)</li>
+          <li>Estimated (not measured) depth — less accurate</li>
+          <li>Examples: MiDaS, Depth Anything model</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Stereo/Sensor Depth</h4>
+        <ul>
+          <li>Two cameras (like human eyes) or depth sensors (LiDAR, ToF)</li>
+          <li>Measures actual depth from triangulation or time-of-flight</li>
+          <li>Accurate, metric depth values</li>
+          <li>Examples: Intel RealSense, iPhone Pro LiDAR, Tesla radar</li>
+        </ul>
+      </div>
+    </div>
+    <br/>
+    <p><strong>Depth Heatmaps:</strong></p>
+    <div class="def-box">
+      <div class="def-term">🌈 Color Encoding Distance</div>
+      <p style="font-size:13px;margin-top:4px">Depth maps are visualized as colored images where <strong>warm colors (red/yellow) = close</strong> and <strong>cool colors (blue/purple) = far away</strong>. This makes depth structure immediately visible to humans.</p>
+    </div>
+    <br/>
+    <p><strong>Three Key Applications from Slide:</strong></p>
+    <ul class="e-list">
+      <li>📱 <strong>AR (Augmented Reality) placement</strong>: When you place a virtual sofa in your living room via IKEA app, depth estimation ensures the sofa sits on the floor, not floating in the air</li>
+      <li>🤖 <strong>Robotic Navigation</strong>: Robots need depth to know how far objects are before driving/walking toward them — prevents collisions</li>
+      <li>🚗 <strong>Autonomous Vehicles</strong>: Perceive 3D layout of road: lane distance, pedestrian proximity, obstacle detection</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>تقدير العمق (Depth Estimation)</strong> يُحدد المسافة بين الكاميرا وكل نقطة في الصورة. الكاميرا العادية تلتقط صورة ثنائية الأبعاد (x,y)، وتقدير العمق يُضيف البُعد الثالث Z (كم تبعد كل نقطة عن الكاميرا).</p>
+    <br/>
+    <p><strong>التطبيقات الثلاثة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>الواقع المعزز (AR)</strong>: عند وضع أثاث افتراضي في غرفتك عبر تطبيق IKEA، يستخدم التطبيق تقدير العمق لضمان جلوس الأثاث على الأرضية وليس عائمًا في الهواء</li>
+      <li><strong>الملاحة الآلية للروبوتات</strong>: الروبوت يحتاج معرفة مسافة العقبات قبل التحرك لتجنب الاصطدام</li>
+      <li><strong>خرائط العمق الحرارية</strong>: تصوير العمق بألوان: الأحمر/الأصفر = قريب، الأزرق/البنفسجي = بعيد</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Depth Estimation (تقدير العمق)</strong> — قياس المسافة من الكاميرا</li>
+      <li><strong>Depth Heatmap (خريطة العمق الحرارية)</strong> — تصوير ملون يُظهر الأعماق</li>
+      <li><strong>AR (الواقع المعزز)</strong> — دمج العناصر الرقمية مع الواقع</li>
+      <li><strong>LiDAR</strong> — مستشعر يقيس المسافات بضوء الليزر</li>
+      <li><strong>Monocular (أحادي العين)</strong> — من كاميرا واحدة فقط</li>
+      <li><strong>Collision Avoidance (تجنب التصادم)</strong> — منع الروبوت/السيارة من الاصطدام</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Why Depth Matters for Autonomous Cars</div>
+    <p>A camera photo shows a truck ahead. Without depth: "there is a truck." With depth: "there is a truck 8 meters ahead, traveling at similar speed, so no immediate braking needed." The depth dimension is what transforms a 2D image into actionable 3D spatial understanding for navigation decisions.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Depth estimation adds Z dimension to 2D images</li>
+      <li>📌 Depth heatmaps: warm color = near, cool color = far</li>
+      <li>📌 Key applications: AR placement, robot navigation, autonomous vehicles</li>
+      <li>📌 Monocular (1 camera, estimated) vs Stereo/LiDAR (measured, accurate)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Depth estimation infers distance-from-camera for each pixel (adds Z to 2D image). Visualized as heatmaps (warm=near, cool=far). Used in AR, robotic navigation, autonomous vehicles.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 10 ===================== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 13</span>
+    <h2>10. Zero-Shot Learning</h2>
+  </div>
+  <p class="section-subtitle">Detecting Objects the Model Was Never Trained On</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Zero-Shot Learning (ZSL)</span> is the ability to recognize or detect objects that the model was <strong>never shown during training</strong>. This is possible by leveraging <strong>semantic relationships</strong> and <strong>general knowledge</strong>.</p>
+    <br/>
+    <p><strong>How does it work?</strong></p>
+    <div class="def-box">
+      <div class="def-term">The Key Insight</div>
+      <p style="font-size:13px;margin-top:4px">Instead of learning "what a zebra looks like" from zebra photos, a ZSL model learns semantic attributes: "a zebra is like a horse with stripes." If it knows what "horse" and "stripes" look like, it can recognize a zebra it's never seen.</p>
+    </div>
+    <br/>
+    <p><strong>Modern ZSL approaches (e.g., CLIP — Contrastive Language-Image Pretraining):</strong></p>
+    <ol class="steps">
+      <li>Train on millions of image-text pairs: "a photo of a cat" + cat image</li>
+      <li>Model learns joint embedding space where similar concepts cluster together</li>
+      <li>At test time: describe new class in text ("a photo of a pangolin")</li>
+      <li>Model finds images whose visual features match the text description</li>
+      <li>Successfully identifies pangolins never seen in training</li>
+    </ol>
+    <br/>
+    <p><strong>Why is this important?</strong></p>
+    <ul class="e-list">
+      <li>🔬 New species or rare medical conditions emerge — can't retrain model every time</li>
+      <li>🏭 Industrial defects may vary — ZSL detects new defect types</li>
+      <li>🌍 Scalability: instead of labeling 1000 images per class, describe it in text</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>التعلم بلا أمثلة تدريبية (Zero-Shot Learning)</strong> هو قدرة النموذج على التعرف على أشياء لم يرَها قط أثناء التدريب! يعتمد على العلاقات الدلالية والمعرفة العامة.</p>
+    <br/>
+    <p><strong>مثال توضيحي:</strong> بدلًا من تعليم النموذج "هذا حمار وحشي" من آلاف الصور، يتعلم أن "حمار الوحش = حصان + خطوط". إذا كان يعرف شكل الحصان والخطوط، يستطيع التعرف على حمار الوحش لأول مرة!</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Zero-Shot Learning (التعلم بلا أمثلة)</strong> — التعرف على أشياء غير مُدرَّب عليها</li>
+      <li><strong>Semantic Relationships (العلاقات الدلالية)</strong> — العلاقات المعنوية بين المفاهيم</li>
+      <li><strong>CLIP</strong> — نموذج OpenAI يربط النصوص بالصور</li>
+      <li><strong>Embedding Space (فضاء التضمين)</strong> — فضاء رياضي تتجمع فيه المفاهيم المتشابهة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — CLIP Model</div>
+    <p>OpenAI's CLIP can be asked: "find all images containing a stethoscope" even if it never saw a stethoscope during training. It uses the text-image joint embedding: the word "stethoscope" is close to images of medical instruments in the learned semantic space.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 ZSL = detect/classify objects NOT in training set</li>
+      <li>📌 Uses semantic relationships / text descriptions to bridge the gap</li>
+      <li>📌 CLIP is the most famous ZSL model (text-image pairs training)</li>
+      <li>📌 Important for scalability — no need to collect thousands of labeled images for each class</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Zero-Shot Learning enables recognizing unseen object classes using semantic relationships and text descriptions. CLIP learns joint text-image embeddings enabling ZSL at scale.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 11 ===================== -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 13</span>
+    <h2>11. Feature Extraction</h2>
+  </div>
+  <p class="section-subtitle">Converting Visual Patterns into Numerical Vectors</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Feature Extraction</span> converts an image into a <strong>compact numerical vector</strong> that captures its essential visual characteristics — like a mathematical "fingerprint" of the image.</p>
+    <br/>
+    <p><strong>How it works with CNNs:</strong></p>
+    <ol class="steps">
+      <li>Pass image through a pre-trained CNN (e.g., ResNet-50)</li>
+      <li>Remove the final classification layer</li>
+      <li>The second-to-last layer output = the feature vector (e.g., 2048 numbers)</li>
+      <li>This vector encodes "what the image looks like" in abstract mathematical form</li>
+    </ol>
+    <br/>
+    <p><strong>Applications:</strong></p>
+    <div class="def-box">
+      <div class="def-term">🔒 Facial Recognition & Biometric Security</div>
+      <p style="font-size:13px;margin-top:4px">Face feature vectors (~128-512 dimensions) for two faces are compared using <strong>cosine similarity or Euclidean distance</strong>. If distance &lt; threshold → same person. This is how FaceNet, ArcFace work.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">🔍 Reverse Image Search</div>
+      <p style="font-size:13px;margin-top:4px">Google Images: upload a photo → extract its feature vector → search database for nearest-neighbor vectors → return visually similar images.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">🛒 Product Recommendation</div>
+      <p style="font-size:13px;margin-top:4px">E-commerce: "shop similar items" — extract feature vector of a dress → find dresses with similar vectors in the product database.</p>
+    </div>
+    <div class="formula">
+      similarity = cos(θ) = (A · B) / (|A| × |B|) &nbsp;&nbsp; [Cosine Similarity]
+    </div>
+    <p style="font-size:13px;color:var(--muted)">Where A and B are feature vectors. Range: -1 (opposite) to 1 (identical). For face verification, typically threshold = 0.6.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>استخراج الميزات (Feature Extraction)</strong> يحول الصورة إلى <strong>متجه رقمي مضغوط</strong> يمثل خصائصها البصرية الأساسية — كـ"بصمة رياضية" للصورة.</p>
+    <br/>
+    <p>عند تمرير صورة وجه عبر شبكة CNN مُدرَّبة مسبقًا، نحذف طبقة التصنيف الأخيرة، فيكون الخرج متجه رقمي (مثلًا 512 رقم) يُمثل "شكل الوجه" رياضيًا. لمقارنة وجهين: يُحسب التشابه (cosine similarity) بين المتجهين.</p>
+    <br/>
+    <p><strong>التطبيقات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>🔒 التعرف على الوجه وأنظمة الأمن البيومترية</li>
+      <li>🔍 البحث بالصور (مثل Google Lens)</li>
+      <li>🛒 توصيات المنتجات المتشابهة في التجارة الإلكترونية</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Feature Extraction (استخراج الميزات)</strong> — تحويل الصورة لمتجه رقمي</li>
+      <li><strong>Feature Vector (متجه الميزات)</strong> — مصفوفة أرقام تُمثل الصورة</li>
+      <li><strong>Cosine Similarity (التشابه الجيبي)</strong> — مقياس تشابه بين متجهين</li>
+      <li><strong>Biometric Security (الأمن البيومتري)</strong> — التعرف بالخصائص الجسدية</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Feature extraction = image → compact numerical vector (feature embedding)</li>
+      <li>📌 Uses pre-trained CNN without final classification layer</li>
+      <li>📌 Comparison metric: cosine similarity or Euclidean distance</li>
+      <li>📌 Key use: facial recognition (face embeddings)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Feature extraction converts images to compact numerical vectors using pre-trained CNNs. Used in facial recognition (compare face embeddings), reverse image search, and product recommendations.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 12 ===================== -->
+<div class="section" id="s12">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 13</span>
+    <h2>12. Mask Generation</h2>
+  </div>
+  <p class="section-subtitle">Automated Subject Isolation — Binary Cutouts for Background Removal</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Mask Generation</span> automatically isolates specific objects from an image by creating a <strong>binary mask</strong> — a black-and-white cutout where white=subject and black=background.</p>
+    <br/>
+    <p><strong>Modern Approach — SAM (Segment Anything Model by Meta):</strong></p>
+    <div class="def-box">
+      <div class="def-term">SAM — Segment Anything Model</div>
+      <p style="font-size:13px;margin-top:4px">Can segment <strong>any object</strong> in any image given a simple prompt (click a point, draw a box, or describe in text). Trained on 1 billion masks. Unlike traditional segmentation that requires per-class training, SAM is a general-purpose segmentation model.</p>
+    </div>
+    <br/>
+    <p><strong>Three Types of Outputs:</strong></p>
+    <ul class="e-list">
+      <li>🎭 <strong>Binary mask</strong>: 1=subject, 0=background (black and white image)</li>
+      <li>🌈 <strong>Transparent background</strong>: PNG with alpha channel (the subject extracted)</li>
+      <li>🔄 <strong>Inpainting</strong>: Remove subject and fill background coherently (Photoshop "generative fill")</li>
+    </ul>
+    <br/>
+    <p><strong>Applications:</strong></p>
+    <ul class="e-list">
+      <li>📸 <strong>Background replacement</strong>: Zoom/Teams virtual backgrounds</li>
+      <li>🛒 <strong>E-commerce</strong>: Product photo background removal for white catalog backgrounds</li>
+      <li>🎬 <strong>Video production</strong>: Green screen alternative using AI masking</li>
+      <li>🏥 <strong>Medical imaging</strong>: Isolate tumor region in MRI/CT scan</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>توليد الأقنعة (Mask Generation)</strong> يعزل الأجسام تلقائيًا من الصورة بإنشاء "قناع ثنائي" حيث الأبيض = الموضوع والأسود = الخلفية. أشهر نموذج حديث: SAM (Segment Anything Model) من Meta.</p>
+    <br/>
+    <p><strong>التطبيقات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>إزالة الخلفية في صور المنتجات (للمتاجر الإلكترونية)</li>
+      <li>خلفيات Zoom/Teams الافتراضية</li>
+      <li>عزل المناطق المريضة في التصوير الطبي</li>
+      <li>بديل الشاشة الخضراء في الإنتاج التلفزيوني</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Mask Generation (توليد الأقنعة)</strong> — عزل الأجسام بقناع ثنائي</li>
+      <li><strong>Binary Cutout (القطع الثنائي)</strong> — صورة أبيض وأسود تحدد الجسم</li>
+      <li><strong>SAM (نموذج تجزئة أي شيء)</strong> — نموذج Meta لتجزئة أي جسم</li>
+      <li><strong>Background Removal (إزالة الخلفية)</strong></li>
+      <li><strong>Inpainting (التعبئة الداخلية)</strong> — إزالة جسم وملء مكانه بخلفية طبيعية</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Mask generation = binary cutout of subject (white) from background (black)</li>
+      <li>📌 SAM = Meta's "Segment Anything Model" — general-purpose, prompt-based</li>
+      <li>📌 Applications: background removal, medical isolation, e-commerce, video production</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Mask generation creates binary cutouts isolating subjects from backgrounds. SAM enables prompt-based segmentation of any object. Used in background removal, medical imaging, e-commerce.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 13 ===================== -->
+<div class="section" id="s13">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 14</span>
+    <h2>13. CV Task Summary Table</h2>
+  </div>
+  <p class="section-subtitle">Complete Overview of All Computer Vision Tasks</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> Full Table Explanation</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>CV Task</th>
+            <th>Key Visual Output</th>
+            <th>Real-World Application</th>
+            <th>Spatial Precision</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Image Classification</strong></td>
+            <td>Single Subject Label</td>
+            <td>Automated Photo Sorting</td>
+            <td>Image-level</td>
+          </tr>
+          <tr>
+            <td><strong>Object Detection</strong></td>
+            <td>Bounding Boxes</td>
+            <td>Traffic & Security Monitoring</td>
+            <td>Object-level</td>
+          </tr>
+          <tr>
+            <td><strong>Image Segmentation</strong></td>
+            <td>Pixel-Level Mask</td>
+            <td>Medical Diagnostics & MRI</td>
+            <td>Pixel-level</td>
+          </tr>
+          <tr>
+            <td><strong>Depth Estimation</strong></td>
+            <td>Distance Mapping</td>
+            <td>Autonomous Drone Navigation</td>
+            <td>Pixel-level (depth)</td>
+          </tr>
+          <tr>
+            <td><strong>Keypoint Detection</strong></td>
+            <td>Skeleton/Landmarks</td>
+            <td>Fitness Tracking & CGI Mo-Cap</td>
+            <td>Joint-level</td>
+          </tr>
+          <tr>
+            <td><strong>Feature Extraction</strong></td>
+            <td>Mathematical Vectors</td>
+            <td>Facial Recognition Systems</td>
+            <td>Global (embedding)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <br/>
+    <p><strong>How to interpret this table:</strong></p>
+    <ul class="e-list">
+      <li>🏷️ <strong>Key Visual Output</strong>: What the model produces — single label, boxes, masks, distances, skeleton points, or vectors</li>
+      <li>🌍 <strong>Real-World Application</strong>: Where each task is used commercially</li>
+      <li>📐 <strong>Spatial Precision</strong>: How precisely the output is localized (added column for better understanding)</li>
+    </ul>
+    <br/>
+    <p><strong>Industry Adoption (Slide 15 context):</strong> The slide references an estimated industry adoption chart based on "current enterprise AI deployment trends." Key insight: Object Detection and Image Classification are the most widely deployed CV tasks in industry today, while more complex tasks like depth estimation and segmentation are growing rapidly.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي — الجدول الملخص</div>
+    <p>هذا الجدول يلخص جميع مهام رؤية الحاسوب المُدرَّسة في المحاضرة:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>المهمة</th><th>المخرج البصري</th><th>التطبيق الفعلي</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>تصنيف الصورة</td><td>تسمية واحدة للصورة</td><td>فرز الصور تلقائيًا</td></tr>
+          <tr><td>اكتشاف الأجسام</td><td>مستطيلات إحاطة</td><td>مراقبة المرور والأمن</td></tr>
+          <tr><td>تجزئة الصورة</td><td>قناع على مستوى البيكسل</td><td>التشخيص الطبي والتصوير بالرنين</td></tr>
+          <tr><td>تقدير العمق</td><td>خريطة المسافات</td><td>ملاحة الطائرات المسيّرة</td></tr>
+          <tr><td>كشف النقاط المفصلية</td><td>هيكل عظمي/معالم</td><td>تتبع اللياقة وتصوير الحركة</td></tr>
+          <tr><td>استخراج الميزات</td><td>متجهات رياضية</td><td>أنظمة التعرف على الوجه</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes — This Table is Highly Exam-Relevant</div>
+    <p>Memorize: Task → Output → Application. Common exam format: "Match the CV task to its output type" or "Name the CV technique used in [scenario]".</p>
+    <div class="mnemonic" style="margin-top:12px">
+      <div class="mnem-title">🧠 Memory Trick for Table Order</div>
+      <p><strong>"I Ordered Indian Dinner, Keeping Flavors"</strong></p>
+      <p><strong>I</strong>mage Classification → <strong>O</strong>bject Detection → <strong>I</strong>mage Segmentation → <strong>D</strong>epth Estimation → <strong>K</strong>eypoint Detection → <strong>F</strong>eature Extraction</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 14 ===================== -->
+<div class="section" id="s14">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 16</span>
+    <h2>14. The OpenCV Development Library</h2>
+  </div>
+  <p class="section-subtitle">The Real-Time Processing Standard — The Premier Open-Source CV Tool</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>C++ Core Backend:</strong> High-performance base framework wrapped in easy-to-use Python APIs.</li>
+      <li><strong>Installation Setup:</strong> Run <code>pip install opencv-python</code> in your terminal to quickly start local development.</li>
+      <li><strong>Versatility:</strong> Seamlessly handles file input/output, camera feeds, matrix math, and neural net execution.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">OpenCV</span> (Open Source Computer Vision Library) is the world's most widely used computer vision library. Founded by Intel in 1999, it's now used by millions of developers. <strong>OpenCV = cv2</strong> in Python (the import name).</p>
+    <br/>
+    <p><strong>Architecture:</strong></p>
+    <div class="def-box">
+      <div class="def-term">C++ Core + Python API</div>
+      <p style="font-size:13px;margin-top:4px">The computationally intensive parts are written in <strong>C++</strong> for maximum speed. Python bindings (cv2 module) provide a convenient high-level interface. You write simple Python code, but under the hood, fast C++ executes.</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">This is why OpenCV can process 30+ fps video on a laptop — the C++ backend is highly optimized with SIMD intrinsics and multi-threading.</p>
+    </div>
+    <br/>
+    <p><strong>Installation:</strong></p>
+    <pre><code><span class="code-cm"># Basic installation</span>
+pip install opencv-python
+
+<span class="code-cm"># With contrib modules (extra algorithms)</span>
+pip install opencv-contrib-python
+
+<span class="code-cm"># Verify installation</span>
+python -c <span class="code-str">"import cv2; print(cv2.__version__)"</span></code></pre>
+    <br/>
+    <p><strong>What OpenCV Can Do (Versatility):</strong></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>Functions</th></tr></thead>
+        <tbody>
+          <tr><td>File I/O</td><td>imread, imwrite, VideoCapture, VideoWriter</td></tr>
+          <tr><td>Camera Feeds</td><td>VideoCapture(0) for webcam, live frame processing</td></tr>
+          <tr><td>Matrix Math</td><td>Built on NumPy, efficient matrix operations on images</td></tr>
+          <tr><td>Image Processing</td><td>Blur, threshold, edge detection, morphology</td></tr>
+          <tr><td>Neural Net Execution</td><td>cv2.dnn module — load and run ONNX/Caffe/TF models</td></tr>
+          <tr><td>Drawing</td><td>Rectangle, circle, line, text overlay on images</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>OpenCV</strong> (مكتبة رؤية الحاسوب مفتوحة المصدر) هي المكتبة الأكثر استخدامًا في العالم لمعالجة الصور ورؤية الحاسوب. أنشأتها Intel عام 1999.</p>
+    <br/>
+    <p><strong>المعمارية:</strong> قاعدة C++ عالية الأداء + واجهة Python سهلة الاستخدام. تكتب كود Python بسيط لكن C++ المُحسَّن ينفذه تحت الغطاء.</p>
+    <br/>
+    <p><strong>التثبيت:</strong></p>
+    <pre><code>pip install opencv-python</code></pre>
+    <br/>
+    <p><strong>قدراتها:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>قراءة وكتابة الصور والفيديو</li>
+      <li>التقاط كاميرا الويب في الوقت الفعلي</li>
+      <li>تحويلات الصورة (تحويل للرمادي، التبييض، كشف الحواف)</li>
+      <li>تنفيذ نماذج الشبكات العصبية (cv2.dnn)</li>
+      <li>رسم المستطيلات والنصوص والأشكال على الصور</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>OpenCV (مكتبة رؤية الحاسوب المفتوحة)</strong></li>
+      <li><strong>cv2</strong> — اسم الاستيراد في Python</li>
+      <li><strong>C++ Core (القلب المكتوب بـ C++)</strong> — يجعلها سريعة جدًا</li>
+      <li><strong>Python API (واجهة برمجة Python)</strong> — تجعلها سهلة الاستخدام</li>
+      <li><strong>Real-Time Processing (المعالجة الفورية)</strong> — معالجة الفيديو مباشرة</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 OpenCV = open-source, C++ core + Python API</li>
+      <li>📌 Installation: <code>pip install opencv-python</code></li>
+      <li>📌 Import: <code>import cv2</code></li>
+      <li>📌 Handles: images, video, camera, matrix math, DNN execution</li>
+      <li>📌 cv2.dnn module allows running pre-trained deep learning models</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>OpenCV is the premier open-source CV library. C++ backend + Python API. Install with <code>pip install opencv-python</code>. Handles images, video, camera feeds, matrix math, and DNN execution.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 15 ===================== -->
+<div class="section" id="s15">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 17</span>
+    <h2>15. OpenCV Code Pipeline — Grayscale Transform</h2>
+  </div>
+  <p class="section-subtitle">Writing Grayscale Transforms in OpenCV — Standard Pipeline Steps</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p>A foundational OpenCV Python script that reads an image, transforms it to grayscale, and displays the output:</p>
+    <ul style="padding-left:20px;font-size:14px;margin-top:8px">
+      <li><strong>cv2.imread:</strong> Loads the file into memory as a NumPy matrix.</li>
+      <li><strong>cv2.cvtColor:</strong> Transforms the BGR array into a single-channel grayscale matrix.</li>
+      <li><strong>cv2.imshow:</strong> Opens a native rendering window to display the output.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation — Full Code Walkthrough</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Let's build the complete standard pipeline code with detailed explanations of every function:</p>
+    <br/>
+    <pre><code><span class="code-kw">import</span> cv2
+<span class="code-kw">import</span> numpy <span class="code-kw">as</span> np
+
+<span class="code-cm"># Step 1: Load image from disk into memory</span>
+<span class="code-cm"># Returns: NumPy array of shape (height, width, 3) — BGR format</span>
+<span class="code-cm"># Note: OpenCV loads as BGR not RGB!</span>
+image = cv2.<span class="code-fn">imread</span>(<span class="code-str">'photo.jpg'</span>)
+
+<span class="code-cm"># Safety check — file might not exist</span>
+<span class="code-kw">if</span> image <span class="code-kw">is</span> <span class="code-nb">None</span>:
+    <span class="code-fn">print</span>(<span class="code-str">"Error: Could not load image"</span>)
+    exit()
+
+<span class="code-cm"># Step 2: Convert BGR to Grayscale</span>
+<span class="code-cm"># cv2.COLOR_BGR2GRAY combines 3 channels into 1</span>
+<span class="code-cm"># Formula: Gray = 0.114*B + 0.587*G + 0.299*R</span>
+gray = cv2.<span class="code-fn">cvtColor</span>(image, cv2.COLOR_BGR2GRAY)
+
+<span class="code-cm"># Step 3: Display results</span>
+cv2.<span class="code-fn">imshow</span>(<span class="code-str">'Original (BGR)'</span>, image)
+cv2.<span class="code-fn">imshow</span>(<span class="code-str">'Grayscale'</span>, gray)
+
+<span class="code-cm"># Step 4: Wait for key press, then close all windows</span>
+cv2.<span class="code-fn">waitKey</span>(<span class="code-nb">0</span>)  <span class="code-cm"># 0 = wait indefinitely</span>
+cv2.<span class="code-fn">destroyAllWindows</span>()</code></pre>
+
+    <br/>
+    <p><strong>Function-by-Function Explanation:</strong></p>
+    <div class="def-box">
+      <div class="def-term">cv2.imread(filename, flag)</div>
+      <p style="font-size:13px;margin-top:4px"><strong>What it does:</strong> Reads an image file from disk into RAM as a <strong>NumPy ndarray</strong>.</p>
+      <p style="font-size:13px"><strong>Important:</strong> OpenCV stores color images as <strong>BGR</strong> (Blue-Green-Red), NOT RGB! This is a frequent source of bugs when displaying with matplotlib.</p>
+      <p style="font-size:13px"><strong>Return shape:</strong> (height, width, channels) = e.g., (480, 640, 3) for a 640×480 color image</p>
+      <p style="font-size:13px"><strong>Flags:</strong> cv2.IMREAD_COLOR (default), cv2.IMREAD_GRAYSCALE, cv2.IMREAD_UNCHANGED (keep alpha)</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">cv2.cvtColor(image, code)</div>
+      <p style="font-size:13px;margin-top:4px"><strong>What it does:</strong> Converts an image between color spaces.</p>
+      <p style="font-size:13px"><strong>Common codes:</strong></p>
+      <ul style="font-size:12px;padding-left:14px;margin-top:4px">
+        <li>cv2.COLOR_BGR2GRAY — to grayscale</li>
+        <li>cv2.COLOR_BGR2RGB — BGR to RGB (for matplotlib)</li>
+        <li>cv2.COLOR_BGR2HSV — to Hue-Saturation-Value</li>
+        <li>cv2.COLOR_GRAY2BGR — grayscale to 3-channel BGR</li>
+      </ul>
+      <p style="font-size:13px;margin-top:6px"><strong>Grayscale formula:</strong> Gray = 0.114×B + 0.587×G + 0.299×R (human perception weights — green channel matters most to human vision)</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">cv2.imshow(window_name, image)</div>
+      <p style="font-size:13px;margin-top:4px"><strong>What it does:</strong> Opens a native OS window displaying the image array.</p>
+      <p style="font-size:13px"><strong>Important:</strong> Must be followed by cv2.waitKey() — otherwise the window immediately closes and nothing is visible!</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">cv2.waitKey(delay_ms)</div>
+      <p style="font-size:13px;margin-top:4px">Waits for a keyboard event for delay_ms milliseconds. 0 = wait forever. Returns ASCII code of pressed key.</p>
+    </div>
+
+    <br/>
+    <p><strong>Extended Pipeline — Adding More Operations:</strong></p>
+    <pre><code><span class="code-kw">import</span> cv2
+
+image = cv2.<span class="code-fn">imread</span>(<span class="code-str">'photo.jpg'</span>)
+gray = cv2.<span class="code-fn">cvtColor</span>(image, cv2.COLOR_BGR2GRAY)
+
+<span class="code-cm"># Threshold (binarize) the grayscale image</span>
+_, binary = cv2.<span class="code-fn">threshold</span>(gray, <span class="code-nb">128</span>, <span class="code-nb">255</span>, cv2.THRESH_BINARY)
+
+<span class="code-cm"># Detect edges using Canny algorithm</span>
+edges = cv2.<span class="code-fn">Canny</span>(gray, <span class="code-nb">50</span>, <span class="code-nb">150</span>)
+
+<span class="code-cm"># Find connected components</span>
+num_labels, labels = cv2.<span class="code-fn">connectedComponents</span>(binary)
+<span class="code-fn">print</span>(<span class="code-fn">f</span><span class="code-str">"Found {num_labels-1} components"</span>)
+
+<span class="code-cm"># Save result to disk</span>
+cv2.<span class="code-fn">imwrite</span>(<span class="code-str">'output_gray.jpg'</span>, gray)
+cv2.<span class="code-fn">imwrite</span>(<span class="code-str">'output_edges.jpg'</span>, edges)
+
+<span class="code-cm"># Display all results</span>
+cv2.<span class="code-fn">imshow</span>(<span class="code-str">'Original'</span>, image)
+cv2.<span class="code-fn">imshow</span>(<span class="code-str">'Gray'</span>, gray)
+cv2.<span class="code-fn">imshow</span>(<span class="code-str">'Binary'</span>, binary)
+cv2.<span class="code-fn">imshow</span>(<span class="code-str">'Edges'</span>, edges)
+cv2.<span class="code-fn">waitKey</span>(<span class="code-nb">0</span>)
+cv2.<span class="code-fn">destroyAllWindows</span>()</code></pre>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي — شرح الكود</div>
+    <p>هذا الكود يمثل خط الأنابيب الأساسي في OpenCV:</p>
+    <br/>
+    <p><strong>cv2.imread('photo.jpg')</strong>: يقرأ الصورة من القرص ويخزنها كمصفوفة NumPy ذات شكل (ارتفاع × عرض × 3). <span style="color:var(--warn)">تنبيه: OpenCV تخزن الألوان بترتيب BGR وليس RGB!</span></p>
+    <br/>
+    <p><strong>cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)</strong>: يحول الصورة الملونة (3 قنوات) إلى صورة رمادية (قناة واحدة). المعادلة: رمادي = 0.114×أزرق + 0.587×أخضر + 0.299×أحمر</p>
+    <br/>
+    <p><strong>cv2.imshow('نافذة', صورة)</strong>: يفتح نافذة لعرض الصورة. يجب استدعاؤها مع cv2.waitKey() وإلا ستنغلق فورًا.</p>
+    <br/>
+    <p><strong>cv2.waitKey(0)</strong>: ينتظر ضغطة مفتاح (0 = ينتظر إلى الأبد).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>NumPy Array (مصفوفة NumPy)</strong> — بنية البيانات التي تُخزَّن فيها الصور</li>
+      <li><strong>BGR vs RGB</strong> — OpenCV يستخدم BGR بعكس المعيار الشائع RGB</li>
+      <li><strong>Grayscale (تدرج الرمادي)</strong> — صورة بقناة واحدة (0–255)</li>
+      <li><strong>Color Space (فضاء الألوان)</strong> — طريقة تمثيل الألوان (BGR, HSV, LAB...)</li>
+    </ul>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes in OpenCV Code</div>
+    <ul class="e-list">
+      <li>❌ <strong>Forgetting cv2.waitKey(0)</strong> after imshow — window disappears immediately</li>
+      <li>❌ <strong>BGR vs RGB confusion</strong> — colors appear wrong when passing to matplotlib (which expects RGB)</li>
+      <li>❌ <strong>Not checking if imread returns None</strong> — crashes if file not found</li>
+      <li>❌ <strong>Using wrong channel order</strong> in custom operations after cvtColor</li>
+    </ul>
+    <pre><code><span class="code-cm"># Fix BGR→RGB for matplotlib display:</span>
+rgb = cv2.<span class="code-fn">cvtColor</span>(image, cv2.COLOR_BGR2RGB)
+<span class="code-kw">import</span> matplotlib.pyplot <span class="code-kw">as</span> plt
+plt.<span class="code-fn">imshow</span>(rgb)  <span class="code-cm"># NOT imshow(image) directly!</span></code></pre>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 imread → NumPy array (H×W×3), BGR order, dtype=uint8</li>
+      <li>📌 cvtColor converts between color spaces: BGR2GRAY, BGR2RGB, BGR2HSV</li>
+      <li>📌 Grayscale formula: G = 0.114B + 0.587G + 0.299R (not a simple average!)</li>
+      <li>📌 imshow + waitKey(0) + destroyAllWindows = complete display sequence</li>
+      <li>📌 OpenCV = BGR not RGB — common exam trick question</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Core pipeline: <code>imread</code> (load as BGR NumPy array) → <code>cvtColor(BGR2GRAY)</code> (3 channels → 1) → <code>imshow</code> (display) → <code>waitKey(0)</code> (wait for keypress). OpenCV uses BGR not RGB!</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice, True/False, Fill-in-the-Blank, and Short Answer Questions</p>
+
+  <!-- MCQ -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Computer Vision is most accurately described as:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) A synonym for image processing</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) A subset of AI/ML focused on interpreting visual data</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Only related to robotics</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A hardware technology for cameras</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — CV is a specialized domain within AI → ML → Deep Learning that processes visual information.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. In the traditional image processing pipeline, what does "binarization" produce?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) A colored depth map</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) A black-and-white image where each pixel is 0 or 1</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) A feature vector representing the image</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A bounding box around detected objects</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Binarization applies a threshold T: pixels ≥ T → 1 (white), pixels &lt; T → 0 (black).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What is the key difference between Classical ML and Deep Learning for CV?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Classical ML uses GPUs; Deep Learning uses CPUs</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Deep Learning requires more labeled data — nothing else differs</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Classical ML requires hand-crafted features; Deep Learning learns features automatically end-to-end</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Classical ML cannot classify images</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Classical ML (HOG/SIFT + SVM) requires human-designed features. CNN-based DL learns features automatically via backpropagation.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Which CV task outputs a bounding box around each detected object?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Image Classification</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Object Detection</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Semantic Segmentation</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Feature Extraction</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Object detection outputs class label + bounding box coordinates for each detected object.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. The Kalman Filter in object tracking is used to:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Train the neural network detector</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Predict the next position of a tracked object</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Extract facial landmarks</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Convert images to grayscale</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Kalman Filter uses current position and velocity to predict where an object will be in the next frame.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. In OpenCV Python, images are stored in which color format by default?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) RGB</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) BGR</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) HSV</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) RGBA</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — OpenCV imread stores color images as BGR (Blue-Green-Red), not the standard RGB order. This is a famous gotcha!</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. Zero-Shot Learning is characterized by:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Training with zero data</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Using no neural networks</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Recognizing categories not seen during training using semantic relationships</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Achieving 0% error rate</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — ZSL generalizes to new classes using semantic descriptions or attribute relationships, without seeing training examples for those classes.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. OCR stands for:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Object Classification Recognition</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Optical Character Recognition</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Online Content Reading</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) OpenCV Core Runtime</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — OCR = Optical Character Recognition. Converts visual text (images, scans) to machine-readable digital text.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: Deep Learning requires human engineers to manually design feature extractors.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — Deep Learning automatically learns feature representations from raw data. Manual feature engineering is the Classical ML approach (HOG, SIFT).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: Semantic Segmentation provides more spatial precision than Image Classification.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — Segmentation assigns a label to every pixel (highest precision). Classification only gives one label for the entire image (lowest precision).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: OpenCV's Python API operates completely independently of C++.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — OpenCV's Python bindings (cv2) are a wrapper around the C++ core backend. The actual computation runs in C++ for performance.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 4: Depth estimation converts a 2D image into a representation that includes distance information (3D).</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — Depth estimation adds the Z dimension (distance from camera) to each pixel's (x, y) position, effectively creating a 3D scene understanding.</div>
+  </div>
+
+  <!-- Fill in the blank -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--warn)"><span class="icon">📝</span> Fill in the Blank</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 1: The three traditional image processing steps are: ________, Connected Components, and Feature Counting.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Convolution</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Binarization</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Backpropagation</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Segmentation</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: Binarization</strong> — The traditional pipeline: Binarization → Connected Components → Feature Counting.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 2: The OpenCV function used to convert an image between color spaces is ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) cv2.imread</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) cv2.imshow</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) cv2.cvtColor</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) cv2.threshold</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: cv2.cvtColor</strong> — Used as cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) to convert BGR to grayscale.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: What are the three algorithms used in Deep SORT tracking? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> (1) <strong>Kalman Filter</strong> — predicts next object position. (2) <strong>Hungarian Algorithm</strong> — solves optimal assignment matching between predictions and new detections. (3) <strong>Deep appearance network</strong> — extracts visual appearance features to re-identify objects after occlusion.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Explain the difference between Classification, Detection, and Segmentation. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> <strong>Classification</strong> assigns one label to the entire image (image-level). <strong>Detection</strong> finds multiple objects and draws bounding boxes around each (object-level). <strong>Segmentation</strong> assigns a class label to every individual pixel in the image (pixel-level). They represent increasing spatial precision: image → object → pixel.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Why does OpenCV use BGR instead of RGB? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> OpenCV was originally developed when BGR was a common ordering in image capture hardware and Windows DIBitmaps. It became a convention in the library that persisted for backward compatibility. The practical impact: when using cv2.imread, colors appear correctly in OpenCV display functions (imshow), but will appear color-swapped when passed to libraries expecting RGB (like matplotlib). Fix: use cv2.cvtColor(img, cv2.COLOR_BGR2RGB) before passing to matplotlib.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: What is Zero-Shot Learning and how does CLIP enable it? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Zero-Shot Learning is the ability to recognize object categories not seen during training, using semantic relationships. CLIP (Contrastive Language-Image Pretraining by OpenAI) enables this by training on 400M image-text pairs, learning a joint embedding space where text descriptions and corresponding images have similar vector representations. At inference, describing a new class in text allows CLIP to find matching images without having seen examples of that class.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 19 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+    
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Introduction to Computer Vision" / Dr. Ahmed Yousry — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Foundations & AI Landscapes — ✅ Section 1 (CV in AI Ecosystem)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — A Paradigm of AI (CV Ecosystem, Nested Fields, Interdisciplinary, Practical Domains) — ✅ Section 1 fully covered</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — Mathematical Binary Heuristics (Binarization, Connected Components, Feature Counting) — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Evolution of Feature Pipelines (Classical ML HOG/SIFT/SVM vs Deep Learning CNN, End-to-End, Backpropagation) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Core CV Fields (intro slide for Part II) — ✅ Addressed in Section intro</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — Spatial Resolution (Classification, Detection, Semantic Segmentation, granularity spectrum) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — Multi-Object Video Tracking (Temporal ID Association, Surveillance, Kalman Filters, Hungarian Matching, Deep SORT) — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Biometrics & Face Mesh (Dense Mesh, Biometric Verification, Expression Analysis) — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — OCR (Handwriting Challenges, Layout Analysis, NLP Integration) — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Human Pose Estimation (Joint Coordinates, Skeletal Graph, Athletic Analysis, Gesture Control, Clinical Therapy) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Depth Estimation (AR, Robot Navigation, Depth Heatmaps) — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Advanced AI Techniques (Zero-Shot Learning, Feature Extraction, Mask Generation) — ✅ Sections 10, 11, 12</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — CV Task Summary Table (all 6 tasks: Classification, Detection, Segmentation, Depth, Keypoint, Feature Extraction) — ✅ Section 13</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Industry Adoption Rate Chart — ✅ Referenced and discussed in Section 13 context</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 16</strong> — OpenCV Library (C++ Core, pip install, Versatility) — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 17</strong> — OpenCV Code Pipeline (cv2.imread, cv2.cvtColor, cv2.imshow) — ✅ Section 15 with full annotated code</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 18</strong> — Technical Asset Sources / Image references diagram descriptions — ✅ Referenced as visual context throughout guide</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 19</strong> — Image source URLs — ✅ Acknowledged (source attribution slide)</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 19/19 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, algorithms, code snippets, tables, abbreviations, and application examples have been explained in both English and Arabic with additional examples, memory tricks, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><span class="tag tag-blue">AI</span> ⊃ <span class="tag tag-blue">ML</span> ⊃ <span class="tag tag-blue">Deep Learning</span> ⊃ <span class="tag tag-blue">Computer Vision</span></p>
+      <p><strong>Traditional Pipeline:</strong> <span class="tag tag-orange">Binarize</span> → <span class="tag tag-orange">Connected Components (4/8-way)</span> → <span class="tag tag-orange">Feature Count</span></p>
+      <p><strong>Classical ML:</strong> <span class="tag tag-purple">HOG/SIFT</span> → <span class="tag tag-purple">SVM</span></p>
+      <p><strong>Deep Learning:</strong> <span class="tag tag-green">CNN (edges→textures→shapes)</span> → <span class="tag tag-green">End-to-End Backprop</span></p>
+      <p><strong>CV Tasks:</strong> <span class="tag tag-blue">Classification</span> → <span class="tag tag-green">Detection (YOLO)</span> → <span class="tag tag-purple">Segmentation (U-Net)</span></p>
+      <p><strong>Temporal:</strong> <span class="tag tag-orange">Tracking = Kalman + Hungarian + Deep SORT</span></p>
+      <p><strong>Face:</strong> <span class="tag tag-blue">Mesh (468 pts) → Biometrics → Emotion</span></p>
+      <p><strong>Text:</strong> <span class="tag tag-green">OCR → NLP Pipeline</span></p>
+      <p><strong>Body:</strong> <span class="tag tag-purple">Pose Estimation = Keypoints + Skeletal Graph</span></p>
+      <p><strong>3D:</strong> <span class="tag tag-orange">Depth Estimation → Heatmap → AR/Robotics</span></p>
+      <p><strong>Advanced:</strong> <span class="tag tag-blue">Zero-Shot (CLIP)</span> | <span class="tag tag-green">Feature Vectors (Cosine Sim)</span> | <span class="tag tag-purple">Mask Generation (SAM)</span></p>
+      <p><strong>Tool:</strong> <span class="tag tag-orange">OpenCV = C++ + Python | pip install opencv-python | cv2.imread/cvtColor/imshow</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent = 
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+  
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+  
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+  
+  if (!query || query.length < 2) return;
+  
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+  
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+      
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

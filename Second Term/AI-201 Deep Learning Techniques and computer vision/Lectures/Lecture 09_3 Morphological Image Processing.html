@@ -1,0 +1,3059 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphological Image Processing — Study Guide</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --bg2: #161b22;
+            --bg3: #1f2937;
+            --card: #1a2332;
+            --bord: #30363d;
+            --ac: #58a6ff;
+            --ac2: #f78166;
+            --ac3: #56d364;
+            --ac4: #d2a8ff;
+            --ac5: #ffa657;
+            --tx: #e6edf3;
+            --tx2: #8b949e;
+            --tx3: #b1bac4;
+            --ar: #fbbf24
+        }
+
+        .lm {
+            --bg: #f0f4f8;
+            --bg2: #fff;
+            --bg3: #e8edf3;
+            --card: #fff;
+            --bord: #d0d7de;
+            --ac: #0969da;
+            --ac2: #cf222e;
+            --ac3: #1a7f37;
+            --ac4: #8250df;
+            --ac5: #bc4c00;
+            --tx: #1f2328;
+            --tx2: #656d76;
+            --tx3: #424a53;
+            --ar: #b45309
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Source Serif 4', Georgia, serif;
+            background: var(--bg);
+            color: var(--tx);
+            line-height: 1.75;
+            min-height: 100vh;
+            transition: background .25s, color .25s
+        }
+
+        .wrap {
+            display: flex;
+            min-height: 100vh
+        }
+
+        /* Sidebar */
+        .sb {
+            width: 268px;
+            flex-shrink: 0;
+            background: var(--bg2);
+            border-right: 1px solid var(--bord);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform .25s, background .25s
+        }
+
+        .sbh {
+            padding: 16px 14px 10px;
+            border-bottom: 1px solid var(--bord);
+            position: sticky;
+            top: 0;
+            background: var(--bg2);
+            z-index: 10
+        }
+
+        .sbt {
+            font-family: 'Playfair Display', serif;
+            font-size: .96rem;
+            font-weight: 700;
+            color: var(--ac);
+            margin-bottom: 8px;
+            line-height: 1.3
+        }
+
+        .si {
+            width: 100%;
+            background: var(--bg3);
+            border: 1px solid var(--bord);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: var(--tx);
+            font-size: .81rem;
+            outline: none;
+            transition: border-color .2s
+        }
+
+        .si:focus {
+            border-color: var(--ac)
+        }
+
+        .sn {
+            padding: 7px 5px 80px
+        }
+
+        .ni {
+            display: block;
+            padding: 5px 10px;
+            border-radius: 7px;
+            color: var(--tx3);
+            text-decoration: none;
+            font-size: .79rem;
+            transition: all .2s;
+            margin-bottom: 2px;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .ni:hover,
+        .ni.act {
+            background: var(--ac);
+            color: #fff
+        }
+
+        .ns {
+            font-size: .69rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            color: var(--tx2);
+            padding: 10px 10px 3px;
+            margin-top: 3px
+        }
+
+        /* Main */
+        .mc {
+            flex: 1;
+            margin-left: 268px;
+            padding: 24px 32px 80px;
+            max-width: 1060px
+        }
+
+        .tb {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 26px;
+            padding-bottom: 13px;
+            border-bottom: 1px solid var(--bord)
+        }
+
+        .tt {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--ac), var(--ac4));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .tcs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            background: var(--bg3);
+            border: 1px solid var(--bord);
+            border-radius: 8px;
+            padding: 5px 12px;
+            color: var(--tx);
+            cursor: pointer;
+            font-size: .8rem;
+            transition: all .2s;
+            font-family: inherit
+        }
+
+        .btn:hover {
+            background: var(--ac);
+            color: #fff;
+            border-color: var(--ac)
+        }
+
+        .pb {
+            width: 100%;
+            height: 4px;
+            background: var(--bg3);
+            border-radius: 99px;
+            margin-bottom: 24px;
+            overflow: hidden
+        }
+
+        .pf {
+            height: 100%;
+            background: linear-gradient(90deg, var(--ac), var(--ac3));
+            border-radius: 99px;
+            transition: width .5s ease
+        }
+
+        .pt {
+            font-size: .75rem;
+            color: var(--tx2);
+            margin-bottom: 4px
+        }
+
+        /* Sections */
+        .sec {
+            margin-bottom: 42px;
+            scroll-margin-top: 20px
+        }
+
+        .sh {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            cursor: pointer;
+            user-select: none
+        }
+
+        .sbdg {
+            background: linear-gradient(135deg, var(--ac), var(--ac4));
+            color: #fff;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .9rem;
+            flex-shrink: 0;
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        .stit {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.42rem;
+            font-weight: 700;
+            color: var(--tx)
+        }
+
+        .ssub {
+            font-size: .83rem;
+            color: var(--tx2);
+            margin-top: 2px
+        }
+
+        .ci {
+            margin-left: auto;
+            color: var(--tx2);
+            font-size: 1rem
+        }
+
+        .sbod {
+            overflow: hidden;
+            transition: max-height .4s ease
+        }
+
+        .sbod.col {
+            max-height: 0 !important
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--bord);
+            border-radius: 12px;
+            padding: 19px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .35);
+            transition: background .25s
+        }
+
+        .ctit {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--ac)
+        }
+
+        /* Boxes */
+        .box {
+            border-radius: 9px;
+            padding: 13px 17px;
+            margin: 11px 0;
+            border-left: 4px solid
+        }
+
+        .ben {
+            background: rgba(88, 166, 255, .08);
+            border-color: var(--ac)
+        }
+
+        .bar {
+            background: rgba(251, 191, 36, .08);
+            border-color: var(--ar);
+            direction: rtl;
+            text-align: right
+        }
+
+        .bwa {
+            background: rgba(247, 129, 102, .08);
+            border-color: var(--ac2)
+        }
+
+        .bti {
+            background: rgba(86, 211, 100, .08);
+            border-color: var(--ac3)
+        }
+
+        .bex {
+            background: rgba(255, 166, 87, .08);
+            border-color: var(--ac5)
+        }
+
+        .bdf {
+            background: rgba(210, 168, 255, .08);
+            border-color: var(--ac4)
+        }
+
+        .bl2 {
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 6px;
+            opacity: .85
+        }
+
+        .ben .bl2 {
+            color: var(--ac)
+        }
+
+        .bar .bl2 {
+            color: var(--ar)
+        }
+
+        .bwa .bl2 {
+            color: var(--ac2)
+        }
+
+        .bti .bl2 {
+            color: var(--ac3)
+        }
+
+        .bex .bl2 {
+            color: var(--ac5)
+        }
+
+        .bdf .bl2 {
+            color: var(--ac4)
+        }
+
+        /* Arabic */
+        .art {
+            font-size: 1rem;
+            line-height: 2.1;
+            color: var(--tx)
+        }
+
+        .at {
+            color: var(--ar);
+            font-weight: 600
+        }
+
+        /* Math */
+        .math {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg3);
+            border: 1px solid var(--bord);
+            border-radius: 6px;
+            padding: 9px 15px;
+            margin: 9px 0;
+            font-size: .91rem;
+            overflow-x: auto;
+            color: var(--ac4);
+            display: block
+        }
+
+        .mi {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg3);
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: .86em;
+            color: var(--ac4)
+        }
+
+        /* Table */
+        .tw {
+            overflow-x: auto;
+            margin: 11px 0
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .86rem
+        }
+
+        th {
+            background: var(--bg3);
+            color: var(--ac);
+            font-weight: 600;
+            padding: 9px 12px;
+            text-align: left;
+            border: 1px solid var(--bord)
+        }
+
+        td {
+            padding: 8px 12px;
+            border: 1px solid var(--bord);
+            vertical-align: top
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(255, 255, 255, .025)
+        }
+
+        .lm tr:nth-child(even) td {
+            background: rgba(0, 0, 0, .025)
+        }
+
+        /* Steps */
+        .steps {
+            margin: 11px 0;
+            counter-reset: st
+        }
+
+        .step {
+            display: flex;
+            gap: 11px;
+            margin-bottom: 11px;
+            align-items: flex-start
+        }
+
+        .snum {
+            counter-increment: st;
+            background: var(--ac);
+            color: #fff;
+            border-radius: 50%;
+            width: 27px;
+            height: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: .8rem;
+            flex-shrink: 0;
+            margin-top: 3px
+        }
+
+        .sbod2 {
+            flex: 1
+        }
+
+        .stl2 {
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: var(--tx)
+        }
+
+        /* Grid */
+        .cg {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 11px 0
+        }
+
+        .cc {
+            border-radius: 9px;
+            padding: 13px;
+            border: 1px solid var(--bord)
+        }
+
+        .cc.bl3 {
+            border-top: 3px solid var(--ac);
+            background: rgba(88, 166, 255, .055)
+        }
+
+        .cc.rd {
+            border-top: 3px solid var(--ac2);
+            background: rgba(247, 129, 102, .055)
+        }
+
+        .cc.gr {
+            border-top: 3px solid var(--ac3);
+            background: rgba(86, 211, 100, .055)
+        }
+
+        .cc.pu {
+            border-top: 3px solid var(--ac4);
+            background: rgba(210, 168, 255, .055)
+        }
+
+        .ctitle {
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: .91rem
+        }
+
+        .bl3 .ctitle {
+            color: var(--ac)
+        }
+
+        .rd .ctitle {
+            color: var(--ac2)
+        }
+
+        .gr .ctitle {
+            color: var(--ac3)
+        }
+
+        .pu .ctitle {
+            color: var(--ac4)
+        }
+
+        /* Formula card */
+        .fc {
+            background: var(--bg3);
+            border: 1px solid var(--ac4);
+            border-radius: 9px;
+            padding: 15px 19px;
+            margin: 11px 0;
+            text-align: center
+        }
+
+        .fn {
+            font-size: .76rem;
+            color: var(--tx2);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: .07em
+        }
+
+        .fb {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.18rem;
+            color: var(--ac4);
+            margin-bottom: 7px
+        }
+
+        .fd {
+            font-size: .84rem;
+            color: var(--tx3)
+        }
+
+        /* Diagram */
+        .dg {
+            background: var(--bg3);
+            border: 1px solid var(--bord);
+            border-radius: 9px;
+            padding: 17px;
+            margin: 11px 0;
+            overflow-x: auto
+        }
+
+        .dgt {
+            font-size: .76rem;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--tx2);
+            margin-bottom: 11px;
+            font-weight: 600
+        }
+
+        .pg {
+            display: inline-grid;
+            gap: 2px
+        }
+
+        .px {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-size: .65rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        .pf2 {
+            background: var(--ac);
+            color: #fff
+        }
+
+        .pb3 {
+            background: var(--bg2);
+            color: var(--tx2);
+            border: 1px solid var(--bord)
+        }
+
+        .ps {
+            background: var(--ac2);
+            color: #fff
+        }
+
+        .pr {
+            background: var(--ac3);
+            color: #fff
+        }
+
+        /* Flow */
+        .fr {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap
+        }
+
+        .fa {
+            color: var(--ac);
+            font-size: 1.2rem;
+            font-weight: 700
+        }
+
+        .fl {
+            background: var(--card);
+            border: 1px solid var(--bord);
+            border-radius: 7px;
+            padding: 5px 12px;
+            font-size: .81rem;
+            color: var(--tx)
+        }
+
+        .fl.op {
+            background: var(--ac);
+            color: #fff;
+            border-color: var(--ac)
+        }
+
+        /* Mnemonic */
+        .mn {
+            background: linear-gradient(135deg, var(--bg3), rgba(210, 168, 255, .07));
+            border: 1px dashed var(--ac4);
+            border-radius: 9px;
+            padding: 13px 17px;
+            margin: 11px 0
+        }
+
+        .mnt {
+            color: var(--ac4);
+            font-size: .74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 6px
+        }
+
+        /* Tags */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0
+        }
+
+        .tag {
+            background: var(--bg3);
+            border: 1px solid var(--bord);
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: .74rem;
+            color: var(--tx3)
+        }
+
+        /* MCQ */
+        .mcq-wrap {
+            margin: 8px 0
+        }
+
+        .mq {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--tx);
+            font-size: .93rem
+        }
+
+        .mo {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background .2s;
+            margin-bottom: 3px;
+            border: 1px solid transparent;
+            font-size: .88rem
+        }
+
+        .mo:hover {
+            background: var(--bg3);
+            border-color: var(--bord)
+        }
+
+        .mo.cor {
+            background: rgba(86, 211, 100, .14);
+            border-color: var(--ac3) !important
+        }
+
+        .mo.wrg {
+            background: rgba(247, 129, 102, .12);
+            border-color: var(--ac2) !important
+        }
+
+        .ml {
+            width: 21px;
+            height: 21px;
+            border-radius: 50%;
+            background: var(--bg3);
+            border: 1px solid var(--bord);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+            font-weight: 700;
+            flex-shrink: 0
+        }
+
+        .ma {
+            display: none;
+            margin-top: 6px;
+            padding: 8px 12px;
+            border-radius: 7px;
+            background: var(--bg3);
+            font-size: .86rem;
+            color: var(--ac3)
+        }
+
+        .ma.vis {
+            display: block
+        }
+
+        .rb {
+            background: var(--ac);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 5px 13px;
+            cursor: pointer;
+            font-size: .79rem;
+            margin-top: 6px
+        }
+
+        .rb:hover {
+            opacity: .82
+        }
+
+        /* T/F */
+        .tf {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border: 1px solid var(--bord);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            gap: 10px
+        }
+
+        .tfs {
+            flex: 1;
+            font-size: .88rem
+        }
+
+        .tfb {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0
+        }
+
+        .tb3 {
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--bord);
+            cursor: pointer;
+            font-size: .78rem;
+            background: var(--bg3);
+            color: var(--tx);
+            transition: all .2s
+        }
+
+        .tb3.tc {
+            background: var(--ac3);
+            color: #fff;
+            border-color: var(--ac3)
+        }
+
+        .tb3.fc2 {
+            background: var(--ac2);
+            color: #fff;
+            border-color: var(--ac2)
+        }
+
+        /* Coverage */
+        .cov {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 7px;
+            margin-bottom: 3px;
+            background: var(--bg3)
+        }
+
+        .cck {
+            color: var(--ac3);
+            font-size: 1rem;
+            flex-shrink: 0
+        }
+
+        /* Mobile */
+        .tog {
+            display: none;
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            z-index: 200;
+            background: var(--ac);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+            align-items: center;
+            justify-content: center
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg2)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bord);
+            border-radius: 99px
+        }
+
+        /* Search highlight */
+        .shl {
+            background: rgba(255, 200, 0, .3);
+            border-radius: 2px
+        }
+
+        /* Lists */
+        ul.cl {
+            list-style: none;
+            padding: 0
+        }
+
+        ul.cl li {
+            padding: 3px 0 3px 17px;
+            position: relative;
+            font-size: .92rem
+        }
+
+        ul.cl li::before {
+            content: "◆";
+            position: absolute;
+            left: 0;
+            color: var(--ac);
+            font-size: .55rem;
+            top: 8px
+        }
+
+        ol.cl {
+            padding-left: 17px
+        }
+
+        ol.cl li {
+            margin-bottom: 3px;
+            font-size: .92rem
+        }
+
+        strong {
+            font-weight: 600
+        }
+
+        em {
+            color: var(--ac5)
+        }
+
+        p {
+            margin-bottom: 8px;
+            font-size: .93rem
+        }
+
+        h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            color: var(--ac4);
+            margin: 13px 0 6px
+        }
+
+        @media print {
+
+            .sb,
+            .tcs,
+            .tog {
+                display: none !important
+            }
+
+            .mc {
+                margin-left: 0;
+                padding: 10px
+            }
+
+            .sbod {
+                max-height: none !important;
+                overflow: visible !important
+            }
+        }
+
+        @media(max-width:768px) {
+            .sb {
+                transform: translateX(-100%)
+            }
+
+            .sb.open {
+                transform: translateX(0)
+            }
+
+            .mc {
+                margin-left: 0;
+                padding: 13px
+            }
+
+            .tog {
+                display: flex
+            }
+
+            .cg {
+                grid-template-columns: 1fr
+            }
+
+            .tt {
+                font-size: 1.25rem
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <!-- SIDEBAR -->
+        <aside class="sb" id="sidebar">
+            <div class="sbh">
+                <div class="sbt">📐 Morphological Image Processing</div>
+                <input class="si" type="text" id="srch" placeholder="🔍 Search topics..."
+                    oninput="doSearch(this.value)">
+            </div>
+            <nav class="sn">
+                <div class="ns">Part I — Core Operations</div>
+                <a class="ni" onclick="goTo('s0')">🎯 Introduction &amp; Overview</a>
+                <a class="ni" onclick="goTo('s1')">📐 Mathematical Preliminaries</a>
+                <a class="ni" onclick="goTo('s2')">⬇️ Erosion — التآكل</a>
+                <a class="ni" onclick="goTo('s3')">⬆️ Dilation — التمدد</a>
+                <a class="ni" onclick="goTo('s4')">🔓 Opening — الفتح</a>
+                <a class="ni" onclick="goTo('s5')">🔒 Closing — الإغلاق</a>
+                <a class="ni" onclick="goTo('s6')">📊 Operations Matrix (Slide 7)</a>
+                <div class="ns">Part II — Algorithms</div>
+                <a class="ni" onclick="goTo('s7')">🔲 Boundary Extraction β(A)</a>
+                <a class="ni" onclick="goTo('s8')">🕳️ Hole Filling (Iterative)</a>
+                <a class="ni" onclick="goTo('s9')">🔗 Connected Components</a>
+                <a class="ni" onclick="goTo('s10')">🦴 Skeletonization</a>
+                <div class="ns">Assessment</div>
+                <a class="ni" onclick="goTo('s11')">❓ MCQs, T/F, Practice</a>
+                <a class="ni" onclick="goTo('s12')">✅ Coverage Verification</a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="mc" id="mc">
+            <div class="tb">
+                <div>
+                    <div class="tt">Morphological Image Processing</div>
+                    <div style="font-size:.79rem;color:var(--tx2);margin-top:2px">Dr. Ahmed Yousry · Lecture 09 ·
+                        Complete Interactive Study Guide (Bilingual)</div>
+                </div>
+                <div class="tcs">
+                    <button class="btn" onclick="tgMode()">🌙 Dark/Light</button>
+                    <button class="btn" onclick="expAll()">📂 Expand All</button>
+                    <button class="btn" onclick="colAll()">📁 Collapse All</button>
+                    <button class="btn" onclick="window.print()">🖨️ Print</button>
+                </div>
+            </div>
+            <div class="pt" id="pt">Progress: 0 / 11 sections read</div>
+            <div class="pb">
+                <div class="pf" id="pf" style="width:0%"></div>
+            </div>
+
+            <!-- ===== SECTION 0: INTRO ===== -->
+            <div class="sec" id="s0">
+                <div class="sh" onclick="tgSec('s0')">
+                    <div class="sbdg">00</div>
+                    <div>
+                        <div class="stit">Introduction &amp; Overview</div>
+                        <div class="ssub">Slides 1–2 · What is Morphological Image Processing?</div>
+                    </div>
+                    <span class="ci" id="i-s0">▼</span>
+                </div>
+                <div class="sbod" id="b-s0">
+                    <div class="card">
+                        <div class="ctit">🎯 What is Morphological Image Processing?</div>
+                        <div class="box ben">
+                            <div class="bl2">📘 English Explanation</div>
+                            <p><strong>Morphological Image Processing (MIP)</strong> is a branch of image analysis
+                                rooted in <strong>mathematical set theory</strong>. It studies the shape (morphology) of
+                                objects in images by probing them with a small shape called a <strong>Structuring
+                                    Element (SE)</strong>.</p>
+                            <p>The core idea: slide the SE over every pixel position. Based on how the SE overlaps with
+                                foreground pixels, apply a specific operation. Works primarily on <strong>binary
+                                    images</strong> (black = 0 / white = 1) and extends to grayscale.</p>
+                            <ul class="cl">
+                                <li>Foreground pixels (white, 1) = mathematical <strong>set A</strong> (the object)</li>
+                                <li>Background pixels (black, 0) = complement <strong>Aᶜ</strong> (empty space)</li>
+                                <li>Structuring Element B = the probe/template slid across the image</li>
+                                <li>Applications: noise removal, shape analysis, edge detection, object counting, OCR
+                                    preprocessing</li>
+                            </ul>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي</div>
+                            <div class="art">
+                                <p><span class="at">معالجة الصور المورفولوجية (Morphological Image Processing)</span> هي
+                                    فرع من معالجة الصور يعتمد على <span class="at">نظرية المجموعات الرياضية (Set
+                                        Theory)</span>. الفكرة: لدينا صورة ثنائية (أبيض وأسود) ونُحرّك شكلًا صغيرًا
+                                    يُسمى <span class="at">العنصر البنيوي (Structuring Element)</span> على كل نقطة
+                                    (بكسل) في الصورة. بناءً على كيفية تقاطعه مع المقدمة البيضاء نُطبّق عملية معينة.</p>
+                                <p><strong>التطبيقات:</strong> إزالة الضوضاء، استخراج الحواف، عد الأجسام، التعرف على
+                                    الحروف.</p>
+                            </div>
+                        </div>
+                        <div class="box bti">
+                            <div class="bl2">💡 Analogy / مثال واقعي</div>
+                            <p><strong>English:</strong> Like a rubber stamp (SE) slid over ink on paper (image).
+                                Depending on how the stamp overlaps the ink — fully, partially, or not at all — you do a
+                                different operation.</p>
+                            <p><strong>عربي:</strong> مثل ختم مطاطي (SE) تمرّره على حبر ورق (الصورة). إذا وافق الختم
+                                الحبر تمامًا ← عملية A. إذا لمس جزئيًا ← عملية B. إذا لم يلمس ← عملية C.</p>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">📗 Part I: Core Operations (Slides 1–7)</div>
+                                <ul class="cl">
+                                    <li>6.1 Mathematical Preliminaries — Fit, Hit, Miss</li>
+                                    <li>6.2.1 Erosion (A ⊖ B)</li>
+                                    <li>6.2.2 Dilation (A ⊕ B)</li>
+                                    <li>6.3 Opening (A ∘ B)</li>
+                                    <li>6.3 Closing (A • B)</li>
+                                    <li>Comparison Matrix</li>
+                                </ul>
+                            </div>
+                            <div class="cc pu">
+                                <div class="ctitle">📘 Part II: Algorithms (Slides 8–11)</div>
+                                <ul class="cl">
+                                    <li>6.4 Boundary Extraction β(A)</li>
+                                    <li>6.4 Hole Filling (Iterative)</li>
+                                    <li>6.4.4 Connected Components</li>
+                                    <li>6.4.5 Skeletonization</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tags"><span class="tag">Set Theory</span><span class="tag">Binary Images</span><span
+                                class="tag">Structuring Element</span><span class="tag">Computer Vision</span><span
+                                class="tag">Shape Analysis</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 1: PRELIMINARIES ===== -->
+            <div class="sec" id="s1">
+                <div class="sh" onclick="tgSec('s1')">
+                    <div class="sbdg">01</div>
+                    <div>
+                        <div class="stit">6.1 Mathematical Preliminaries</div>
+                        <div class="ssub">Slide 3 · Set Definitions · FIT, HIT, MISS Rules</div>
+                    </div>
+                    <span class="ci" id="i-s1">▼</span>
+                </div>
+                <div class="sbod" id="b-s1">
+                    <div class="card">
+                        <div class="ctit">📐 The Three Fundamental Rules</div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Core Concepts from Slide 3</div>
+                            <p>From the slide: <em>"Morphological operations examine binary or grayscale structures by
+                                    shifting a probe shape called a Structuring Element (SE) across the image
+                                    plane."</em></p>
+                            <ul class="cl">
+                                <li><strong>Set A</strong> = Foreground pixels (white = 1) = the object of interest</li>
+                                <li><strong>Set B</strong> = Structuring Element — the probe shape</li>
+                                <li><strong>Background</strong> = Black pixels = empty space = complement Aᶜ</li>
+                                <li><strong>B_x</strong> = B translated so its origin is at pixel position x</li>
+                            </ul>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">✅ FIT Rule (from Slide 3)</div>
+                                <p style="font-size:.87rem">"Every foreground pixel of the translated structuring
+                                    element <strong>completely covers</strong> the foreground set."</p>
+                                <span class="math">B_x ⊆ A</span>
+                                <p style="font-size:.84rem">All SE pixels must land on foreground. <strong>Used by:
+                                        Erosion.</strong></p>
+                            </div>
+                            <div class="cc rd">
+                                <div class="ctitle">⚡ HIT Rule (from Slide 3)</div>
+                                <p style="font-size:.87rem">"At least one foreground pixel of the structuring element
+                                    <strong>overlaps</strong> the foreground."
+                                </p>
+                                <span class="math">B_x ∩ A ≠ ∅</span>
+                                <p style="font-size:.84rem">Even one overlap is enough. <strong>Used by:
+                                        Dilation.</strong></p>
+                            </div>
+                            <div class="cc gr">
+                                <div class="ctitle">❌ MISS Rule (from Slide 3)</div>
+                                <p style="font-size:.87rem">"Structuring element has <strong>zero overlapping
+                                        pixels</strong> with the foreground set."</p>
+                                <span class="math">B_x ∩ A = ∅</span>
+                                <p style="font-size:.84rem">Complete separation — no contact at all.</p>
+                            </div>
+                            <div class="cc pu">
+                                <div class="ctitle">🔑 Key Relationship</div>
+                                <p style="font-size:.85rem">FIT is <strong>stricter</strong> than HIT:</p>
+                                <p style="font-size:.85rem">FIT → HIT (if fully inside, then also touching)</p>
+                                <p style="font-size:.85rem">HIT ↛ FIT (partial touch ≠ full coverage)</p>
+                                <p style="font-size:.85rem">FIT and MISS are mutually exclusive.</p>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — المقدمات الرياضية</div>
+                            <div class="art">
+                                <p>ثلاث قواعد أساسية تحكم كل العمليات المورفولوجية:</p>
+                                <p>🔵 <span class="at">التطابق (FIT)</span>: جميع بكسلات العنصر البنيوي B تقع داخل
+                                    المقدمة A. المعادلة: B_x ⊆ A. تستخدمه: <span class="at">التآكل (Erosion)</span>.</p>
+                                <p>🔴 <span class="at">اللمس (HIT)</span>: ولو بكسل واحد من B يتقاطع مع A. المعادلة: B_x
+                                    ∩ A ≠ ∅. يستخدمه: <span class="at">التمدد (Dilation)</span>.</p>
+                                <p>🟢 <span class="at">الغياب (MISS)</span>: لا يوجد أي تقاطع. المعادلة: B_x ∩ A = ∅.
+                                </p>
+                                <p><strong>المصطلحات:</strong> Foreground = المقدمة | Background = الخلفية | Structuring
+                                    Element = العنصر البنيوي</p>
+                            </div>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Visual: FIT vs HIT vs MISS on a simple image</div>
+                            <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start">
+                                <div>
+                                    <p style="font-size:.74rem;color:var(--tx2);margin-bottom:4px">Image A (blue = fg)
+                                    </p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p style="font-size:.74rem;color:var(--tx2);margin-bottom:4px">SE B (cross)</p>
+                                    <div class="pg" style="grid-template-columns:repeat(3,20px)">
+                                        <div class="px pb3">·</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px pb3">·</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px pb3">·</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px pb3">·</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:.82rem;max-width:230px">
+                                    <p style="margin-bottom:5px"><strong style="color:var(--ac3)">FIT:</strong> Center B
+                                        at row1,col2 → all 5 B-pixels on foreground ✓</p>
+                                    <p style="margin-bottom:5px"><strong style="color:var(--ac5)">HIT:</strong> Center B
+                                        at row3,col2 → only center pixel overlaps A</p>
+                                    <p><strong style="color:var(--ac2)">MISS:</strong> Center B at row5,col1 → no B
+                                        pixels touch A ✗</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mn">
+                            <div class="mnt">🧠 Memory Trick / حيلة الحفظ</div>
+                            <p><strong>F-H-M = "Fully, Half, Missing"</strong><br>FIT = Fully inside A | HIT = Half (or
+                                any part) touching | MISS = Missing entirely</p>
+                            <p style="color:var(--ar);margin-top:6px"><strong>بالعربي:</strong> الختم: تطابق كامل = FIT
+                                | تماس جزئي = HIT | لا تماس = MISS</p>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>FIT is <strong>strictly stronger</strong> than HIT — FIT implies HIT, but not vice
+                                    versa</li>
+                                <li>Erosion uses <strong>FIT</strong>; Dilation uses <strong>HIT</strong> — this
+                                    distinction is a very common exam question</li>
+                                <li>Exact slide quote: "Foreground pixels represent set elements; background represents
+                                    empty space"</li>
+                                <li>MISS = complete separation: B_x ∩ A = ∅</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 2: EROSION ===== -->
+            <div class="sec" id="s2">
+                <div class="sh" onclick="tgSec('s2')">
+                    <div class="sbdg">02</div>
+                    <div>
+                        <div class="stit">6.2.1 Erosion (التآكل)</div>
+                        <div class="ssub">Slide 4 · A ⊖ B · Shrinks foreground, removes noise, expands holes</div>
+                    </div>
+                    <span class="ci" id="i-s2">▼</span>
+                </div>
+                <div class="sbod" id="b-s2">
+                    <div class="card">
+                        <div class="ctit">⬇️ Erosion — Definition, Effects, Step-by-Step</div>
+                        <div class="fc">
+                            <div class="fn">Erosion — Mathematical Formula</div>
+                            <div class="fb">A ⊖ B = { x | B_x ⊆ A }</div>
+                            <div class="fd">Set of all positions x where SE translated to x FITS entirely within A.
+                                Output pixel = 1 only when ALL SE pixels land on foreground.</div>
+                        </div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Clear Explanation</div>
+                            <p>From slide 4: <em>"Erosion systematically strips pixels from foreground boundaries where
+                                    the structuring element does not fit perfectly."</em></p>
+                            <p>Rule: a pixel survives in the output (= 1) <em>only if</em> the entire SE, when centered
+                                at that pixel, falls completely within the foreground. If even <strong>one SE pixel
+                                    touches background</strong>, the center pixel is removed (set to 0).</p>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">Effect 1: Boundary Shrinkage</div>
+                                <p style="font-size:.87rem">From slide 4: "Reduces the outer width of foreground areas."
+                                    Objects become smaller. Very thin objects may vanish entirely.</p>
+                            </div>
+                            <div class="cc rd">
+                                <div class="ctitle">Effect 2: Noise Removal</div>
+                                <p style="font-size:.87rem">From slide 4: "Completely eliminates white noise structures
+                                    smaller than the SE." Small blobs fail the FIT test and disappear.</p>
+                            </div>
+                            <div class="cc gr">
+                                <div class="ctitle">Effect 3: Hole Expansion</div>
+                                <p style="font-size:.87rem">From slide 4: "Increases the size of interior dark voids."
+                                    As white pixels erode inward, dark holes grow outward.</p>
+                            </div>
+                            <div class="cc pu">
+                                <div class="ctitle">Practical Example</div>
+                                <p style="font-size:.87rem">Fingerprint image with salt noise: erosion with a 3×3 SE
+                                    removes the salt pixels (smaller than SE) while slightly thinning the ridge lines.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Step-by-Step Erosion: 3×3 block ⊖ 3×3 SE (all ones)</div>
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+                                <div>
+                                    <p style="font-size:.73rem;color:var(--tx2);margin-bottom:3px">Image A</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div class="fa">⊖</div>
+                                <div>
+                                    <p style="font-size:.73rem;color:var(--tx2);margin-bottom:3px">SE B (3×3 all 1s)</p>
+                                    <div class="pg" style="grid-template-columns:repeat(3,20px)">
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                    </div>
+                                </div>
+                                <div class="fa">→</div>
+                                <div>
+                                    <p style="font-size:.73rem;color:var(--tx2);margin-bottom:3px">Result A⊖B</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:.81rem;max-width:180px;color:var(--tx3)">Only center pixel (2,2)
+                                    survives — the only position where the 3×3 SE fits fully. All boundary pixels are
+                                    eroded away.</div>
+                            </div>
+                        </div>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Place SE center at each pixel (x,y)</div>
+                                    <p>Slide B over every pixel of the image systematically.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Apply FIT test</div>
+                                    <p>Does every "1" in B overlap a "1" in A? YES → output = 1. NO → output = 0.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Collect all surviving pixels</div>
+                                    <p>All positions that passed the FIT test form the eroded image A ⊖ B.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — التآكل</div>
+                            <div class="art">
+                                <p><span class="at">التآكل (Erosion) A ⊖ B</span>: يُقلّص الأجسام البيضاء. القاعدة: إذا
+                                    كانت جميع بكسلات SE تقع على مقدمة A ← نحتفظ بالبكسل. وإلا ← نمسحه (= 0).</p>
+                                <p><strong>التأثيرات الثلاثة (من الشريحة 4):</strong></p>
+                                <ul class="cl">
+                                    <li><span class="at">تقليص الحدود (Boundary Shrinkage)</span>: الأجسام تصغر</li>
+                                    <li><span class="at">إزالة الضوضاء (Noise Removal)</span>: البقع الصغيرة أقل من SE
+                                        تختفي</li>
+                                    <li><span class="at">توسيع الثقوب (Hole Expansion)</span>: الثقوب الداخلية السوداء
+                                        تكبر</li>
+                                </ul>
+                                <p><strong>تشبيه:</strong> الصدأ يأكل حواف المعدن من الخارج نحو الداخل.</p>
+                            </div>
+                        </div>
+                        <div class="mn">
+                            <div class="mnt">🧠 Mnemonic / حيلة الحفظ</div>
+                            <p><strong>"Erosion Eats Edges"</strong> (3 E's) — Erosion eats away the edges (boundary
+                                pixels) of white objects.</p>
+                            <p style="color:var(--ar);margin-top:5px"><strong>بالعربي:</strong> "التآكل يأكل الحواف" —
+                                مثل الصدأ يأكل حواف المعدن.</p>
+                        </div>
+                        <div class="box bwa">
+                            <div class="bl2">⚠️ Common Mistakes</div>
+                            <ul class="cl">
+                                <li>Confusing erosion with opening/closing — erosion is a SINGLE basic operation</li>
+                                <li>Thinking erosion fills holes — it ENLARGES them</li>
+                                <li>Larger SE = more erosion = more shrinkage</li>
+                                <li>Erosion is NOT commutative in general (A⊖B ≠ B⊖A)</li>
+                            </ul>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Symbol: <span class="mi">A ⊖ B</span> | Rule: <strong>FIT</strong></li>
+                                <li>Three effects: boundary shrinkage, noise removal, hole expansion (from slide 4)</li>
+                                <li>Exact slide: "Systematically strips pixels from foreground boundaries where the SE
+                                    does not fit perfectly"</li>
+                                <li>Q: "What happens to white noise blobs smaller than the SE?" → They disappear
+                                    completely after erosion</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 3: DILATION ===== -->
+            <div class="sec" id="s3">
+                <div class="sh" onclick="tgSec('s3')">
+                    <div class="sbdg">03</div>
+                    <div>
+                        <div class="stit">6.2.2 Dilation (التمدد)</div>
+                        <div class="ssub">Slide 5 · A ⊕ B · Expands foreground, bridges gaps, seals holes</div>
+                    </div>
+                    <span class="ci" id="i-s3">▼</span>
+                </div>
+                <div class="sbod" id="b-s3">
+                    <div class="card">
+                        <div class="ctit">⬆️ Dilation — Definition, Effects, Step-by-Step</div>
+                        <div class="fc">
+                            <div class="fn">Dilation — Mathematical Formula</div>
+                            <div class="fb">A ⊕ B = { x | B̂_x ∩ A ≠ ∅ }</div>
+                            <div class="fd">Set of all positions x where the reflected SE (B̂) centered at x HITS A (at
+                                least one overlap). Uses HIT rule. For symmetric B: B̂ = B.</div>
+                        </div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Clear Explanation</div>
+                            <p>From slide 5: <em>"Dilation expands the spatial extent of foreground structures by
+                                    appending pixel weights wherever the probe overlaps."</em></p>
+                            <p>Rule: a pixel is set to 1 in the output if <em>any</em> SE pixel overlaps with foreground
+                                when centered at that position (HIT rule). This is <strong>lenient</strong> — even one
+                                overlap activates the output pixel, causing objects to grow outward.</p>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">Effect 1: Structural Growth</div>
+                                <p style="font-size:.87rem">From slide 5: "Magnifies pixel profiles and thickens lines."
+                                    Objects become larger. Thin lines become thicker.</p>
+                            </div>
+                            <div class="cc rd">
+                                <div class="ctitle">Effect 2: Gap Bridging</div>
+                                <p style="font-size:.87rem">From slide 5: "Closes and resolves narrow channels,
+                                    fractures, or disconnected lines." Two nearby objects may merge.</p>
+                            </div>
+                            <div class="cc gr">
+                                <div class="ctitle">Effect 3: Hole Sealing</div>
+                                <p style="font-size:.87rem">From slide 5: "Fills interior black holes smaller than the
+                                    SE boundaries." Foreground grows inward to cover small voids.</p>
+                            </div>
+                            <div class="cc pu">
+                                <div class="ctitle">Duality Property</div>
+                                <span class="math" style="font-size:.82rem;text-align:center">(A ⊖ B)ᶜ = Aᶜ ⊕ B̂</span>
+                                <p style="font-size:.84rem">Erosion and dilation are dual — eroding A equals dilating
+                                    the complement of A.</p>
+                            </div>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Dilation: Single pixel ⊕ Cross SE</div>
+                            <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+                                <div>
+                                    <p style="font-size:.73rem;color:var(--tx2);margin-bottom:3px">Image A (1 pixel)</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div class="fa">⊕</div>
+                                <div>
+                                    <p style="font-size:.73rem;color:var(--tx2);margin-bottom:3px">SE B (cross)</p>
+                                    <div class="pg" style="grid-template-columns:repeat(3,20px)">
+                                        <div class="px pb3">·</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px pb3">·</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px pb3">·</div>
+                                        <div class="px ps">1</div>
+                                        <div class="px pb3">·</div>
+                                    </div>
+                                </div>
+                                <div class="fa">→</div>
+                                <div>
+                                    <p style="font-size:.73rem;color:var(--tx2);margin-bottom:3px">Result A⊕B</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:.81rem;max-width:170px;color:var(--tx3)">The single white pixel
+                                    gets "stamped" with the SE shape. Dilation copies the SE to each foreground pixel
+                                    position.</div>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — التمدد</div>
+                            <div class="art">
+                                <p><span class="at">التمدد (Dilation) A ⊕ B</span>: عكس التآكل — يُكبّر الأجسام البيضاء.
+                                    القاعدة: إذا لمس ولو بكسل واحد من SE مقدمة A ← نجعل هذا البكسل أبيض (= 1) في
+                                    النتيجة.</p>
+                                <p><strong>التأثيرات الثلاثة (من الشريحة 5):</strong></p>
+                                <ul class="cl">
+                                    <li><span class="at">النمو الهيكلي (Structural Growth)</span>: الأجسام تكبر والخطوط
+                                        تسمك</li>
+                                    <li><span class="at">ردم الفجوات (Gap Bridging)</span>: الفجوات والتشققات تنغلق</li>
+                                    <li><span class="at">سد الثقوب (Hole Sealing)</span>: الثقوب الصغيرة أقل من SE تمتلئ
+                                    </li>
+                                </ul>
+                                <p><strong>تشبيه:</strong> مثل البالون عند النفخ — يتمدد في الاتجاهات التي يحددها شكل
+                                    SE.</p>
+                            </div>
+                        </div>
+                        <div class="tw">
+                            <table>
+                                <tr>
+                                    <th>Property</th>
+                                    <th>Erosion ⊖</th>
+                                    <th>Dilation ⊕</th>
+                                </tr>
+                                <tr>
+                                    <td>Rule</td>
+                                    <td>FIT (all pixels)</td>
+                                    <td>HIT (any pixel)</td>
+                                </tr>
+                                <tr>
+                                    <td>Objects</td>
+                                    <td>Shrink</td>
+                                    <td>Grow</td>
+                                </tr>
+                                <tr>
+                                    <td>Holes</td>
+                                    <td>Enlarge</td>
+                                    <td>Shrink / Fill</td>
+                                </tr>
+                                <tr>
+                                    <td>White noise</td>
+                                    <td>Removes small</td>
+                                    <td>Amplifies</td>
+                                </tr>
+                                <tr>
+                                    <td>Commutative?</td>
+                                    <td>No (A⊖B≠B⊖A)</td>
+                                    <td>Yes (A⊕B = B⊕A)</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="mn">
+                            <div class="mnt">🧠 Mnemonic / حيلة الحفظ</div>
+                            <p><strong>"Dilation Dominates/Doubles"</strong> — D-D. Dilation dominates by adding pixels
+                                everywhere it touches.</p>
+                            <p style="color:var(--ar);margin-top:5px"><strong>بالعربي:</strong> "التمدد يتمدد" — مثل
+                                البالون ينفخ في كل الاتجاهات.</p>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Symbol: <span class="mi">A ⊕ B</span> | Rule: <strong>HIT</strong></li>
+                                <li>Commutative: A ⊕ B = B ⊕ A | Associative: A ⊕ (B ⊕ C) = (A ⊕ B) ⊕ C</li>
+                                <li>Three effects: structural growth, gap bridging, hole sealing (from slide 5)</li>
+                                <li>Exact slide: "Expands spatial extent by appending pixel weights wherever the probe
+                                    overlaps"</li>
+                                <li>Duality: (A ⊖ B)ᶜ = Aᶜ ⊕ B̂</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 4: OPENING ===== -->
+            <div class="sec" id="s4">
+                <div class="sh" onclick="tgSec('s4')">
+                    <div class="sbdg">04</div>
+                    <div>
+                        <div class="stit">6.3 Opening (الفتح)</div>
+                        <div class="ssub">Slide 6 · A ∘ B = (A ⊖ B) ⊕ B</div>
+                    </div>
+                    <span class="ci" id="i-s4">▼</span>
+                </div>
+                <div class="sbod" id="b-s4">
+                    <div class="card">
+                        <div class="ctit">🔓 Morphological Opening — Erosion then Dilation</div>
+                        <div class="fc">
+                            <div class="fn">Opening Formula</div>
+                            <div class="fb">A ∘ B = (A ⊖ B) ⊕ B</div>
+                            <div class="fd">First erode A with B, then dilate the result with the SAME B. Two steps, one
+                                SE.</div>
+                        </div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Explanation from Slide 6</div>
+                            <p>From slide 6: <em>"Calculated as erosion followed sequentially by dilation with the
+                                    identical structuring element. Ideal for: Removing small spikes, fine protrusions,
+                                    and background speckles while preserving structural contours."</em></p>
+                            <p>Net effect: small noise/protrusions removed permanently; main object shape preserved
+                                (slightly smoother).</p>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Opening Process Flow</div>
+                            <div class="fr">
+                                <div class="fl">Original A<br><small style="opacity:.6">with spikes/noise</small></div>
+                                <div class="fa">→</div>
+                                <div class="fl op">Erosion ⊖ B</div>
+                                <div class="fa">→</div>
+                                <div class="fl">Eroded A<br><small style="opacity:.6">spikes gone</small></div>
+                                <div class="fa">→</div>
+                                <div class="fl op">Dilation ⊕ B</div>
+                                <div class="fa">→</div>
+                                <div class="fl">A ∘ B<br><small style="opacity:.6">clean contours</small></div>
+                            </div>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">Why spikes disappear</div>
+                                <p style="font-size:.86rem">Thin protrusions are too small to survive erosion (SE can't
+                                    fit). Once eroded, they're gone permanently — the subsequent dilation can't bring
+                                    them back.</p>
+                            </div>
+                            <div class="cc rd">
+                                <div class="ctitle">Why main objects survive</div>
+                                <p style="font-size:.86rem">Large objects survive erosion (just shrink). The subsequent
+                                    dilation re-expands them back to approximately their original size.</p>
+                            </div>
+                            <div class="cc gr">
+                                <div class="ctitle">Properties</div>
+                                <ul class="cl" style="font-size:.84rem">
+                                    <li><strong>Idempotent:</strong> (A ∘ B) ∘ B = A ∘ B</li>
+                                    <li><strong>Anti-extensive:</strong> A ∘ B ⊆ A</li>
+                                    <li><strong>Translation invariant</strong></li>
+                                </ul>
+                            </div>
+                            <div class="cc pu">
+                                <div class="ctitle">Use Cases</div>
+                                <ul class="cl" style="font-size:.84rem">
+                                    <li>Removing salt/speckle noise</li>
+                                    <li>Separating touching objects</li>
+                                    <li>Smoothing object contours</li>
+                                    <li>Preprocessing before shape analysis</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — الفتح المورفولوجي</div>
+                            <div class="art">
+                                <p><span class="at">الفتح (Opening)</span> = <span class="at">تآكل</span> أولًا ثم <span
+                                        class="at">تمدد</span> بنفس SE. من الشريحة 6: "مثالي لإزالة النتوءات الصغيرة
+                                    والضوضاء مع الحفاظ على الملامح الهيكلية".</p>
+                                <p><strong>لماذا يختفي الصغير؟</strong> النتوءات الصغيرة أصغر من SE لا تجتاز التآكل.
+                                    بمجرد اختفائها لا يُعيدها التمدد.<br><strong>لماذا يبقى الكبير؟</strong> الأجسام
+                                    الكبيرة تجتاز التآكل (تصغر فقط) ويُعيدها التمدد لحجمها تقريبًا.</p>
+                                <p><strong>خاصية مهمة:</strong> A ∘ B ⊆ A — النتيجة جزء من الأصل دائمًا (لا بكسلات
+                                    جديدة).</p>
+                            </div>
+                        </div>
+                        <div class="mn">
+                            <div class="mnt">🧠 Opening vs Closing Memory Trick</div>
+                            <p><strong>Opening = "Opens" gaps, removes bumps → Erosion First (E before D
+                                    alphabetically)</strong></p>
+                            <p><strong>Closing = "Closes" holes/cracks → Dilation First (D before E)</strong></p>
+                            <p style="color:var(--ar);margin-top:5px"><strong>بالعربي:</strong> فتح = تآكل+تمدد | إغلاق
+                                = تمدد+تآكل. تذكّر: الفتح "يفتح" الطريق بالتآكل أولًا.</p>
+                        </div>
+                        <div class="box bwa">
+                            <div class="bl2">⚠️ Common Mistakes</div>
+                            <ul class="cl">
+                                <li>Reversing order (Dilation first = Closing, NOT Opening!)</li>
+                                <li>Using different SEs for each step — must use same B</li>
+                                <li>Thinking opening fully restores size — objects are slightly smaller after opening
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Symbol: <span class="mi">A ∘ B</span> | Formula: <span class="mi">(A ⊖ B) ⊕ B</span>
+                                </li>
+                                <li>Order: <strong>Erosion FIRST, then Dilation</strong></li>
+                                <li>Same SE for both steps | Anti-extensive: A ∘ B ⊆ A</li>
+                                <li>Slide 6 purpose: "Removing small spikes, fine protrusions, background speckles while
+                                    preserving structural contours"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 5: CLOSING ===== -->
+            <div class="sec" id="s5">
+                <div class="sh" onclick="tgSec('s5')">
+                    <div class="sbdg">05</div>
+                    <div>
+                        <div class="stit">6.3 Closing (الإغلاق)</div>
+                        <div class="ssub">Slide 6 · A • B = (A ⊕ B) ⊖ B</div>
+                    </div>
+                    <span class="ci" id="i-s5">▼</span>
+                </div>
+                <div class="sbod" id="b-s5">
+                    <div class="card">
+                        <div class="ctit">🔒 Morphological Closing — Dilation then Erosion</div>
+                        <div class="fc">
+                            <div class="fn">Closing Formula</div>
+                            <div class="fb">A • B = (A ⊕ B) ⊖ B</div>
+                            <div class="fd">First dilate A with B, then erode the result with the SAME B.</div>
+                        </div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Explanation from Slide 6</div>
+                            <p>From slide 6: <em>"Calculated as dilation followed sequentially by erosion with the
+                                    identical structuring element. Ideal for: Sealing interior gaps, filling small
+                                    cracks, and connecting fractured target objects without resizing."</em></p>
+                            <p>Net effect: small holes/cracks sealed permanently; outer shape preserved (not
+                                significantly enlarged).</p>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Closing Process Flow</div>
+                            <div class="fr">
+                                <div class="fl">Original A<br><small style="opacity:.6">with holes/cracks</small></div>
+                                <div class="fa">→</div>
+                                <div class="fl op">Dilation ⊕ B</div>
+                                <div class="fa">→</div>
+                                <div class="fl">Dilated A<br><small style="opacity:.6">holes closed</small></div>
+                                <div class="fa">→</div>
+                                <div class="fl op">Erosion ⊖ B</div>
+                                <div class="fa">→</div>
+                                <div class="fl">A • B<br><small style="opacity:.6">no holes remain</small></div>
+                            </div>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">Opening ∘ vs Closing •</div>
+                                <table style="font-size:.79rem">
+                                    <tr>
+                                        <th></th>
+                                        <th>Opening ∘</th>
+                                        <th>Closing •</th>
+                                    </tr>
+                                    <tr>
+                                        <td>Sequence</td>
+                                        <td>Erode → Dilate</td>
+                                        <td>Dilate → Erode</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Removes</td>
+                                        <td>Bright noise</td>
+                                        <td>Dark holes</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Property</td>
+                                        <td>Anti-extensive</td>
+                                        <td>Extensive</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Result</td>
+                                        <td>⊆ A</td>
+                                        <td>⊇ A</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="cc rd">
+                                <div class="ctitle">Properties of Closing</div>
+                                <ul class="cl" style="font-size:.84rem">
+                                    <li><strong>Idempotent:</strong> (A • B) • B = A • B</li>
+                                    <li><strong>Extensive:</strong> A ⊆ A • B</li>
+                                    <li><strong>Translation invariant</strong></li>
+                                    <li><strong>Dual of Opening:</strong> (A ∘ B)ᶜ = Aᶜ • B̂</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — الإغلاق المورفولوجي</div>
+                            <div class="art">
+                                <p><span class="at">الإغلاق (Closing)</span> = <span class="at">تمدد</span> أولًا ثم
+                                    <span class="at">تآكل</span> بنفس SE. من الشريحة 6: "مثالي لسد الفجوات الداخلية وملء
+                                    الشقوق الصغيرة وتوصيل الأجسام المتشققة دون تغيير حجمها".
+                                </p>
+                                <p><strong>خاصية مهمة:</strong> A ⊆ A•B — النتيجة تشمل الأصل دائمًا (لا تُزيل بكسلات
+                                    أصلية).</p>
+                            </div>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Symbol: <span class="mi">A • B</span> | Formula: <span class="mi">(A ⊕ B) ⊖ B</span>
+                                </li>
+                                <li>Order: <strong>Dilation FIRST, then Erosion</strong></li>
+                                <li>Extensive: A ⊆ A • B (closing adds pixels, never removes vs original)</li>
+                                <li>Slide 6 purpose: "Sealing interior gaps, filling small cracks, connecting fractured
+                                    objects without resizing"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 6: COMPARISON MATRIX ===== -->
+            <div class="sec" id="s6">
+                <div class="sh" onclick="tgSec('s6')">
+                    <div class="sbdg">06</div>
+                    <div>
+                        <div class="stit">Operations Comparison Matrix</div>
+                        <div class="ssub">Slide 7 · All four operators: notation, formula, effect, purpose</div>
+                    </div>
+                    <span class="ci" id="i-s6">▼</span>
+                </div>
+                <div class="sbod" id="b-s6">
+                    <div class="card">
+                        <div class="ctit">📊 Complete Table — Reproduced from Slide 7</div>
+                        <div class="tw">
+                            <table>
+                                <tr>
+                                    <th>Operation</th>
+                                    <th>Math Notation</th>
+                                    <th>Full Formula</th>
+                                    <th>Geometric Effect</th>
+                                    <th>Primary CV Purpose</th>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color:var(--ac)">Erosion</strong></td>
+                                    <td><span class="mi">A ⊖ B</span></td>
+                                    <td><span class="mi">(A ⊖ B) = { x | B_x ⊆ A }</span></td>
+                                    <td>Shrinks foreground bounds</td>
+                                    <td>Detail elimination, binary noise smoothing</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color:var(--ac2)">Dilation</strong></td>
+                                    <td><span class="mi">A ⊕ B</span></td>
+                                    <td><span class="mi">(A ⊕ B) = { x | B̂_x ∩ A ≠ ∅ }</span></td>
+                                    <td>Expands foreground bounds</td>
+                                    <td>Bridge broken outlines, fill black voids</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color:var(--ac3)">Opening</strong></td>
+                                    <td><span class="mi">A ∘ B</span></td>
+                                    <td><span class="mi">A ∘ B = (A ⊖ B) ⊕ B</span></td>
+                                    <td>Smoothes contours, deletes thin spikes</td>
+                                    <td>Object separation, speckle noise removal</td>
+                                </tr>
+                                <tr>
+                                    <td><strong style="color:var(--ac4)">Closing</strong></td>
+                                    <td><span class="mi">A • B</span></td>
+                                    <td><span class="mi">A • B = (A ⊕ B) ⊖ B</span></td>
+                                    <td>Fills narrow cracks, connects lines</td>
+                                    <td>Rejoining fragmented edge segments</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 الجدول بالعربي</div>
+                            <div class="art">
+                                <ul class="cl">
+                                    <li><span class="at">التآكل ⊖</span>: يُقلّص المقدمة | إزالة التفاصيل والضوضاء
+                                        الثنائية</li>
+                                    <li><span class="at">التمدد ⊕</span>: يُوسّع المقدمة | جسر الحواف المتقطعة وملء
+                                        الثقوب السوداء</li>
+                                    <li><span class="at">الفتح ∘</span>: (تآكل ثم تمدد) | تنعيم الحواف وحذف النتوءات
+                                        الرقيقة | فصل الأجسام وإزالة الضوضاء</li>
+                                    <li><span class="at">الإغلاق •</span>: (تمدد ثم تآكل) | ملء الشقوق الضيقة وتوصيل
+                                        الخطوط | إعادة ربم مقاطع الحواف المتشققة</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mn">
+                            <div class="mnt">🧠 Master Mnemonic: All 4 Operations</div>
+                            <p><strong>"Every Dog Opens Cans"</strong> → Erosion (⊖) | Dilation (⊕) | Opening (∘) |
+                                Closing (•)</p>
+                            <p style="margin-top:5px"><strong>Opening order:</strong> E→D (Erode first, then Dilate)</p>
+                            <p><strong>Closing order:</strong> D→E (Dilate first, then Erode)</p>
+                            <p style="color:var(--ar);margin-top:5px"><strong>بالعربي:</strong> فتح = ت+ت (تآكل ثم تمدد)
+                                | إغلاق = ت+ت (تمدد ثم تآكل)</p>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Questions from Slide 7</div>
+                            <ol class="cl">
+                                <li>Formula for Opening? → (A ⊖ B) ⊕ B</li>
+                                <li>Which uses HIT rule? → Dilation</li>
+                                <li>Which removes white speckles? → Erosion or Opening</li>
+                                <li>Which fills cracks without resizing? → Closing</li>
+                                <li>Symbol for erosion? → A ⊖ B</li>
+                                <li>Geometric effect of Closing? → Fills narrow cracks, connects lines</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 7: BOUNDARY EXTRACTION ===== -->
+            <div class="sec" id="s7">
+                <div class="sh" onclick="tgSec('s7')">
+                    <div class="sbdg">07</div>
+                    <div>
+                        <div class="stit">6.4 Boundary Extraction β(A)</div>
+                        <div class="ssub">Slide 9 · A − (A ⊖ B) · Single-pixel-wide outlines</div>
+                    </div>
+                    <span class="ci" id="i-s7">▼</span>
+                </div>
+                <div class="sbod" id="b-s7">
+                    <div class="card">
+                        <div class="ctit">🔲 Boundary Extraction — Formula and Algorithm</div>
+                        <div class="fc">
+                            <div class="fn">Boundary Extraction Formula</div>
+                            <div class="fb">β(A) = A − (A ⊖ B)</div>
+                            <div class="fd">Boundary = Original A minus its eroded version. Set difference leaves only
+                                the outer "skin" of the object — boundary pixels that were removed by erosion.</div>
+                        </div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Explanation from Slide 9</div>
+                            <p>From slide 9: <em>"Extracted by taking the set difference between the original set and
+                                    its eroded counterpart. Keeps only boundary pixels since the eroded core is
+                                    subtracted, leaving single-pixel thin outline tracks."</em></p>
+                            <p>Why it works: after erosion, only interior pixels survive (boundary pixels fail the FIT
+                                test). Subtracting interior from original leaves only the boundary ring.</p>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Boundary Extraction: 5×5 Block Example</div>
+                            <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+                                <div>
+                                    <p style="font-size:.72rem;color:var(--tx2);margin-bottom:3px">A (5×5)</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                    </div>
+                                </div>
+                                <div style="color:var(--ac);font-size:1.1rem;font-weight:700">−</div>
+                                <div>
+                                    <p style="font-size:.72rem;color:var(--tx2);margin-bottom:3px">A ⊖ B (eroded)</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div style="color:var(--ac);font-size:1.1rem;font-weight:700">=</div>
+                                <div>
+                                    <p style="font-size:.72rem;color:var(--tx2);margin-bottom:3px">β(A) Boundary</p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pr">1</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:.8rem;max-width:160px;color:var(--tx3)">Only the outer ring
+                                    remains — a single-pixel-wide boundary outline of the block.</div>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — استخراج الحدود</div>
+                            <div class="art">
+                                <p><span class="at">استخراج الحدود β(A)</span>: نطرح الصورة المتآكلة من الأصلية. التآكل
+                                    يُزيل الحواف ويُبقي المركز فقط. الطرح يُزيل المركز ويُبقي الحواف فقط.</p>
+                                <p><strong>النتيجة:</strong> خط حد رفيع عرضه بكسل واحد حول الجسم.</p>
+                                <p><strong>التطبيقات:</strong> اكتشاف حواف الأجسام، قياس المحيط، تتبع الأجسام في
+                                    الفيديو.</p>
+                            </div>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Symbol: <span class="mi">β(A)</span> | Formula: <span class="mi">A − (A ⊖ B)</span>
+                                </li>
+                                <li>Result: always <strong>single-pixel-wide</strong> outline (from slide 9)</li>
+                                <li>Equivalent: <span class="mi">A ∩ (A ⊖ B)ᶜ</span></li>
+                                <li>Exact slide: "Keeps only boundary pixels since eroded core is subtracted, leaving
+                                    single-pixel thin outline tracks"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 8: HOLE FILLING ===== -->
+            <div class="sec" id="s8">
+                <div class="sh" onclick="tgSec('s8')">
+                    <div class="sbdg">08</div>
+                    <div>
+                        <div class="stit">6.4 Hole Filling (Iterative)</div>
+                        <div class="ssub">Slide 9 · X_k = (X_{k-1} ⊕ B) ∩ Aᶜ</div>
+                    </div>
+                    <span class="ci" id="i-s8">▼</span>
+                </div>
+                <div class="sbod" id="b-s8">
+                    <div class="card">
+                        <div class="ctit">🕳️ Iterative Hole Filling Algorithm</div>
+                        <div class="fc">
+                            <div class="fn">Hole Filling Iteration</div>
+                            <div class="fb">X_k = (X_{k-1} ⊕ B) ∩ Aᶜ</div>
+                            <div class="fd">Dilate current marker set, then mask with complement of A (background).
+                                Iterate until X_k = X_{k-1}. Final result: A ∪ X_k</div>
+                        </div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Explanation from Slide 9</div>
+                            <p>From slide 9: <em>"An iterative algorithm to fill closed background voids starting with a
+                                    marker seed point. Condition: Terminates when X_{k+1} equals X_k. The final filled
+                                    result is the union of the original set and the computed mask."</em></p>
+                            <p>The ∩ Aᶜ step is a <strong>constraint mask</strong> — it prevents the dilation from
+                                overflowing into the foreground region. Filling only propagates through background
+                                pixels within the hole.</p>
+                        </div>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Initialize: X₀ = {p} (seed point inside hole)</div>
+                                    <p>Choose a single pixel p inside the dark hole. The algorithm will grow from this
+                                        seed.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Iterate: X_k = (X_{k-1} ⊕ B) ∩ Aᶜ</div>
+                                    <p>Dilate the current set, then intersect with the image complement (background
+                                        mask). This forces dilation to stay within the hole only.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Check: X_k = X_{k-1}?</div>
+                                    <p>If the set did not change (converged), stop. Otherwise repeat Step 2.</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Final: Result = A ∪ X_k</div>
+                                    <p>Union original image A with the filled region X_k to get complete image with
+                                        holes filled.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — ملء الثقوب</div>
+                            <div class="art">
+                                <p><span class="at">ملء الثقوب (Hole Filling)</span>: خوارزمية متكررة لملء الفراغات
+                                    السوداء المغلقة داخل الأجسام البيضاء.</p>
+                                <ul class="cl">
+                                    <li>نبدأ بنقطة بذرة (seed point) داخل الثقب الأسود</li>
+                                    <li>في كل تكرار: نُوسّع (dilate) ونتقاطع مع مكمّل A (الخلفية) لنبقى داخل الثقب</li>
+                                    <li>نكرر حتى يتوقف التغيير: X_k = X_{k-1}</li>
+                                    <li>النتيجة = A ∪ X_k (الصورة الأصلية + الثقوب الممتلئة)</li>
+                                </ul>
+                                <p><strong>شرط مهم:</strong> تعمل فقط على الثقوب <span class="at">المغلقة تمامًا</span>.
+                                    إذا كان الحد مفتوحًا، سيتسرب الملء خارج الثقب.</p>
+                            </div>
+                        </div>
+                        <div class="box bwa">
+                            <div class="bl2">⚠️ Important Conditions &amp; Common Mistakes</div>
+                            <ul class="cl">
+                                <li>Works ONLY on <strong>closed holes</strong> — any gap in boundary causes leaking
+                                </li>
+                                <li>Termination: X_{k+1} = X_k (as stated in slide 9)</li>
+                                <li>The ∩ Aᶜ mask is CRITICAL — prevents overflow into foreground</li>
+                                <li>Seed must be <strong>inside</strong> the hole, not on its boundary</li>
+                            </ul>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Formula: <span class="mi">X_k = (X_{k-1} ⊕ B) ∩ Aᶜ</span></li>
+                                <li>Termination: <span class="mi">X_{k+1} = X_k</span> (from slide 9)</li>
+                                <li>Final result: <span class="mi">A ∪ X_k</span> (from slide 9)</li>
+                                <li>Requires: seed point inside hole + closed boundary</li>
+                                <li>Exact slide: "The final filled result is the union of the original set and the
+                                    computed mask"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 9: CONNECTED COMPONENTS ===== -->
+            <div class="sec" id="s9">
+                <div class="sh" onclick="tgSec('s9')">
+                    <div class="sbdg">09</div>
+                    <div>
+                        <div class="stit">6.4.4 Connected Components</div>
+                        <div class="ssub">Slide 10 · Binarize → Scan &amp; Label → Feature Extract</div>
+                    </div>
+                    <span class="ci" id="i-s9">▼</span>
+                </div>
+                <div class="sbod" id="b-s9">
+                    <div class="card">
+                        <div class="ctit">🔗 Connected Components Analysis — Three-Step Pipeline</div>
+                        <div class="box ben">
+                            <div class="bl2">📘 What are Connected Components? (from Slide 10)</div>
+                            <p>A <strong>connected component</strong> is a group of foreground pixels all connected to
+                                each other but separated from other groups. <strong>Connected Component Analysis
+                                    (CCA)</strong> finds and labels each distinct object in a binary image.</p>
+                            <p>From slide 10, the pipeline has exactly 3 steps:</p>
+                        </div>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Step 1: Binarize</div>
+                                    <p>From slide 10: <em>"Convert grayscale images into single bit arrays using
+                                            standard intensity thresholds to establish clear foregrounds."</em></p>
+                                    <p>Apply a threshold: pixels above threshold → 1 (foreground white); pixels below →
+                                        0 (background black). Creates a binary image ready for analysis.</p>
+                                    <div class="box bar" style="margin-top:8px">
+                                        <div class="bl2">عربي</div>
+                                        <div class="art" style="font-size:.88rem"><span class="at">الثنائية
+                                                (Binarization)</span>: تحويل الصورة الرمادية لأبيض وأسود بعتبة شدة
+                                            (threshold). ما فوقها = أبيض (1)، ما تحتها = أسود (0).</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Step 2: Scan &amp; Label</div>
+                                    <p>From slide 10: <em>"Run adjacency scans grouping elements with 4-way or 8-way
+                                            pixel connectivity. Assign individual labels to unique objects."</em></p>
+                                    <div class="cg" style="margin-top:8px">
+                                        <div class="cc bl3">
+                                            <div class="ctitle">4-Way Connectivity</div>
+                                            <div class="pg" style="grid-template-columns:repeat(3,20px);margin:6px 0">
+                                                <div class="px pb3">·</div>
+                                                <div class="px ps">↑</div>
+                                                <div class="px pb3">·</div>
+                                                <div class="px ps">←</div>
+                                                <div class="px pf2">P</div>
+                                                <div class="px ps">→</div>
+                                                <div class="px pb3">·</div>
+                                                <div class="px ps">↓</div>
+                                                <div class="px pb3">·</div>
+                                            </div>
+                                            <p style="font-size:.82rem">Only N/S/E/W neighbors. Diagonals NOT connected.
+                                            </p>
+                                        </div>
+                                        <div class="cc rd">
+                                            <div class="ctitle">8-Way Connectivity</div>
+                                            <div class="pg" style="grid-template-columns:repeat(3,20px);margin:6px 0">
+                                                <div class="px ps">↖</div>
+                                                <div class="px ps">↑</div>
+                                                <div class="px ps">↗</div>
+                                                <div class="px ps">←</div>
+                                                <div class="px pf2">P</div>
+                                                <div class="px ps">→</div>
+                                                <div class="px ps">↙</div>
+                                                <div class="px ps">↓</div>
+                                                <div class="px ps">↘</div>
+                                            </div>
+                                            <p style="font-size:.82rem">All 8 neighbors including diagonals.</p>
+                                        </div>
+                                    </div>
+                                    <div class="box bar" style="margin-top:8px">
+                                        <div class="bl2">عربي</div>
+                                        <div class="art" style="font-size:.88rem"><span class="at">المسح
+                                                والتسمية</span>: نفحص كل بكسل ومجاوريه (4 أو 8). البكسلات المتصلة تأخذ
+                                            نفس الرقم. كل جسم منفصل له رقم تسمية مختلف.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <div class="snum"></div>
+                                <div class="sbod2">
+                                    <div class="stl2">Step 3: Feature Extract</div>
+                                    <p>From slide 10: <em>"Perform topological analysis on each separated cluster to
+                                            compute properties like centroid, area, and orientation."</em></p>
+                                    <ul class="cl">
+                                        <li><strong>Centroid:</strong> Center of mass (x̄, ȳ) of each labeled region
+                                        </li>
+                                        <li><strong>Area:</strong> Count of pixels in each connected component</li>
+                                        <li><strong>Orientation:</strong> Angle of major axis relative to horizontal
+                                        </li>
+                                        <li>Also: bounding box, perimeter, eccentricity, etc.</li>
+                                    </ul>
+                                    <div class="box bar" style="margin-top:8px">
+                                        <div class="bl2">عربي</div>
+                                        <div class="art" style="font-size:.88rem"><span class="at">استخراج
+                                                الخصائص</span>: لكل جسم نحسب: المركز (Centroid)، المساحة (Area)، الاتجاه
+                                            (Orientation).</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="box bti">
+                            <div class="bl2">💡 Practical Example</div>
+                            <p>Image of 3 coins on a table → After CCA: Component 1 = first coin (area 1500px, centroid
+                                at 50,60), Component 2 = second coin (area 1480px, centroid at 120,60), Component 3 =
+                                third coin. Applications: cell counting in microscopy, object detection in satellite
+                                images, industrial inspection.</p>
+                            <p style="color:var(--ar)">مثال: صورة فيها 3 عملات معدنية → CCA يُعطي كل عملة رقمًا ويحسب
+                                حجمها ومركزها.</p>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>3 steps from slide 10: <strong>Binarize → Scan &amp; Label → Feature
+                                        Extract</strong></li>
+                                <li>Two connectivity types: <strong>4-way</strong> (no diagonals) and
+                                    <strong>8-way</strong> (with diagonals)
+                                </li>
+                                <li>Features: centroid, area, orientation (exact slide language)</li>
+                                <li>Label assignment: each distinct connected group = unique label</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 10: SKELETONIZATION ===== -->
+            <div class="sec" id="s10">
+                <div class="sh" onclick="tgSec('s10')">
+                    <div class="sbdg">10</div>
+                    <div>
+                        <div class="stit">6.4.5 Skeletonization (الهيكلة)</div>
+                        <div class="ssub">Slide 11 · 1-pixel-wide skeletal lines · Topology preserved</div>
+                    </div>
+                    <span class="ci" id="i-s10">▼</span>
+                </div>
+                <div class="sbod" id="b-s10">
+                    <div class="card">
+                        <div class="ctit">🦴 Skeletonization — Shape Reduction to Skeletal Lines</div>
+                        <div class="box ben">
+                            <div class="bl2">📘 Definition from Slide 11</div>
+                            <p>From slide 11: <em>"Reduces complex 2D shapes to skeletal lines that are only one pixel
+                                    wide, preserving topological characteristics and general connectivity."</em></p>
+                            <p>Think of it as finding the "spine" or <strong>medial axis</strong> of a shape — the set
+                                of centers of all maximal inscribed circles within the shape. The result has the same
+                                connectivity and topology as the original but is reduced to 1-pixel-wide lines.</p>
+                        </div>
+                        <div class="cg">
+                            <div class="cc bl3">
+                                <div class="ctitle">Application 1: Character Recognition (OCR)</div>
+                                <p style="font-size:.86rem">From slide 11: "Highly effective for character recognition."
+                                    Thick letter strokes → 1-pixel skeleton → compare skeleton topology against
+                                    character templates. Works regardless of font thickness variation.</p>
+                            </div>
+                            <div class="cc rd">
+                                <div class="ctitle">Application 2: Fingerprint Trace Mapping</div>
+                                <p style="font-size:.86rem">From slide 11: "Finger print trace mapping." Extract ridge
+                                    lines as 1-pixel-wide skeletons → analyze minutiae (ridge endings, bifurcations) for
+                                    biometric matching.</p>
+                            </div>
+                            <div class="cc gr">
+                                <div class="ctitle">Application 3: Optical Structural Analysis</div>
+                                <p style="font-size:.86rem">From slide 11: "Optical structural analysis where central
+                                    paths matter more than volume." Analyze road networks, blood vessel trees, printed
+                                    circuit boards by their skeletal paths.</p>
+                            </div>
+                            <div class="cc pu">
+                                <div class="ctitle">What is Preserved</div>
+                                <ul class="cl" style="font-size:.84rem">
+                                    <li>Topological characteristics</li>
+                                    <li>General connectivity</li>
+                                    <li>Branching structure</li>
+                                    <li>Number of endpoints and junctions</li>
+                                </ul>
+                                <p style="font-size:.84rem"><strong>NOT preserved:</strong> area, thickness, exact shape
+                                </p>
+                            </div>
+                        </div>
+                        <div class="dg">
+                            <div class="dgt">Skeletonization: Thick bar → Single-pixel spine</div>
+                            <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+                                <div>
+                                    <p style="font-size:.72rem;color:var(--tx2);margin-bottom:3px">Original thick "I"
+                                    </p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                        <div class="px pf2">1</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:1.8rem;color:var(--ac)">→</div>
+                                <div>
+                                    <p style="font-size:.72rem;color:var(--tx2);margin-bottom:3px">Skeleton (1px wide)
+                                    </p>
+                                    <div class="pg" style="grid-template-columns:repeat(5,20px)">
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pr">1</div>
+                                        <div class="px pb3">0</div>
+                                        <div class="px pb3">0</div>
+                                    </div>
+                                </div>
+                                <div style="font-size:.81rem;max-width:170px;color:var(--tx3)">The thick vertical bar is
+                                    thinned to a single central column — the medial axis. Connectivity and structure
+                                    preserved.</div>
+                            </div>
+                        </div>
+                        <div class="box bar">
+                            <div class="bl2">🟡 شرح بالعربي — الهيكلة</div>
+                            <div class="art">
+                                <p><span class="at">الهيكلة (Skeletonization)</span>: تقليص الأشكال ثنائية الأبعاد إلى
+                                    خطوط هيكلية عرضها بكسل واحد فقط، مع الحفاظ على الاتصالية الطبولوجية.</p>
+                                <p><strong>تشبيه:</strong> الهيكل العظمي للإنسان — يحافظ على بنية الجسم وشكله دون الحجم
+                                    الفعلي للعضلات.</p>
+                                <p><strong>التطبيقات (من الشريحة 11):</strong></p>
+                                <ul class="cl">
+                                    <li><span class="at">التعرف على الحروف (Character Recognition/OCR)</span>: تبسيط
+                                        الحروف السميكة لخط رفيع → مقارنة أسهل وأسرع</li>
+                                    <li><span class="at">تحليل بصمات الأصابع (Fingerprint Trace Mapping)</span>: استخراج
+                                        خطوط التلال كهياكل رفيعة</li>
+                                    <li><span class="at">التحليل البصري الهيكلي (Optical Structural Analysis)</span>:
+                                        تحليل الشبكات حيث المسار المركزي أهم من الحجم</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="mn">
+                            <div class="mnt">🧠 Analogy / تشبيه</div>
+                            <p><strong>Human skeleton analogy:</strong> The skeleton preserves the body's overall
+                                structure and connectivity (arms connect to shoulders, legs to hips, spine to both)
+                                without the volume of muscles and tissue.</p>
+                            <p style="color:var(--ar);margin-top:5px"><strong>بالعربي:</strong> مثل الهيكل العظمي —
+                                يحافظ على الشكل والبنية بدون الحجم الفعلي.</p>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">🎓 Exam Notes</div>
+                            <ul class="cl">
+                                <li>Result: <strong>1-pixel-wide</strong> skeletal lines (from slide 11)</li>
+                                <li>Preserves: <strong>topological characteristics</strong> and <strong>general
+                                        connectivity</strong> (exact slide language)</li>
+                                <li>3 applications from slide 11: character recognition, fingerprint trace mapping,
+                                    optical structural analysis</li>
+                                <li>Also called: Medial Axis Transform (MAT) / Thinning</li>
+                                <li>Algorithm: iterative thinning using Hit-or-Miss transform</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 11: MCQs ===== -->
+            <div class="sec" id="s11">
+                <div class="sh" onclick="tgSec('s11')">
+                    <div class="sbdg">11</div>
+                    <div>
+                        <div class="stit">Assessment &amp; Practice Questions</div>
+                        <div class="ssub">MCQs · True/False · Fill in the Blank · Short Answer</div>
+                    </div>
+                    <span class="ci" id="i-s11">▼</span>
+                </div>
+                <div class="sbod" id="b-s11">
+                    <div class="card">
+                        <div class="ctit">❓ Multiple Choice Questions</div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q1. Which rule requires ALL pixels of the SE to overlap with the foreground?
+                            </div>
+                            <div class="mo" onclick="selMCQ(this,'A','A')"><span class="ml">A</span> FIT rule</div>
+                            <div class="mo" onclick="selMCQ(this,'B','A')"><span class="ml">B</span> HIT rule</div>
+                            <div class="mo" onclick="selMCQ(this,'C','A')"><span class="ml">C</span> MISS rule</div>
+                            <div class="mo" onclick="selMCQ(this,'D','A')"><span class="ml">D</span> AND rule</div>
+                            <div class="ma" id="ans1">✅ <strong>A — FIT rule.</strong> FIT = B_x ⊆ A (ALL SE pixels on
+                                foreground). HIT only needs one overlap. Erosion uses FIT.</div>
+                            <button class="rb" onclick="showA('ans1')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q2. The symbol A ⊖ B represents which operation?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','B')"><span class="ml">A</span> Dilation</div>
+                            <div class="mo" onclick="selMCQ(this,'B','B')"><span class="ml">B</span> Erosion</div>
+                            <div class="mo" onclick="selMCQ(this,'C','B')"><span class="ml">C</span> Opening</div>
+                            <div class="mo" onclick="selMCQ(this,'D','B')"><span class="ml">D</span> Closing</div>
+                            <div class="ma" id="ans2">✅ <strong>B — Erosion.</strong> ⊖ = Erosion. ⊕ = Dilation. ∘ =
+                                Opening. • = Closing.</div>
+                            <button class="rb" onclick="showA('ans2')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q3. What is the correct formula for Morphological Opening?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','C')"><span class="ml">A</span> (A ⊕ B) ⊖ B</div>
+                            <div class="mo" onclick="selMCQ(this,'B','C')"><span class="ml">B</span> A − (A ⊖ B)</div>
+                            <div class="mo" onclick="selMCQ(this,'C','C')"><span class="ml">C</span> (A ⊖ B) ⊕ B</div>
+                            <div class="mo" onclick="selMCQ(this,'D','C')"><span class="ml">D</span> A ∩ (A ⊕ B)</div>
+                            <div class="ma" id="ans3">✅ <strong>C — (A ⊖ B) ⊕ B.</strong> Opening = Erosion FIRST then
+                                Dilation. Option A is Closing. Option B is Boundary Extraction.</div>
+                            <button class="rb" onclick="showA('ans3')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q4. What effect does Erosion have on interior dark holes?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','D')"><span class="ml">A</span> Fills them
+                                completely</div>
+                            <div class="mo" onclick="selMCQ(this,'B','D')"><span class="ml">B</span> Leaves them
+                                unchanged</div>
+                            <div class="mo" onclick="selMCQ(this,'C','D')"><span class="ml">C</span> Removes them</div>
+                            <div class="mo" onclick="selMCQ(this,'D','D')"><span class="ml">D</span> Expands / enlarges
+                                them</div>
+                            <div class="ma" id="ans4">✅ <strong>D — Expands/enlarges them.</strong> From slide 4: "Hole
+                                Expansion: Increases the size of interior dark voids." White pixels erode inward → dark
+                                holes grow outward.</div>
+                            <button class="rb" onclick="showA('ans4')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q5. Boundary extraction β(A) is computed as:</div>
+                            <div class="mo" onclick="selMCQ(this,'A','C2')"><span class="ml">A</span> A ⊕ (A ⊖ B)</div>
+                            <div class="mo" onclick="selMCQ(this,'B','C2')"><span class="ml">B</span> (A ⊕ B) ⊖ A</div>
+                            <div class="mo" onclick="selMCQ(this,'C','C2')"><span class="ml">C</span> A − (A ⊖ B)</div>
+                            <div class="mo" onclick="selMCQ(this,'D','C2')"><span class="ml">D</span> (A ⊖ B) − A</div>
+                            <div class="ma" id="ans5">✅ <strong>C — A − (A ⊖ B).</strong> Set difference: original minus
+                                erosion = boundary ring. From slide 9.</div>
+                            <button class="rb" onclick="showA('ans5')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q6. Hole filling terminates when:</div>
+                            <div class="mo" onclick="selMCQ(this,'A','B2')"><span class="ml">A</span> After exactly 10
+                                iterations</div>
+                            <div class="mo" onclick="selMCQ(this,'B','B2')"><span class="ml">B</span> X_{k+1} = X_k (no
+                                change between iterations)</div>
+                            <div class="mo" onclick="selMCQ(this,'C','B2')"><span class="ml">C</span> When the dilation
+                                covers the full image</div>
+                            <div class="mo" onclick="selMCQ(this,'D','B2')"><span class="ml">D</span> When all pixels
+                                become white</div>
+                            <div class="ma" id="ans6">✅ <strong>B — X_{k+1} = X_k.</strong> Exact slide 9 text:
+                                "Terminates when X_{k+1} equals X_k." This is the convergence condition.</div>
+                            <button class="rb" onclick="showA('ans6')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q7. Which applications are mentioned for Skeletonization in slide 11?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','B3')"><span class="ml">A</span> Color segmentation
+                                and histogram equalization</div>
+                            <div class="mo" onclick="selMCQ(this,'B','B3')"><span class="ml">B</span> Character
+                                recognition, fingerprint trace mapping, optical structural analysis</div>
+                            <div class="mo" onclick="selMCQ(this,'C','B3')"><span class="ml">C</span> Noise removal and
+                                dilation</div>
+                            <div class="mo" onclick="selMCQ(this,'D','B3')"><span class="ml">D</span> Image compression
+                                and watermarking</div>
+                            <div class="ma" id="ans7">✅ <strong>B.</strong> Slide 11 exact text: "Highly effective for
+                                character recognition, finger print trace mapping, and optical structural analysis where
+                                central paths matter more than volume."</div>
+                            <button class="rb" onclick="showA('ans7')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q8. Which property does Closing satisfy but Opening does NOT?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','A2')"><span class="ml">A</span> Idempotent</div>
+                            <div class="mo" onclick="selMCQ(this,'B','A2')"><span class="ml">B</span> Extensive (result
+                                ⊇ original)</div>
+                            <div class="mo" onclick="selMCQ(this,'C','A2')"><span class="ml">C</span> Translation
+                                invariant</div>
+                            <div class="mo" onclick="selMCQ(this,'D','A2')"><span class="ml">D</span> Anti-extensive
+                                (result ⊆ original)</div>
+                            <div class="ma" id="ans8">✅ <strong>B — Extensive.</strong> Closing: A ⊆ A•B (extensive).
+                                Opening: A∘B ⊆ A (anti-extensive). Both are idempotent and translation invariant.</div>
+                            <button class="rb" onclick="showA('ans8')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q9. In the 3-step CCA pipeline (slide 10), what is computed in Step 3?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','C3')"><span class="ml">A</span> Applying a
+                                threshold to create a binary image</div>
+                            <div class="mo" onclick="selMCQ(this,'B','C3')"><span class="ml">B</span> Assigning labels
+                                using 4-way or 8-way connectivity</div>
+                            <div class="mo" onclick="selMCQ(this,'C','C3')"><span class="ml">C</span> Topological
+                                analysis: centroid, area, orientation</div>
+                            <div class="mo" onclick="selMCQ(this,'D','C3')"><span class="ml">D</span> Applying erosion
+                                to separate overlapping objects</div>
+                            <div class="ma" id="ans9">✅ <strong>C.</strong> Slide 10 Step 3: "Perform topological
+                                analysis on each separated cluster to compute properties like centroid, area, and
+                                orientation."</div>
+                            <button class="rb" onclick="showA('ans9')">Reveal Answer</button>
+                        </div>
+
+                        <div class="mcq-wrap">
+                            <div class="mq">Q10. What does Dilation do to white noise in an image?</div>
+                            <div class="mo" onclick="selMCQ(this,'A','A3')"><span class="ml">A</span> Removes it
+                                completely</div>
+                            <div class="mo" onclick="selMCQ(this,'B','A3')"><span class="ml">B</span> Amplifies /
+                                enlarges it</div>
+                            <div class="mo" onclick="selMCQ(this,'C','A3')"><span class="ml">C</span> Leaves it
+                                unchanged</div>
+                            <div class="mo" onclick="selMCQ(this,'D','A3')"><span class="ml">D</span> Converts it to
+                                black</div>
+                            <div class="ma" id="ans10">✅ <strong>B — Amplifies it.</strong> Dilation grows ALL
+                                foreground including noise blobs. Erosion removes noise (blobs smaller than SE). To
+                                remove noise without amplifying: use Opening (Erosion first).</div>
+                            <button class="rb" onclick="showA('ans10')">Reveal Answer</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="ctit">✅ True / False Questions</div>
+                        <div class="tf">
+                            <div class="tfs">1. Dilation uses the FIT rule to determine output pixels.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'F')">True</button><button
+                                    class="tb3" onclick="tfC(this,'T')">False ✓</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">2. Opening = Erosion followed by Dilation using the same SE.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'T')">True ✓</button><button
+                                    class="tb3" onclick="tfC(this,'F')">False</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">3. Erosion fills small dark holes inside white objects.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'F')">True</button><button
+                                    class="tb3" onclick="tfC(this,'T')">False ✓</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">4. Skeletonization produces lines that are one pixel wide.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'T')">True ✓</button><button
+                                    class="tb3" onclick="tfC(this,'F')">False</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">5. Boundary Extraction formula is β(A) = A ⊕ (A ⊖ B).</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'F')">True</button><button
+                                    class="tb3" onclick="tfC(this,'T')">False ✓</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">6. CCA uses either 4-way or 8-way pixel connectivity.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'T')">True ✓</button><button
+                                    class="tb3" onclick="tfC(this,'F')">False</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">7. Closing is extensive: the result ⊇ original A.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'T')">True ✓</button><button
+                                    class="tb3" onclick="tfC(this,'F')">False</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">8. Opening is anti-extensive: the result ⊆ original A.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'T')">True ✓</button><button
+                                    class="tb3" onclick="tfC(this,'F')">False</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">9. Hole filling uses dilation in each iteration.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'T')">True ✓</button><button
+                                    class="tb3" onclick="tfC(this,'F')">False</button></div>
+                        </div>
+                        <div class="tf">
+                            <div class="tfs">10. The final result of hole filling is A ∩ X_k.</div>
+                            <div class="tfb"><button class="tb3" onclick="tfC(this,'F')">True</button><button
+                                    class="tb3" onclick="tfC(this,'T')">False ✓</button></div>
+                        </div>
+                        <p style="font-size:.78rem;color:var(--tx2);margin-top:8px">Click True or False — correct button
+                            highlighted. Note: False answers shown with ✓ are the correct choices.</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="ctit">📝 Fill in the Blank</div>
+                        <ol class="cl">
+                            <li style="margin-bottom:10px">Erosion uses the ________ rule, while Dilation uses the
+                                ________ rule. <em style="font-size:.8rem">(FIT / HIT)</em></li>
+                            <li style="margin-bottom:10px">The notation A ⊖ B represents __________. <em
+                                    style="font-size:.8rem">(Erosion)</em></li>
+                            <li style="margin-bottom:10px">Opening is computed as (A ⊖ B) ________ B. <em
+                                    style="font-size:.8rem">(⊕)</em></li>
+                            <li style="margin-bottom:10px">Boundary extraction formula: β(A) = A ________ (A ⊖ B). <em
+                                    style="font-size:.8rem">(−, set difference)</em></li>
+                            <li style="margin-bottom:10px">Skeletonization reduces shapes to lines that are ________
+                                pixel(s) wide. <em style="font-size:.8rem">(one / 1)</em></li>
+                            <li style="margin-bottom:10px">Hole filling terminates when X_{k+1} ________ X_k. <em
+                                    style="font-size:.8rem">(equals / =)</em></li>
+                            <li style="margin-bottom:10px">CCA Step 3 computes: centroid, ________, and orientation. <em
+                                    style="font-size:.8rem">(area)</em></li>
+                            <li style="margin-bottom:10px">Closing formula: A • B = (A ________ B) ⊖ B. <em
+                                    style="font-size:.8rem">(⊕)</em></li>
+                        </ol>
+                    </div>
+
+                    <div class="card">
+                        <div class="ctit">📋 Short Answer — Model Answers</div>
+                        <div class="box bex">
+                            <div class="bl2">Q: Explain the difference between Erosion and Dilation.</div>
+                            <div class="box bti" style="margin-top:6px">
+                                <div class="bl2">Model Answer</div>
+                                <p>Erosion (A ⊖ B) shrinks the foreground using the FIT rule — a pixel is kept only if
+                                    the entire SE fits within the foreground. Dilation (A ⊕ B) grows the foreground
+                                    using the HIT rule — a pixel is set if any SE pixel touches the foreground. They are
+                                    dual operations: erosion removes boundary pixels while dilation adds them. Erosion
+                                    expands holes; dilation fills them.</p>
+                            </div>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">Q: Why does Opening remove small bright objects but preserve large ones?
+                            </div>
+                            <div class="box bti" style="margin-top:6px">
+                                <div class="bl2">Model Answer</div>
+                                <p>Opening first erodes. Small objects (smaller than SE) fail the FIT test during
+                                    erosion and disappear permanently. Large objects survive erosion (just shrink). The
+                                    subsequent dilation with the same SE re-expands surviving large objects back to
+                                    approximately their original size. Small objects cannot be recovered by dilation
+                                    because they no longer exist. The SE size acts as a size threshold.</p>
+                            </div>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">Q: Describe the Hole Filling algorithm and its termination condition.</div>
+                            <div class="box bti" style="margin-top:6px">
+                                <div class="bl2">Model Answer</div>
+                                <p>Initialize X₀ = seed point p inside the hole. Iterate: X_k = (X_{k-1} ⊕ B) ∩ Aᶜ —
+                                    dilate and intersect with image complement to stay within the hole. Terminate when
+                                    X_k = X_{k-1} (convergence, from slide 9). Final result = A ∪ X_k (union of original
+                                    and filled region, from slide 9).</p>
+                            </div>
+                        </div>
+                        <div class="box bex">
+                            <div class="bl2">Q: What does Skeletonization preserve, and name its three applications from
+                                slide 11.</div>
+                            <div class="box bti" style="margin-top:6px">
+                                <div class="bl2">Model Answer</div>
+                                <p>Skeletonization preserves topological characteristics and general connectivity (both
+                                    from slide 11). It produces 1-pixel-wide lines. Three applications from slide 11:
+                                    (1) character recognition, (2) fingerprint trace mapping, (3) optical structural
+                                    analysis where central paths matter more than volume.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SECTION 12: COVERAGE VERIFICATION ===== -->
+            <div class="sec" id="s12">
+                <div class="sh" onclick="tgSec('s12')">
+                    <div class="sbdg">12</div>
+                    <div>
+                        <div class="stit">Coverage Verification</div>
+                        <div class="ssub">100% source material coverage confirmed</div>
+                    </div>
+                    <span class="ci" id="i-s12">▼</span>
+                </div>
+                <div class="sbod" id="b-s12">
+                    <div class="card">
+                        <div class="ctit">✅ All 12 Slides Covered — Complete Source Mapping</div>
+
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 1</strong> — Title:
+                                "Morphological Image Processing, Guide to mathematical set theory and algorithms in
+                                computer vision, Dr. Ahmed Yousry" → Covered in Section 0 (Introduction)</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 2</strong> — Chapter Outline Part
+                                I: "Fit, Hit, and Miss criteria alongside fundamental Erosion &amp; Dilation operators"
+                                → Covered in Sections 0, 1, 2, 3</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 3 (6.1 Preliminaries)</strong> —
+                                Set Definitions, FIT Rule, HIT Rule, MISS Rule with exact slide quotes → Covered in
+                                Section 1 with formulas, diagrams, Arabic explanation, mnemonic</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 4 (6.2.1 Erosion)</strong> —
+                                Boundary Shrinkage, Noise Removal, Hole Expansion (all 3 effects from slide) → Covered
+                                in Section 2 with formula, step-by-step, pixel diagram</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 5 (6.2.2 Dilation)</strong> —
+                                Structural Growth, Gap Bridging, Hole Sealing (all 3 effects from slide) → Covered in
+                                Section 3 with formula, comparison table, pixel diagram</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 6 (6.3 Opening &amp;
+                                    Closing)</strong> — Both formulas, both use cases ("Ideal for:" text from slide) →
+                                Covered in Sections 4 &amp; 5 with flow diagrams, properties, Arabic</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 7 (6.3 Operations
+                                    Matrix)</strong> — All 4 rows: Operation/Notation/Geometric Effect/CV Purpose →
+                                Covered in Section 6 with full table reproduction + Arabic translation</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 8</strong> — Chapter Outline Part
+                                II: "Boundary Extraction, Hole Filling, Connected Components" → Covered in Sections 0
+                                (outline) and 7–10 (individual sections)</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 9 (6.4)</strong> — Boundary
+                                Extraction β(A) formula + Hole Filling iterative formula + termination (X_{k+1}=X_k) +
+                                final result (A∪X_k) → Covered in Sections 7 &amp; 8</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 10 (6.4.4 Connected
+                                    Components)</strong> — 3 steps: Binarize, Scan &amp; Label (4/8-way connectivity),
+                                Feature Extract (centroid/area/orientation) → Covered in Section 9 with diagrams</span>
+                        </div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 11 (6.4.5
+                                    Skeletonization)</strong> — 1-pixel-wide, topological characteristics, general
+                                connectivity, 3 applications (character recognition, fingerprint, optical structural) →
+                                Covered in Section 10</span></div>
+                        <div class="cov"><span class="cck">✅</span><span><strong>Slide 12 (Image Sources)</strong> —
+                                cs.auckland.ac.nz, geeksforgeeks.org, scikit-image.org → Sources acknowledged; images
+                                described conceptually through diagrams throughout guide</span></div>
+
+                        <div class="box bti" style="margin-top:16px">
+                            <div class="bl2">📊 Coverage Summary Table</div>
+                            <div class="tw">
+                                <table>
+                                    <tr>
+                                        <th>Content Type</th>
+                                        <th>In Source</th>
+                                        <th>In Guide</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    <tr>
+                                        <td>Total Slides</td>
+                                        <td>12</td>
+                                        <td>12</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Core Operations</td>
+                                        <td>4 (Erosion, Dilation, Opening, Closing)</td>
+                                        <td>4</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mathematical Rules (Fit/Hit/Miss)</td>
+                                        <td>3</td>
+                                        <td>3</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Mathematical Formulas</td>
+                                        <td>6</td>
+                                        <td>6</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Algorithms (Boundary/Hole/CCA/Skel)</td>
+                                        <td>4</td>
+                                        <td>4</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Operations Matrix Table (Slide 7)</td>
+                                        <td>1</td>
+                                        <td>1</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Section Labels (6.1–6.4.5)</td>
+                                        <td>7</td>
+                                        <td>7</td>
+                                        <td style="color:var(--ac3)">100% ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Exact Slide Quotes Used</td>
+                                        <td>—</td>
+                                        <td>15+</td>
+                                        <td style="color:var(--ac3)">Exceeds ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Arabic Explanations</td>
+                                        <td>—</td>
+                                        <td>All sections</td>
+                                        <td style="color:var(--ac3)">Added ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>MCQ Questions</td>
+                                        <td>—</td>
+                                        <td>10</td>
+                                        <td style="color:var(--ac3)">Added ✅</td>
+                                    </tr>
+                                    <tr>
+                                        <td>True/False Questions</td>
+                                        <td>—</td>
+                                        <td>10</td>
+                                        <td style="color:var(--ac3)">Added ✅</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="box bar">
+                            <div class="bl2">🟡 ملخص التغطية بالعربي</div>
+                            <div class="art">
+                                <p>تم تغطية <strong>جميع</strong> محتويات المحاضرة (12 شريحة من 12) بشكل كامل، بما فيها:
+                                </p>
+                                <ul class="cl">
+                                    <li>جميع العمليات الأربع الأساسية مع الصيغ والأمثلة والمخططات</li>
+                                    <li>القواعد الثلاث (FIT, HIT, MISS) مع الرسوم التوضيحية</li>
+                                    <li>جميع الخوارزميات: استخراج الحدود، ملء الثقوب، المكونات المتصلة، الهيكلة</li>
+                                    <li>جدول المقارنة الكامل من الشريحة 7</li>
+                                    <li>شرح عربي مفصّل لكل قسم مع المصطلحات</li>
+                                    <li>أسئلة تقييم متنوعة: اختيار متعدد، صح/خطأ، ملء الفراغ، إجابات قصيرة</li>
+                                    <li>حيل الحفظ والتشبيهات لكل مفهوم</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <button class="tog" onclick="tgSB()" id="tog">☰</button>
+
+    <script>
+        // Dark/Light
+        function tgMode() { document.body.classList.toggle('lm'); localStorage.setItem('theme', document.body.classList.contains('lm') ? 'light' : 'dark') }
+        if (localStorage.getItem('theme') === 'light') document.body.classList.add('lm');
+
+        // Sidebar
+        function tgSB() { document.getElementById('sidebar').classList.toggle('open') }
+
+        // Progress
+        const read = new Set();
+        function markRead(id) { if (!read.has(id)) { read.add(id); const t = 11; const p = Math.round(read.size / t * 100); document.getElementById('pf').style.width = p + '%'; document.getElementById('pt').textContent = 'Progress: ' + read.size + ' / ' + t + ' sections read' } }
+
+        // Section toggle
+        function tgSec(id) {
+            const b = document.getElementById('b-' + id);
+            const i = document.getElementById('i-' + id);
+            const col = b.classList.contains('col');
+            b.classList.toggle('col');
+            i.textContent = col ? '▼' : '▶';
+            if (col) { b.style.maxHeight = b.scrollHeight + 'px'; markRead(id) } else { b.style.maxHeight = null }
+        }
+
+        // Init open
+        document.querySelectorAll('.sbod').forEach(b => { b.style.maxHeight = b.scrollHeight + 'px' });
+
+        // Expand/collapse all
+        function expAll() { document.querySelectorAll('.sbod').forEach(b => { b.classList.remove('col'); b.style.maxHeight = b.scrollHeight + 'px' }); document.querySelectorAll('.ci').forEach(i => i.textContent = '▼') }
+        function colAll() { document.querySelectorAll('.sbod').forEach(b => { b.classList.add('col'); b.style.maxHeight = null }); document.querySelectorAll('.ci').forEach(i => i.textContent = '▶') }
+
+        // Navigate
+        function goTo(id) {
+            const el = document.getElementById(id); if (!el) return;
+            const b = document.getElementById('b-' + id);
+            const ic = document.getElementById('i-' + id);
+            if (b && b.classList.contains('col')) { b.classList.remove('col'); b.style.maxHeight = b.scrollHeight + 'px'; if (ic) ic.textContent = '▼'; markRead(id) }
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.querySelectorAll('.ni').forEach(n => n.classList.remove('act'));
+            if (event && event.target) event.target.classList.add('act');
+            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+        }
+
+        // MCQ
+        function selMCQ(el, chosen, correct) {
+            const p = el.parentElement;
+            p.querySelectorAll('.mo').forEach(o => { o.classList.remove('cor', 'wrg') });
+            el.classList.add(chosen === correct ? 'cor' : 'wrg');
+        }
+        function showA(id) { document.getElementById(id).classList.add('vis') }
+
+        // T/F
+        function tfC(btn, correctLabel) {
+            const row = btn.closest('.tf');
+            row.querySelectorAll('.tb3').forEach(b => { b.classList.remove('tc', 'fc2') });
+            btn.classList.add(correctLabel === 'T' ? 'tc' : 'fc2');
+        }
+
+        // Search
+        function doSearch(q) {
+            clearHL();
+            if (!q.trim()) return;
+            hlText(document.getElementById('mc'), q.trim());
+        }
+        function clearHL() { document.querySelectorAll('.shl').forEach(el => { const t = document.createTextNode(el.textContent); el.parentNode.replaceChild(t, el) }) }
+        function hlText(node, q) {
+            if (node.nodeType === 3) {
+                const idx = node.textContent.toLowerCase().indexOf(q.toLowerCase());
+                if (idx >= 0) {
+                    const sp = document.createElement('span'); sp.className = 'shl';
+                    const b = document.createTextNode(node.textContent.slice(0, idx));
+                    sp.textContent = node.textContent.slice(idx, idx + q.length);
+                    const a = document.createTextNode(node.textContent.slice(idx + q.length));
+                    const f = document.createDocumentFragment(); f.appendChild(b); f.appendChild(sp); f.appendChild(a);
+                    node.parentNode.replaceChild(f, node);
+                }
+            } else if (node.nodeType === 1 && !['SCRIPT', 'STYLE', 'INPUT', 'BUTTON'].includes(node.tagName)) {
+                Array.from(node.childNodes).forEach(c => hlText(c, q));
+            }
+        }
+
+        // IntersectionObserver for progress
+        const obs = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting && e.target.id && e.target.id.startsWith('s')) markRead(e.target.id) }) }, { threshold: 0.3 });
+        document.querySelectorAll('.sec').forEach(s => obs.observe(s));
+    </script>
+</body>
+
+</html>
