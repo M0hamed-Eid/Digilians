@@ -1,0 +1,122 @@
+{
+  "name": "Session 3 – Multi-Step Content Pipeline",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a senior business content writer."
+            },
+            {
+              "role": "user",
+              "content": "Context: You are a business writer preparing internal communications.\nRole: Senior content writer\nInstruction: Expand each bullet point below into a full, self-contained paragraph. Preserve every piece of data. Do not add invented figures. Write in present-tense, active voice, third-person perspective.\nSpecifics: Output exactly four paragraphs, one per bullet, in the same order.\n\nBullets:\n• Q3 revenue up 12%\n• New enterprise clients: 15\n• Churn decreased to 3.2%\n• Launching v2.0 in October"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-2",
+      "name": "Step 1 – EXPAND",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [360, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a management consultant structuring business reports."
+            },
+            {
+              "role": "user",
+              "content": "Context: You are structuring a business report for internal distribution.\nRole: Management consultant\nInstruction: Reorganize the following expanded text into a formal report with exactly four sections: Executive Summary, Key Metrics, Risks, Next Steps. Place content under the most appropriate section. If a section has no corresponding content, write one inferential sentence.\nSpecifics: Use the section headers exactly as shown. No sub-bullets in this step.\n\nExample of desired structure:\nEXECUTIVE SUMMARY\n  [2–3 sentence synthesis of the overall situation]\nKEY METRICS\n  [Data-led paragraph covering quantitative results]\nRISKS\n  [Paragraph identifying current or foreseeable risks]\nNEXT STEPS\n  [Forward-looking paragraph on planned actions]\n\nInput: {{ $json.message.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-3",
+      "name": "Step 2 – STRUCTURE",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [620, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an executive communications editor."
+            },
+            {
+              "role": "user",
+              "content": "Context: This report will be read by C-suite executives with limited time.\nRole: Executive communications editor\nInstruction: Polish the following structured report for a C-suite audience.\n  First, identify any passages that are verbose, informal, or passive-voiced.\n  Then rewrite each identified passage to be concise, formal, and active-voiced.\n  Finally, output the complete polished report with the same four-section structure.\nSpecifics: Maximum two sentences per paragraph after polishing. Do not alter figures or introduce new facts.\n\nInput: {{ $json.message.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-4",
+      "name": "Step 3 – REFINE",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a presentation designer."
+            },
+            {
+              "role": "user",
+              "content": "Convert the following C-suite report into a 5-slide presentation summary.\nFor each slide, provide: Slide Title, and 3–4 bullet points of content (max 10 words each).\nSlides: Cover, Executive Summary, Key Metrics, Risks & Mitigation, Next Steps.\n\nInput: {{ $json.message.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-5",
+      "name": "Step 4 – TRANSLATE (Optional)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1140, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Step 1 – EXPAND", "type": "main", "index": 0 }]]
+    },
+    "Step 1 – EXPAND": {
+      "main": [[{ "node": "Step 2 – STRUCTURE", "type": "main", "index": 0 }]]
+    },
+    "Step 2 – STRUCTURE": {
+      "main": [[{ "node": "Step 3 – REFINE", "type": "main", "index": 0 }]]
+    },
+    "Step 3 – REFINE": {
+      "main": [[{ "node": "Step 4 – TRANSLATE (Optional)", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,177 @@
+================================================================================
+SESSION 3 ASSIGNMENT: Advanced Prompting — Teaching AI to Think
+================================================================================
+
+DUE: Before Session 4
+
+OBJECTIVE:
+Develop proficiency with zero-shot, few-shot, and chain-of-thought prompting
+strategies, and learn to decompose complex tasks into multi-step prompt chains
+within n8n. By the end of this assignment, you will understand when each
+technique is most effective and be able to orchestrate multi-prompt workflows
+that produce far superior results than any single prompt alone.
+
+--------------------------------------------------------------------------------
+TASK 1: Zero-Shot vs. Few-Shot Showdown (20 minutes)
+--------------------------------------------------------------------------------
+Choose THREE tasks from the list below. For each task, produce outputs using
+both zero-shot and few-shot prompting, then compare the results.
+
+Tasks (pick 3):
+  1. Classify customer reviews into: "Positive", "Negative", "Mixed",
+     or "Off-Topic"
+  2. Extract named entities (Person, Organization, Location, Date) from
+     a news paragraph
+  3. Convert informal chat messages into professional emails
+  4. Generate a one-sentence TL;DR for 200+ word paragraphs
+  5. Rate a product description on clarity (1-5) with a one-line
+     justification
+
+For each task:
+  a) Write a zero-shot prompt (clear instructions, no examples).
+  b) Write a few-shot prompt with exactly 3 input/output examples.
+  c) Test both prompts on the same 5 test inputs.
+  d) Create a comparison table:
+
+  | Test Input | Zero-Shot Output | Few-Shot Output | Which Is Better? Why? |
+
+After all three tasks, write a 4-6 sentence summary answering:
+  - When does few-shot clearly outperform zero-shot?
+  - When is zero-shot sufficient (or even preferable)?
+  - What makes a good few-shot example set?
+
+--------------------------------------------------------------------------------
+TASK 2: Chain-of-Thought Deep Dive (20 minutes)
+--------------------------------------------------------------------------------
+You will solve two problems using chain-of-thought (CoT) prompting and compare
+against direct-answer prompting.
+
+Problem A — Math Word Problem:
+  "A store buys widgets at $4.50 each and sells them at $7.99. On Monday they
+  sold 120 widgets. On Tuesday they sold 85 widgets but had a 15% return rate.
+  Wednesday they sold 200 widgets with a bulk discount of 10% on orders over
+  50. What is the total profit for the three days?"
+
+Problem B — Logic Puzzle:
+  "Five friends (Alice, Bob, Carol, Dave, Eve) sit in a row. Alice refuses to
+  sit next to Eve. Bob must sit next to Carol. Dave wants to be on an end
+  seat. Carol cannot be in the middle. List all valid seating arrangements."
+
+For each problem:
+  a) First, ask the LLM directly with no CoT instruction. Record the answer.
+  b) Then, add "Let's think step by step" and record the answer.
+  c) Finally, write an explicit CoT prompt that structures the reasoning
+     (e.g., "First identify..., then calculate..., finally verify...").
+     Record the answer.
+
+Answer these questions for each problem:
+  - Which approach (direct, simple CoT, structured CoT) gave the correct
+    answer?
+  - Where did the LLM make reasoning errors, and how did CoT help (or not)?
+  - How would you improve the structured CoT prompt further?
+
+--------------------------------------------------------------------------------
+TASK 3: Prompt Chaining in n8n — Multi-Step Content Pipeline (30 minutes)
+--------------------------------------------------------------------------------
+Build an n8n workflow that transforms rough bullet notes into a polished,
+audience-ready document through a chain of prompts. This is your first
+multi-node AI workflow.
+
+Setup:
+  - Create a manual trigger or webhook trigger node
+  - You will use 3-4 AI/HTTP request nodes in sequence (if using OpenAI
+    API via HTTP, or the n8n AI nodes if available)
+
+The Chain:
+
+  Step 1 — EXPAND: Take raw bullet notes and expand each bullet into a
+  full paragraph. Preserve all key information.
+    Input: "• Q3 revenue up 12% • New enterprise clients: 15 • Churn
+    decreased to 3.2% • Launching v2.0 in October"
+    Prompt: [Your CRISP + zero-shot prompt]
+
+  Step 2 — STRUCTURE: Take the expanded text and organize it into a
+  structured report with sections: Executive Summary, Key Metrics,
+  Risks, Next Steps.
+    Prompt: [Your CRISP + few-shot prompt with an example of desired
+    structure]
+
+  Step 3 — REFINE: Take the structured report and polish it for a
+  C-suite audience (formal tone, concise, action-oriented).
+    Prompt: [Your CRISP + chain-of-thought prompt that first identifies
+    informal/verbose passages, then rewrites them]
+
+  Step 4 (Optional) — TRANSLATE: Convert the polished report into a
+  5-slide summary with slide titles and bullet content.
+    Prompt: [Your prompt design choice]
+
+For each step in the chain:
+  - Show the full prompt you wrote
+  - Paste the output from that step
+  - Note which prompting technique(s) you used and why
+
+Finally, paste the raw input and final output side-by-side to show the
+full transformation.
+
+Diagram your n8n workflow (screenshot or text description of the node
+connections).
+
+--------------------------------------------------------------------------------
+TASK 4: Prompting Strategy Decision Framework (10 minutes)
+--------------------------------------------------------------------------------
+Create a personal reference cheat sheet (1 page) that helps you decide which
+prompting technique to use. Include:
+
+  1. A decision flowchart or table covering these scenarios:
+     - Simple formatting task → ?
+     - Classification with specific categories → ?
+     - Complex reasoning or math → ?
+     - Multi-step transformation → ?
+     - Creative generation with style constraints → ?
+
+  2. For each technique (zero-shot, few-shot, CoT, prompt chaining), list:
+     - Best use case
+     - When NOT to use it
+     - Key tip for effectiveness
+
+This cheat sheet will be your go-to reference for the rest of the course.
+
+--------------------------------------------------------------------------------
+DELIVERABLES:
+--------------------------------------------------------------------------------
+Submit a single document (PDF, DOCX, or Markdown) containing:
+
+  1. Zero-Shot vs. Few-Shot comparison tables for 3 tasks + summary
+     (Task 1)
+  2. Chain-of-Thought comparison for both problems + analysis (Task 2)
+  3. n8n workflow diagram, all prompts, all intermediate outputs, and
+     final side-by-side transformation (Task 3)
+  4. Prompting Strategy Decision Framework cheat sheet (Task 4)
+
+Also export and attach your n8n workflow JSON file.
+
+Name your file: Session3_Assignment_[YourName].[ext]
+
+--------------------------------------------------------------------------------
+GRADING CRITERIA:
+--------------------------------------------------------------------------------
+  Zero-Shot vs. Few-Shot (Task 1)       20%  — Thoroughness of comparison;
+                                               quality of summary insights
+
+  Chain-of-Thought (Task 2)             20%  — Correctness of analysis;
+                                               understanding of CoT
+                                               benefits and limitations
+
+  Prompt Chaining in n8n (Task 3)       35%  — Working n8n workflow;
+                                               prompt quality at each
+                                               step; output improvement
+                                               across the chain
+
+  Strategy Framework (Task 4)           15%  — Practical usefulness;
+                                               accuracy of guidance
+
+  Formatting & Clarity                  10%  — Document organization,
+                                               workflow documentation,
+                                               readability
+
+================================================================================
