@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecture 07 — Image Processing Techniques</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0d0f1a; --surface:#131626; --card:#191c2e; --card-h:#1e2235;
+      --border:#272d45; --text:#e2e8f0; --muted:#8892a4; --faint:#3e4560;
+      --a1:#22d3ee; --a1-bg:rgba(34,211,238,.08); --a1-mid:rgba(34,211,238,.22);
+      --a2:#10b981; --a2-bg:rgba(16,185,129,.08);  --a2-mid:rgba(16,185,129,.22);
+      --a3:#f59e0b; --a3-bg:rgba(245,158,11,.08);  --a3-mid:rgba(245,158,11,.22);
+      --a4:#f97316; --a4-bg:rgba(249,115,22,.08);  --a4-mid:rgba(249,115,22,.22);
+      --a5:#8b5cf6; --a5-bg:rgba(139,92,246,.08);  --a5-mid:rgba(139,92,246,.22);
+      --a6:#ec4899; --a6-bg:rgba(236,72,153,.08);  --a6-mid:rgba(236,72,153,.22);
+      --a7:#3b82f6; --a7-bg:rgba(59,130,246,.08);  --a7-mid:rgba(59,130,246,.22);
+      --a8:#22c55e; --a8-bg:rgba(34,197,94,.08);   --a8-mid:rgba(34,197,94,.22);
+      --a9:#f43f5e; --a9-bg:rgba(244,63,94,.08);   --a9-mid:rgba(244,63,94,.22);
+      --analogy:#fbbf24; --analogy-bg:rgba(251,191,36,.09);
+      --example:#34d399; --example-bg:rgba(52,211,153,.09);
+      --summary:#818cf8; --summary-bg:rgba(129,140,248,.09);
+      --warning:#fb923c; --warning-bg:rgba(251,146,60,.09);
+      --code-bg:#11111b; --code-kw:#cba6f7; --code-fn:#89b4fa;
+      --code-str:#a6e3a1; --code-num:#fab387; --code-cm:#6c7086;
+      --code-vr:#cdd6f4; --code-op:#89dceb;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;overflow-x:hidden}
+    #prog{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--a1),var(--a5),var(--a9));z-index:9999;transition:width .1s}
+    #sidebar{position:fixed;left:0;top:0;width:256px;height:100vh;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:72px 0 24px}
+    #sidebar::-webkit-scrollbar{width:3px}
+    #sidebar::-webkit-scrollbar-thumb{background:var(--border)}
+    .sb-brand{position:absolute;top:18px;left:20px;font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .sb-label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:16px 20px 6px;display:block}
+    .sb-nav a{display:flex;align-items:center;gap:10px;padding:7px 14px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:.8rem;font-weight:500;transition:all .18s;margin:1px 8px}
+    .sb-nav a:hover,.sb-nav a.active{background:var(--card);color:var(--text)}
+    .nd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    #main{margin-left:256px;max-width:980px;padding:0 44px 100px}
+    .hdr{padding:56px 0 32px}
+    .hdr-bar{height:3px;border-radius:2px;margin-bottom:28px;background:linear-gradient(90deg,var(--a1),var(--a5),var(--a9))}
+    .hdr-meta{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+    .hdr-title{font-size:2.5rem;font-weight:800;line-height:1.15;margin-bottom:10px;background:linear-gradient(130deg,var(--a1) 0%,var(--a5) 55%,var(--a9) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hdr-sub{color:var(--muted);font-size:.97rem}
+    .toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 36px}
+    .chip{padding:5px 14px;border-radius:20px;border:1px solid;font-size:.76rem;font-weight:600;text-decoration:none;transition:all .18s;cursor:pointer}
+    .chip:hover{transform:translateY(-1px);filter:brightness(1.2)}
+    .chip:nth-child(1){color:var(--a1);border-color:var(--a1-mid);background:var(--a1-bg)}
+    .chip:nth-child(2){color:var(--a2);border-color:var(--a2-mid);background:var(--a2-bg)}
+    .chip:nth-child(3){color:var(--a3);border-color:var(--a3-mid);background:var(--a3-bg)}
+    .chip:nth-child(4){color:var(--a4);border-color:var(--a4-mid);background:var(--a4-bg)}
+    .chip:nth-child(5){color:var(--a5);border-color:var(--a5-mid);background:var(--a5-bg)}
+    .chip:nth-child(6){color:var(--a6);border-color:var(--a6-mid);background:var(--a6-bg)}
+    .chip:nth-child(7){color:var(--a7);border-color:var(--a7-mid);background:var(--a7-bg)}
+    .chip:nth-child(8){color:var(--a8);border-color:var(--a8-mid);background:var(--a8-bg)}
+    .chip:nth-child(9){color:var(--a9);border-color:var(--a9-mid);background:var(--a9-bg)}
+    .lang-sw{display:flex;gap:3px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content;margin-bottom:28px}
+    .lb{padding:6px 20px;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .18s;font-family:'Sora',sans-serif}
+    .lb.on{background:var(--a7);color:#fff}
+    .lc{display:none}.lc.on{display:block}
+    .ar{direction:rtl;text-align:right;font-size:1.04rem;line-height:1.95}
+    .sc{background:var(--card);border-radius:16px;border:1px solid var(--border);margin-bottom:28px;overflow:hidden}
+    .sc[data-a="1"]{border-left:4px solid var(--a1)}
+    .sc[data-a="2"]{border-left:4px solid var(--a2)}
+    .sc[data-a="3"]{border-left:4px solid var(--a3)}
+    .sc[data-a="4"]{border-left:4px solid var(--a4)}
+    .sc[data-a="5"]{border-left:4px solid var(--a5)}
+    .sc[data-a="6"]{border-left:4px solid var(--a6)}
+    .sc[data-a="7"]{border-left:4px solid var(--a7)}
+    .sc[data-a="8"]{border-left:4px solid var(--a8)}
+    .sc[data-a="9"]{border-left:4px solid var(--a9)}
+    .sh{padding:20px 26px;display:flex;align-items:center;gap:14px;cursor:pointer;user-select:none}
+    .si{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .sc[data-a="1"] .si{background:var(--a1-bg)}.sc[data-a="2"] .si{background:var(--a2-bg)}.sc[data-a="3"] .si{background:var(--a3-bg)}.sc[data-a="4"] .si{background:var(--a4-bg)}.sc[data-a="5"] .si{background:var(--a5-bg)}.sc[data-a="6"] .si{background:var(--a6-bg)}.sc[data-a="7"] .si{background:var(--a7-bg)}.sc[data-a="8"] .si{background:var(--a8-bg)}.sc[data-a="9"] .si{background:var(--a9-bg)}
+    .stw{flex:1}.sn{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+    .sc[data-a="1"] .sn{color:var(--a1)}.sc[data-a="2"] .sn{color:var(--a2)}.sc[data-a="3"] .sn{color:var(--a3)}.sc[data-a="4"] .sn{color:var(--a4)}.sc[data-a="5"] .sn{color:var(--a5)}.sc[data-a="6"] .sn{color:var(--a6)}.sc[data-a="7"] .sn{color:var(--a7)}.sc[data-a="8"] .sn{color:var(--a8)}.sc[data-a="9"] .sn{color:var(--a9)}
+    .st{font-size:1.1rem;font-weight:700;color:var(--text)}
+    .tog{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:transform .2s;flex-shrink:0}
+    .tog.on{transform:rotate(180deg)}
+    .sdiv{height:1px;background:var(--border);margin:0 26px 26px}
+    .sb-body{padding:0 26px 26px}.sb-body.col{display:none}
+    .box{border-radius:11px;padding:16px 18px;margin:18px 0;border-left:3px solid}
+    .bh{font-weight:700;font-size:.82rem;margin-bottom:9px;text-transform:uppercase;letter-spacing:.05em}
+    .box p,.box li{font-size:.91rem}.box ul,.box ol{padding-left:18px}.box li{margin-bottom:5px}
+    .ba{background:var(--analogy-bg);border-color:var(--analogy)}.ba .bh{color:var(--analogy)}
+    .bex{background:var(--example-bg);border-color:var(--example)}.bex .bh{color:var(--example)}
+    .bs{background:var(--summary-bg);border-color:var(--summary)}.bs .bh{color:var(--summary)}
+    .bw{background:var(--warning-bg);border-color:var(--warning)}.bw .bh{color:var(--warning)}
+    .term{color:var(--a7);font-weight:600;border-bottom:1px dashed var(--a7)}
+    .hl{background:rgba(251,191,36,.14);color:var(--analogy);padding:1px 5px;border-radius:4px;font-weight:600}
+    .ci{font-family:'IBM Plex Mono',monospace;font-size:.86em;background:var(--code-bg);color:var(--code-str);padding:2px 6px;border-radius:4px}
+    pre{background:var(--code-bg);border:1px solid #313244;border-radius:11px;padding:18px 20px;overflow-x:auto;margin:18px 0;font-family:'IBM Plex Mono',monospace;font-size:.84rem;line-height:1.85}
+    .kw{color:var(--code-kw)}.fn{color:var(--code-fn)}.str{color:var(--code-str)}.num{color:var(--code-num)}.cm{color:var(--code-cm);font-style:italic}.vr{color:var(--code-vr)}.op{color:var(--code-op)}
+    .fm{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:18px;margin:18px 0;text-align:center}
+    .fm-main{font-family:'IBM Plex Mono',monospace;font-size:1.25rem;color:var(--a3);margin-bottom:8px}
+    .fm-sub{font-size:.79rem;color:var(--muted)}
+    .ct{width:100%;border-collapse:collapse;margin:18px 0;font-size:.87rem;border-radius:10px;overflow:hidden}
+    .ct th{padding:11px 15px;text-align:left;font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.06em}
+    .ct td{padding:11px 15px;border-bottom:1px solid var(--border);vertical-align:top}
+    .ct tr:last-child td{border-bottom:none}.ct tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+    .dt{width:100%;border-collapse:collapse;margin:16px 0;font-size:.84rem}
+    .dt th{padding:10px 13px;font-weight:700;font-size:.73rem;text-transform:uppercase;letter-spacing:.06em;text-align:center}
+    .dt td{padding:9px 13px;border-bottom:1px solid var(--border);text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.82rem}
+    .dt tr:last-child td{border-bottom:none}.dt tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+    .acc{border:1px solid var(--border);border-radius:10px;margin-bottom:9px;overflow:hidden}
+    .acc-q{padding:13px 17px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.89rem;background:var(--surface);user-select:none}
+    .acc-q:hover{background:var(--card-h)}.acc-q span{color:var(--a7);font-size:.72rem;font-family:'IBM Plex Mono',monospace;flex-shrink:0;margin-left:12px}
+    .acc-a{padding:15px 17px;font-size:.9rem;line-height:1.8;background:var(--card);display:none;border-top:1px solid var(--border)}
+    .acc-a.on{display:block}.acc-a ul{padding-left:18px;margin-top:7px}.acc-a li{margin-bottom:5px}
+    .sl{list-style:none;padding:0;margin:14px 0}
+    .sl li{display:flex;gap:13px;margin-bottom:13px;align-items:flex-start}
+    .sln{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px}
+    .slt{flex:1;padding-top:3px;font-size:.91rem}
+    .fw{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:22px;margin:18px 0;text-align:center}
+    .fc{font-size:.78rem;color:var(--muted);margin-top:10px;font-style:italic}
+    h3{font-size:.98rem;font-weight:700;color:var(--text);margin:18px 0 9px}
+    h4{font-size:.82rem;font-weight:700;color:var(--muted);margin:14px 0 7px;text-transform:uppercase;letter-spacing:.06em}
+    p{margin-bottom:11px;font-size:.92rem}
+    ul,ol{padding-left:20px;margin-bottom:11px}
+    li{margin-bottom:5px;font-size:.92rem}
+    @media(max-width:900px){#sidebar{display:none}#main{margin-left:0;padding:0 18px 60px}.hdr-title{font-size:1.75rem}}
+  </style>
+</head>
+<body>
+<div id="prog"></div>
+
+<nav id="sidebar">
+  <div class="sb-brand">Lecture 07</div>
+  <span class="sb-label">Point Processing</span>
+  <div class="sb-nav">
+    <a href="#s1" data-id="s1"><span class="nd" style="background:var(--a1)"></span>Point Processing</a>
+    <a href="#s2" data-id="s2"><span class="nd" style="background:var(--a2)"></span>Negative Transform</a>
+    <a href="#s3" data-id="s3"><span class="nd" style="background:var(--a3)"></span>Log Transform</a>
+    <a href="#s4" data-id="s4"><span class="nd" style="background:var(--a4)"></span>Gamma Correction</a>
+    <a href="#s5" data-id="s5"><span class="nd" style="background:var(--a5)"></span>Contrast Stretching</a>
+    <a href="#s6" data-id="s6"><span class="nd" style="background:var(--a6)"></span>Thresholding</a>
+  </div>
+  <span class="sb-label">Histogram Processing</span>
+  <div class="sb-nav">
+    <a href="#s7" data-id="s7"><span class="nd" style="background:var(--a7)"></span>What is a Histogram</a>
+    <a href="#s8" data-id="s8"><span class="nd" style="background:var(--a8)"></span>Hist. Equalization</a>
+    <a href="#s9" data-id="s9"><span class="nd" style="background:var(--a9)"></span>Hist. Matching</a>
+  </div>
+  <span class="sb-label">Review</span>
+  <div class="sb-nav">
+    <a href="#s10" data-id="s10"><span class="nd" style="background:var(--a7)"></span>Interview Q&amp;A</a>
+    <a href="#s11" data-id="s11"><span class="nd" style="background:var(--a5)"></span>Key Takeaways</a>
+  </div>
+</nav>
+
+<main id="main">
+  <div class="hdr">
+    <div class="hdr-bar"></div>
+    <div class="hdr-meta">Al-Bidaya AI &amp; Data Science — Dr. Ahmed Yousry &nbsp;|&nbsp; Lecture 07</div>
+    <h1 class="hdr-title">Image Processing Techniques</h1>
+    <p class="hdr-sub">Point Processing &nbsp;·&nbsp; Intensity Transformations &nbsp;·&nbsp; Histogram Processing</p>
+  </div>
+
+  <div class="toc">
+    <a class="chip" href="#s1">Point Processing</a>
+    <a class="chip" href="#s2">Negative</a>
+    <a class="chip" href="#s3">Log Transform</a>
+    <a class="chip" href="#s4">Gamma</a>
+    <a class="chip" href="#s5">Contrast Stretch</a>
+    <a class="chip" href="#s6">Thresholding</a>
+    <a class="chip" href="#s7">Histogram</a>
+    <a class="chip" href="#s8">Equalization</a>
+    <a class="chip" href="#s9">Matching</a>
+  </div>
+
+  <div class="lang-sw">
+    <button class="lb on" onclick="switchLang('en')">EN &nbsp;English</button>
+    <button class="lb" onclick="switchLang('ar')">AR &nbsp;عربي</button>
+  </div>
+
+
+  <!-- ===== S1: POINT PROCESSING ===== -->
+  <div class="sc" data-a="1" id="s1">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">📍</div>
+      <div class="stw"><div class="sn">Section 01</div><div class="st">Point Processing &amp; Intensity Transformations</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>What is Point Processing?</h3>
+        <p><span class="term">Point processing</span> is the simplest family of image operations. You look at one pixel at a time, read its intensity value, apply a math function, and write a new value. The key constraint: the output depends <em>only</em> on that single pixel — no neighboring pixels are consulted.</p>
+        <div class="fm">
+          <div class="fm-main">s = T(r)</div>
+          <div class="fm-sub">r = input pixel intensity &nbsp;|&nbsp; s = output pixel intensity &nbsp;|&nbsp; T = the transformation function</div>
+        </div>
+        <div class="box ba">
+          <div class="bh">💡 Analogy</div>
+          <p>Imagine a spreadsheet with 1,000,000 rows (pixels). Point processing is like writing a single formula in column B — <span class="ci">=formula(A1)</span> — and copying it to every row. Each cell works in isolation, never looking at its neighbors.</p>
+        </div>
+        <h3>The Three Core Categories</h3>
+        <table class="ct">
+          <thead><tr style="background:linear-gradient(90deg,var(--a1-bg),var(--a5-bg))">
+            <th style="color:var(--a1)">Category</th><th style="color:var(--a1)">Formula</th>
+            <th style="color:var(--a1)">Effect</th><th style="color:var(--a1)">Primary Use</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><strong>Linear</strong></td><td><span class="ci">s = 255 − r</span></td><td>Inverts all intensities</td><td>Medical X-rays</td></tr>
+            <tr><td><strong>Logarithmic</strong></td><td><span class="ci">s = c·log(1+r)</span></td><td>Expands dark, compresses bright</td><td>Fourier spectra</td></tr>
+            <tr><td><strong>Power-Law (Gamma)</strong></td><td><span class="ci">s = c·r^γ</span></td><td>Non-linear contrast shaping</td><td>Display calibration</td></tr>
+          </tbody>
+        </table>
+        <div class="fw">
+          <svg viewBox="0 0 540 290" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="540" height="290" rx="8" fill="#11111b"/>
+            <g stroke="#1e2035" stroke-width="1">
+              <line x1="60" y1="20" x2="60" y2="250"/><line x1="60" y1="250" x2="500" y2="250"/>
+              <line x1="60" y1="197" x2="500" y2="197" stroke-dasharray="4,4"/>
+              <line x1="60" y1="135" x2="500" y2="135" stroke-dasharray="4,4"/>
+              <line x1="60" y1="80"  x2="500" y2="80"  stroke-dasharray="4,4"/>
+              <line x1="168" y1="20" x2="168" y2="250" stroke-dasharray="4,4"/>
+              <line x1="280" y1="20" x2="280" y2="250" stroke-dasharray="4,4"/>
+              <line x1="392" y1="20" x2="392" y2="250" stroke-dasharray="4,4"/>
+            </g>
+            <text x="280" y="273" fill="#585b70" font-size="11" text-anchor="middle" font-family="IBM Plex Mono">Input Intensity r (0→255)</text>
+            <text x="22" y="135" fill="#585b70" font-size="11" text-anchor="middle" font-family="IBM Plex Mono" transform="rotate(-90,22,135)">Output s</text>
+            <text x="60"  y="266" fill="#585b70" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">0</text>
+            <text x="280" y="266" fill="#585b70" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">128</text>
+            <text x="500" y="266" fill="#585b70" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">255</text>
+            <!-- identity -->
+            <line x1="60" y1="250" x2="500" y2="20" stroke="#2a2f45" stroke-width="1.5" stroke-dasharray="6,5"/>
+            <!-- negative (green, descending) -->
+            <line x1="60" y1="20" x2="500" y2="250" stroke="#10b981" stroke-width="2.5"/>
+            <!-- log (amber, concave) -->
+            <path d="M60,250 Q120,160 208,105 Q295,65 500,30" stroke="#f59e0b" stroke-width="2.5" fill="none"/>
+            <!-- gamma <1 (cyan, concave lighter) -->
+            <path d="M60,250 Q160,190 265,140 Q360,100 500,28" stroke="#22d3ee" stroke-width="2.5" fill="none" stroke-dasharray="7,2"/>
+            <!-- gamma >1 (orange, convex) -->
+            <path d="M60,250 Q185,245 315,215 Q415,180 500,28" stroke="#f97316" stroke-width="2.5" fill="none"/>
+            <!-- legend -->
+            <rect x="300" y="55" width="192" height="118" rx="7" fill="#1a1d2e" stroke="#2a2f45"/>
+            <line x1="310" y1="76"  x2="332" y2="76"  stroke="#10b981" stroke-width="2.5"/>
+            <text x="338" y="80"  fill="#e2e8f0" font-size="10" font-family="Sora">Negative (Linear)</text>
+            <line x1="310" y1="96"  x2="332" y2="96"  stroke="#f59e0b" stroke-width="2.5"/>
+            <text x="338" y="100" fill="#e2e8f0" font-size="10" font-family="Sora">Log Transform</text>
+            <line x1="310" y1="116" x2="332" y2="116" stroke="#22d3ee" stroke-width="2.5" stroke-dasharray="5,2"/>
+            <text x="338" y="120" fill="#e2e8f0" font-size="10" font-family="Sora">Gamma &lt; 1 (bright)</text>
+            <line x1="310" y1="136" x2="332" y2="136" stroke="#f97316" stroke-width="2.5"/>
+            <text x="338" y="140" fill="#e2e8f0" font-size="10" font-family="Sora">Gamma &gt; 1 (dark)</text>
+            <line x1="310" y1="155" x2="332" y2="155" stroke="#2a2f45" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="338" y="159" fill="#4a5568" font-size="10" font-family="Sora">Identity (no change)</text>
+          </svg>
+          <div class="fc">Figure 1 — All four transformation curves on the same axes. Curves above the dashed identity line brighten the image; curves below darken it.</div>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Point processing = a pixel-by-pixel math function with no spatial context. Three families: <strong>Linear</strong> (straight-line map), <strong>Logarithmic</strong> (expands dark areas), <strong>Power-Law/Gamma</strong> (non-linear contrast). All share the formula <span class="ci">s = T(r)</span>.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>ما هو الـ Point Processing؟</h3>
+          <p>الـ <span class="term">Point Processing</span> هو أبسط أنواع معالجة الصور. الفكرة واضحة: بتاخد كل <span class="term">pixel</span> لوحده، بتشوف قيمته (شدة إضاءته)، وبتطبق عليه دالة رياضية. الـ pixels المجاورة مش بتأثر في النتيجة خالص.</p>
+          <div class="fm">
+            <div class="fm-main">s = T(r)</div>
+            <div class="fm-sub">r = قيمة البكسل الأصلية &nbsp;|&nbsp; s = القيمة الجديدة &nbsp;|&nbsp; T = الدالة اللي بنطبقها</div>
+          </div>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه</div>
+            <p>تخيل جدول Excel فيه مليون صف (الـ pixels). الـ Point Processing زي إنك بتكتب معادلة في العمود B وبتنسخها لكل الصفوف. كل خلية بتشتغل مستقلة بدون ما تبص على اللي جنبها.</p>
+          </div>
+          <h3>التصنيفات الثلاثة</h3>
+          <table class="ct">
+            <thead><tr style="background:linear-gradient(90deg,var(--a1-bg),var(--a5-bg))">
+              <th style="color:var(--a1)">النوع</th><th style="color:var(--a1)">المعادلة</th><th style="color:var(--a1)">التأثير</th>
+            </tr></thead>
+            <tbody>
+              <tr><td><strong>Linear</strong></td><td><span class="ci">s = 255−r</span></td><td>عكس الألوان كاملاً</td></tr>
+              <tr><td><strong>Logarithmic</strong></td><td><span class="ci">s = c·log(1+r)</span></td><td>يكبّر التفاصيل الغامقة</td></tr>
+              <tr><td><strong>Power-Law</strong></td><td><span class="ci">s = c·r^γ</span></td><td>تعديل الـ contrast بشكل غير خطي</td></tr>
+            </tbody>
+          </table>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Point Processing = دالة رياضية على كل pixel لوحده. ثلاثة أنواع: Linear، Logarithmic، Power-Law. كلهم بيشتغلوا بمعادلة <span class="ci">s = T(r)</span> — الخرج بيعتمد فقط على قيمة البكسل نفسه.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S2: NEGATIVE ===== -->
+  <div class="sc" data-a="2" id="s2">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">🔄</div>
+      <div class="stw"><div class="sn">Section 02</div><div class="st">Negative Transformation</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>Inverting All Pixel Intensities</h3>
+        <p>The <span class="term">negative transformation</span> is the simplest intensity transform: every pixel is flipped to its mirror-opposite brightness. Dark pixels become bright and bright pixels become dark. For an 8-bit image the formula is just <span class="ci">255 minus the input</span>.</p>
+        <div class="fm">
+          <div class="fm-main">s = (L − 1) − r &nbsp;→&nbsp; s = 255 − r</div>
+          <div class="fm-sub">For 8-bit images (L = 256).<br>Example: r = 40 (very dark) → s = 215 (bright) &nbsp;|&nbsp; r = 200 (bright) → s = 55 (dark)</div>
+        </div>
+        <div class="box ba">
+          <div class="bh">💡 Analogy — Film Negatives</div>
+          <p>On a photographic film negative, a bright face appears dark and the dark background appears light. The digital negative formula does exactly the same thing — mathematically flipping every brightness level to its mirror across the midpoint (127.5).</p>
+        </div>
+        <h3>Why Is This Useful?</h3>
+        <p>The primary application is <span class="hl">medical imaging</span> — specifically mammography and chest X-rays. In some clinical situations, subtle features like micro-calcifications or fine fractures are easier for radiologists to spot when the contrast is inverted. A tiny bright feature on a dark background may stand out more as a dark feature on a bright background.</p>
+        <div class="fw">
+          <svg viewBox="0 0 520 175" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="520" height="175" rx="8" fill="#11111b"/>
+            <defs>
+              <linearGradient id="og" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#060606"/><stop offset="40%" stop-color="#444"/>
+                <stop offset="75%" stop-color="#bbb"/><stop offset="100%" stop-color="#eee"/>
+              </linearGradient>
+              <linearGradient id="ng" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#eee"/><stop offset="25%" stop-color="#bbb"/>
+                <stop offset="60%" stop-color="#444"/><stop offset="100%" stop-color="#060606"/>
+              </linearGradient>
+            </defs>
+            <rect x="28" y="22" width="185" height="120" rx="7" fill="#1a1d2e" stroke="#2a2f45"/>
+            <rect x="36" y="30" width="169" height="104" rx="5" fill="url(#og)"/>
+            <text x="120" y="160" fill="#585b70" font-size="10" text-anchor="middle" font-family="Sora">Original Image</text>
+            <text x="42"  y="84" fill="#585b70" font-size="8" font-family="IBM Plex Mono">r≈20</text>
+            <text x="168" y="84" fill="#222"    font-size="8" font-family="IBM Plex Mono">r≈240</text>
+            <text x="230" y="82" fill="#10b981" font-size="26" text-anchor="middle">→</text>
+            <text x="230" y="100" fill="#10b981" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">255 − r</text>
+            <rect x="307" y="22" width="185" height="120" rx="7" fill="#1a1d2e" stroke="#10b981" stroke-opacity=".45"/>
+            <rect x="315" y="30" width="169" height="104" rx="5" fill="url(#ng)"/>
+            <text x="400" y="160" fill="#10b981" font-size="10" text-anchor="middle" font-family="Sora">Negative Image</text>
+            <text x="320" y="84" fill="#eee"    font-size="8" font-family="IBM Plex Mono">s≈235</text>
+            <text x="448" y="84" fill="#585b70" font-size="8" font-family="IBM Plex Mono">s≈15</text>
+          </svg>
+          <div class="fc">Figure 2 — Negative transform reverses the gradient: near-black becomes near-white and vice versa.</div>
+        </div>
+        <div class="box bex">
+          <div class="bh">▶ Python Code</div>
+<pre><span class="kw">import</span> <span class="vr">cv2</span>
+<span class="kw">import</span> <span class="vr">numpy</span> <span class="kw">as</span> <span class="vr">np</span>
+
+<span class="vr">img</span> = <span class="fn">cv2.imread</span>(<span class="str">'xray.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+
+<span class="cm"># s = 255 - r  (NumPy broadcasts to every pixel at once)</span>
+<span class="vr">negative</span> = <span class="num">255</span> - <span class="vr">img</span>
+
+<span class="fn">cv2.imwrite</span>(<span class="str">'negative.jpg'</span>, <span class="vr">negative</span>)</pre>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Negative transform = <span class="ci">255 − r</span>. Flips every pixel to its opposite brightness. Main use: medical imaging (X-rays, mammography) to reveal subtle features hidden in shadow. One line of code in NumPy.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>عكس قيم البكسلات</h3>
+          <p>الـ <span class="term">Negative Transformation</span> بتاخد كل pixel وبتطرح قيمته من 255. البكسل الغامق بيبقى فاتح والعكس بالعكس.</p>
+          <div class="fm">
+            <div class="fm-main">s = 255 − r</div>
+            <div class="fm-sub">مثال: r = 40 (غامق جداً) ← s = 215 (فاتح جداً)</div>
+          </div>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه — نيجاتيف الصور</div>
+            <p>على فيلم الصور القديم، الوجه الفاتح بيبان داكن والخلفية الداكنة بتبان فاتحة. نفس الفكرة بالضبط رياضياً — كل قيمة بتتقلب حول المنتصف 127.5.</p>
+          </div>
+          <h3>الاستخدام الأساسي</h3>
+          <p>بيُستخدم في <span class="hl">التصوير الطبي</span> مثل الأشعة السينية والـ Mammography. بعض الأورام الصغيرة أو الكسور الدقيقة أسهل يشوفها الطبيب لما يتعكس الـ contrast.</p>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Negative = <span class="ci">255 − r</span>. يعكس الصورة كاملاً. مش محتاج غير سطر واحد في Python. بيُستخدم في التصوير الطبي لإظهار التفاصيل المخفية.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S3: LOG TRANSFORM ===== -->
+  <div class="sc" data-a="3" id="s3">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">📈</div>
+      <div class="stw"><div class="sn">Section 03</div><div class="st">Logarithmic Transformations</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>The Wide Dynamic Range Problem</h3>
+        <p>Some images have a <span class="term">wide dynamic range</span> — their darkest and brightest values differ by enormous amounts. The classic example is the output of a <span class="term">Fourier Transform</span>: the DC component can be tens of thousands of times brighter than the surrounding frequency values. Display this directly, and everything except the center looks pure black — the screen simply cannot represent that range.</p>
+        <p>The logarithmic transform solves this by <span class="hl">compressing large values and expanding small ones</span>, making the full range visible simultaneously.</p>
+        <div class="fm">
+          <div class="fm-main">s = c · log(1 + r)</div>
+          <div class="fm-sub">c = 255 / log(1 + max_pixel_value) &nbsp;—&nbsp; scales output to full [0, 255] range<br>
+          Adding 1 prevents log(0) = −∞ when r = 0</div>
+        </div>
+        <div class="box ba">
+          <div class="bh">💡 Analogy — The Richter Scale</div>
+          <p>Earthquake magnitudes use a logarithmic scale. A magnitude-7 quake is not just 1 unit stronger than a magnitude-6 — it is 10× stronger. Logarithmic scales are invented exactly for situations where values span many orders of magnitude. The log transform applies this same idea to pixel values so that tiny dark values and huge bright values can coexist on the same display.</p>
+        </div>
+        <div class="fw">
+          <svg viewBox="0 0 500 235" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="500" height="235" rx="8" fill="#11111b"/>
+            <line x1="55" y1="20" x2="55" y2="195" stroke="#2a2f45" stroke-width="1.5"/>
+            <line x1="55" y1="195" x2="460" y2="195" stroke="#2a2f45" stroke-width="1.5"/>
+            <g stroke="#1e2035" stroke-width="1" stroke-dasharray="4,4">
+              <line x1="55" y1="148" x2="460" y2="148"/>
+              <line x1="55" y1="98"  x2="460" y2="98"/>
+              <line x1="55" y1="53"  x2="460" y2="53"/>
+              <line x1="157" y1="20" x2="157" y2="195"/>
+              <line x1="258" y1="20" x2="258" y2="195"/>
+              <line x1="358" y1="20" x2="358" y2="195"/>
+            </g>
+            <!-- identity -->
+            <line x1="55" y1="195" x2="460" y2="20" stroke="#2a2f45" stroke-width="1" stroke-dasharray="5,4"/>
+            <!-- log curve -->
+            <path d="M55,195 C88,150 145,105 218,77 C290,52 370,35 460,22" stroke="#f59e0b" stroke-width="3" fill="none"/>
+            <!-- annotation boxes -->
+            <rect x="56" y="162" width="98" height="32" rx="5" fill="#1a1d2e" stroke="#f59e0b" stroke-opacity=".5"/>
+            <text x="105" y="175" fill="#f59e0b" font-size="8.5" text-anchor="middle" font-family="Sora">Dark values</text>
+            <text x="105" y="188" fill="#f59e0b" font-size="8.5" text-anchor="middle" font-family="Sora">EXPANDED ↑</text>
+            <rect x="335" y="26" width="120" height="32" rx="5" fill="#1a1d2e" stroke="#2a2f45"/>
+            <text x="395" y="39" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">Bright values</text>
+            <text x="395" y="52" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">compressed ↓</text>
+            <text x="220" y="38" fill="#f59e0b" font-size="12" font-family="Sora" font-weight="700">s = c · log(1 + r)</text>
+            <text x="257" y="218" fill="#585b70" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">r (input)</text>
+            <text x="18" y="107" fill="#585b70" font-size="10" text-anchor="middle" font-family="IBM Plex Mono" transform="rotate(-90,18,107)">s (output)</text>
+          </svg>
+          <div class="fc">Figure 3 — The log curve strongly expands dark pixel values (left zone) while barely moving bright values (right zone).</div>
+        </div>
+        <div class="box bw">
+          <div class="bh">⚠ Important Clarification — Why log(1 + r)?</div>
+          <p>When a pixel is pure black (r = 0), plain log(0) = −∞ which is mathematically undefined and meaningless as a pixel value. Adding 1 ensures: log(1 + 0) = log(1) = 0, correctly mapping a black pixel to black output. The +1 is a numerical guard — it barely changes the curve shape for non-zero values.</p>
+        </div>
+        <div class="box bex">
+          <div class="bh">▶ Python Code</div>
+<pre><span class="kw">import</span> <span class="vr">cv2</span>
+<span class="kw">import</span> <span class="vr">numpy</span> <span class="kw">as</span> <span class="vr">np</span>
+
+<span class="vr">img</span> = <span class="fn">cv2.imread</span>(<span class="str">'fourier_spectrum.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+<span class="vr">img_f</span> = <span class="vr">img</span>.<span class="fn">astype</span>(<span class="vr">np.float64</span>)
+
+<span class="cm"># Compute c so the max output pixel maps to exactly 255</span>
+<span class="vr">c</span> = <span class="num">255</span> / <span class="vr">np</span>.<span class="fn">log</span>(<span class="num">1</span> + <span class="vr">np</span>.<span class="fn">max</span>(<span class="vr">img_f</span>))
+
+<span class="cm"># Apply log transform to every pixel</span>
+<span class="vr">log_img</span> = <span class="vr">c</span> * <span class="vr">np</span>.<span class="fn">log</span>(<span class="num">1</span> + <span class="vr">img_f</span>)
+
+<span class="cm"># Convert back to 8-bit integer</span>
+<span class="vr">result</span> = <span class="vr">np</span>.<span class="fn">uint8</span>(<span class="vr">log_img</span>)</pre>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Log transform expands dark pixel values and compresses bright ones. Use it when the image has a huge dynamic range (Fourier spectra, HDR content). Formula: <span class="ci">s = c·log(1+r)</span>. Always compute c dynamically so max output = 255. Never write <span class="ci">log(r)</span> — always <span class="ci">log(1+r)</span>.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>ضغط النطاق الديناميكي الواسع</h3>
+          <p>بعض الصور عندها فرق هائل بين أغمق وأفتح نقطة — يعني الـ <span class="term">Dynamic Range</span> واسع جداً. المثال الكلاسيكي: ناتج الـ <span class="term">Fourier Transform</span> حيث النقطة الوسطى أضوأ بآلاف المرات من باقي النقاط. لو عرضتها مباشرة، كل حاجة غير المنتصف هتبان سودا.</p>
+          <div class="fm">
+            <div class="fm-main">s = c · log(1 + r)</div>
+            <div class="fm-sub">c = 255 / log(1 + max_pixel) &nbsp;|&nbsp; بنضيف 1 لأن log(0) = غير معرّف رياضياً</div>
+          </div>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه — مقياس ريختر</div>
+            <p>مقياس ريختر للزلازل لوغاريتمي. الفرق بين 6 و7 درجات مش وحدة واحدة — هو 10 أضعاف في الشدة. اللوغاريتم بيُستخدم لما القيم بتفرق بأضعاف ضخمة جداً.</p>
+          </div>
+          <div class="box bw">
+            <div class="bh">⚠ ليه log(1+r) مش log(r)؟</div>
+            <p>لو r = 0، log(0) = ما لا نهاية سالبة وده غير معرّف. بإضافة 1: log(1+0) = 0، يعني البكسل الأسود يفضل أسود.</p>
+          </div>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Log Transform = يكبّر التفاصيل الغامقة ويضغط الفاتحة. للصور ذات الـ Dynamic Range الواسع. المعادلة: <span class="ci">s = c·log(1+r)</span> حيث c = 255 ÷ log(1+max).</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S4: GAMMA CORRECTION ===== -->
+  <div class="sc" data-a="4" id="s4">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">🎯</div>
+      <div class="stw"><div class="sn">Section 04</div><div class="st">Gamma Correction (Power-Law)</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>The Power-Law Relationship</h3>
+        <p><span class="term">Gamma correction</span> uses an exponent γ (gamma) to reshape the intensity curve. Unlike the log transform (which always brightens), gamma can either <span class="hl">brighten</span> or <span class="hl">darken</span> the image depending on whether γ is below or above 1.</p>
+        <div class="fm">
+          <div class="fm-main">s = c · r<sup>γ</sup></div>
+          <div class="fm-sub">Normalize r to [0, 1] first, then apply, then scale back to [0, 255]<br>
+          c = 1 in most cases. The exponent γ controls the entire curve shape.</div>
+        </div>
+        <h3>The Golden Rule</h3>
+        <table class="ct">
+          <thead><tr style="background:linear-gradient(90deg,var(--a4-bg),var(--a3-bg))">
+            <th style="color:var(--a4)">γ value</th><th style="color:var(--a4)">Curve Shape</th>
+            <th style="color:var(--a4)">Effect</th><th style="color:var(--a4)">Use Case</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="hl">γ &lt; 1</span></td><td>Concave (bends upward)</td><td>Image brightens — dark areas revealed</td><td>Underexposed photos, dark scenes</td></tr>
+            <tr><td>γ = 1</td><td>Straight diagonal</td><td>No change (identity)</td><td>—</td></tr>
+            <tr><td><span class="hl">γ &gt; 1</span></td><td>Convex (bends downward)</td><td>Image darkens — bright areas revealed</td><td>Overexposed photos, display correction</td></tr>
+          </tbody>
+        </table>
+        <div class="box ba">
+          <div class="bh">💡 Why Gamma Matters for Every Screen</div>
+          <p>Human vision is non-linear: we are far more sensitive to changes in dark regions than in bright ones. CRT monitors and most modern displays apply a power-law response (~γ=2.2) that compresses their output signal. To compensate, images must be gamma-encoded with γ≈0.45 (= 1/2.2) before display. This is the origin of the sRGB standard and why photo editors always warn you about "color profiles."</p>
+        </div>
+        <div class="fw">
+          <svg viewBox="0 0 520 255" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="520" height="255" rx="8" fill="#11111b"/>
+            <line x1="55" y1="20" x2="55" y2="210" stroke="#2a2f45" stroke-width="1.5"/>
+            <line x1="55" y1="210" x2="480" y2="210" stroke="#2a2f45" stroke-width="1.5"/>
+            <g stroke="#1e2035" stroke-width="1" stroke-dasharray="4,4">
+              <line x1="55" y1="162" x2="480" y2="162"/>
+              <line x1="55" y1="115" x2="480" y2="115"/>
+              <line x1="55" y1="68"  x2="480" y2="68"/>
+              <line x1="162" y1="20" x2="162" y2="210"/>
+              <line x1="267" y1="20" x2="267" y2="210"/>
+              <line x1="373" y1="20" x2="373" y2="210"/>
+            </g>
+            <line x1="55" y1="210" x2="480" y2="20" stroke="#2a2f45" stroke-width="1.5" stroke-dasharray="5,4"/>
+            <!-- gamma 0.25 -->
+            <path d="M55,210 C85,138 145,77 225,54 C305,33 390,25 480,22" stroke="#22d3ee" stroke-width="2.5" fill="none"/>
+            <!-- gamma 0.5 -->
+            <path d="M55,210 C98,165 165,115 248,84 C328,58 402,40 480,22" stroke="#10b981" stroke-width="2.5" fill="none" stroke-dasharray="8,2"/>
+            <!-- gamma 2.0 -->
+            <path d="M55,210 C115,207 218,196 322,168 C400,143 445,88 480,22" stroke="#f97316" stroke-width="2.5" fill="none"/>
+            <!-- gamma 4.0 -->
+            <path d="M55,210 C145,209 272,207 374,188 C432,165 460,112 480,22" stroke="#f43f5e" stroke-width="2.5" fill="none"/>
+            <!-- legend -->
+            <rect x="60" y="28" width="190" height="120" rx="7" fill="#1a1d2e" stroke="#2a2f45"/>
+            <line x1="70" y1="48"  x2="92" y2="48"  stroke="#22d3ee" stroke-width="2.5"/>
+            <text x="98" y="52"  fill="#e2e8f0" font-size="10" font-family="Sora">γ = 0.25  (very bright)</text>
+            <line x1="70" y1="68"  x2="92" y2="68"  stroke="#10b981" stroke-width="2.5" stroke-dasharray="6,2"/>
+            <text x="98" y="72"  fill="#e2e8f0" font-size="10" font-family="Sora">γ = 0.5   (brightens)</text>
+            <line x1="70" y1="88"  x2="92" y2="88"  stroke="#f97316" stroke-width="2.5"/>
+            <text x="98" y="92"  fill="#e2e8f0" font-size="10" font-family="Sora">γ = 2.0   (darkens)</text>
+            <line x1="70" y1="108" x2="92" y2="108" stroke="#f43f5e" stroke-width="2.5"/>
+            <text x="98" y="112" fill="#e2e8f0" font-size="10" font-family="Sora">γ = 4.0   (very dark)</text>
+            <line x1="70" y1="128" x2="92" y2="128" stroke="#2a2f45" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <text x="98" y="132" fill="#4a5568" font-size="10" font-family="Sora">γ = 1.0   (no change)</text>
+            <text x="268" y="234" fill="#585b70" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">r (normalized 0→1)</text>
+          </svg>
+          <div class="fc">Figure 4 — Gamma curves. All pass through (0,0) and (1,1). Curves above the identity line (γ&lt;1) brighten; below (γ&gt;1) darken.</div>
+        </div>
+        <div class="box bex">
+          <div class="bh">▶ Python Code</div>
+<pre><span class="kw">import</span> <span class="vr">cv2</span>
+<span class="kw">import</span> <span class="vr">numpy</span> <span class="kw">as</span> <span class="vr">np</span>
+
+<span class="kw">def</span> <span class="fn">apply_gamma</span>(<span class="vr">img</span>, <span class="vr">gamma</span>):
+    <span class="cm"># Step 1: normalize to [0, 1]</span>
+    <span class="vr">norm</span> = <span class="vr">img</span>.<span class="fn">astype</span>(<span class="vr">np.float64</span>) / <span class="num">255.0</span>
+    <span class="cm"># Step 2: apply power-law</span>
+    <span class="vr">corrected</span> = <span class="vr">np</span>.<span class="fn">power</span>(<span class="vr">norm</span>, <span class="vr">gamma</span>)
+    <span class="cm"># Step 3: scale back to [0, 255]</span>
+    <span class="kw">return</span> <span class="vr">np</span>.<span class="fn">uint8</span>(<span class="vr">corrected</span> * <span class="num">255</span>)
+
+<span class="vr">img</span> = <span class="fn">cv2.imread</span>(<span class="str">'photo.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+
+<span class="vr">bright</span> = <span class="fn">apply_gamma</span>(<span class="vr">img</span>, <span class="num">0.5</span>)  <span class="cm"># gamma &lt; 1 → brightens image</span>
+<span class="vr">dark</span>   = <span class="fn">apply_gamma</span>(<span class="vr">img</span>, <span class="num">2.0</span>)  <span class="cm"># gamma &gt; 1 → darkens image</span></pre>
+        </div>
+        <div class="box bw">
+          <div class="bh">⚠ Common Mistake — Forgetting to Normalize</div>
+          <p>If you apply <span class="ci">r^γ</span> directly to pixel values in [0, 255] without normalizing first, a pixel at value 128 becomes 128^2.0 = 16,384 — completely out of range. Always normalize to [0, 1] before applying gamma, then scale back to [0, 255].</p>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Gamma = <span class="ci">r^γ</span> (after normalizing to [0,1]). γ&lt;1 → brightens (concave curve). γ&gt;1 → darkens (convex curve). γ=1 → no change. The standard monitor gamma is 2.2; the corresponding encoding gamma is 1/2.2 ≈ 0.45.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>تصحيح جاما</h3>
+          <p>الـ <span class="term">Gamma Correction</span> بيستخدم أس γ عشان يعدّل توزيع قيم الإضاءة. مش زي الـ Log اللي دايماً بيفتّح، الـ gamma ممكن يفتّح أو يغمّق حسب قيمة γ.</p>
+          <div class="fm">
+            <div class="fm-main">s = r<sup>γ</sup></div>
+            <div class="fm-sub">r يجب تطبيعه من 0 لـ 1 قبل التطبيق</div>
+          </div>
+          <table class="ct">
+            <thead><tr style="background:var(--a4-bg)">
+              <th style="color:var(--a4)">قيمة γ</th><th style="color:var(--a4)">التأثير</th><th style="color:var(--a4)">الاستخدام</th>
+            </tr></thead>
+            <tbody>
+              <tr><td><span class="hl">γ &lt; 1</span></td><td>الصورة تتفتّح — تفاصيل الظل تظهر</td><td>صور مظلمة أو تحت الإضاءة</td></tr>
+              <tr><td>γ = 1</td><td>ما فيش تغيير</td><td>—</td></tr>
+              <tr><td><span class="hl">γ &gt; 1</span></td><td>الصورة تتغمّق — تفاصيل النور تظهر</td><td>صور overexposed</td></tr>
+            </tbody>
+          </table>
+          <div class="box ba">
+            <div class="bh">💡 ليه مهم للشاشات؟</div>
+            <p>عين الإنسان حساسة للتغيرات في الأماكن الداكنة أكثر من الفاتحة. الشاشات بتطبق power-law (~γ=2.2) على الإشارة. لازم نعمل gamma encoding (γ≈0.45) على الصورة قبل العرض عشان تبان صح. ده أصل معيار sRGB.</p>
+          </div>
+          <div class="box bw">
+            <div class="bh">⚠ غلطة شائعة</div>
+            <p>لو طبّقت <span class="ci">r^γ</span> مباشرة على قيم 0-255 بدون تطبيع، البكسل عند 128 هيبقى 128^2 = 16,384 وده خارج النطاق كاملاً. دايماً قسّم على 255 الأول.</p>
+          </div>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Gamma = r^γ (بعد التطبيع لـ [0,1]). γ&lt;1 = تفتيح. γ&gt;1 = تغميق. γ=1 = لا تغيير. معيار الشاشات γ=2.2.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S5: CONTRAST STRETCHING ===== -->
+  <div class="sc" data-a="5" id="s5">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">↔️</div>
+      <div class="stw"><div class="sn">Section 05</div><div class="st">Contrast Stretching (Piecewise Linear)</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>The Low-Contrast Problem</h3>
+        <p>A photo taken in fog, or under flat uniform lighting, has pixel values that cluster in a narrow band — say, all between 80 and 180. The image looks gray and washed out. The full 0–255 range is completely unused. <span class="term">Contrast stretching</span> is a normalization technique that <span class="hl">pulls the narrow cluster out to fill the entire [0, 255] range</span>, maximizing the displayed contrast without any complex operations.</p>
+        <div class="fm">
+          <div class="fm-main">s = (r − r_min) / (r_max − r_min) × 255</div>
+          <div class="fm-sub">r_min = minimum pixel value in the image &nbsp;|&nbsp; r_max = maximum pixel value<br>
+          This is min-max normalization scaled to [0, 255]</div>
+        </div>
+        <div class="box ba">
+          <div class="bh">💡 Analogy — Stretching a Rubber Band</div>
+          <p>Imagine the pixel values are a rubber band that has only been stretched halfway. Contrast stretching pulls it all the way to its maximum length. The relative positions of all values stay the same — the band's shape is preserved — but everything is now spread farther apart, making differences more visible.</p>
+        </div>
+        <div class="fw">
+          <svg viewBox="0 0 540 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="540" height="210" rx="8" fill="#11111b"/>
+            <!-- Before -->
+            <text x="110" y="20" fill="#8892a4" font-size="10" text-anchor="middle" font-family="Sora">Before: values clustered 80–180</text>
+            <rect x="20" y="28" width="200" height="130" rx="5" fill="#1a1d2e" stroke="#2a2f45"/>
+            <line x1="20" y1="158" x2="220" y2="158" stroke="#2a2f45" stroke-width="1"/>
+            <text x="20"  y="172" fill="#585b70" font-size="7.5" font-family="IBM Plex Mono">0</text>
+            <text x="73"  y="172" fill="#8b5cf6" font-size="7.5" font-family="IBM Plex Mono">80</text>
+            <text x="153" y="172" fill="#8b5cf6" font-size="7.5" font-family="IBM Plex Mono">180</text>
+            <text x="208" y="172" fill="#585b70" font-size="7.5" font-family="IBM Plex Mono">255</text>
+            <!-- cluster bars -->
+            <g fill="#8b5cf6" opacity="0.75">
+              <rect x="84"  y="108" width="12" height="42"/>
+              <rect x="99"  y="88"  width="12" height="62"/>
+              <rect x="114" y="68"  width="12" height="82"/>
+              <rect x="129" y="78"  width="12" height="72"/>
+              <rect x="144" y="95"  width="12" height="55"/>
+              <rect x="159" y="115" width="12" height="35"/>
+            </g>
+            <!-- bracket showing narrow range -->
+            <line x1="84" y1="160" x2="172" y2="160" stroke="#8b5cf6" stroke-width="1.5"/>
+            <line x1="84" y1="156" x2="84"  y2="164" stroke="#8b5cf6" stroke-width="1.5"/>
+            <line x1="172" y1="156" x2="172" y2="164" stroke="#8b5cf6" stroke-width="1.5"/>
+            <text x="128" y="183" fill="#8b5cf6" font-size="8" text-anchor="middle" font-family="Sora">narrow range</text>
+            <!-- Arrow -->
+            <text x="270" y="98" fill="#8b5cf6" font-size="26" text-anchor="middle">→</text>
+            <text x="270" y="116" fill="#8b5cf6" font-size="8" text-anchor="middle" font-family="Sora">stretch</text>
+            <!-- After -->
+            <text x="405" y="20" fill="#8892a4" font-size="10" text-anchor="middle" font-family="Sora">After: full 0–255 range used</text>
+            <rect x="315" y="28" width="205" height="130" rx="5" fill="#1a1d2e" stroke="#8b5cf6" stroke-opacity=".4"/>
+            <line x1="315" y1="158" x2="520" y2="158" stroke="#2a2f45" stroke-width="1"/>
+            <text x="315" y="172" fill="#8b5cf6" font-size="7.5" font-family="IBM Plex Mono">0</text>
+            <text x="507" y="172" fill="#8b5cf6" font-size="7.5" font-family="IBM Plex Mono">255</text>
+            <g fill="#8b5cf6" opacity="0.9">
+              <rect x="320" y="118" width="14" height="32"/>
+              <rect x="337" y="100" width="14" height="50"/>
+              <rect x="354" y="78"  width="14" height="72"/>
+              <rect x="371" y="60"  width="14" height="90"/>
+              <rect x="388" y="68"  width="14" height="82"/>
+              <rect x="405" y="82"  width="14" height="68"/>
+              <rect x="422" y="98"  width="14" height="52"/>
+              <rect x="439" y="115" width="14" height="35"/>
+              <rect x="456" y="128" width="14" height="22"/>
+              <rect x="473" y="138" width="14" height="12"/>
+              <rect x="490" y="145" width="14" height="5"/>
+            </g>
+          </svg>
+          <div class="fc">Figure 5 — Contrast stretching expands the narrow cluster (left) to fill the full 0–255 range (right), dramatically improving perceived contrast.</div>
+        </div>
+        <h3>Real-World Applications</h3>
+        <ul>
+          <li><strong>Microscopy:</strong> Biological samples typically have uniform but low-contrast illumination</li>
+          <li><strong>Outdoor photography:</strong> Overcast days and fog reduce dynamic range</li>
+          <li><strong>Medical imaging:</strong> MRI and CT scans often need contrast normalization before analysis</li>
+          <li><strong>Satellite imagery:</strong> Atmospheric haze reduces contrast of surface features</li>
+        </ul>
+        <div class="box bex">
+          <div class="bh">▶ Python Code</div>
+<pre><span class="kw">import</span> <span class="vr">cv2</span>
+<span class="kw">import</span> <span class="vr">numpy</span> <span class="kw">as</span> <span class="vr">np</span>
+
+<span class="vr">img</span> = <span class="fn">cv2.imread</span>(<span class="str">'foggy.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>).<span class="fn">astype</span>(<span class="vr">np.float64</span>)
+
+<span class="vr">r_min</span>, <span class="vr">r_max</span> = <span class="vr">img</span>.<span class="fn">min</span>(), <span class="vr">img</span>.<span class="fn">max</span>()
+
+<span class="cm"># Apply: (r - min) / (max - min) * 255</span>
+<span class="vr">stretched</span> = (<span class="vr">img</span> - <span class="vr">r_min</span>) / (<span class="vr">r_max</span> - <span class="vr">r_min</span>) * <span class="num">255</span>
+<span class="vr">result</span> = <span class="vr">np</span>.<span class="fn">uint8</span>(<span class="vr">stretched</span>)
+
+<span class="cm"># OpenCV one-liner equivalent:</span>
+<span class="cm"># cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)</span></pre>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Contrast stretching = min-max normalization scaled to [0, 255]. Takes a narrow pixel range and stretches it across the full display range. Simple, fast, interpretable. Best for uniformly lit but low-contrast images.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>مشكلة الـ Contrast المنخفض</h3>
+          <p>صورة اتاخدت في ضباب أو إضاءة موحّدة ضعيفة، قيم الـ pixels فيها بتتركز في نطاق ضيق — مثلاً بين 80 و180 بس. الصورة بتبان رمادية وبدون تميّز. الـ <span class="term">Contrast Stretching</span> بياخد النطاق الضيق ده وبيمطّه عشان يملأ 0–255 كاملاً.</p>
+          <div class="fm">
+            <div class="fm-main">s = (r − r_min) / (r_max − r_min) × 255</div>
+          </div>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه</div>
+            <p>تخيل ربّاط مطاط مشدود لنص طوله بس. الـ contrast stretching بيشده لأقصى طوله. الشكل هو هو، بس كل حاجة اتفرقت أكثر.</p>
+          </div>
+          <h3>التطبيقات</h3>
+          <ul>
+            <li>صور المجهر (Microscopy) ذات الإضاءة المنتظمة</li>
+            <li>صور الضباب أو الإضاءة الضعيفة</li>
+            <li>صور الأشعة والـ MRI قبل التحليل</li>
+          </ul>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Contrast Stretching = بسط النطاق من 0 لـ 255. بسيط وسريع ومفيد. المعادلة: <span class="ci">(r−min)/(max−min)×255</span>.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== S6: THRESHOLDING ===== -->
+  <div class="sc" data-a="6" id="s6">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">⬛</div>
+      <div class="stw"><div class="sn">Section 06</div><div class="st">Image Binarization (Thresholding)</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>Converting Grayscale to Pure Black and White</h3>
+        <p><span class="term">Thresholding</span> converts a grayscale image (256 values per pixel) into a <span class="hl">binary image</span> with only two values: 0 (black) or 255 (white). You pick a threshold T — every pixel above T becomes white, every pixel at or below T becomes black. This isolates objects from their background.</p>
+        <div class="fm">
+          <div class="fm-main">s = 255 &nbsp;if r ≥ T, &nbsp;else&nbsp; s = 0</div>
+          <div class="fm-sub">T = threshold value (chosen manually or computed automatically with Otsu's method)</div>
+        </div>
+        <div class="fw">
+          <svg viewBox="0 0 480 195" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="480" height="195" rx="8" fill="#11111b"/>
+            <line x1="50" y1="18" x2="50" y2="165" stroke="#2a2f45" stroke-width="1.5"/>
+            <line x1="50" y1="165" x2="445" y2="165" stroke="#2a2f45" stroke-width="1.5"/>
+            <!-- Step function: s=0 for r<T, s=255 for r>=T. T at x=245 -->
+            <line x1="50"  y1="155" x2="245" y2="155" stroke="#ec4899" stroke-width="3"/>
+            <line x1="245" y1="155" x2="245" y2="28"  stroke="#ec4899" stroke-width="2" stroke-dasharray="4,3"/>
+            <line x1="245" y1="28"  x2="445" y2="28"  stroke="#ec4899" stroke-width="3"/>
+            <!-- T annotation -->
+            <line x1="245" y1="165" x2="245" y2="172" stroke="#ec4899" stroke-width="1.5"/>
+            <text x="245" y="186" fill="#ec4899" font-size="10" text-anchor="middle" font-family="IBM Plex Mono">T (threshold)</text>
+            <!-- zone labels -->
+            <rect x="75"  y="135" width="80" height="20" rx="4" fill="#1a1d2e"/>
+            <text x="115" y="149" fill="#585b70" font-size="9" text-anchor="middle" font-family="Sora">s = 0 (BLACK)</text>
+            <rect x="310" y="14"  width="90" height="20" rx="4" fill="#1a1d2e"/>
+            <text x="355" y="28"  fill="#e2e8f0" font-size="9" text-anchor="middle" font-family="Sora">s = 255 (WHITE)</text>
+            <!-- axis labels -->
+            <text x="247" y="196" fill="#585b70" font-size="9" text-anchor="middle" font-family="IBM Plex Mono">r (input intensity 0→255)</text>
+          </svg>
+          <div class="fc">Figure 6 — Thresholding step function. Below T → black (0). At or above T → white (255).</div>
+        </div>
+        <div class="box ba">
+          <div class="bh">💡 Analogy</div>
+          <p>Thresholding is like a binary security door: "Is this pixel bright enough to be considered an object?" If yes → white (object). If no → black (background). A single cut separates foreground from background.</p>
+        </div>
+        <h3>Three Major Applications</h3>
+        <ol>
+          <li><strong>OCR (Optical Character Recognition):</strong> Before a model reads text from a scanned document, thresholding separates the black ink characters from the white paper background. This dramatically simplifies the recognition task.</li>
+          <li><strong>Medical Image Segmentation:</strong> Isolating tumors, organs, or tissue structures from MRI or CT scans. A region with a distinct intensity range can be extracted cleanly with a well-chosen T.</li>
+          <li><strong>Morphological Preprocessing:</strong> Erosion, dilation, opening, and closing all require binary input. Thresholding is the gateway to those operations.</li>
+        </ol>
+        <h3>How to Choose the Threshold T</h3>
+        <ul>
+          <li><strong>Manual:</strong> Domain expert picks T based on knowledge of the data</li>
+          <li><strong>Otsu's Method:</strong> Automatically finds T that minimizes the variance within each class (background vs. foreground). Widely used in practice.</li>
+          <li><strong>Adaptive Thresholding:</strong> Uses different T values for different image regions — essential when lighting is uneven across the image.</li>
+        </ul>
+        <div class="box bex">
+          <div class="bh">▶ Python Code</div>
+<pre><span class="kw">import</span> <span class="vr">cv2</span>
+
+<span class="vr">img</span> = <span class="fn">cv2.imread</span>(<span class="str">'document.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+
+<span class="cm"># Manual threshold at 128</span>
+<span class="vr">_</span>, <span class="vr">binary</span> = <span class="fn">cv2.threshold</span>(<span class="vr">img</span>, <span class="num">128</span>, <span class="num">255</span>, <span class="vr">cv2.THRESH_BINARY</span>)
+
+<span class="cm"># Otsu's method: automatically finds the optimal T</span>
+<span class="vr">_</span>, <span class="vr">otsu</span> = <span class="fn">cv2.threshold</span>(<span class="vr">img</span>, <span class="num">0</span>, <span class="num">255</span>,
+                          <span class="vr">cv2.THRESH_BINARY</span> + <span class="vr">cv2.THRESH_OTSU</span>)
+
+<span class="cm"># Adaptive: different T per local region</span>
+<span class="vr">adaptive</span> = <span class="fn">cv2.adaptiveThreshold</span>(<span class="vr">img</span>, <span class="num">255</span>,
+               <span class="vr">cv2.ADAPTIVE_THRESH_GAUSSIAN_C</span>,
+               <span class="vr">cv2.THRESH_BINARY</span>, <span class="num">11</span>, <span class="num">2</span>)</pre>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Thresholding = converts grayscale to binary (black/white only) using a cutoff T. Essential foundation for OCR, medical segmentation, and morphological operations. Otsu's method computes the optimal T automatically by maximizing class separation.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>تحويل الصورة لأبيض وأسود فقط</h3>
+          <p>الـ <span class="term">Thresholding</span> بيحوّل الصورة الرمادية (256 قيمة) لصورة ثنائية (binary) فيها قيمتين فقط: 0 (أسود) أو 255 (أبيض). بتختار قيمة T، وكل بكسل فوقها يبقى أبيض وكل اللي تحتها يبقى أسود.</p>
+          <div class="fm">
+            <div class="fm-main">s = 255 &nbsp;لو r ≥ T، &nbsp;وإلا&nbsp; s = 0</div>
+          </div>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه</div>
+            <p>زي قرار ثنائي: "الإضاءة هنا كافية نعتبر فيها جسم أو لا؟" أيوه → أبيض. لا → أسود. فصل المقدمة عن الخلفية بقطعة واحدة.</p>
+          </div>
+          <h3>التطبيقات الثلاثة الأساسية</h3>
+          <ol>
+            <li><strong>OCR:</strong> فصل الحروف السودا عن الورقة البيضا قبل التعرف عليها</li>
+            <li><strong>Segmentation الطبي:</strong> عزل الأورام أو الأعضاء في صور MRI وCT</li>
+            <li><strong>Morphological Operations:</strong> عمليات زي Erosion وDilation بتحتاج binary input</li>
+          </ol>
+          <h3>طريقة اختيار T</h3>
+          <ul>
+            <li><strong>يدوي:</strong> خبير المجال بيختار T</li>
+            <li><strong>Otsu's Method:</strong> بيحسب T الأمثل أوتوماتيكياً لتعظيم الفصل بين الكلاسات</li>
+            <li><strong>Adaptive:</strong> قيم T مختلفة لمناطق مختلفة في الصورة</li>
+          </ul>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Thresholding = تحويل الصورة الرمادية لأبيض وأسود فقط. أساسي في OCR، التصوير الطبي، والـ Morphological ops. طريقة Otsu بتحدد أفضل T أوتوماتيكياً.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S7: HISTOGRAM ===== -->
+  <div class="sc" data-a="7" id="s7">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">📊</div>
+      <div class="stw"><div class="sn">Section 07</div><div class="st">What is a Histogram?</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>A Census of Your Pixels</h3>
+        <p>An <span class="term">image histogram</span> is a bar chart showing how many pixels exist at each intensity level. For an 8-bit image there are 256 possible values (0–255), so the histogram has 256 bars. Each bar's height equals the number of pixels with that intensity value.</p>
+        <div class="fm">
+          <div class="fm-main">h(r<sub>k</sub>) = n<sub>k</sub></div>
+          <div class="fm-sub">r_k = intensity level k &nbsp;|&nbsp; n_k = number of pixels in the image with that value</div>
+        </div>
+        <div class="box ba">
+          <div class="bh">💡 Analogy</div>
+          <p>Think of a histogram as a population census of your pixels. Dark image → tall bars on the left. Bright image → tall bars on the right. Well-balanced image → bars spread evenly. Low-contrast image → bars bunched in a narrow band. Reading a histogram tells you everything about the image's tonal distribution in one glance.</p>
+        </div>
+        <div class="fw">
+          <svg viewBox="0 0 530 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="530" height="200" rx="8" fill="#11111b"/>
+            <!-- Dark image -->
+            <text x="87" y="18" fill="#8892a4" font-size="9" text-anchor="middle" font-family="Sora">Dark Image</text>
+            <rect x="20" y="24" width="134" height="110" rx="4" fill="#1a1d2e" stroke="#2a2f45"/>
+            <g fill="#3b82f6" opacity="0.82">
+              <rect x="24" y="52" width="9" height="74"/><rect x="35" y="42" width="9" height="84"/>
+              <rect x="46" y="34" width="9" height="92"/><rect x="57" y="48" width="9" height="78"/>
+              <rect x="68" y="64" width="9" height="62"/><rect x="79" y="82" width="9" height="44"/>
+              <rect x="90" y="100" width="9" height="26"/><rect x="101" y="115" width="9" height="11"/>
+              <rect x="112" y="128" width="9" height="0"/><rect x="123" y="134" width="9" height="0"/>
+              <rect x="134" y="134" width="8" height="0"/>
+            </g>
+            <line x1="20" y1="134" x2="154" y2="134" stroke="#2a2f45" stroke-width="1"/>
+            <text x="20"  y="147" fill="#3b82f6" font-size="7" font-family="IBM Plex Mono">0</text>
+            <text x="142" y="147" fill="#585b70" font-size="7" font-family="IBM Plex Mono">255</text>
+            <text x="87"  y="162" fill="#585b70" font-size="8" text-anchor="middle" font-family="Sora">Bars clustered left</text>
+
+            <!-- Low-contrast image -->
+            <text x="265" y="18" fill="#8892a4" font-size="9" text-anchor="middle" font-family="Sora">Low Contrast</text>
+            <rect x="198" y="24" width="134" height="110" rx="4" fill="#1a1d2e" stroke="#2a2f45"/>
+            <g fill="#3b82f6" opacity="0.82">
+              <rect x="228" y="62" width="9" height="64"/><rect x="240" y="52" width="9" height="74"/>
+              <rect x="252" y="42" width="9" height="84"/><rect x="264" y="46" width="9" height="80"/>
+              <rect x="276" y="55" width="9" height="71"/><rect x="288" y="64" width="9" height="62"/>
+              <rect x="300" y="75" width="9" height="51"/>
+            </g>
+            <line x1="198" y1="134" x2="332" y2="134" stroke="#2a2f45" stroke-width="1"/>
+            <text x="198" y="147" fill="#585b70" font-size="7" font-family="IBM Plex Mono">0</text>
+            <text x="320" y="147" fill="#585b70" font-size="7" font-family="IBM Plex Mono">255</text>
+            <text x="265" y="162" fill="#585b70" font-size="8" text-anchor="middle" font-family="Sora">Bars bunched in middle</text>
+            <!-- range bracket -->
+            <line x1="228" y1="136" x2="310" y2="136" stroke="#8b5cf6" stroke-width="1.5"/>
+            <line x1="228" y1="133" x2="228" y2="139" stroke="#8b5cf6" stroke-width="1.5"/>
+            <line x1="310" y1="133" x2="310" y2="139" stroke="#8b5cf6" stroke-width="1.5"/>
+
+            <!-- Well-balanced image -->
+            <text x="443" y="18" fill="#8892a4" font-size="9" text-anchor="middle" font-family="Sora">Well-Balanced</text>
+            <rect x="376" y="24" width="134" height="110" rx="4" fill="#1a1d2e" stroke="#2a2f45"/>
+            <g fill="#3b82f6" opacity="0.82">
+              <rect x="380" y="96" width="9" height="30"/><rect x="391" y="84" width="9" height="42"/>
+              <rect x="402" y="70" width="9" height="56"/><rect x="413" y="58" width="9" height="68"/>
+              <rect x="424" y="62" width="9" height="64"/><rect x="435" y="70" width="9" height="56"/>
+              <rect x="446" y="78" width="9" height="48"/><rect x="457" y="86" width="9" height="40"/>
+              <rect x="468" y="92" width="9" height="34"/><rect x="479" y="98" width="9" height="28"/>
+              <rect x="490" y="104" width="9" height="22"/>
+            </g>
+            <line x1="376" y1="134" x2="510" y2="134" stroke="#2a2f45" stroke-width="1"/>
+            <text x="376" y="147" fill="#3b82f6" font-size="7" font-family="IBM Plex Mono">0</text>
+            <text x="498" y="147" fill="#3b82f6" font-size="7" font-family="IBM Plex Mono">255</text>
+            <text x="443" y="162" fill="#585b70" font-size="8" text-anchor="middle" font-family="Sora">Bars spread evenly</text>
+          </svg>
+          <div class="fc">Figure 7 — Three histogram types. Left: dark image (bars on left). Center: low-contrast image (narrow cluster). Right: well-balanced image (spread across full range).</div>
+        </div>
+        <h3>Normalized Histogram — Probability View</h3>
+        <p>Dividing each count by the total pixel count N gives a probability distribution:</p>
+        <div class="fm">
+          <div class="fm-main">p(r<sub>k</sub>) = n<sub>k</sub> / N</div>
+          <div class="fm-sub">This estimates the probability that a random pixel has intensity r_k. All values sum to 1.0.</div>
+        </div>
+        <h3>Why Histograms Matter in Computer Vision</h3>
+        <ul>
+          <li><strong>Image quality diagnosis:</strong> Instantly identifies if an image is overexposed, underexposed, or low-contrast</li>
+          <li><strong>Preprocessing guide:</strong> The histogram shape tells you which enhancement technique to apply</li>
+          <li><strong>Feature descriptor:</strong> HOG (Histogram of Oriented Gradients) is a classic CV feature built on this concept</li>
+          <li><strong>Content-based matching:</strong> Comparing histograms reveals whether two images have similar tonal characteristics</li>
+        </ul>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>A histogram is a bar chart counting pixels at each intensity level. It instantly diagnoses tonal problems. Normalized histograms give probability distributions. The histogram is the input to both equalization and matching algorithms.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>تعداد سكاني للبكسلات</h3>
+          <p>الـ <span class="term">Histogram</span> رسم بياني بيحسب عدد الـ pixels في كل قيمة إضاءة. صورة 8-bit عندها 256 قيمة (0–255)، والـ histogram بيكون 256 عمود. ارتفاع كل عمود = عدد البكسلات بالقيمة دي.</p>
+          <div class="fm">
+            <div class="fm-main">h(r_k) = n_k</div>
+          </div>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه</div>
+            <p>الـ Histogram زي إحصاء السكان للبكسلات. صورة غامقة = أعمدة طويلة على اليسار. صورة فاتحة = أعمدة على اليمين. صورة قليلة الـ contrast = أعمدة مجمّعة في نطاق ضيق.</p>
+          </div>
+          <h3>الـ Normalized Histogram</h3>
+          <p>لما بنقسم كل عدد على N (إجمالي البكسلات) بنحصل على توزيع احتمالي:</p>
+          <div class="fm">
+            <div class="fm-main">p(r_k) = n_k / N</div>
+            <div class="fm-sub">مجموع كل القيم = 1.0</div>
+          </div>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>الـ Histogram = رسم بياني لتوزيع قيم البكسلات. بيشخّص مشاكل الصورة فوراً. الـ Normalized histogram يعطي توزيع احتمالي. هو المدخل لخوارزميتي Equalization وMatching.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S8: HISTOGRAM EQUALIZATION ===== -->
+  <div class="sc" data-a="8" id="s8">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">⚖️</div>
+      <div class="stw"><div class="sn">Section 08</div><div class="st">Histogram Equalization</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>Goal — Make the Histogram Flat</h3>
+        <p><span class="term">Histogram Equalization</span> is an automated technique that redistributes pixel intensities so the resulting histogram is as <span class="hl">flat (uniform) as possible</span>. By spreading pixel counts evenly across all 256 levels, it maximizes global image contrast without any manual parameter tuning.</p>
+        <div class="box ba">
+          <div class="bh">💡 Analogy — Exam Grade Rescaling</div>
+          <p>Imagine 100 students whose grades are all bunched between 60 and 70 out of 100. The histogram of grades has a narrow spike. Equalization is like rescaling the exam so all grades spread from 0 to 100, while preserving the relative ranking. The top students are still at the top, lowest at the bottom — but now there is far more separation between each grade, making differences more visible.</p>
+        </div>
+        <h3>The Algorithm — Four Steps</h3>
+        <ol class="sl">
+          <li>
+            <div class="sln" style="background:var(--a8-bg);color:var(--a8)">1</div>
+            <div class="slt"><strong>Compute the Histogram:</strong> Count n_k — the number of pixels at each intensity level r_k</div>
+          </li>
+          <li>
+            <div class="sln" style="background:var(--a8-bg);color:var(--a8)">2</div>
+            <div class="slt"><strong>Calculate the CDF:</strong> Cumulative Distribution Function — running total of histogram counts from level 0 up to k</div>
+          </li>
+          <li>
+            <div class="sln" style="background:var(--a8-bg);color:var(--a8)">3</div>
+            <div class="slt"><strong>Normalize and Round:</strong> Scale the CDF values to [0, L−1] and round to the nearest integer</div>
+          </li>
+          <li>
+            <div class="sln" style="background:var(--a8-bg);color:var(--a8)">4</div>
+            <div class="slt"><strong>Remap All Pixels:</strong> Use the generated table as a lookup — every old intensity r_k is replaced with the new mapped value</div>
+          </li>
+        </ol>
+        <div class="fm">
+          <div class="fm-main">s_k = (L−1) / N × CDF(r_k)</div>
+          <div class="fm-sub">L = number of intensity levels (256 for 8-bit) &nbsp;|&nbsp; N = total number of pixels<br>
+          CDF(r_k) = Σ n_j for j = 0 to k (running sum of histogram)</div>
+        </div>
+        <h3>Worked Example from the Lecture</h3>
+        <p>A 5-level image with 32 total pixels, output range L=8 (levels 0–7):</p>
+        <table class="dt">
+          <thead>
+            <tr style="background:linear-gradient(90deg,var(--a8-bg),transparent)">
+              <th style="color:var(--a8)">r_k</th>
+              <th style="color:var(--a8)">Count n_k</th>
+              <th style="color:var(--a8)">CDF (running sum)</th>
+              <th style="color:var(--a8)">(7/32) × CDF</th>
+              <th style="color:var(--a8)">Rounded s_k</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>0</td><td>4</td><td>4</td><td>7/32 × 4 = 0.875</td><td><strong style="color:var(--a8)">1</strong></td></tr>
+            <tr><td>1</td><td>8</td><td>12</td><td>7/32 × 12 = 2.625</td><td><strong style="color:var(--a8)">3</strong></td></tr>
+            <tr><td>2</td><td>8</td><td>20</td><td>7/32 × 20 = 4.375</td><td><strong style="color:var(--a8)">4</strong></td></tr>
+            <tr><td>3</td><td>4</td><td>24</td><td>7/32 × 24 = 5.250</td><td><strong style="color:var(--a8)">5</strong></td></tr>
+            <tr><td>4</td><td>8</td><td>32</td><td>7/32 × 32 = 7.000</td><td><strong style="color:var(--a8)">7</strong></td></tr>
+          </tbody>
+        </table>
+        <div class="box bex">
+          <div class="bh">▶ Breaking Down the Math Step by Step</div>
+          <p><strong>Step 1 (Histogram):</strong> We count: 4 pixels at level 0, 8 at level 1, 8 at level 2, 4 at level 3, 8 at level 4. Total = 32 pixels.</p>
+          <p><strong>Step 2 (CDF):</strong> Running sum: level 0 → 4, level 1 → 4+8=12, level 2 → 12+8=20, level 3 → 20+4=24, level 4 → 24+8=32.</p>
+          <p><strong>Step 3 (Normalize):</strong> Formula = (L−1)/N × CDF = 7/32 × CDF. For level 0: 7/32 × 4 = 0.875 → rounds to 1. For level 4: 7/32 × 32 = 7.0 → stays 7.</p>
+          <p><strong>Step 4 (Remap):</strong> Lookup table = {0→1, 1→3, 2→4, 3→5, 4→7}. Every pixel with old value 0 becomes 1, every 1 becomes 3, etc.</p>
+          <p><strong>Note:</strong> Output uses levels {1, 3, 4, 5, 7}. Not all levels are populated — this is normal. With discrete data, equalization gets as flat as possible but cannot achieve perfect uniformity.</p>
+        </div>
+        <div class="fw">
+          <svg viewBox="0 0 520 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="520" height="180" rx="8" fill="#11111b"/>
+            <!-- Before -->
+            <text x="112" y="17" fill="#8892a4" font-size="9" text-anchor="middle" font-family="Sora">Before: uneven histogram</text>
+            <rect x="20" y="24" width="185" height="105" rx="4" fill="#1a1d2e" stroke="#2a2f45"/>
+            <g fill="#22c55e" opacity="0.72">
+              <rect x="28"  y="62" width="18" height="57"/><rect x="52"  y="42" width="18" height="77"/>
+              <rect x="76"  y="48" width="18" height="71"/><rect x="100" y="85" width="18" height="34"/>
+              <rect x="124" y="72" width="18" height="47"/><rect x="148" y="55" width="18" height="64"/>
+              <rect x="172" y="95" width="18" height="24"/>
+            </g>
+            <line x1="20" y1="129" x2="205" y2="129" stroke="#2a2f45" stroke-width="1"/>
+            <!-- arrow -->
+            <text x="262" y="82" fill="#22c55e" font-size="26" text-anchor="middle">→</text>
+            <text x="262" y="100" fill="#22c55e" font-size="8" text-anchor="middle" font-family="Sora">equalize</text>
+            <!-- After -->
+            <text x="408" y="17" fill="#8892a4" font-size="9" text-anchor="middle" font-family="Sora">After: approximately flat</text>
+            <rect x="315" y="24" width="185" height="105" rx="4" fill="#1a1d2e" stroke="#22c55e" stroke-opacity=".4"/>
+            <g fill="#22c55e" opacity="0.9">
+              <rect x="322" y="68" width="14" height="51"/><rect x="339" y="64" width="14" height="55"/>
+              <rect x="356" y="60" width="14" height="59"/><rect x="373" y="58" width="14" height="61"/>
+              <rect x="390" y="61" width="14" height="58"/><rect x="407" y="63" width="14" height="56"/>
+              <rect x="424" y="60" width="14" height="59"/><rect x="441" y="65" width="14" height="54"/>
+              <rect x="458" y="62" width="14" height="57"/><rect x="475" y="67" width="14" height="52"/>
+            </g>
+            <line x1="315" y1="129" x2="500" y2="129" stroke="#2a2f45" stroke-width="1"/>
+            <text x="260" y="162" fill="#585b70" font-size="9" text-anchor="middle" font-family="Sora">Equalization flattens the histogram → maximizes contrast</text>
+          </svg>
+          <div class="fc">Figure 8 — Histogram equalization converts an uneven distribution into an approximately uniform one.</div>
+        </div>
+        <div class="box bex">
+          <div class="bh">▶ Python Code (OpenCV)</div>
+<pre><span class="kw">import</span> <span class="vr">cv2</span>
+
+<span class="vr">img</span> = <span class="fn">cv2.imread</span>(<span class="str">'photo.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+
+<span class="cm"># Histogram equalization — one line</span>
+<span class="vr">eq</span> = <span class="fn">cv2.equalizeHist</span>(<span class="vr">img</span>)
+
+<span class="cm"># For COLOR images: equalize only the luminance channel</span>
+<span class="vr">img_ycrcb</span> = <span class="fn">cv2.cvtColor</span>(<span class="vr">color_img</span>, <span class="vr">cv2.COLOR_BGR2YCrCb</span>)
+<span class="vr">img_ycrcb</span>[:,:,<span class="num">0</span>] = <span class="fn">cv2.equalizeHist</span>(<span class="vr">img_ycrcb</span>[:,:,<span class="num">0</span>])
+<span class="vr">result</span> = <span class="fn">cv2.cvtColor</span>(<span class="vr">img_ycrcb</span>, <span class="vr">cv2.COLOR_YCrCb2BGR</span>)
+
+<span class="cm"># CLAHE: adaptive version (better for uneven lighting)</span>
+<span class="vr">clahe</span> = <span class="fn">cv2.createCLAHE</span>(<span class="vr">clipLimit</span>=<span class="num">2.0</span>, <span class="vr">tileGridSize</span>=(<span class="num">8</span>,<span class="num">8</span>))
+<span class="vr">clahe_result</span> = <span class="vr">clahe</span>.<span class="fn">apply</span>(<span class="vr">img</span>)</pre>
+        </div>
+        <div class="box bw">
+          <div class="bh">⚠ Limitation — When NOT to Use Global Equalization</div>
+          <p>Global histogram equalization applies the same mapping to the whole image. If the image has a bright region AND a dark region, equalization may over-enhance noise in flat areas. <strong>CLAHE</strong> (Contrast Limited Adaptive Histogram Equalization) solves this by applying equalization locally to small tiles with a contrast limit cap. Use CLAHE for medical images, facial recognition, and any scene with non-uniform lighting.</p>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Histogram equalization automatically redistributes pixels to create a flat histogram, maximizing global contrast. Steps: compute histogram → CDF → normalize → remap. One line in OpenCV: <span class="ci">cv2.equalizeHist()</span>. For local enhancement with uneven lighting, use CLAHE instead.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>الهدف: هيستوغرام مستوي</h3>
+          <p>الـ <span class="term">Histogram Equalization</span> تقنية أوتوماتيكية بتوزّع قيم البكسلات من جديد عشان الـ histogram يبقى <span class="hl">مستوي (uniform) قدر الإمكان</span>. ده بيعمل أقصى contrast ممكن بدون أي ضبط يدوي.</p>
+          <div class="box ba">
+            <div class="bh">💡 تشبيه — تقييس الدرجات</div>
+            <p>تخيل 100 طالب درجاتهم كلها بين 60–70 من 100. الـ equalization زي إعادة تقييس الامتحان عشان الدرجات تتوزع من 0 لـ 100، مع الحفاظ على الترتيب النسبي بين الطلاب.</p>
+          </div>
+          <h3>الخوارزمية — 4 خطوات</h3>
+          <ol class="sl">
+            <li><div class="sln" style="background:var(--a8-bg);color:var(--a8)">1</div><div class="slt"><strong>احسب الـ Histogram:</strong> اعدّ n_k لكل مستوى</div></li>
+            <li><div class="sln" style="background:var(--a8-bg);color:var(--a8)">2</div><div class="slt"><strong>احسب الـ CDF:</strong> المجموع التراكمي للـ histogram</div></li>
+            <li><div class="sln" style="background:var(--a8-bg);color:var(--a8)">3</div><div class="slt"><strong>قيّس وقرّب:</strong> اضرب CDF في (L−1)/N وقرّب لأقرب عدد صحيح</div></li>
+            <li><div class="sln" style="background:var(--a8-bg);color:var(--a8)">4</div><div class="slt"><strong>Remap:</strong> استخدم الجدول كـ lookup — كل قيمة قديمة بتتحول لقيمة جديدة</div></li>
+          </ol>
+          <h3>المثال العددي من المحاضرة (L=8, N=32)</h3>
+          <table class="dt">
+            <thead><tr style="background:var(--a8-bg)">
+              <th style="color:var(--a8)">r_k</th><th style="color:var(--a8)">n_k</th>
+              <th style="color:var(--a8)">CDF</th><th style="color:var(--a8)">7/32 × CDF</th>
+              <th style="color:var(--a8)">s_k الجديد</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>0</td><td>4</td><td>4</td><td>0.875</td><td><strong style="color:var(--a8)">1</strong></td></tr>
+              <tr><td>1</td><td>8</td><td>12</td><td>2.625</td><td><strong style="color:var(--a8)">3</strong></td></tr>
+              <tr><td>2</td><td>8</td><td>20</td><td>4.375</td><td><strong style="color:var(--a8)">4</strong></td></tr>
+              <tr><td>3</td><td>4</td><td>24</td><td>5.250</td><td><strong style="color:var(--a8)">5</strong></td></tr>
+              <tr><td>4</td><td>8</td><td>32</td><td>7.000</td><td><strong style="color:var(--a8)">7</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Histogram Equalization = إعادة توزيع البكسلات عشان الـ histogram يبقى مستوي → أقصى contrast. في OpenCV: <span class="ci">cv2.equalizeHist()</span>. للصور غير المتجانسة الإضاءة: CLAHE.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S9: HISTOGRAM MATCHING ===== -->
+  <div class="sc" data-a="9" id="s9">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">🎯</div>
+      <div class="stw"><div class="sn">Section 09</div><div class="st">Histogram Matching (Specification)</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>More Flexible Than Equalization</h3>
+        <p>While equalization always targets a <em>uniform</em> distribution, <span class="term">Histogram Matching</span> (also called <em>histogram specification</em>) is more flexible: it transforms the source image's histogram to <span class="hl">match any specified target distribution</span>. You are not limited to a flat histogram — you can match any reference image's tonal character.</p>
+        <p>This is critical when you need multiple images to appear visually consistent — for example, stitching satellite tiles from different sensors, or aligning a sequence of frames shot under changing light conditions.</p>
+        <div class="box ba">
+          <div class="bh">💡 Analogy — Style vs. Standard</div>
+          <p>Histogram equalization says: "spread your pixels as evenly as possible across all values." Histogram matching says: "make your pixels look like <em>this specific other image</em>." The first normalizes to a flat standard. The second matches to a particular style or reference. Equalization is actually a special case of matching where the target happens to be the uniform distribution.</p>
+        </div>
+        <h3>The Three-Step Algorithm</h3>
+        <ol class="sl">
+          <li>
+            <div class="sln" style="background:var(--a9-bg);color:var(--a9)">1</div>
+            <div class="slt"><strong>Equalize the Source Image:</strong> Compute CDF of the source image and normalize to get the equalized source mapping s = T_source(r)</div>
+          </li>
+          <li>
+            <div class="sln" style="background:var(--a9-bg);color:var(--a9)">2</div>
+            <div class="slt"><strong>Equalize the Target/Reference:</strong> Compute CDF of the target histogram and normalize to get the target mapping s = T_target(z)</div>
+          </li>
+          <li>
+            <div class="sln" style="background:var(--a9-bg);color:var(--a9)">3</div>
+            <div class="slt"><strong>Inverse Map:</strong> For each equalized source value, find the corresponding output value by inverting the target's mapping: z = T_target⁻¹(T_source(r))</div>
+          </li>
+        </ol>
+        <div class="fw">
+          <svg viewBox="0 0 530 155" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="530" height="155" rx="8" fill="#11111b"/>
+            <!-- Source box -->
+            <rect x="12" y="18" width="110" height="85" rx="7" fill="#1a1d2e" stroke="#f43f5e" stroke-opacity=".5"/>
+            <text x="67" y="36" fill="#f43f5e" font-size="9" text-anchor="middle" font-family="Sora" font-weight="700">Source Image</text>
+            <g fill="#f43f5e" opacity="0.65">
+              <rect x="18"  y="68" width="7" height="25"/><rect x="27"  y="56" width="7" height="37"/>
+              <rect x="36"  y="43" width="7" height="50"/><rect x="45"  y="52" width="7" height="41"/>
+              <rect x="54"  y="65" width="7" height="28"/><rect x="63"  y="75" width="7" height="18"/>
+              <rect x="72"  y="82" width="7" height="11"/><rect x="81"  y="88" width="7" height="5"/>
+              <rect x="90"  y="91" width="7" height="2"/><rect x="99"  y="92" width="7" height="1"/>
+              <rect x="108" y="93" width="7" height="0"/>
+            </g>
+            <line x1="12" y1="93" x2="122" y2="93" stroke="#2a2f45" stroke-width="1"/>
+            <!-- Arrow 1 -->
+            <text x="148" y="66" fill="#f43f5e" font-size="18" text-anchor="middle">→</text>
+            <text x="148" y="82" fill="#f43f5e" font-size="7.5" text-anchor="middle" font-family="Sora">equalize</text>
+            <!-- Equalized Source box -->
+            <rect x="175" y="18" width="110" height="85" rx="7" fill="#1a1d2e" stroke="#f43f5e" stroke-opacity=".3"/>
+            <text x="230" y="36" fill="#8892a4" font-size="9" text-anchor="middle" font-family="Sora">Equalized Source</text>
+            <g fill="#f43f5e" opacity="0.5">
+              <rect x="181" y="63" width="7" height="30"/><rect x="190" y="60" width="7" height="33"/>
+              <rect x="199" y="62" width="7" height="31"/><rect x="208" y="63" width="7" height="30"/>
+              <rect x="217" y="61" width="7" height="32"/><rect x="226" y="62" width="7" height="31"/>
+              <rect x="235" y="60" width="7" height="33"/><rect x="244" y="63" width="7" height="30"/>
+              <rect x="253" y="61" width="7" height="32"/><rect x="262" y="62" width="7" height="31"/>
+              <rect x="271" y="60" width="7" height="33"/>
+            </g>
+            <line x1="175" y1="93" x2="285" y2="93" stroke="#2a2f45" stroke-width="1"/>
+            <!-- Arrow 2 (inverse through target) -->
+            <text x="311" y="66" fill="#a78bfa" font-size="16" text-anchor="middle">→</text>
+            <text x="311" y="80" fill="#a78bfa" font-size="7" text-anchor="middle" font-family="Sora">inverse map</text>
+            <text x="311" y="90" fill="#a78bfa" font-size="7" text-anchor="middle" font-family="Sora">thru target</text>
+            <!-- Target reference box (below) -->
+            <rect x="270" y="108" width="80" height="42" rx="6" fill="#1a1d2e" stroke="#a78bfa" stroke-opacity=".5"/>
+            <text x="310" y="122" fill="#a78bfa" font-size="7.5" text-anchor="middle" font-family="Sora">Target/Reference</text>
+            <g fill="#a78bfa" opacity="0.65">
+              <rect x="275" y="126" width="6" height="18"/><rect x="283" y="118" width="6" height="26"/>
+              <rect x="291" y="122" width="6" height="22"/><rect x="299" y="128" width="6" height="16"/>
+              <rect x="307" y="124" width="6" height="20"/><rect x="315" y="119" width="6" height="25"/>
+              <rect x="323" y="123" width="6" height="21"/><rect x="331" y="130" width="6" height="14"/>
+            </g>
+            <!-- Final Result box -->
+            <rect x="338" y="18" width="110" height="85" rx="7" fill="#1a1d2e" stroke="#a78bfa" stroke-opacity=".5"/>
+            <text x="393" y="36" fill="#a78bfa" font-size="9" text-anchor="middle" font-family="Sora" font-weight="700">Matched Result</text>
+            <g fill="#a78bfa" opacity="0.8">
+              <rect x="344" y="65" width="7" height="28"/><rect x="353" y="56" width="7" height="37"/>
+              <rect x="362" y="60" width="7" height="33"/><rect x="371" y="67" width="7" height="26"/>
+              <rect x="380" y="62" width="7" height="31"/><rect x="389" y="57" width="7" height="36"/>
+              <rect x="398" y="61" width="7" height="32"/><rect x="407" y="68" width="7" height="25"/>
+              <rect x="416" y="63" width="7" height="30"/><rect x="425" y="58" width="7" height="35"/>
+              <rect x="434" y="62" width="7" height="31"/>
+            </g>
+            <line x1="338" y1="93" x2="448" y2="93" stroke="#2a2f45" stroke-width="1"/>
+            <text x="265" y="150" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">Source content + Reference tonal character</text>
+          </svg>
+          <div class="fc">Figure 9 — Histogram matching pipeline. The source is equalized, then inverse-mapped through the target's equalization, producing an image with source content but reference tonality.</div>
+        </div>
+        <h3>Key Applications</h3>
+        <table class="ct">
+          <thead><tr style="background:linear-gradient(90deg,var(--a9-bg),transparent)">
+            <th style="color:var(--a9)">Application</th>
+            <th style="color:var(--a9)">Problem Being Solved</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><strong>Satellite Image Fusion</strong></td><td>Different sensors capture different brightness ranges; matching makes tiles visually consistent for mosaicking</td></tr>
+            <tr><td><strong>Camera Exposure Alignment</strong></td><td>Sequential frames shot under changing light; matching aligns their tonality for smooth video or panorama</td></tr>
+            <tr><td><strong>Medical Scan Normalization</strong></td><td>MRI scans from different machines use different intensity scales; matching standardizes them before ML analysis</td></tr>
+            <tr><td><strong>Photo Style Transfer (basic)</strong></td><td>Make photo A look as if it was taken under photo B's lighting conditions</td></tr>
+          </tbody>
+        </table>
+        <div class="box bex">
+          <div class="bh">▶ Python Code (scikit-image)</div>
+<pre><span class="kw">from</span> <span class="vr">skimage</span> <span class="kw">import</span> <span class="vr">exposure</span>
+<span class="kw">import</span> <span class="vr">cv2</span>
+
+<span class="vr">source</span>    = <span class="fn">cv2.imread</span>(<span class="str">'source.jpg'</span>,    <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+<span class="vr">reference</span> = <span class="fn">cv2.imread</span>(<span class="str">'reference.jpg'</span>, <span class="vr">cv2.IMREAD_GRAYSCALE</span>)
+
+<span class="cm"># Match histogram of source to match reference's distribution</span>
+<span class="vr">matched</span> = <span class="vr">exposure</span>.<span class="fn">match_histograms</span>(<span class="vr">source</span>, <span class="vr">reference</span>)
+
+<span class="cm"># 'matched' has the SOURCE content but REFERENCE tonality</span></pre>
+        </div>
+        <div class="box bw">
+          <div class="bh">⚠ Equalization vs Matching — Key Differences</div>
+          <ul>
+            <li><strong>Equalization:</strong> Always targets a flat/uniform distribution. No reference needed. Fully automatic.</li>
+            <li><strong>Matching:</strong> Targets any user-specified distribution from a reference image. More flexible. Requires a reference.</li>
+            <li>Equalization is a special case of matching where the target distribution is uniform.</li>
+          </ul>
+        </div>
+        <div class="box bs">
+          <div class="bh">✦ Summary</div>
+          <p>Histogram matching transforms a source image's tonal character to match a target reference. Algorithm: equalize source → equalize target → inverse-map source through target. Used for aligning multi-source images (satellite, medical, photography). Equalization is the degenerate case where the target is the uniform distribution.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>مطابقة توزيع محدد</h3>
+          <p>بينما الـ equalization بيهدف دايماً لتوزيع uniform، الـ <span class="term">Histogram Matching</span> أكثر مرونة: بيحوّل الـ histogram بتاع الصورة الأصلية عشان <span class="hl">يشبه أي توزيع تحدده</span> من صورة مرجعية. ده مفيد جداً لما تيجي تدمج صور من مصادر مختلفة.</p>
+          <div class="box ba">
+            <div class="bh">💡 الفرق الجوهري</div>
+            <p>الـ Equalization بتقول "وزّع البكسلات بشكل متساوي قدر الإمكان." الـ Matching بتقول "خلّي الصورة تشبه <em>الصورة دي بالتحديد</em>." الـ Equalization هو حالة خاصة من الـ Matching لما يكون الهدف هو التوزيع المتساوي.</p>
+          </div>
+          <h3>الخطوات الثلاثة</h3>
+          <ol class="sl">
+            <li><div class="sln" style="background:var(--a9-bg);color:var(--a9)">1</div><div class="slt"><strong>Equalize الصورة الأصلية (Source):</strong> احسب CDF وقيّسه</div></li>
+            <li><div class="sln" style="background:var(--a9-bg);color:var(--a9)">2</div><div class="slt"><strong>Equalize الصورة المرجعية (Target):</strong> نفس الخطوات على صورة الهدف</div></li>
+            <li><div class="sln" style="background:var(--a9-bg);color:var(--a9)">3</div><div class="slt"><strong>Inverse Mapping:</strong> لكل قيمة equalized في الـ source، إيجاد القيمة المناظرة في الـ target</div></li>
+          </ol>
+          <table class="ct">
+            <thead><tr style="background:var(--a9-bg)">
+              <th style="color:var(--a9)">الـ Equalization</th>
+              <th style="color:var(--a9)">الـ Matching</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>الهدف = توزيع uniform دايماً</td><td>الهدف = توزيع تختاره أنت</td></tr>
+              <tr><td>تلقائي، مش محتاج مرجع</td><td>يحتاج صورة مرجعية</td></tr>
+              <tr><td>أبسط في التطبيق</td><td>أكثر مرونة وتحكم</td></tr>
+            </tbody>
+          </table>
+          <div class="box bs">
+            <div class="bh">✦ خلاصة</div>
+            <p>Histogram Matching = تحويل الصورة عشان تشبه صورة مرجعية في توزيع الإضاءة. يُستخدم في صور الأقمار الصناعية، التصوير الطبي، والتصوير المتسلسل. أكثر مرونة من الـ equalization.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S10: INTERVIEW Q&A ===== -->
+  <div class="sc" data-a="7" id="s10">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">💼</div>
+      <div class="stw"><div class="sn">Section 10</div><div class="st">Interview &amp; Exam Questions</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h4>Technical — Click to Reveal Answers</h4>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            What is the difference between histogram equalization and histogram matching?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <p><strong>Equalization</strong> always targets a <em>flat/uniform</em> distribution. It is fully automatic — no reference is needed. It maximizes global contrast by spreading pixels evenly across all intensity levels.</p>
+            <p><strong>Matching</strong> targets a <em>specific user-defined</em> distribution from a reference image. More flexible. Algorithm: equalize source → equalize reference → inverse-map source through reference's equalization curve.</p>
+            <p><strong>Key insight:</strong> Equalization is a special case of matching where the target happens to be the uniform distribution.</p>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            Why do we write log(1 + r) instead of log(r) in the log transform?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <p>When r = 0 (a pure black pixel), log(0) = −∞ which is mathematically undefined — you cannot store it as a pixel value. Adding 1 ensures: log(1 + 0) = log(1) = 0, which correctly maps black → black. The +1 is a simple numerical guard with no meaningful effect on the curve for r &gt; 0.</p>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            What happens when γ &lt; 1 vs γ &gt; 1 in gamma correction?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <p><strong>γ &lt; 1:</strong> The curve is concave (bends upward). Low input values get pushed to higher output values → image brightens. Dark regions gain detail. Used for underexposed images.</p>
+            <p><strong>γ &gt; 1:</strong> The curve is convex (bends downward). High input values get compressed → image darkens. Bright regions gain detail. Used for overexposed images or display gamma correction.</p>
+            <p><strong>Memory trick:</strong> γ &lt; 1 → image gets lighter. γ &gt; 1 → image gets heavier (darker).</p>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            What is the CDF and why does histogram equalization use it?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <p>The <strong>CDF</strong> (Cumulative Distribution Function) is the running sum of the histogram: CDF(k) = Σ n_j for j=0 to k. It tells you "what fraction of pixels have intensity ≤ this value."</p>
+            <p>The mathematical proof shows that when you use the normalized CDF as the pixel mapping function, the output histogram approaches a uniform distribution. This is the theoretical foundation of histogram equalization — the CDF is not just a tool, it <em>is</em> the correct transform.</p>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            When would you choose contrast stretching over histogram equalization?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <ul>
+              <li><strong>Contrast Stretching:</strong> Use when the image is uniformly low-contrast (pixel values in a narrow range but distributed normally within that range). It's linear, predictable, reversible. Best for foggy or poorly lit images.</li>
+              <li><strong>Histogram Equalization:</strong> Use for automatic, global contrast maximization without choosing parameters. More powerful — handles non-uniform distributions. But may over-amplify noise in flat regions.</li>
+              <li><strong>Rule of thumb:</strong> Contrast stretching is a manual linear fix. Equalization is an automatic non-linear fix.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            What is CLAHE and why is it better than global equalization for medical images?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <p><strong>CLAHE</strong> (Contrast Limited Adaptive Histogram Equalization) divides the image into small tiles and applies equalization locally to each tile. It also clips the histogram at a contrast limit before equalization to prevent noise in flat regions from being amplified excessively.</p>
+            <p>Global equalization applied to a medical scan may over-enhance noise in homogeneous tissue regions (e.g., fat, fluid) while under-enhancing structure boundaries. CLAHE handles local variations in contrast, making it the standard preprocessing choice for chest X-rays, retinal scans, and dermoscopy images.</p>
+          </div>
+        </div>
+
+        <div class="acc">
+          <div class="acc-q" onclick="flipAcc(this)">
+            Can you apply histogram equalization to a color (RGB) image directly?
+            <span>▶ reveal</span>
+          </div>
+          <div class="acc-a">
+            <p><strong>No — never equalize each RGB channel independently.</strong> This shifts the relative balance between R, G, and B, causing severe color distortion (the image will take on artificial color casts).</p>
+            <p><strong>Correct approach:</strong> Convert to a colorspace that separates luminance from chrominance — YCrCb or HSV. Then equalize <em>only</em> the luminance channel (Y or V). Convert back to RGB/BGR. This enhances brightness contrast without altering colors.</p>
+          </div>
+        </div>
+
+        <h4 style="margin-top:24px">Common Mistakes to Avoid</h4>
+        <div class="box bw">
+          <div class="bh">⚠ Top 5 Mistakes</div>
+          <ul>
+            <li><strong>Applying gamma without normalizing to [0,1]:</strong> s = r^γ assumes r is in [0,1]. If r is in [0,255], a value of 200 with γ=2 gives 40,000. Always normalize first.</li>
+            <li><strong>Using log(r) instead of log(1+r):</strong> log(0) = −∞ for black pixels. Always add 1.</li>
+            <li><strong>Equalizing RGB channels separately:</strong> Creates color distortion. Use YCrCb or HSV and equalize only the luminance.</li>
+            <li><strong>Confusing equalization with matching:</strong> Equalization = uniform target (no reference needed). Matching = specific target (reference required).</li>
+            <li><strong>Contrast stretching with r_max = r_min:</strong> Division by zero if all pixels have the same value. Always add a guard check.</li>
+          </ul>
+        </div>
+
+        <h4 style="margin-top:24px">Things You MUST Memorize</h4>
+        <div class="box bex">
+          <div class="bh">▶ Quick Formula Reference</div>
+          <table class="ct" style="margin:8px 0">
+            <thead><tr style="background:linear-gradient(90deg,var(--a7-bg),var(--a5-bg))">
+              <th style="color:var(--a7)">Transform</th>
+              <th style="color:var(--a7)">Formula</th>
+              <th style="color:var(--a7)">Key Parameter</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>Negative</td><td><span class="ci">s = 255 − r</span></td><td>None</td></tr>
+              <tr><td>Log</td><td><span class="ci">s = c·log(1+r)</span></td><td>c = 255/log(1+max)</td></tr>
+              <tr><td>Gamma</td><td><span class="ci">s = r^γ</span> (after norm.)</td><td>γ: &lt;1 brightens, &gt;1 darkens</td></tr>
+              <tr><td>Contrast Stretch</td><td><span class="ci">(r−min)/(max−min)×255</span></td><td>None (uses image's own range)</td></tr>
+              <tr><td>Threshold</td><td><span class="ci">255 if r≥T else 0</span></td><td>T (use Otsu for auto)</td></tr>
+              <tr><td>Equalization</td><td><span class="ci">(L−1)/N × CDF(r)</span></td><td>CDF = running histogram sum</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h4>أسئلة مقابلات وامتحانات</h4>
+
+          <div class="acc">
+            <div class="acc-q" onclick="flipAcc(this)">
+              ما الفرق بين Histogram Equalization وHistogram Matching؟
+              <span>▶ الإجابة</span>
+            </div>
+            <div class="acc-a" style="direction:rtl;text-align:right">
+              <p><strong>Equalization:</strong> دايماً بيهدف لتوزيع uniform (مستوي). أوتوماتيكي، مش محتاج صورة مرجعية.</p>
+              <p><strong>Matching:</strong> بيهدف لتوزيع معين تحدده من صورة مرجعية. أكثر مرونة. يحتاج reference image.</p>
+              <p><strong>ملاحظة جوهرية:</strong> الـ Equalization هو حالة خاصة من الـ Matching لما يكون الهدف هو التوزيع المتساوي.</p>
+            </div>
+          </div>
+
+          <div class="acc">
+            <div class="acc-q" onclick="flipAcc(this)">
+              ليه بنكتب log(1+r) مش log(r)؟
+              <span>▶ الإجابة</span>
+            </div>
+            <div class="acc-a" style="direction:rtl;text-align:right">
+              <p>لو r=0 (بكسل أسود)، log(0) = ما لا نهاية سالبة. ده غير معرّف رياضياً وما ينفعش كقيمة بكسل. بإضافة 1: log(1+0) = 0، البكسل الأسود يفضل أسود.</p>
+            </div>
+          </div>
+
+          <div class="acc">
+            <div class="acc-q" onclick="flipAcc(this)">
+              ايه الغلطة في تطبيق Gamma مباشرة على قيم 0–255؟
+              <span>▶ الإجابة</span>
+            </div>
+            <div class="acc-a" style="direction:rtl;text-align:right">
+              <p>المعادلة <span class="ci">r^γ</span> بتفترض إن r بين 0 و1. لو طبّقتها على قيم 0–255، البكسل عند 200 مع γ=2 يبقى 40,000 — خارج النطاق كاملاً. دايماً قسّم على 255 الأول، طبّق الـ gamma، واضرب في 255 تاني.</p>
+            </div>
+          </div>
+
+          <div class="acc">
+            <div class="acc-q" onclick="flipAcc(this)">
+              ليه ما تعدّلش قنوات RGB في الـ Histogram Equalization مباشرة؟
+              <span>▶ الإجابة</span>
+            </div>
+            <div class="acc-a" style="direction:rtl;text-align:right">
+              <p>تعديل كل قناة R وG وB بشكل منفصل بيكسر التوازن بينهم وبيعمل distortion في الألوان (الصورة بتاخد ألوان اصطناعية). الصح: تحويل لـ YCrCb أو HSV ثم تعديل قناة الـ luminance فقط (Y أو V) ثم الرجوع لـ BGR.</p>
+            </div>
+          </div>
+
+          <h4 style="margin-top:20px">المعادلات اللي لازم تحفظها</h4>
+          <table class="ct">
+            <thead><tr style="background:var(--a7-bg)">
+              <th style="color:var(--a7)">التحويل</th><th style="color:var(--a7)">المعادلة</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>Negative</td><td><span class="ci">s = 255 − r</span></td></tr>
+              <tr><td>Log</td><td><span class="ci">s = c·log(1+r)</span></td></tr>
+              <tr><td>Gamma</td><td><span class="ci">s = r^γ</span> (بعد التطبيع)</td></tr>
+              <tr><td>Contrast Stretch</td><td><span class="ci">(r−min)/(max−min)×255</span></td></tr>
+              <tr><td>Threshold</td><td><span class="ci">255 if r≥T else 0</span></td></tr>
+              <tr><td>Equalization</td><td><span class="ci">(L−1)/N × CDF(r)</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== S11: KEY TAKEAWAYS ===== -->
+  <div class="sc" data-a="5" id="s11">
+    <div class="sh" onclick="tog(this)">
+      <div class="si">🗝️</div>
+      <div class="stw"><div class="sn">Section 11</div><div class="st">Key Takeaways &amp; Decision Guide</div></div>
+      <button class="tog on">▼</button>
+    </div>
+    <div class="sdiv"></div>
+    <div class="sb-body">
+
+      <div class="lc on" data-lang="en">
+        <h3>The Complete Technique Comparison</h3>
+        <table class="ct">
+          <thead><tr style="background:linear-gradient(90deg,var(--a5-bg),var(--a7-bg))">
+            <th style="color:var(--a5)">Technique</th>
+            <th style="color:var(--a5)">Formula</th>
+            <th style="color:var(--a5)">What It Does</th>
+            <th style="color:var(--a5)">When to Use</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:var(--a2)">Negative</strong></td>
+              <td><span class="ci">255 − r</span></td>
+              <td>Inverts every intensity</td>
+              <td>Medical X-rays, film negatives</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a3)">Log Transform</strong></td>
+              <td><span class="ci">c·log(1+r)</span></td>
+              <td>Expands dark range, compresses bright</td>
+              <td>Fourier spectra, wide dynamic range</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a4)">Gamma γ &lt; 1</strong></td>
+              <td><span class="ci">r^γ</span> (norm.)</td>
+              <td>Brightens image</td>
+              <td>Underexposed / dark scenes</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a4)">Gamma γ &gt; 1</strong></td>
+              <td><span class="ci">r^γ</span> (norm.)</td>
+              <td>Darkens image</td>
+              <td>Overexposed / display correction</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a5)">Contrast Stretch</strong></td>
+              <td><span class="ci">(r−min)/(max−min)×255</span></td>
+              <td>Fills full intensity range</td>
+              <td>Low-contrast foggy images</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a6)">Thresholding</strong></td>
+              <td><span class="ci">255 if r≥T else 0</span></td>
+              <td>Binary conversion</td>
+              <td>OCR, segmentation, morphology</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a8)">Hist. Equalization</strong></td>
+              <td>CDF-based map</td>
+              <td>Flattens histogram, max contrast</td>
+              <td>Auto contrast enhancement</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--a9)">Hist. Matching</strong></td>
+              <td>CDF inverse map</td>
+              <td>Matches target distribution</td>
+              <td>Multi-source image fusion</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>The Decision Flowchart</h3>
+        <div class="fw">
+          <svg viewBox="0 0 560 360" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+            <rect width="560" height="360" rx="8" fill="#11111b"/>
+            <!-- Start node -->
+            <rect x="200" y="14" width="160" height="36" rx="18" fill="#1e2235" stroke="#8b5cf6" stroke-width="1.5"/>
+            <text x="280" y="37" fill="#e2e8f0" font-size="11" text-anchor="middle" font-family="Sora" font-weight="600">What is wrong?</text>
+            <!-- Lines from start -->
+            <line x1="280" y1="50" x2="280" y2="70" stroke="#585b70" stroke-width="1.5"/>
+
+            <!-- Decision row -->
+            <!-- Too dark -->
+            <rect x="12"  y="72" width="110" height="30" rx="6" fill="#1a1d2e" stroke="#22d3ee" stroke-opacity=".6"/>
+            <text x="67"  y="91" fill="#22d3ee" font-size="9.5" text-anchor="middle" font-family="Sora">Too dark</text>
+            <!-- Huge range -->
+            <rect x="135" y="72" width="110" height="30" rx="6" fill="#1a1d2e" stroke="#f59e0b" stroke-opacity=".6"/>
+            <text x="190" y="91" fill="#f59e0b" font-size="9.5" text-anchor="middle" font-family="Sora">Huge dynamic range</text>
+            <!-- Low contrast -->
+            <rect x="258" y="72" width="110" height="30" rx="6" fill="#1a1d2e" stroke="#8b5cf6" stroke-opacity=".6"/>
+            <text x="313" y="91" fill="#8b5cf6" font-size="9.5" text-anchor="middle" font-family="Sora">Low contrast</text>
+            <!-- Need binary -->
+            <rect x="380" y="72" width="90" height="30" rx="6" fill="#1a1d2e" stroke="#ec4899" stroke-opacity=".6"/>
+            <text x="425" y="91" fill="#ec4899" font-size="9.5" text-anchor="middle" font-family="Sora">Need B&amp;W only</text>
+            <!-- Match images -->
+            <rect x="480" y="72" width="70" height="30" rx="6" fill="#1a1d2e" stroke="#f43f5e" stroke-opacity=".6"/>
+            <text x="515" y="84" fill="#f43f5e" font-size="9" text-anchor="middle" font-family="Sora">Match two</text>
+            <text x="515" y="96" fill="#f43f5e" font-size="9" text-anchor="middle" font-family="Sora">images</text>
+
+            <!-- Connector lines from start to decision nodes -->
+            <line x1="220" y1="70" x2="67"  y2="72" stroke="#585b70" stroke-width="1"/>
+            <line x1="245" y1="70" x2="190" y2="72" stroke="#585b70" stroke-width="1"/>
+            <line x1="280" y1="70" x2="313" y2="72" stroke="#585b70" stroke-width="1"/>
+            <line x1="320" y1="70" x2="425" y2="72" stroke="#585b70" stroke-width="1"/>
+            <line x1="340" y1="70" x2="515" y2="72" stroke="#585b70" stroke-width="1"/>
+
+            <!-- Answer nodes row 1 -->
+            <!-- Too dark answers -->
+            <rect x="12"  y="136" width="110" height="50" rx="6" fill="#1a1d2e" stroke="#22d3ee" stroke-opacity=".4"/>
+            <text x="67" y="154" fill="#22d3ee" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Gamma (γ&lt;1)</text>
+            <text x="67" y="168" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">or Log Transform</text>
+            <text x="67" y="180" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">if huge range</text>
+            <line x1="67" y1="102" x2="67" y2="136" stroke="#22d3ee" stroke-width="1" stroke-opacity=".5"/>
+
+            <!-- Huge range answer -->
+            <rect x="135" y="136" width="110" height="50" rx="6" fill="#1a1d2e" stroke="#f59e0b" stroke-opacity=".4"/>
+            <text x="190" y="154" fill="#f59e0b" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Log Transform</text>
+            <text x="190" y="168" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">s = c·log(1+r)</text>
+            <text x="190" y="180" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">compute c dynamically</text>
+            <line x1="190" y1="102" x2="190" y2="136" stroke="#f59e0b" stroke-width="1" stroke-opacity=".5"/>
+
+            <!-- Low contrast answers (splits) -->
+            <rect x="245" y="136" width="100" height="50" rx="6" fill="#1a1d2e" stroke="#8b5cf6" stroke-opacity=".4"/>
+            <text x="295" y="154" fill="#8b5cf6" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Contrast Stretch</text>
+            <text x="295" y="168" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">if linear fix OK</text>
+            <text x="295" y="180" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">(min-max norm)</text>
+
+            <rect x="356" y="136" width="100" height="50" rx="6" fill="#1a1d2e" stroke="#22c55e" stroke-opacity=".4"/>
+            <text x="406" y="154" fill="#22c55e" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Hist. Equalization</text>
+            <text x="406" y="168" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">if auto non-linear</text>
+            <text x="406" y="180" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">or CLAHE for local</text>
+
+            <line x1="313" y1="102" x2="295" y2="136" stroke="#8b5cf6" stroke-width="1" stroke-opacity=".4"/>
+            <line x1="313" y1="102" x2="406" y2="136" stroke="#22c55e" stroke-width="1" stroke-opacity=".4"/>
+
+            <!-- Need binary answer -->
+            <rect x="462" y="136" width="90" height="50" rx="6" fill="#1a1d2e" stroke="#ec4899" stroke-opacity=".4"/>
+            <text x="507" y="154" fill="#ec4899" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Thresholding</text>
+            <text x="507" y="168" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">T=128 manual</text>
+            <text x="507" y="180" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">or Otsu auto</text>
+            <line x1="425" y1="102" x2="507" y2="136" stroke="#ec4899" stroke-width="1" stroke-opacity=".5"/>
+            <line x1="515" y1="102" x2="507" y2="136" stroke="#ec4899" stroke-width="1" stroke-opacity=".5"/>
+
+            <!-- Matching box -->
+            <rect x="356" y="218" width="100" height="50" rx="6" fill="#1a1d2e" stroke="#f43f5e" stroke-opacity=".4"/>
+            <text x="406" y="236" fill="#f43f5e" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Hist. Matching</text>
+            <text x="406" y="250" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">equalize source +</text>
+            <text x="406" y="262" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">inverse thru target</text>
+
+            <!-- Special cases -->
+            <rect x="70"  y="218" width="150" height="50" rx="6" fill="#1a1d2e" stroke="#10b981" stroke-opacity=".4"/>
+            <text x="145" y="236" fill="#10b981" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Too bright?</text>
+            <text x="145" y="250" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">Gamma (γ &gt; 1)</text>
+            <text x="145" y="262" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">s = r^γ, γ &gt; 1</text>
+
+            <rect x="70"  y="290" width="150" height="50" rx="6" fill="#1a1d2e" stroke="#f43f5e" stroke-opacity=".4"/>
+            <text x="145" y="308" fill="#f43f5e" font-size="9" text-anchor="middle" font-family="Sora" font-weight="600">Medical X-ray contrast?</text>
+            <text x="145" y="322" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">Negative Transform</text>
+            <text x="145" y="334" fill="#585b70" font-size="8.5" text-anchor="middle" font-family="Sora">s = 255 − r</text>
+
+            <text x="280" y="355" fill="#3e4560" font-size="8.5" text-anchor="middle" font-family="Sora">Point Processing Technique Decision Guide — Lecture 07</text>
+          </svg>
+          <div class="fc">Figure 10 — Decision guide for choosing the right image processing technique based on the problem at hand.</div>
+        </div>
+
+        <div class="box bs">
+          <div class="bh">✦ The Big Picture</div>
+          <p>All of Lecture 7 is about one core question: <span class="hl">how do we modify pixel values to improve image quality or extract information?</span> Point processing is the foundational layer — one pixel at a time, no spatial context needed. Histogram processing adds a global statistical view of the image's tonal distribution. These techniques are the building blocks of every image preprocessing pipeline in computer vision, medical imaging, and deep learning.</p>
+          <p>As a data scientist, knowing which technique to reach for — and why — separates someone who blindly applies <span class="ci">cv2.equalizeHist()</span> from someone who understands what problem it actually solves.</p>
+        </div>
+      </div>
+
+      <div class="lc" data-lang="ar">
+        <div class="ar">
+          <h3>أهم حاجات تحفظها</h3>
+          <table class="ct">
+            <thead><tr style="background:var(--a5-bg)">
+              <th style="color:var(--a5)">التقنية</th><th style="color:var(--a5)">المعادلة</th>
+              <th style="color:var(--a5)">الاستخدام</th>
+            </tr></thead>
+            <tbody>
+              <tr><td><strong style="color:var(--a2)">Negative</strong></td><td><span class="ci">255 − r</span></td><td>الأشعة الطبية</td></tr>
+              <tr><td><strong style="color:var(--a3)">Log</strong></td><td><span class="ci">c·log(1+r)</span></td><td>Fourier spectrum، نطاق واسع</td></tr>
+              <tr><td><strong style="color:var(--a4)">Gamma γ&lt;1</strong></td><td><span class="ci">r^γ</span></td><td>صور غامقة → تفتيح</td></tr>
+              <tr><td><strong style="color:var(--a4)">Gamma γ&gt;1</strong></td><td><span class="ci">r^γ</span></td><td>صور فاتحة → تغميق</td></tr>
+              <tr><td><strong style="color:var(--a5)">Contrast Stretch</strong></td><td><span class="ci">(r−min)/(max−min)×255</span></td><td>Contrast منخفض</td></tr>
+              <tr><td><strong style="color:var(--a6)">Threshold</strong></td><td><span class="ci">255 if r≥T else 0</span></td><td>OCR، segmentation</td></tr>
+              <tr><td><strong style="color:var(--a8)">Equalization</strong></td><td>CDF mapping</td><td>Contrast تلقائي</td></tr>
+              <tr><td><strong style="color:var(--a9)">Matching</strong></td><td>CDF inverse</td><td>دمج صور متعددة المصادر</td></tr>
+            </tbody>
+          </table>
+
+          <div class="box bs">
+            <div class="bh">✦ الصورة الكاملة</div>
+            <p>محاضرة 7 كلها بتجيب إجابة لسؤال واحد: <span class="hl">كيف نعدّل قيم البكسلات لتحسين الصورة أو استخراج معلومات منها؟</span> الـ Point Processing هو الطبقة الأساسية — بكسل بكسل. الـ Histogram Processing بيضيف نظرة إحصائية شاملة. دي الأساسيات اللي بتتبنى عليها كل pipelines في الـ Computer Vision والـ Deep Learning.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+
+<script>
+  // ── PROGRESS BAR ──
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    document.getElementById('prog').style.width = pct + '%';
+  });
+
+  // ── SECTION TOGGLE ──
+  function tog(header) {
+    const body = header.closest('.sc').querySelector('.sb-body');
+    const btn  = header.querySelector('.tog');
+    body.classList.toggle('col');
+    btn.classList.toggle('on');
+  }
+
+  // ── LANGUAGE SWITCHER ──
+  function switchLang(lang) {
+    document.querySelectorAll('.lb').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.lc').forEach(el => el.classList.remove('on'));
+    document.querySelectorAll('.lb').forEach(b => {
+      if (b.textContent.trim().toLowerCase().startsWith(lang)) b.classList.add('on');
+    });
+    document.querySelectorAll(`.lc[data-lang="${lang}"]`).forEach(el => el.classList.add('on'));
+  }
+
+  // ── ACCORDION ──
+  function flipAcc(q) {
+    const a = q.nextElementSibling;
+    const s = q.querySelector('span');
+    a.classList.toggle('on');
+    s.textContent = a.classList.contains('on') ? '▼ hide' : '▶ reveal';
+  }
+
+  // ── ACTIVE NAV LINK (IntersectionObserver) ──
+  const allSections = document.querySelectorAll('[id^="s"]');
+  const navLinks    = document.querySelectorAll('.sb-nav a');
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => {
+          a.classList.remove('active');
+          if (a.getAttribute('href') === '#' + e.target.id) a.classList.add('active');
+        });
+      }
+    });
+  }, { threshold: 0.25 });
+
+  allSections.forEach(s => io.observe(s));
+
+  // ── CHIP SMOOTH SCROLL ──
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', e => {
+      e.preventDefault();
+      const t = document.querySelector(c.getAttribute('href'));
+      if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>
