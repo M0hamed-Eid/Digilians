@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Tutorial on Hidden Markov Models — Study Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CSS VARIABLES — DESIGN SYSTEM
+============================================================ */
+:root{
+  /* 9 accent colors */
+  --accent-1:#6C5CE7; /* violet   */
+  --accent-2:#00B894; /* teal     */
+  --accent-3:#0984E3; /* blue     */
+  --accent-4:#E17055; /* terracotta */
+  --accent-5:#FDCB6E; /* amber    */
+  --accent-6:#E84393; /* pink     */
+  --accent-7:#00CEC9; /* aqua     */
+  --accent-8:#636E72; /* slate    */
+  --accent-9:#D63031; /* red      */
+
+  /* Foreground tier */
+  --fg-1:#1A1B25;
+  --fg-2:#3B3D52;
+  --fg-muted:#6B6F8A;
+
+  /* Background tier */
+  --bg-1:#FFFFFF;
+  --bg-2:#F7F7FB;
+  --bg-3:#EFEFF7;
+
+  /* Mid tier */
+  --mid-1:#E3E3F0;
+  --mid-2:#CBCBE0;
+
+  --radius:14px;
+  --shadow-sm:0 1px 3px rgba(26,27,37,0.06);
+  --shadow-md:0 6px 20px rgba(26,27,37,0.08);
+  --font-head:'Sora', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+
+[data-theme="dark"]{
+  --fg-1:#F1F1F8;
+  --fg-2:#C9CADC;
+  --fg-muted:#9596B5;
+
+  --bg-1:#13131C;
+  --bg-2:#191923;
+  --bg-3:#20202E;
+
+  --mid-1:#2B2B3B;
+  --mid-2:#3A3A4D;
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 6px 24px rgba(0,0,0,0.45);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:'Sora', sans-serif;
+  background:var(--bg-2);
+  color:var(--fg-1);
+  transition:background .3s ease, color .3s ease;
+  line-height:1.65;
+}
+
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  padding:0 20px 80px;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+header.top{
+  position:relative;
+  overflow:hidden;
+  background:var(--bg-1);
+  border-bottom:1px solid var(--mid-1);
+  margin-bottom:36px;
+}
+.gradient-bar{
+  height:7px;
+  width:100%;
+  background:linear-gradient(90deg,
+    var(--accent-1), var(--accent-3), var(--accent-2),
+    var(--accent-5), var(--accent-4), var(--accent-6),
+    var(--accent-7), var(--accent-9), var(--accent-8));
+}
+.header-inner{
+  max-width:980px;
+  margin:0 auto;
+  padding:38px 20px 30px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.header-text h1{
+  font-family:var(--font-head);
+  font-size:2.0rem;
+  font-weight:800;
+  margin:0 0 10px;
+  background:linear-gradient(90deg, var(--accent-1), var(--accent-3) 45%, var(--accent-2));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  line-height:1.25;
+}
+.header-text p.subtitle{
+  margin:0;
+  color:var(--fg-muted);
+  font-size:.98rem;
+  max-width:620px;
+}
+.header-meta{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.pill{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  letter-spacing:.03em;
+  padding:6px 12px;
+  border-radius:20px;
+  background:var(--bg-3);
+  color:var(--fg-2);
+  border:1px solid var(--mid-1);
+  white-space:nowrap;
+}
+.theme-toggle{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid var(--mid-2);
+  background:var(--bg-2);
+  color:var(--fg-1);
+  cursor:pointer;
+  transition:transform .15s ease, background .2s ease;
+}
+.theme-toggle:hover{ transform:translateY(-1px); background:var(--bg-3); }
+
+/* ============================================================
+   TOC
+============================================================ */
+.toc-block{
+  margin-bottom:40px;
+}
+.toc-title{
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:1.05rem;
+  margin:0 0 14px;
+  color:var(--fg-1);
+}
+.toc-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.toc-chip{
+  font-family:var(--font-mono);
+  font-size:.8rem;
+  padding:9px 16px;
+  border-radius:30px;
+  cursor:pointer;
+  border:1px solid transparent;
+  color:#fff;
+  font-weight:500;
+  box-shadow:var(--shadow-sm);
+  transition:transform .15s ease, box-shadow .15s ease;
+  user-select:none;
+}
+.toc-chip:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+/* per-chip color assignment via nth-child, rotating through 9 accents */
+.toc-chip:nth-child(1){ background:var(--accent-1); }
+.toc-chip:nth-child(2){ background:var(--accent-2); }
+.toc-chip:nth-child(3){ background:var(--accent-3); }
+.toc-chip:nth-child(4){ background:var(--accent-4); }
+.toc-chip:nth-child(5){ background:var(--accent-5); color:#3B2B00; }
+.toc-chip:nth-child(6){ background:var(--accent-6); }
+.toc-chip:nth-child(7){ background:var(--accent-7); color:#053331; }
+.toc-chip:nth-child(8){ background:var(--accent-8); }
+.toc-chip:nth-child(9){ background:var(--accent-9); }
+.toc-chip:nth-child(10){ background:var(--accent-1); }
+.toc-chip:nth-child(11){ background:var(--accent-3); }
+
+/* ============================================================
+   SECTION CARDS
+============================================================ */
+section.card{
+  background:var(--bg-1);
+  border-radius:var(--radius);
+  border:1px solid var(--mid-1);
+  box-shadow:var(--shadow-sm);
+  margin-bottom:30px;
+  overflow:hidden;
+  border-left:6px solid var(--section-color, var(--accent-1));
+  scroll-margin-top:20px;
+}
+.card-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:22px 24px;
+  cursor:pointer;
+  user-select:none;
+}
+.icon-badge{
+  flex:0 0 auto;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+  background:var(--section-color, var(--accent-1));
+  color:#fff;
+}
+.card-header h2{
+  font-family:var(--font-head);
+  font-size:1.15rem;
+  font-weight:700;
+  margin:0;
+  flex:1;
+  color:var(--fg-1);
+}
+.card-header .section-tag{
+  font-family:var(--font-mono);
+  font-size:.7rem;
+  color:var(--fg-muted);
+  display:block;
+  margin-top:3px;
+  font-weight:400;
+}
+.collapse-toggle{
+  flex:0 0 auto;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:1px solid var(--mid-2);
+  background:var(--bg-2);
+  color:var(--fg-2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1rem;
+  transition:transform .25s ease, background .2s ease;
+}
+.card.collapsed .collapse-toggle{ transform:rotate(-90deg); }
+.card-body{
+  padding:0 24px 26px;
+  border-top:1px solid var(--mid-1);
+  padding-top:20px;
+}
+.card.collapsed .card-body{ display:none; }
+
+/* ============================================================
+   LANGUAGE SYSTEM
+============================================================ */
+.lang-switch{
+  display:inline-flex;
+  background:var(--bg-3);
+  border-radius:30px;
+  padding:4px;
+  margin-bottom:18px;
+  border:1px solid var(--mid-1);
+}
+.lang-btn{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  font-weight:600;
+  padding:7px 18px;
+  border-radius:24px;
+  border:none;
+  background:transparent;
+  color:var(--fg-muted);
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease;
+}
+.lang-btn.active{
+  background:var(--section-color, var(--accent-1));
+  color:#fff;
+}
+.lang-panel{ display:none; }
+.lang-panel.active{ display:block; }
+.lang-panel[data-lang="ar"]{
+  direction:rtl;
+  text-align:right;
+  font-family:'Sora', 'Tahoma', sans-serif;
+}
+.lang-panel[data-lang="ar"] .term,
+.lang-panel[data-lang="ar"] .code-inline,
+.lang-panel[data-lang="ar"] .formula{
+  direction:ltr;
+  display:inline-block;
+}
+
+.lang-panel h3{
+  font-family:var(--font-head);
+  font-size:1rem;
+  font-weight:700;
+  color:var(--section-color, var(--accent-1));
+  margin:20px 0 10px;
+}
+.lang-panel h3:first-child{ margin-top:0; }
+.lang-panel p{ margin:0 0 12px; color:var(--fg-2); }
+.lang-panel ul{ margin:0 0 14px; padding-left:22px; color:var(--fg-2); }
+.lang-panel ol{ margin:0 0 14px; padding-left:22px; color:var(--fg-2); }
+.lang-panel[data-lang="ar"] ul,
+.lang-panel[data-lang="ar"] ol{ padding-left:0; padding-right:22px; }
+.lang-panel li{ margin-bottom:6px; }
+
+/* ============================================================
+   BOX TYPES
+============================================================ */
+.box{
+  border-radius:10px;
+  padding:16px 18px;
+  margin:16px 0;
+  font-size:.94rem;
+  border:1px solid transparent;
+}
+.box .box-label{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  display:block;
+  margin-bottom:6px;
+}
+.box p{ margin:0; }
+.box p + p{ margin-top:8px; }
+
+.box-analogy{
+  background:#EEF1FF;
+  border-color:#C9D2FA;
+  color:#2A2F70;
+}
+.box-analogy .box-label{ color:#4A4FD0; }
+[data-theme="dark"] .box-analogy{ background:#1D1F38; border-color:#33356B; color:#C7CCF2; }
+[data-theme="dark"] .box-analogy .box-label{ color:#9AA2F0; }
+
+.box-example{
+  background:#E9F9F1;
+  border-color:#BEEBD3;
+  color:#175B3F;
+}
+.box-example .box-label{ color:#00935E; }
+[data-theme="dark"] .box-example{ background:#142823; border-color:#1F4A3B; color:#A9E8C7; }
+[data-theme="dark"] .box-example .box-label{ color:#3FD68F; }
+
+.box-summary{
+  background:#EAF3FC;
+  border-color:#C7E0F7;
+  color:#163A5E;
+}
+.box-summary .box-label{ color:#0A6CC4; }
+[data-theme="dark"] .box-summary{ background:#13212F; border-color:#1E3C57; color:#A9D2F2; }
+[data-theme="dark"] .box-summary .box-label{ color:#5CACE8; }
+
+.box-warning{
+  background:#FDEDEA;
+  border-color:#F7CFC4;
+  color:#7A2A14;
+}
+.box-warning .box-label{ color:#C1440E; }
+[data-theme="dark"] .box-warning{ background:#2A1A14; border-color:#4D2A1C; color:#F0BBA6; }
+[data-theme="dark"] .box-warning .box-label{ color:#F08358; }
+
+/* ============================================================
+   INLINE ELEMENTS
+============================================================ */
+.term{
+  font-weight:700;
+  color:var(--section-color, var(--accent-1));
+  border-bottom:1.5px dotted currentColor;
+  cursor:help;
+}
+.highlight{
+  background:linear-gradient(180deg, transparent 60%, rgba(253,203,110,.55) 60%);
+  font-weight:600;
+  padding:0 2px;
+}
+[data-theme="dark"] .highlight{
+  background:linear-gradient(180deg, transparent 60%, rgba(253,203,110,.30) 60%);
+}
+.code-inline{
+  font-family:var(--font-mono);
+  background:var(--bg-3);
+  border:1px solid var(--mid-1);
+  border-radius:5px;
+  padding:2px 7px;
+  font-size:.85em;
+  color:var(--accent-9);
+}
+[data-theme="dark"] .code-inline{ color:var(--accent-5); }
+
+/* formula chip — for inline math-like expressions */
+.formula{
+  font-family:var(--font-mono);
+  background:var(--bg-3);
+  border:1px solid var(--mid-2);
+  border-radius:6px;
+  padding:3px 9px;
+  font-size:.88em;
+  color:var(--fg-1);
+  white-space:nowrap;
+}
+
+.formula-block{
+  font-family:var(--font-mono);
+  background:var(--bg-3);
+  border:1px solid var(--mid-1);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:14px 0;
+  font-size:.92rem;
+  color:var(--fg-1);
+  overflow-x:auto;
+  text-align:center;
+}
+.formula-block .eq-num{
+  float:right;
+  color:var(--fg-muted);
+  font-size:.8rem;
+}
+[dir="rtl"] .formula-block{ direction:ltr; text-align:center; }
+
+/* ============================================================
+   TABLES
+============================================================ */
+.table-wrap{ overflow-x:auto; margin:18px 0; border-radius:10px; box-shadow:var(--shadow-sm); }
+table.compare{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.9rem;
+  min-width:480px;
+}
+table.compare thead th{
+  background:linear-gradient(90deg, var(--section-color, var(--accent-1)), var(--accent-3));
+  color:#fff;
+  font-family:var(--font-head);
+  font-weight:700;
+  text-align:left;
+  padding:12px 16px;
+  font-size:.88rem;
+}
+[dir="rtl"] table.compare thead th{ text-align:right; }
+table.compare tbody td{
+  padding:11px 16px;
+  border-bottom:1px solid var(--mid-1);
+  color:var(--fg-2);
+  background:var(--bg-1);
+}
+table.compare tbody tr:last-child td{ border-bottom:none; }
+table.compare tbody tr:nth-child(even) td{ background:var(--bg-2); }
+
+/* ============================================================
+   CODE BLOCKS — Catppuccin-inspired dark
+============================================================ */
+pre.code-block{
+  background:#1E1E2E;
+  color:#CDD6F4;
+  font-family:var(--font-mono);
+  font-size:.84rem;
+  padding:18px 20px;
+  border-radius:10px;
+  overflow-x:auto;
+  margin:16px 0;
+  line-height:1.55;
+  box-shadow:var(--shadow-md);
+}
+pre.code-block .cm{ color:#6C7086; }      /* comment / muted */
+pre.code-block .kw{ color:#CBA6F7; }      /* keyword - mauve */
+pre.code-block .fn{ color:#89B4FA; }      /* function - blue */
+pre.code-block .st{ color:#A6E3A1; }      /* string - green */
+pre.code-block .nm{ color:#FAB387; }      /* number - peach */
+pre.code-block .vr{ color:#F38BA8; }      /* variable - red/pink */
+
+/* ============================================================
+   FIGURES / DIAGRAMS
+============================================================ */
+.figure{
+  background:var(--bg-2);
+  border:1px solid var(--mid-1);
+  border-radius:12px;
+  padding:20px;
+  margin:18px 0;
+  text-align:center;
+}
+.figure svg{ max-width:100%; height:auto; }
+.figure figcaption{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  color:var(--fg-muted);
+  margin-top:10px;
+}
+
+/* ============================================================
+   STEP LIST (numbered algorithm steps)
+============================================================ */
+.step-list{
+  margin:14px 0;
+  padding:0;
+  list-style:none;
+  counter-reset: step-counter;
+}
+.step-list li{
+  position:relative;
+  padding:10px 16px 10px 44px;
+  margin-bottom:8px;
+  background:var(--bg-2);
+  border-radius:8px;
+  border:1px solid var(--mid-1);
+  counter-increment: step-counter;
+  color:var(--fg-2);
+}
+.step-list li::before{
+  content: counter(step-counter);
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:var(--section-color, var(--accent-1));
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+[dir="rtl"] .step-list li{ padding:10px 44px 10px 16px; }
+[dir="rtl"] .step-list li::before{ left:auto; right:10px; }
+
+/* ============================================================
+   FOOTER
+============================================================ */
+footer.end{
+  text-align:center;
+  padding:30px 20px;
+  color:var(--fg-muted);
+  font-size:.82rem;
+  font-family:var(--font-mono);
+}
+
+/* back to top */
+.back-top{
+  display:inline-block;
+  margin-top:10px;
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  color:var(--fg-muted);
+  text-decoration:none;
+  cursor:pointer;
+  border-bottom:1px dotted var(--fg-muted);
+}
+.back-top:hover{ color:var(--accent-3); }
+
+@media (max-width:600px){
+  .header-text h1{ font-size:1.4rem; }
+  .header-inner{ padding:28px 16px 22px; }
+  .card-header{ padding:18px 16px; }
+  .card-body{ padding:0 16px 22px; }
+  table.compare{ font-size:.82rem; }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<header class="top">
+  <div class="gradient-bar"></div>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1>A Tutorial on Hidden Markov Models</h1>
+      <p class="subtitle">Based on L. R. Rabiner's classic 1989 tutorial. From Markov chains to the three fundamental problems of HMMs, the algorithms that solve them, and real applications in speech recognition. Bilingual study notes (English / العربية).</p>
+    </div>
+    <div class="header-meta">
+      <span class="pill">NLP · Speech &amp; Sequence Models</span>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Dark mode</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============================ TOC ============================ -->
+  <div class="toc-block">
+    <p class="toc-title">📑 Table of Contents</p>
+    <div class="toc-chips">
+      <span class="toc-chip" onclick="scrollToId('sec1')">1. Why Signal Models?</span>
+      <span class="toc-chip" onclick="scrollToId('sec2')">2. Markov Chains</span>
+      <span class="toc-chip" onclick="scrollToId('sec3')">3. From Markov Chain to HMM</span>
+      <span class="toc-chip" onclick="scrollToId('sec4')">4. Elements of an HMM</span>
+      <span class="toc-chip" onclick="scrollToId('sec5')">5. Three Fundamental Problems</span>
+      <span class="toc-chip" onclick="scrollToId('sec6')">6. Problem 1: Forward-Backward</span>
+      <span class="toc-chip" onclick="scrollToId('sec7')">7. Problem 2: Viterbi Algorithm</span>
+      <span class="toc-chip" onclick="scrollToId('sec8')">8. Problem 3: Baum-Welch</span>
+      <span class="toc-chip" onclick="scrollToId('sec9')">9. Types of HMMs</span>
+      <span class="toc-chip" onclick="scrollToId('sec10')">10. Implementation Issues</span>
+      <span class="toc-chip" onclick="scrollToId('sec11')">11. HMMs in Speech Recognition</span>
+    </div>
+  </div>
+
+  <!-- ============================ SECTION 1 ============================ -->
+  <section class="card" id="sec1" style="--section-color:var(--accent-1)">
+    <div class="card-header" onclick="toggle('sec1')">
+      <div class="icon-badge">🧭</div>
+      <div>
+        <h2>Why Do We Need Signal Models?</h2>
+        <span class="section-tag">INTRODUCTION</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec1','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec1','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>Real-world processes produce <span class="term" title="Anything that carries information over time, such as sound waves or text">signals</span> — sequences of values we can observe. A signal can be <span class="term" title="Made of separate, countable symbols, like letters or codebook indices">discrete</span> (e.g., characters, or indices from a codebook) or <span class="term" title="Made of continuously varying values, like a sound wave's amplitude">continuous</span> (e.g., raw speech samples, temperature readings).</p>
+        <p>To work with such signals usefully, we build a <span class="highlight">signal model</span> — a mathematical description that characterizes the signal's properties. There are two broad families of signal models:</p>
+        <ul>
+          <li><span class="term" title="Models that exploit a known, fixed property of the signal">Deterministic models</span> — these assume we already know some specific property of the signal, such as "this is a sine wave" or "this is a sum of exponentials." Once we know the form, all we need to do is estimate a few parameters (amplitude, frequency, phase).</li>
+          <li><span class="term" title="Models that describe only the statistical properties of the signal">Statistical models</span> — these try to characterize only the statistical behavior of the signal, treating it as a random process whose parameters can be estimated in a well-defined way. Examples include Gaussian processes, Poisson processes, and <span class="term" title="A statistical model with hidden states, the subject of this tutorial">Markov processes</span>.</li>
+        </ul>
+        <p>This tutorial focuses on one specific type of statistical signal model: the <span class="term" title="Hidden Markov Model">Hidden Markov Model (HMM)</span>, with a strong focus on its use in speech recognition.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>Think of a deterministic model like a recipe with exact measurements — "2 cups of flour, 350°F, 20 minutes" — you know precisely what's going into the result. A statistical model is more like describing a chef's general cooking style based on many meals you've tasted: you can't predict the exact recipe, but you can describe patterns and probabilities about what they tend to do.</p>
+        </div>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example</span>
+          <p>Why do signal models matter in practice? If we want to clean up a noisy speech signal, having a good model of speech lets us design a system that removes the noise and restores the original signal. Signal models also let us learn about the underlying source — for instance, learning about how speech is produced — without needing direct access to that source every time.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>العمليات الموجودة في العالم الحقيقي بتنتج <span class="term" title="أي شيء بيحمل معلومة عبر الزمن، زي موجات الصوت أو النص">إشارات (signals)</span> — تسلسل من القيم اللي ممكن نلاحظها. الإشارة ممكن تكون <span class="term" title="مكونة من رموز منفصلة ومعدودة، زي الحروف">متقطعة (discrete)</span> (زي الحروف أو فهارس codebook) أو <span class="term" title="مكونة من قيم متغيرة باستمرار، زي شدة الصوت">مستمرة (continuous)</span> (زي عينات الصوت الخام، أو قياسات الحرارة).</p>
+        <p>عشان نتعامل مع الإشارات دي بطريقة مفيدة، بنبني <span class="highlight">نموذج للإشارة (signal model)</span> — وصف رياضي بيوضح خصائص الإشارة. فيه نوعين أساسيين من نماذج الإشارة:</p>
+        <ul>
+          <li><span class="term" title="نماذج بتستفيد من خاصية معروفة وثابتة في الإشارة">النماذج الحتمية (deterministic)</span> — دي بتفرض إننا عارفين خاصية معينة في الإشارة، زي "هذه موجة جيبية" أو "هذا مجموع أُسي". لما نعرف الشكل، كل اللي نحتاجه هو نقدّر شوية باراميترات (السعة، التردد، الطور).</li>
+          <li><span class="term" title="نماذج بتوصف فقط الخصائص الإحصائية للإشارة">النماذج الإحصائية (statistical)</span> — دي بتحاول توصف فقط السلوك الإحصائي للإشارة، باعتبارها عملية عشوائية ممكن نقدّر باراميتراتها بطريقة محددة جيداً. أمثلة عليها: Gaussian processes، Poisson processes، و<span class="term" title="نموذج إحصائي بحالات مخفية، موضوع هذا الدرس">Markov processes</span>.</li>
+        </ul>
+        <p>هذا الدرس بيركز على نوع معين من نماذج الإشارة الإحصائية: <span class="term" title="Hidden Markov Model">Hidden Markov Model (HMM)</span>، مع تركيز قوي على استخدامه في التعرف على الكلام (speech recognition).</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه</span>
+          <p>تخيل النموذج الحتمي زي وصفة طبخ بمقاسات دقيقة — "2 كوب دقيق، 350 درجة، 20 دقيقة" — أنت عارف بالضبط هتحصل على إيه. النموذج الإحصائي أشبه بوصف أسلوب طبخ شيف معين بناءً على وجبات كثيرة جربتها: ما تقدر تتنبأ بالوصفة بالضبط، لكن تقدر توصف أنماط واحتمالات لما بيعمله عادةً.</p>
+        </div>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال</span>
+          <p>ليه نماذج الإشارة مهمة في الواقع؟ لو عايزين ننظف إشارة كلام فيها تشويش (noise)، وجود نموذج جيد للكلام يسمح لنا نصمم نظام يشيل التشويش ويرجّع الإشارة الأصلية. نماذج الإشارة كذلك بتساعدنا نتعلم عن المصدر الأساسي — مثلاً، نتعلم إزاي الكلام بيتولد — من غير ما نحتاج نوصل للمصدر نفسه كل مرة.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>Signals can be modeled either deterministically (known fixed properties) or statistically (random process with estimable parameters). HMMs are a statistical signal model, central to this tutorial and to speech recognition.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 2 ============================ -->
+  <section class="card" id="sec2" style="--section-color:var(--accent-2)">
+    <div class="card-header" onclick="toggle('sec2')">
+      <div class="icon-badge">🔗</div>
+      <div>
+        <h2>Discrete Markov Chains</h2>
+        <span class="section-tag">FOUNDATION</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec2','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec2','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>Before reaching HMMs, we need to understand a simpler idea: the <span class="term" title="A system that moves between a finite number of states over time, following probabilities">Markov chain</span>.</p>
+        <p>Imagine a system that, at any moment, is in exactly one of <span class="formula">N</span> distinct states, labeled <span class="formula">S₁, S₂, ..., S_N</span>. At regularly spaced time steps, the system changes state (it can even stay in the same state) according to a set of probabilities. We write the actual state at time <span class="formula">t</span> as <span class="formula">q_t</span>.</p>
+
+        <div class="figure">
+          <svg viewBox="0 0 420 280" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrM1" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#00B894"/></marker>
+            </defs>
+            <circle cx="80" cy="60" r="26" fill="#fff" stroke="#00B894" stroke-width="2.5"/>
+            <text x="80" y="65" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25" text-anchor="middle">S1</text>
+            <circle cx="220" cy="40" r="26" fill="#fff" stroke="#00B894" stroke-width="2.5"/>
+            <text x="220" y="45" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25" text-anchor="middle">S2</text>
+            <circle cx="340" cy="90" r="26" fill="#fff" stroke="#00B894" stroke-width="2.5"/>
+            <text x="340" y="95" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25" text-anchor="middle">S3</text>
+            <circle cx="90" cy="200" r="26" fill="#fff" stroke="#00B894" stroke-width="2.5"/>
+            <text x="90" y="205" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25" text-anchor="middle">S5</text>
+            <circle cx="260" cy="220" r="26" fill="#fff" stroke="#00B894" stroke-width="2.5"/>
+            <text x="260" y="225" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25" text-anchor="middle">S4</text>
+
+            <line x1="104" y1="70" x2="196" y2="48" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <line x1="200" y1="62" x2="106" y2="82" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <line x1="245" y1="50" x2="316" y2="80" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <line x1="92" y1="86" x2="92" y2="174" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <line x1="113" y1="218" x2="236" y2="220" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <line x1="320" y1="110" x2="278" y2="200" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <path d="M 64 40 A 14 14 0 1 1 64 46" fill="none" stroke="#00B894" stroke-width="1.6" marker-end="url(#arrM1)"/>
+            <text x="100" y="255" font-family="IBM Plex Mono" font-size="10" fill="#6B6F8A" text-anchor="middle">5-state Markov chain — arrows show possible transitions (aᵢⱼ)</text>
+          </svg>
+          <figcaption>Each state can move to other states (or loop back to itself) with some probability aᵢⱼ</figcaption>
+        </div>
+
+        <p>For a <span class="term" title="A process where only the current and immediately previous state matter, not the full history">first-order Markov chain</span>, the probability of the next state depends only on the current state — not the entire history:</p>
+
+        <div class="formula-block">P[q_t = S_j | q_{t-1} = S_i, q_{t-2} = S_k, ...] = P[q_t = S_j | q_{t-1} = S_i]<span class="eq-num">(1)</span></div>
+
+        <p>This is called the <span class="highlight">Markov assumption</span>. If this probability is also independent of time, we get a set of fixed <span class="term" title="The probability of moving from state i to state j">state transition probabilities</span>:</p>
+
+        <div class="formula-block">a_ij = P[q_t = S_j | q_{t-1} = S_i], &#160;&#160;1 ≤ i, j ≤ N<span class="eq-num">(2)</span></div>
+
+        <p>These coefficients must obey two natural stochastic constraints: they can't be negative, and the probabilities of leaving any state must sum to 1 (the system has to go <em>somewhere</em>, even if that "somewhere" is back to the same state):</p>
+
+        <div class="formula-block">a_ij ≥ 0 <span class="eq-num">(3a)</span><br>Σ<sub>j=1</sub><sup>N</sup> a_ij = 1<span class="eq-num">(3b)</span></div>
+
+        <p>This is called an <span class="term" title="A Markov model where each state directly corresponds to something observable">observable Markov model</span>, because the output of the process is literally the sequence of states themselves — each state corresponds to a physical, observable event.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example: The Weather Model</span>
+          <p>Consider a simple 3-state model of daily weather: State 1 = rain/snow, State 2 = cloudy, State 3 = sunny. Suppose the transition matrix is:</p>
+          <div class="formula-block">A = [0.4&#160;&#160;0.3&#160;&#160;0.3]<br>&#160;&#160;&#160;&#160;[0.2&#160;&#160;0.6&#160;&#160;0.2]<br>&#160;&#160;&#160;&#160;[0.1&#160;&#160;0.1&#160;&#160;0.8]</div>
+          <p>If day 1 is sunny (state 3), we can ask: what's the probability that the next 8 days follow the exact pattern "sun-sun-rain-rain-rain-cloud-sun"? Multiplying along the matching transition probabilities gives the answer directly — this is exactly how Equation (2) lets us compute probabilities of any specific observed sequence.</p>
+        </div>
+
+        <p>We can also ask a different question: given the model is in some state, what's the probability it stays in that exact state for <span class="formula">d</span> consecutive days? This duration is governed by an exponential distribution:</p>
+
+        <div class="formula-block">p_i(d) = (a_ii)^(d-1) (1 - a_ii)<span class="eq-num">(5)</span></div>
+
+        <p>From this, we can compute the <span class="term" title="The average number of consecutive time steps spent in a state">expected duration</span> in state <span class="formula">i</span> as <span class="formula">1 / (1 - a_ii)</span>. For the weather example, sunny weather lasts 5 days on average, cloudy 2.5 days, and rainy 1.67 days.</p>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ Common Mistake</span>
+          <p>Don't confuse the Markov assumption with "memoryless in time" in the everyday sense. The model does remember <em>one</em> step back (the current state), it just doesn't remember anything further back than that. This is a deliberate simplification, not an accident.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>قبل ما نوصل لـ HMM، لازم نفهم فكرة أبسط: <span class="term" title="نظام بيتحرك بين عدد محدود من الحالات على مدار الزمن، تبعاً لاحتمالات">سلسلة ماركوف (Markov chain)</span>.</p>
+        <p>تخيل نظام، في أي لحظة، موجود في حالة واحدة بالضبط من <span class="formula">N</span> حالة مختلفة، مسمّاة <span class="formula">S₁, S₂, ..., S_N</span>. في خطوات زمنية متساوية، النظام بيغير حالته (وممكن كذلك يفضل في نفس الحالة) حسب مجموعة احتمالات. بنكتب الحالة الفعلية في الوقت <span class="formula">t</span> كـ <span class="formula">q_t</span>.</p>
+
+        <p>لسلسلة ماركوف <span class="term" title="عملية بحيث الحالة الحالية والسابقة بس هما المهمين، مش كل التاريخ">من الدرجة الأولى (first-order)</span>، احتمالية الحالة القادمة بتعتمد فقط على الحالة الحالية — وليس على كل التاريخ:</p>
+
+        <div class="formula-block">P[q_t = S_j | q_{t-1} = S_i, q_{t-2} = S_k, ...] = P[q_t = S_j | q_{t-1} = S_i]<span class="eq-num">(1)</span></div>
+
+        <p>هذا يسمى <span class="highlight">فرض ماركوف (Markov assumption)</span>. لو هذه الاحتمالية كذلك مستقلة عن الزمن، نحصل على مجموعة ثابتة من <span class="term" title="احتمالية الانتقال من حالة i إلى حالة j">احتمالات الانتقال بين الحالات</span>:</p>
+
+        <div class="formula-block">a_ij = P[q_t = S_j | q_{t-1} = S_i], &#160;&#160;1 ≤ i, j ≤ N<span class="eq-num">(2)</span></div>
+
+        <p>هذه المعاملات لازم تحقق شرطين طبيعيين: لا تكون سالبة، ومجموع احتمالات مغادرة أي حالة لازم يساوي 1 (النظام لازم يروح <em>لمكان ما</em>، حتى لو هذا "المكان" هو نفس الحالة):</p>
+
+        <div class="formula-block">a_ij ≥ 0 <span class="eq-num">(3a)</span><br>Σ<sub>j=1</sub><sup>N</sup> a_ij = 1<span class="eq-num">(3b)</span></div>
+
+        <p>هذا يسمى <span class="term" title="نموذج ماركوف بحيث كل حالة تقابل بشكل مباشر شيء يمكن رصده">نموذج ماركوف قابل للرصد (observable)</span>، لأن مخرج العملية هو فعلياً تسلسل الحالات نفسها — كل حالة بتقابل حدث فعلي يمكن رصده.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال: نموذج الطقس</span>
+          <p>خد نموذج بسيط من 3 حالات لحالة الطقس اليومية: الحالة 1 = مطر/ثلج، الحالة 2 = غائم، الحالة 3 = مشمس. لو يوم 1 كان مشمس (حالة 3)، ممكن نسأل: ما احتمالية إن الأيام الـ8 القادمة تتبع نمط معين بالضبط؟ ضرب احتمالات الانتقال المتطابقة بيعطينا الإجابة مباشرة.</p>
+        </div>
+
+        <p>كذلك ممكن نسأل سؤال آخر: لو النموذج في حالة معينة، ما احتمالية إنه يفضل في هذه الحالة بالضبط لمدة <span class="formula">d</span> أيام متتالية؟ هذه المدة محكومة بتوزيع أُسي:</p>
+
+        <div class="formula-block">p_i(d) = (a_ii)^(d-1) (1 - a_ii)<span class="eq-num">(5)</span></div>
+
+        <p>من هنا، ممكن نحسب <span class="term" title="متوسط عدد الخطوات الزمنية المتتالية في حالة معينة">المدة المتوقعة (expected duration)</span> في الحالة <span class="formula">i</span> كـ <span class="formula">1 / (1 - a_ii)</span>. في مثال الطقس، الطقس المشمس بيستمر 5 أيام في المتوسط، الغائم 2.5 يوم، والممطر 1.67 يوم.</p>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ غلطة شائعة</span>
+          <p>متلخبطش فرض ماركوف مع "بلا ذاكرة" بالمعنى العادي. النموذج فعلاً بيتذكر <em>خطوة واحدة</em> للخلف (الحالة الحالية)، بس مش بيتذكر أكثر من ذلك. هذا تبسيط مقصود، وليس خطأ.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>A Markov chain moves between N states using fixed transition probabilities aᵢⱼ, where the next state depends only on the current one. State duration follows an exponential distribution based on the self-transition probability.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 3 ============================ -->
+  <section class="card" id="sec3" style="--section-color:var(--accent-3)">
+    <div class="card-header" onclick="toggle('sec3')">
+      <div class="icon-badge">🎭</div>
+      <div>
+        <h2>From Markov Chain to Hidden Markov Model</h2>
+        <span class="section-tag">CORE CONCEPT</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec3','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec3','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>The observable Markov model we just saw is too restrictive for many real problems. In this section, we extend the idea so that the <span class="highlight">observation is a probabilistic function of the state</span>, rather than the state itself. The result is a <span class="term" title="A doubly-embedded stochastic process: a hidden state sequence, observed only indirectly through another random process">Hidden Markov Model (HMM)</span> — "doubly embedded" because there's a hidden process (the states) underneath an observable process (the symbols we actually see).</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy: The Coin Tossing Experiment</span>
+          <p>Imagine you're in a room with a curtain. On the other side, someone is flipping coins, and through the curtain they only tell you the result: heads or tails. You never see which coin was used or how many coins there are — that part is <span class="term" title="Not directly observable; must be inferred">hidden</span>. All you observe is a sequence like HHTTHTHHTTH... The challenge becomes: given just this sequence of heads and tails, can we build a model that explains how it was generated?</p>
+        </div>
+
+        <p>There are several plausible models for the coin-tossing scenario, each making a different assumption about how many hidden states (coins) are involved:</p>
+        <ul>
+          <li><span class="term" title="One biased coin, where the observable outcome IS the state">1-coin model</span>: A single biased coin is tossed. This is actually a degenerate (1-state) case — the model is fully observable since heads/tails directly tells you everything. Only 1 unknown parameter (the coin's bias).</li>
+          <li><span class="term" title="Two states, each a different biased coin, with transitions between them">2-coin model</span>: Two states exist, each corresponding to a distinct biased coin. Transitions between states follow a transition matrix. This model has 4 unknown parameters.</li>
+          <li><span class="term" title="Three states, each a different biased coin, chosen by some probabilistic mechanism">3-coin model</span>: Three biased coins, with a probabilistic mechanism choosing among them at each step. This model has 9 unknown parameters.</li>
+        </ul>
+
+        <div class="figure">
+          <svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrC1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0984E3"/></marker>
+            </defs>
+            <!-- 1-coin -->
+            <text x="80" y="20" font-family="Sora" font-size="13" font-weight="700" fill="#1A1B25" text-anchor="middle">1-coin model</text>
+            <circle cx="50" cy="70" r="22" fill="#fff" stroke="#0984E3" stroke-width="2.2"/>
+            <text x="50" y="75" font-family="IBM Plex Mono" font-size="11" fill="#1A1B25" text-anchor="middle">1</text>
+            <text x="50" y="105" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">HEADS</text>
+            <circle cx="130" cy="70" r="22" fill="#fff" stroke="#0984E3" stroke-width="2.2"/>
+            <text x="130" y="75" font-family="IBM Plex Mono" font-size="11" fill="#1A1B25" text-anchor="middle">2</text>
+            <text x="130" y="105" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">TAILS</text>
+            <line x1="72" y1="64" x2="108" y2="64" stroke="#0984E3" stroke-width="1.6" marker-end="url(#arrC1)"/>
+            <line x1="108" y1="76" x2="72" y2="76" stroke="#0984E3" stroke-width="1.6" marker-end="url(#arrC1)"/>
+            <text x="90" y="135" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">O = HHTTHTHHTTH...</text>
+
+            <!-- 2-coin -->
+            <text x="320" y="20" font-family="Sora" font-size="13" font-weight="700" fill="#1A1B25" text-anchor="middle">2-coin model</text>
+            <circle cx="280" cy="70" r="22" fill="#fff" stroke="#E17055" stroke-width="2.2"/>
+            <text x="280" y="75" font-family="IBM Plex Mono" font-size="11" fill="#1A1B25" text-anchor="middle">1</text>
+            <circle cx="370" cy="70" r="22" fill="#fff" stroke="#E17055" stroke-width="2.2"/>
+            <text x="370" y="75" font-family="IBM Plex Mono" font-size="11" fill="#1A1B25" text-anchor="middle">2</text>
+            <line x1="302" y1="64" x2="348" y2="64" stroke="#E17055" stroke-width="1.6" marker-end="url(#arrC1)"/>
+            <line x1="348" y1="76" x2="302" y2="76" stroke="#E17055" stroke-width="1.6" marker-end="url(#arrC1)"/>
+            <text x="280" y="105" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">P(H)=P1</text>
+            <text x="370" y="105" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">P(H)=P2</text>
+            <text x="325" y="135" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">S = 2 1 1 2 2 2 1 2...</text>
+
+            <!-- 3-coin -->
+            <text x="580" y="20" font-family="Sora" font-size="13" font-weight="700" fill="#1A1B25" text-anchor="middle">3-coin model</text>
+            <circle cx="540" cy="55" r="20" fill="#fff" stroke="#00B894" stroke-width="2.2"/>
+            <text x="540" y="60" font-family="IBM Plex Mono" font-size="10" fill="#1A1B25" text-anchor="middle">1</text>
+            <circle cx="630" cy="55" r="20" fill="#fff" stroke="#00B894" stroke-width="2.2"/>
+            <text x="630" y="60" font-family="IBM Plex Mono" font-size="10" fill="#1A1B25" text-anchor="middle">2</text>
+            <circle cx="585" cy="120" r="20" fill="#fff" stroke="#00B894" stroke-width="2.2"/>
+            <text x="585" y="125" font-family="IBM Plex Mono" font-size="10" fill="#1A1B25" text-anchor="middle">3</text>
+            <line x1="560" y1="55" x2="610" y2="55" stroke="#00B894" stroke-width="1.4" marker-end="url(#arrC1)"/>
+            <line x1="610" y1="62" x2="560" y2="62" stroke="#00B894" stroke-width="1.4" marker-end="url(#arrC1)"/>
+            <line x1="555" y1="70" x2="572" y2="103" stroke="#00B894" stroke-width="1.4" marker-end="url(#arrC1)"/>
+            <line x1="578" y1="103" x2="558" y2="72" stroke="#00B894" stroke-width="1.4" marker-end="url(#arrC1)"/>
+            <line x1="600" y1="103" x2="618" y2="70" stroke="#00B894" stroke-width="1.4" marker-end="url(#arrC1)"/>
+            <line x1="622" y1="72" x2="605" y2="105" stroke="#00B894" stroke-width="1.4" marker-end="url(#arrC1)"/>
+            <text x="585" y="165" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A" text-anchor="middle">S = 3 1 2 3 3 1 1 2 3 1 3...</text>
+          </svg>
+          <figcaption>Three possible models explaining the same coin-toss observations, with increasing numbers of hidden states</figcaption>
+        </div>
+
+        <p>This raises a natural question: with more states, a model has more freedom and can seem to fit any sequence of coin tosses better. But that doesn't necessarily mean a bigger model is the "correct" one — perhaps only a single coin is being tossed, and using a 3-coin model would be inappropriate because it doesn't correspond to the real physical process generating the data.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example: The Urn and Ball Model</span>
+          <p>A more general illustration of the HMM idea is the <span class="term" title="A classic illustrative example with N urns each filled with colored balls">urn and ball model</span>. Imagine N large urns in a room, each filled with many colored balls in different proportions. A genie picks an initial urn according to some random process, draws a ball, records its color, and replaces it. A new urn is then chosen (according to a probabilistic rule tied to the current urn), and the process repeats. The recorded sequence of colors — like {green, green, blue, red, yellow, red, ..., blue} — is the only thing we observe. Which urn was used at each step is hidden.</p>
+        </div>
+
+        <p>The simplest possible HMM for the urn-and-ball process is one where each state corresponds to one specific urn, and a probability distribution over ball colors is defined for each state. The choice of which urn comes next is governed by the state transition matrix.</p>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>نموذج ماركوف القابل للرصد اللي شفناه قبل كده محدود جداً لمشاكل واقعية كثيرة. في هذا القسم، بنوسّع الفكرة بحيث <span class="highlight">الملاحظة (observation) تكون دالة احتمالية للحالة</span>، بدل ما تكون الحالة نفسها. النتيجة هي <span class="term" title="عملية عشوائية ذات طبقتين: تسلسل حالات مخفي، يُلاحظ بشكل غير مباشر فقط عبر عملية عشوائية أخرى">Hidden Markov Model (HMM)</span> — "مزدوجة التضمين (doubly embedded)" لأن فيه عملية مخفية (الحالات) تحت عملية ملحوظة (الرموز اللي نشوفها فعلاً).</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه: تجربة رمي العملة</span>
+          <p>تخيل إنك في غرفة وفيها ستارة. على الجانب الآخر، حد بيقلب عملة، ومن خلف الستارة بيقول لك النتيجة بس: صورة أو كتابة. أنت أبداً ما تشوف إيه العملة المستخدمة أو كام عملة موجودة — هذا الجزء <span class="term" title="غير قابل للرصد مباشرة؛ لازم نستنتجه">مخفي</span>. كل اللي بتلاحظه هو تسلسل زي HHTTHTHHTTH... السؤال يصبح: بمعرفة هذا التسلسل بس، نقدر نبني نموذج يفسر إزاي تكوّن؟</p>
+        </div>
+
+        <p>فيه عدة نماذج محتملة لسيناريو رمي العملة، كل واحد بيفترض عدد مختلف من الحالات المخفية (العملات):</p>
+        <ul>
+          <li><span class="term" title="عملة واحدة منحازة، حيث النتيجة الملحوظة هي نفسها الحالة">نموذج العملة الواحدة</span>: عملة منحازة واحدة تُرمى. هذه فعلياً حالة منحلّة (1 حالة) — النموذج قابل للرصد بالكامل لأن صورة/كتابة بتقول لك كل شيء مباشرة. باراميتر مجهول واحد فقط (انحياز العملة).</li>
+          <li><span class="term" title="حالتان، كل واحدة عملة منحازة مختلفة، مع انتقالات بينهم">نموذج العملتين</span>: حالتان موجودتان، كل واحدة بتقابل عملة منحازة مختلفة. الانتقال بين الحالات بيتبع مصفوفة انتقال. هذا النموذج عنده 4 باراميترات مجهولة.</li>
+          <li><span class="term" title="ثلاث حالات، كل واحدة عملة منحازة مختلفة، تُختار بآلية احتمالية">نموذج الثلاث عملات</span>: ثلاث عملات منحازة، مع آلية احتمالية تختار بينهم في كل خطوة. هذا النموذج عنده 9 باراميترات مجهولة.</li>
+        </ul>
+
+        <p>هذا يطرح سؤال طبيعي: مع وجود حالات أكثر، النموذج عنده حرية أكبر وممكن يبدو إنه يطابق أي تسلسل من رميات العملة بشكل أفضل. لكن هذا ما يعنيش بالضرورة إن النموذج الأكبر هو "الصحيح" — يمكن فقط عملة واحدة بتُرمى، واستخدام نموذج الثلاث عملات هيكون غير مناسب لأنه مش متوافق مع العملية الفيزيائية الحقيقية اللي ولّدت البيانات.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال: نموذج الجِرار والكرات (Urn and Ball)</span>
+          <p>توضيح أعم لفكرة HMM هو <span class="term" title="مثال توضيحي كلاسيكي بـN جرة كل واحدة فيها كرات ملونة">نموذج الجِرار والكرات</span>. تخيل N جرة كبيرة في غرفة، كل واحدة فيها كرات ملونة بنسب مختلفة. عبقري (genie) بيختار جرة ابتدائية حسب عملية عشوائية، يسحب كرة، يسجل لونها، ويرجعها. بعد كده تُختار جرة جديدة (حسب قاعدة احتمالية مرتبطة بالجرة الحالية)، والعملية تتكرر. تسلسل الألوان المسجل — زي {أخضر، أخضر، أزرق، أحمر، أصفر، أحمر، ...، أزرق} — هو الشيء الوحيد اللي بنلاحظه. أي جرة استُخدمت في كل خطوة هو مخفي.</p>
+        </div>
+
+        <p>أبسط HMM ممكن لعملية الجِرار والكرات هو واحد حيث كل حالة تقابل جرة معينة، وتوزيع احتمالي على ألوان الكرات معرّف لكل حالة. اختيار الجرة القادمة محكوم بمصفوفة انتقال الحالات.</p>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>An HMM extends a Markov chain by hiding the state sequence and only allowing us to observe symbols that depend probabilistically on the hidden state — illustrated classically with coin-tossing and urn-and-ball examples.</p>
+      </div>
+    </div>
+  </section>
+
+  <a class="back-top" onclick="scrollToId('top')">↑ Back to top</a>
+
+  <!-- ============================ SECTION 4 ============================ -->
+  <section class="card" id="sec4" style="--section-color:var(--accent-4)">
+    <div class="card-header" onclick="toggle('sec4')">
+      <div class="icon-badge">🧩</div>
+      <div>
+        <h2>The Elements of an HMM</h2>
+        <span class="section-tag">CORE DEFINITION</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec4','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec4','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>An HMM is fully specified by five elements. Memorizing these is essential, since every algorithm in this tutorial is built on top of them.</p>
+
+        <ol>
+          <li><span class="term" title="The number of hidden states in the model">N</span> — the number of states in the model, denoted <span class="formula">S = {S₁, S₂, ..., S_N}</span>. Even though the states are hidden, they often have physical meaning (e.g., a distinct biased coin, or an urn).</li>
+          <li><span class="term" title="The number of distinct possible observation symbols">M</span> — the number of distinct observation symbols per state (the size of the discrete alphabet), denoted <span class="formula">V = {v₁, v₂, ..., v_M}</span>.</li>
+          <li><span class="term" title="The matrix of probabilities for moving between hidden states">The state transition probability distribution A = {a_ij}</span>, where <span class="formula">a_ij = P[q_{t+1} = S_j | q_t = S_i]</span>. If any state can reach any other state directly, all <span class="formula">a_ij &gt; 0</span> (this is called an ergodic model).</li>
+          <li><span class="term" title="The probabilities of seeing each symbol while in a given state">The observation symbol probability distribution B = {b_j(k)}</span> in state <span class="formula">j</span>, where <span class="formula">b_j(k) = P[v_k at t | q_t = S_j]</span>.</li>
+          <li><span class="term" title="The probabilities of starting in each state">The initial state distribution π = {π_i}</span>, where <span class="formula">π_i = P[q_1 = S_i]</span>.</li>
+        </ol>
+
+        <p>Given proper values for <span class="formula">N, M, A, B,</span> and <span class="formula">π</span>, the HMM can act as a <span class="highlight">generator</span> — it can produce an observation sequence <span class="formula">O = O₁ O₂ ... O_T</span> by following this procedure:</p>
+
+        <ol class="step-list">
+          <li>Choose an initial state <span class="formula">q₁ = S_i</span> according to the initial distribution π.</li>
+          <li>Set <span class="formula">t = 1</span>.</li>
+          <li>Choose <span class="formula">O_t = v_k</span> according to the symbol distribution in state <span class="formula">S_i</span> (i.e., <span class="formula">b_i(k)</span>).</li>
+          <li>Transit to a new state <span class="formula">q_{t+1} = S_j</span> according to the transition distribution for state <span class="formula">S_i</span> (i.e., <span class="formula">a_ij</span>).</li>
+          <li>Set <span class="formula">t = t + 1</span>; return to step 3 if <span class="formula">t &lt; T</span>; otherwise terminate.</li>
+        </ol>
+
+        <p>For convenience, we use the compact notation <span class="formula">λ = (A, B, π)</span> to refer to the complete set of HMM parameters.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>Think of an HMM as a vending machine with hidden internal "moods." Each mood (state) has its own probability of dispensing each snack type (the observation), and after dispensing, the machine secretly shifts to a new mood according to fixed odds. You only ever see which snacks come out — never which mood the machine was in.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ Common Mistake</span>
+          <p>A frequent confusion is thinking N and M must be equal. They're independent: N is the number of hidden states (e.g., 3 urns), while M is the number of possible observation symbols (e.g., 4 ball colors). There's no requirement that these match.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>HMM يتحدد بالكامل بخمسة عناصر. حفظ هذه العناصر أساسي، لأن كل خوارزمية في هذا الدرس مبنية عليهم.</p>
+
+        <ol>
+          <li><span class="term" title="عدد الحالات المخفية في النموذج">N</span> — عدد الحالات في النموذج، يُرمز له بـ <span class="formula">S = {S₁, S₂, ..., S_N}</span>. مع إن الحالات مخفية، عادةً بيكون لها معنى فيزيائي (زي عملة منحازة معينة، أو جرة).</li>
+          <li><span class="term" title="عدد رموز الملاحظة المختلفة الممكنة">M</span> — عدد رموز الملاحظة المختلفة لكل حالة (حجم الأبجدية المتقطعة)، يُرمز له بـ <span class="formula">V = {v₁, v₂, ..., v_M}</span>.</li>
+          <li><span class="term" title="مصفوفة احتمالات الانتقال بين الحالات المخفية">توزيع احتمالية الانتقال بين الحالات A = {a_ij}</span>، حيث <span class="formula">a_ij = P[q_{t+1} = S_j | q_t = S_i]</span>. لو أي حالة ممكن توصل لأي حالة أخرى مباشرة، كل <span class="formula">a_ij &gt; 0</span> (يسمى هذا نموذج إرغوديك/ergodic).</li>
+          <li><span class="term" title="احتمالات رؤية كل رمز أثناء الوجود في حالة معينة">توزيع احتمالية رمز الملاحظة B = {b_j(k)}</span> في حالة <span class="formula">j</span>، حيث <span class="formula">b_j(k) = P[v_k عند t | q_t = S_j]</span>.</li>
+          <li><span class="term" title="احتمالات البدء في كل حالة">توزيع الحالة الابتدائية π = {π_i}</span>، حيث <span class="formula">π_i = P[q_1 = S_i]</span>.</li>
+        </ol>
+
+        <p>بقيم مناسبة لـ <span class="formula">N, M, A, B,</span> و <span class="formula">π</span>، الـ HMM ممكن يعمل كـ<span class="highlight">مولِّد (generator)</span> — يقدر يولّد تسلسل ملاحظات <span class="formula">O = O₁ O₂ ... O_T</span> باتباع هذه الخطوات:</p>
+
+        <ol class="step-list">
+          <li>اختار حالة ابتدائية <span class="formula">q₁ = S_i</span> حسب التوزيع الابتدائي π.</li>
+          <li>حدد <span class="formula">t = 1</span>.</li>
+          <li>اختار <span class="formula">O_t = v_k</span> حسب توزيع الرموز في الحالة <span class="formula">S_i</span> (يعني <span class="formula">b_i(k)</span>).</li>
+          <li>انتقل لحالة جديدة <span class="formula">q_{t+1} = S_j</span> حسب توزيع الانتقال للحالة <span class="formula">S_i</span> (يعني <span class="formula">a_ij</span>).</li>
+          <li>حدد <span class="formula">t = t + 1</span>؛ رجع للخطوة 3 لو <span class="formula">t &lt; T</span>؛ غير ذلك، توقف.</li>
+        </ol>
+
+        <p>للراحة، بنستخدم الرمز المختصر <span class="formula">λ = (A, B, π)</span> للإشارة لمجموعة باراميترات HMM الكاملة.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه</span>
+          <p>تخيل الـ HMM كآلة بيع أوتوماتيكية بداخلها "حالات نفسية" مخفية. كل حالة نفسية (state) عندها احتمالية معينة لإخراج كل نوع سناك (الملاحظة)، وبعد ما تخرج السناك، الآلة بتنتقل سراً لحالة نفسية جديدة حسب نسب ثابتة. أنت بتشوف بس إيه السناك اللي خرج — أبداً ما تشوف الآلة كانت في إيه حالة نفسية.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ غلطة شائعة</span>
+          <p>لخبطة شائعة هي الاعتقاد إن N و M لازم يكونوا متساويين. هما مستقلين: N هو عدد الحالات المخفية (مثلاً 3 جرار)، أما M هو عدد رموز الملاحظة الممكنة (مثلاً 4 ألوان كرات). ما فيه شرط إنهم يتطابقوا.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>An HMM λ = (A, B, π) is defined by N states, M observation symbols, a transition matrix A, an emission distribution B, and an initial distribution π. Together they let the model generate sequences of observations step by step.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 5 ============================ -->
+  <section class="card" id="sec5" style="--section-color:var(--accent-5)">
+    <div class="card-header" onclick="toggle('sec5')">
+      <div class="icon-badge">🎯</div>
+      <div>
+        <h2>The Three Fundamental Problems for HMMs</h2>
+        <span class="section-tag">CORE FRAMEWORK</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec5','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec5','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>For an HMM to be useful in real applications, we need to solve three core problems. Everything else in this tutorial — the algorithms, the speech recognition systems — are built to answer these three questions.</p>
+
+        <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr><th>Problem</th><th>Question</th><th>Typical use</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Problem 1 — Evaluation</strong></td><td>Given observations O and model λ, how do we efficiently compute P(O|λ), the probability that this model produced this sequence?</td><td>Scoring how well a model matches an observation — e.g., choosing the best-matching model among several competitors.</td></tr>
+              <tr><td><strong>Problem 2 — Decoding</strong></td><td>Given observations O and model λ, how do we choose the "best" hidden state sequence Q = q₁q₂...q_T?</td><td>Uncovering the hidden structure — e.g., learning which sounds correspond to which states in speech.</td></tr>
+              <tr><td><strong>Problem 3 — Training</strong></td><td>How do we adjust the model parameters λ = (A, B, π) to maximize P(O|λ)?</td><td>"Training" the HMM from data so it best matches real observed phenomena.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Problem 1 is essentially a <span class="highlight">scoring</span> problem: given several competing models, which one best explains the data we observed? This is extremely useful in classification tasks.</p>
+        <p>Problem 2 is about finding the <span class="highlight">hidden truth</span> behind the data. Unlike Problem 1, there's no single "exact" solution, since there are several reasonable definitions of what "best" state sequence means — the choice of optimality criterion depends on the intended use.</p>
+        <p>Problem 3 is the hardest and arguably the most important: it's how we get good values for <span class="formula">A, B,</span> and <span class="formula">π</span> in the first place by learning from a <span class="term" title="The set of observations used to adjust HMM parameters">training sequence</span>.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example: Isolated Word Recognition</span>
+          <p>Consider designing a speech recognizer for a vocabulary of <span class="formula">W</span> words. For each word, we build a separate HMM. Problem 3's solution trains each word's model from example recordings. Problem 2's solution lets us understand which model states correspond to which parts of the spoken word, helping refine the model design. Finally, Problem 1's solution is used at recognition time: given an unknown spoken word, we compute P(O|λ) for every word model and pick the word whose model gives the highest score.</p>
+        </div>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>Think of three friends listening to a song through a wall. Problem 1 asks "how likely is it that this particular band is the one playing?" Problem 2 asks "based on what we heard, what was the exact sequence of notes/chords played?" Problem 3 asks "after hearing many songs by unknown bands, how do we build a good description of each band's typical style?"</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>عشان HMM يكون مفيد في تطبيقات حقيقية، لازم نحل ثلاث مشاكل أساسية. كل شيء آخر في هذا الدرس — الخوارزميات، أنظمة التعرف على الكلام — مبنية على الإجابة عن هذه الأسئلة الثلاثة.</p>
+
+        <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr><th>المشكلة</th><th>السؤال</th><th>الاستخدام النموذجي</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>المشكلة 1 — التقييم (Evaluation)</strong></td><td>بمعرفة الملاحظات O والنموذج λ، إزاي نحسب بكفاءة P(O|λ)، احتمالية إن هذا النموذج ولّد هذا التسلسل؟</td><td>تقييم مدى تطابق نموذج مع الملاحظات — مثلاً، اختيار النموذج الأفضل تطابقاً من بين عدة منافسين.</td></tr>
+              <tr><td><strong>المشكلة 2 — فك التشفير (Decoding)</strong></td><td>بمعرفة O و λ، إزاي نختار تسلسل الحالات المخفية "الأفضل" Q = q₁q₂...q_T؟</td><td>كشف البنية المخفية — مثلاً، تعلم إيه الأصوات اللي تقابل إيه الحالات في الكلام.</td></tr>
+              <tr><td><strong>المشكلة 3 — التدريب (Training)</strong></td><td>إزاي نضبط باراميترات النموذج λ = (A, B, π) عشان نعظّم P(O|λ)؟</td><td>"تدريب" الـ HMM من البيانات عشان يطابق أحسن الظواهر الملحوظة فعلياً.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>المشكلة 1 هي أساساً مشكلة <span class="highlight">تقييم/تسجيل (scoring)</span>: بمعرفة عدة نماذج منافسة، إيه النموذج اللي يفسر أحسن البيانات اللي لاحظناها؟ هذا مفيد جداً في مهام التصنيف.</p>
+        <p>المشكلة 2 هي عن إيجاد <span class="highlight">الحقيقة المخفية</span> وراء البيانات. عكس المشكلة 1، ما فيه حل "دقيق" واحد، لأن فيه عدة تعريفات معقولة لمعنى تسلسل الحالات "الأفضل" — اختيار معيار التحسين بيعتمد على الاستخدام المقصود.</p>
+        <p>المشكلة 3 هي الأصعب وممكن الأهم: هي إزاي نحصل على قيم جيدة لـ <span class="formula">A, B,</span> و <span class="formula">π</span> من الأساس بالتعلم من <span class="term" title="مجموعة الملاحظات المستخدمة لضبط باراميترات HMM">تسلسل تدريبي (training sequence)</span>.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال: التعرف على الكلمات المنفردة</span>
+          <p>تخيل تصميم نظام تعرف على الكلام لقاموس من <span class="formula">W</span> كلمة. لكل كلمة، بنبني HMM مستقل. حل المشكلة 3 بيدرّب نموذج كل كلمة من تسجيلات مثالية. حل المشكلة 2 بيسمح لنا نفهم أي حالات النموذج تقابل أي جزء من الكلمة المنطوقة، مما يساعد في تحسين تصميم النموذج. وأخيراً، حل المشكلة 1 يُستخدم وقت التعرف الفعلي: بمعرفة كلمة منطوقة غير معروفة، نحسب P(O|λ) لكل نموذج كلمة ونختار الكلمة اللي نموذجها أعطى أعلى نتيجة.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>The three fundamental HMM problems are: evaluation (score a sequence against a model), decoding (find the best hidden state path), and training (learn the model's parameters from data).</p>
+      </div>
+    </div>
+  </section>
+
+  <a class="back-top" onclick="scrollToId('top')">↑ Back to top</a>
+  Study Notes · A Tutorial on Hidden Markov Models (Rabiner, 1989) · Generated for educational use
+</footer>
+
+<div id="top"></div>
+
+<script>
+function toggle(sectionId){
+  const card = document.getElementById(sectionId);
+  if(!card) return;
+  card.classList.toggle('collapsed');
+}
+
+function switchLang(sectionId, lang){
+  const card = document.getElementById(sectionId);
+  if(!card) return;
+  const panels = card.querySelectorAll('.lang-panel');
+  const btns = card.querySelectorAll('.lang-btn');
+  panels.forEach(p => {
+    p.classList.toggle('active', p.getAttribute('data-lang') === lang);
+  });
+  btns.forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().toLowerCase() === lang);
+  });
+}
+
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function scrollToId(id){
+  scrollTo(id);
+  const card = document.getElementById(id);
+  if(card && card.classList.contains('collapsed')){
+    card.classList.remove('collapsed');
+  }
+}
+
+function toggleTheme(){
+  const body = document.body;
+  const btn = document.getElementById('themeBtn');
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  btn.textContent = isDark ? '🌙 Dark mode' : '☀️ Light mode';
+}
+</script>
+
+</body>
+</html>

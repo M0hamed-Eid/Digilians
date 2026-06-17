@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hidden Markov Models — Study Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  /* 9 accent colors */
+  --accent-1:#6366f1; /* indigo */
+  --accent-2:#0ea5e9; /* sky */
+  --accent-3:#10b981; /* emerald */
+  --accent-4:#f59e0b; /* amber */
+  --accent-5:#ef4444; /* red */
+  --accent-6:#a855f7; /* purple */
+  --accent-7:#ec4899; /* pink */
+  --accent-8:#14b8a6; /* teal */
+  --accent-9:#84cc16; /* lime */
+
+  /* Foreground tier */
+  --fg-1:#0f1422;
+  --fg-2:#3a4254;
+  --fg-3:#6b7384;
+
+  /* Background tier */
+  --bg-1:#ffffff;
+  --bg-2:#f7f8fb;
+  --bg-3:#eef1f6;
+
+  /* Mid tier */
+  --mid-1:#dde2ea;
+  --mid-2:#c6cdda;
+
+  --radius:14px;
+  --shadow:0 4px 18px rgba(20,24,40,0.06);
+  --code-bg:#1e1e2e;
+}
+
+[data-theme="dark"]{
+  --fg-1:#eef0f5;
+  --fg-2:#c3c9d6;
+  --fg-3:#9098ab;
+  --bg-1:#10131c;
+  --bg-2:#161a26;
+  --bg-3:#1d2230;
+  --mid-1:#2a3040;
+  --mid-2:#384057;
+  --shadow:0 4px 18px rgba(0,0,0,0.35);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:'Sora',sans-serif;
+  background:var(--bg-2);
+  color:var(--fg-1);
+  transition:background .3s,color .3s;
+  line-height:1.65;
+}
+
+::selection{background:var(--accent-1);color:#fff;}
+
+/* ===== Header ===== */
+header{
+  position:relative;
+  padding:48px 24px 40px;
+  background:var(--bg-1);
+  border-bottom:1px solid var(--mid-1);
+  overflow:hidden;
+}
+.gradient-bar{
+  position:absolute;
+  top:0;left:0;right:0;
+  height:6px;
+  background:linear-gradient(90deg,var(--accent-1),var(--accent-2),var(--accent-3),var(--accent-4),var(--accent-5),var(--accent-6),var(--accent-7),var(--accent-8),var(--accent-9));
+}
+.header-inner{max-width:980px;margin:0 auto;}
+h1.title{
+  font-size:clamp(28px,5vw,44px);
+  font-weight:800;
+  margin:0 0 10px;
+  background:linear-gradient(90deg,var(--accent-1),var(--accent-6),var(--accent-7));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  letter-spacing:-0.5px;
+}
+.subtitle{
+  color:var(--fg-3);
+  font-size:16px;
+  max-width:680px;
+}
+.header-controls{
+  display:flex;
+  gap:12px;
+  margin-top:22px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.btn{
+  font-family:'Sora',sans-serif;
+  font-weight:600;
+  font-size:13px;
+  border:1px solid var(--mid-1);
+  background:var(--bg-2);
+  color:var(--fg-1);
+  padding:9px 16px;
+  border-radius:999px;
+  cursor:pointer;
+  transition:.2s;
+}
+.btn:hover{border-color:var(--accent-1);color:var(--accent-1);transform:translateY(-1px);}
+.btn.active{background:var(--accent-1);color:#fff;border-color:var(--accent-1);}
+
+/* ===== TOC ===== */
+.toc-wrap{max-width:980px;margin:0 auto;padding:28px 24px 0;}
+.toc-label{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  color:var(--fg-3);
+  margin-bottom:12px;
+}
+.toc{display:flex;flex-wrap:wrap;gap:10px;}
+.toc-chip{
+  font-size:13.5px;
+  font-weight:600;
+  padding:8px 14px;
+  border-radius:10px;
+  background:var(--bg-1);
+  border:1px solid var(--mid-1);
+  cursor:pointer;
+  color:var(--fg-2);
+  transition:.2s;
+  text-decoration:none;
+  display:inline-block;
+}
+.toc-chip:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+.toc-chip:nth-child(1){border-color:var(--accent-1);color:var(--accent-1);}
+.toc-chip:nth-child(2){border-color:var(--accent-2);color:var(--accent-2);}
+.toc-chip:nth-child(3){border-color:var(--accent-3);color:var(--accent-3);}
+.toc-chip:nth-child(4){border-color:var(--accent-4);color:var(--accent-4);}
+.toc-chip:nth-child(5){border-color:var(--accent-5);color:var(--accent-5);}
+.toc-chip:nth-child(6){border-color:var(--accent-6);color:var(--accent-6);}
+.toc-chip:nth-child(7){border-color:var(--accent-7);color:var(--accent-7);}
+
+/* ===== Main / Sections ===== */
+main{max-width:980px;margin:0 auto;padding:32px 24px 80px;}
+
+.section{
+  background:var(--bg-1);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-bottom:28px;
+  border-left:6px solid var(--accent-1);
+  overflow:hidden;
+}
+.section:nth-of-type(1){border-left-color:var(--accent-1);}
+.section:nth-of-type(2){border-left-color:var(--accent-2);}
+.section:nth-of-type(3){border-left-color:var(--accent-3);}
+.section:nth-of-type(4){border-left-color:var(--accent-4);}
+.section:nth-of-type(5){border-left-color:var(--accent-5);}
+.section:nth-of-type(6){border-left-color:var(--accent-6);}
+.section:nth-of-type(7){border-left-color:var(--accent-7);}
+
+.section-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:20px 22px;
+  cursor:pointer;
+  user-select:none;
+}
+.icon-badge{
+  width:42px;height:42px;
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+  background:var(--bg-3);
+}
+.section:nth-of-type(1) .icon-badge{background:color-mix(in srgb, var(--accent-1) 16%, var(--bg-3));}
+.section:nth-of-type(2) .icon-badge{background:color-mix(in srgb, var(--accent-2) 16%, var(--bg-3));}
+.section:nth-of-type(3) .icon-badge{background:color-mix(in srgb, var(--accent-3) 16%, var(--bg-3));}
+.section:nth-of-type(4) .icon-badge{background:color-mix(in srgb, var(--accent-4) 16%, var(--bg-3));}
+.section:nth-of-type(5) .icon-badge{background:color-mix(in srgb, var(--accent-5) 16%, var(--bg-3));}
+.section:nth-of-type(6) .icon-badge{background:color-mix(in srgb, var(--accent-6) 16%, var(--bg-3));}
+.section:nth-of-type(7) .icon-badge{background:color-mix(in srgb, var(--accent-7) 16%, var(--bg-3));}
+
+.section-head h2{
+  font-size:19px;
+  margin:0;
+  flex:1;
+  font-weight:700;
+}
+.section-head .eyebrow{
+  display:block;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  color:var(--fg-3);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:3px;
+}
+.toggle-arrow{
+  font-size:18px;
+  color:var(--fg-3);
+  transition:transform .3s;
+  flex-shrink:0;
+}
+.section.collapsed .toggle-arrow{transform:rotate(-90deg);}
+.section-body{
+  padding:0 22px 26px;
+  max-height:none;
+}
+.section.collapsed .section-body{display:none;}
+
+/* ===== Language switcher per section ===== */
+.lang-tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:16px;
+  background:var(--bg-3);
+  padding:4px;
+  border-radius:10px;
+  width:fit-content;
+}
+.lang-tab{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  font-weight:600;
+  padding:6px 16px;
+  border-radius:7px;
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color:var(--fg-3);
+  transition:.2s;
+}
+.lang-tab.active{background:var(--bg-1);color:var(--accent-1);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+.lang-content{display:none;}
+.lang-content.active{display:block;}
+.lang-content.ar{
+  direction:rtl;
+  text-align:right;
+  font-family:'Sora',sans-serif;
+}
+
+/* ===== Inline elements ===== */
+.term{
+  font-weight:700;
+  color:var(--accent-1);
+}
+.highlight{
+  background:linear-gradient(180deg,transparent 60%, color-mix(in srgb, var(--accent-4) 35%, transparent) 60%);
+  padding:0 2px;
+  font-weight:600;
+}
+.code-inline{
+  font-family:'IBM Plex Mono',monospace;
+  background:var(--bg-3);
+  border:1px solid var(--mid-1);
+  border-radius:5px;
+  padding:1px 7px;
+  font-size:0.9em;
+  color:var(--accent-6);
+}
+
+/* ===== Boxes ===== */
+.box{
+  border-radius:11px;
+  padding:16px 18px;
+  margin:18px 0;
+  border:1px solid;
+  font-size:14.5px;
+}
+.box-title{
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+  font-size:14px;
+}
+.box.analogy{background:color-mix(in srgb, var(--accent-2) 8%, var(--bg-1));border-color:color-mix(in srgb, var(--accent-2) 35%, var(--mid-1));}
+.box.analogy .box-title{color:var(--accent-2);}
+.box.example{background:color-mix(in srgb, var(--accent-3) 8%, var(--bg-1));border-color:color-mix(in srgb, var(--accent-3) 35%, var(--mid-1));}
+.box.example .box-title{color:var(--accent-3);}
+.box.summary{background:color-mix(in srgb, var(--accent-1) 8%, var(--bg-1));border-color:color-mix(in srgb, var(--accent-1) 35%, var(--mid-1));}
+.box.summary .box-title{color:var(--accent-1);}
+.box.warning{background:color-mix(in srgb, var(--accent-5) 9%, var(--bg-1));border-color:color-mix(in srgb, var(--accent-5) 35%, var(--mid-1));}
+.box.warning .box-title{color:var(--accent-5);}
+
+/* ===== Tables ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin:16px 0;
+  font-size:14px;
+  border-radius:9px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+thead th{
+  background:linear-gradient(90deg,var(--accent-1),var(--accent-6));
+  color:#fff;
+  padding:11px 14px;
+  text-align:left;
+  font-weight:700;
+}
+tbody td{
+  padding:10px 14px;
+  border-bottom:1px solid var(--mid-1);
+  background:var(--bg-1);
+}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:nth-child(even) td{background:var(--bg-2);}
+
+/* ===== Code blocks ===== */
+pre.code-block{
+  background:var(--code-bg);
+  color:#cdd6f4;
+  border-radius:11px;
+  padding:18px 20px;
+  overflow-x:auto;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;
+  line-height:1.7;
+  margin:16px 0;
+}
+.tok-kw{color:#cba6f7;}      /* keyword - mauve */
+.tok-fn{color:#89b4fa;}      /* function - blue */
+.tok-str{color:#a6e3a1;}     /* string - green */
+.tok-num{color:#fab387;}     /* number - peach */
+.tok-com{color:#6c7086;font-style:italic;} /* comment - overlay */
+.tok-var{color:#f38ba8;}     /* variable - red */
+.tok-op{color:#94e2d5;}      /* operator - teal */
+
+/* ===== Math formula styling ===== */
+.formula{
+  font-family:'IBM Plex Mono',monospace;
+  background:var(--bg-3);
+  border:1px solid var(--mid-1);
+  border-radius:9px;
+  padding:14px 18px;
+  margin:14px 0;
+  font-size:14.5px;
+  overflow-x:auto;
+  color:var(--fg-1);
+}
+
+ul,ol{padding-left:22px;}
+li{margin-bottom:6px;}
+.lang-content.ar ul,.lang-content.ar ol{padding-left:0;padding-right:22px;}
+
+footer{
+  text-align:center;
+  padding:30px;
+  color:var(--fg-3);
+  font-size:13px;
+  font-family:'IBM Plex Mono',monospace;
+}
+
+@media(max-width:600px){
+  .section-head{padding:16px;}
+  .section-body{padding:0 16px 20px;}
+  header{padding:32px 16px 28px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="gradient-bar"></div>
+  <div class="header-inner">
+    <h1 class="title">Hidden Markov Models</h1>
+    <p class="subtitle">Study notes on Markov Chains, the Hidden Markov Model, the Forward algorithm, the Viterbi algorithm, and the Forward-Backward (Baum-Welch) training algorithm. Bilingual: English &amp; Arabic.</p>
+    <div class="header-controls">
+      <button class="btn" id="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+      <button class="btn" onclick="setAllLang('en')">EN everywhere</button>
+      <button class="btn" onclick="setAllLang('ar')">AR everywhere</button>
+    </div>
+  </div>
+</header>
+
+<div class="toc-wrap">
+  <div class="toc-label">Jump to section</div>
+  <div class="toc">
+    <a class="toc-chip" onclick="scrollTo('s1')">1. Markov Chains</a>
+    <a class="toc-chip" onclick="scrollTo('s2')">2. The HMM</a>
+    <a class="toc-chip" onclick="scrollTo('s3')">3. Forward Algorithm</a>
+    <a class="toc-chip" onclick="scrollTo('s4')">4. Viterbi Algorithm</a>
+    <a class="toc-chip" onclick="scrollTo('s5')">5. Forward-Backward</a>
+    <a class="toc-chip" onclick="scrollTo('s6')">6. Summary</a>
+    <a class="toc-chip" onclick="scrollTo('s7')">7. History</a>
+  </div>
+</div>
+
+<main>
+
+<!-- ===================== SECTION 1 ===================== -->
+<section class="section" id="s1">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">🔗</div>
+    <div>
+      <span class="eyebrow">Foundations</span>
+      <h2>1. Markov Chains</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s1')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s1')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s1">
+      <p>A <span class="term">Markov chain</span> is a simple model for describing a sequence of events (called <span class="highlight">states</span>) where the next state only depends on the <span class="highlight">current</span> state — not on anything that happened before it. This rule is called the <span class="term">Markov Assumption</span>.</p>
+
+      <div class="formula">P(q<sub>i</sub> = a | q<sub>1</sub>...q<sub>i−1</sub>) = P(q<sub>i</sub> = a | q<sub>i−1</sub>)</div>
+
+      <p>Think of it like a weather model with three states: <span class="code-inline">HOT</span>, <span class="code-inline">COLD</span>, <span class="code-inline">WARM</span>. Each state has arrows (transitions) pointing to other states, and each arrow carries a probability. All arrows leaving one state must add up to <span class="highlight">1.0</span>.</p>
+
+      <p>A Markov chain has three parts:</p>
+      <ul>
+        <li><span class="term">Q</span> — the set of states (e.g. HOT, COLD, WARM)</li>
+        <li><span class="term">A</span> — the transition probability matrix (probability of moving from state i to state j)</li>
+        <li><span class="term">π</span> — the initial probability distribution (probability of starting in each state)</li>
+      </ul>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 Analogy</div>
+        Imagine predicting tomorrow's mood using only today's mood, and ignoring how you felt last week. That's exactly the Markov assumption: only the present matters for predicting the future.
+      </div>
+
+      <div class="box example">
+        <div class="box-title">💡 Example</div>
+        A bigram language model is actually a Markov chain over words! Each edge represents <span class="code-inline">P(word_i | word_{i-1})</span> — the probability of the next word given only the current word.
+      </div>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ Common Mistake</div>
+        Don't confuse a Markov chain with an HMM. In a Markov chain, the states themselves are <span class="highlight">directly observable</span> (e.g., you can literally see "hot" or "cold"). In an HMM, the states are <span class="highlight">hidden</span> — you only see indirect evidence of them.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-section="s1">
+      <p><span class="term">Markov chain</span> هي نموذج بسيط بيوصف سلسلة من الحالات (states)، وفكرته إن الحالة الجاية بتعتمد بس على الحالة <span class="highlight">الحالية</span>، وملهاش علاقة بأي حاجة حصلت قبل كده. القاعدة دي اسمها <span class="term">Markov Assumption</span>.</p>
+
+      <div class="formula">P(q<sub>i</sub> = a | q<sub>1</sub>...q<sub>i−1</sub>) = P(q<sub>i</sub> = a | q<sub>i−1</sub>)</div>
+
+      <p>خليك تتخيل نموذج للطقس فيه ثلاث حالات: <span class="code-inline">HOT</span> (حر), <span class="code-inline">COLD</span> (برد), <span class="code-inline">WARM</span> (دافي). كل حالة ليها سهم (transition) بيوصلها بحالات تانية، وكل سهم معاه نسبة احتمال. مجموع الاحتمالات اللي خارجة من حالة واحدة لازم يكون <span class="highlight">1.0</span>.</p>
+
+      <p>الـ Markov chain بتتكون من 3 عناصر أساسية:</p>
+      <ul>
+        <li><span class="term">Q</span> — مجموعة الحالات (مثلاً HOT, COLD, WARM)</li>
+        <li><span class="term">A</span> — مصفوفة احتمالات الانتقال (الاحتمال إنك تنتقل من حالة i لحالة j)</li>
+        <li><span class="term">π</span> — التوزيع الابتدائي (احتمال إنك تبدأ من كل حالة)</li>
+      </ul>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 تشبيه</div>
+        تخيل إنك بتحاول تتوقع مزاجك بكرة بناءً على مزاجك النهاردة بس، وتنسى تماماً إزاي كان مزاجك الأسبوع اللي فات. ده بالظبط معنى Markov assumption: الحاضر بس هو المهم للتنبؤ بالمستقبل.
+      </div>
+
+      <div class="box example">
+        <div class="box-title">💡 مثال</div>
+        نموذج اللغة bigram هو في الحقيقة Markov chain على الكلمات! كل سهم بيمثل <span class="code-inline">P(word_i | word_{i-1})</span> — يعني احتمال الكلمة الجاية بناءً على الكلمة الحالية بس.
+      </div>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ غلطة شائعة</div>
+        لا تلخبط بين Markov chain والـ HMM. في الـ Markov chain، الحالات نفسها <span class="highlight">ظاهرة وملاحظة</span> بشكل مباشر (تقدر تشوف "حر" أو "برد"). في الـ HMM، الحالات <span class="highlight">مخفية</span> — وانت بس بتشوف دليل غير مباشر عليها.
+      </div>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      A Markov chain models a sequence of fully observable states, assuming the next state depends only on the current one. It is defined by states (Q), transition probabilities (A), and an initial distribution (π).
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SECTION 2 ===================== -->
+<section class="section" id="s2">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">🎭</div>
+    <div>
+      <span class="eyebrow">Core Model</span>
+      <h2>2. The Hidden Markov Model (HMM)</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s2')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s2')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s2">
+      <p>In a regular Markov chain, you can see the states directly. But sometimes the real states are <span class="term">hidden</span> — you can't observe them, you can only observe some related <span class="highlight">output</span>. A <span class="term">Hidden Markov Model (HMM)</span> handles exactly this situation: hidden states that produce visible observations.</p>
+
+      <p>An HMM has five parts:</p>
+      <ul>
+        <li><span class="term">Q</span> — the hidden states</li>
+        <li><span class="term">A</span> — the transition probabilities between hidden states</li>
+        <li><span class="term">B</span> — the <span class="highlight">emission probabilities</span> (also called observation likelihoods): the probability that a state produces a particular observation</li>
+        <li><span class="term">π</span> — the initial state distribution</li>
+        <li><span class="term">O</span> — the sequence of observations actually seen</li>
+      </ul>
+
+      <p>Two simplifying assumptions make HMMs tractable:</p>
+      <div class="formula">
+        Markov Assumption: P(q<sub>i</sub> | q<sub>1</sub>...q<sub>i−1</sub>) = P(q<sub>i</sub> | q<sub>i−1</sub>)<br>
+        Output Independence: P(o<sub>i</sub> | q<sub>1</sub>...q<sub>i</sub>...q<sub>T</sub>, o<sub>1</sub>...o<sub>i</sub>...o<sub>T</sub>) = P(o<sub>i</sub> | q<sub>i</sub>)
+      </div>
+
+      <div class="box example">
+        <div class="box-title">💡 The Ice Cream Example</div>
+        Imagine a future climatologist who cannot find weather records for Baltimore in summer 2020, but finds a diary listing how many ice creams someone ate each day. The <span class="highlight">hidden states</span> are the weather (HOT or COLD), and the <span class="highlight">observations</span> are the number of ice creams (1, 2, or 3). The goal: guess the weather sequence from the ice-cream sequence.
+      </div>
+
+      <p>Rabiner (1989) framed HMMs around <span class="term">three fundamental problems</span>:</p>
+      <table>
+        <thead><tr><th>Problem</th><th>Question</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1. Likelihood</strong></td><td>Given an HMM λ=(A,B) and observations O, what is P(O|λ)?</td></tr>
+          <tr><td><strong>2. Decoding</strong></td><td>Given O and λ, what is the most likely hidden state sequence Q?</td></tr>
+          <tr><td><strong>3. Learning</strong></td><td>Given O and the set of states, how do we learn A and B?</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 Analogy</div>
+        It's like being a doctor who can't see a patient's internal organ state directly (hidden), but can observe symptoms (observations) like fever or coughing. You infer the hidden condition from the visible symptoms.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-section="s2">
+      <p>في الـ Markov chain العادية، تقدر تشوف الحالات بشكل مباشر. لكن في حالات كتير، الحالات الحقيقية بتكون <span class="term">مخفية (hidden)</span> — مش قادر تشوفها، وبس تقدر تشوف نتيجة أو دليل (output) مرتبط بيها. الـ <span class="term">Hidden Markov Model (HMM)</span> هو الحل لده: حالات مخفية بتنتج لنا observations ظاهرة.</p>
+
+      <p>الـ HMM بيتكون من 5 عناصر:</p>
+      <ul>
+        <li><span class="term">Q</span> — الحالات المخفية</li>
+        <li><span class="term">A</span> — احتمالات الانتقال بين الحالات المخفية</li>
+        <li><span class="term">B</span> — <span class="highlight">احتمالات الانبعاث (emission probabilities)</span>: احتمال إن حالة معينة تنتج observation معينة</li>
+        <li><span class="term">π</span> — التوزيع الابتدائي للحالات</li>
+        <li><span class="term">O</span> — سلسلة الـ observations اللي اتشافت فعلياً</li>
+      </ul>
+
+      <p>في فرضين بيسهلوا التعامل مع الـ HMM:</p>
+      <div class="formula">
+        Markov Assumption: P(q<sub>i</sub> | q<sub>1</sub>...q<sub>i−1</sub>) = P(q<sub>i</sub> | q<sub>i−1</sub>)<br>
+        Output Independence: P(o<sub>i</sub> | q<sub>1</sub>...q<sub>i</sub>...q<sub>T</sub>, o<sub>1</sub>...o<sub>i</sub>...o<sub>T</sub>) = P(o<sub>i</sub> | q<sub>i</sub>)
+      </div>
+
+      <div class="box example">
+        <div class="box-title">💡 مثال الآيس كريم</div>
+        تخيل عالم مناخ في المستقبل ملقاش سجلات الطقس في بالتيمور في صيف 2020، بس لقى دفتر يوميات بيسجل كل يوم كان فيه شخص أكل كام آيس كريم. <span class="highlight">الحالات المخفية</span> هي الطقس (HOT أو COLD)، و<span class="highlight">الـ observations</span> هي عدد الآيس كريم (1، 2، أو 3). الهدف: تخمن سلسلة الطقس من سلسلة الآيس كريم.
+      </div>
+
+      <p>Rabiner (1989) حدد إن الـ HMM بيدور حول <span class="term">3 مشاكل أساسية</span>:</p>
+      <table>
+        <thead><tr><th>المشكلة</th><th>السؤال</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1. Likelihood</strong></td><td>لو معانا HMM λ=(A,B) وobservations O، يبقى P(O|λ) كام؟</td></tr>
+          <tr><td><strong>2. Decoding</strong></td><td>لو معانا O وλ، إيه أكتر سلسلة حالات مخفية محتملة Q؟</td></tr>
+          <tr><td><strong>3. Learning</strong></td><td>لو معانا O ومجموعة الحالات، إزاي نتعلم A و B؟</td></tr>
+        </tbody>
+      </table>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 تشبيه</div>
+        ده زي دكتور مش شايف حالة الأعضاء الداخلية للمريض بشكل مباشر (مخفية)، لكنه شايف الأعراض (observations) زي السخونية أو الكحة. هو بيستنتج الحالة المخفية من الأعراض الظاهرة.
+      </div>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      An HMM links hidden states to observable outputs using transition probabilities (A) and emission probabilities (B). It is built around three problems: Likelihood, Decoding, and Learning.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SECTION 3 ===================== -->
+<section class="section" id="s3">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">➕</div>
+    <div>
+      <span class="eyebrow">Problem 1: Likelihood</span>
+      <h2>3. The Forward Algorithm</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s3')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s3')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s3">
+      <p>We want to compute <span class="term">P(O|λ)</span>: the probability of observing a sequence like "3 1 3" (ice creams) given the HMM. The catch: we don't know the hidden weather sequence that produced it.</p>
+
+      <p>The naive approach would be to try <span class="highlight">every possible</span> hidden state sequence, compute the probability of each, and add them all up. But with N states and T time steps, there are N<sup>T</sup> possible sequences — far too many to check one by one.</p>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ Why brute force fails</div>
+        With even a modest HMM (say 5 states, 20 observations), N<sup>T</sup> = 5<sup>20</sup> ≈ 95 trillion sequences. Computing each one separately is computationally impossible.
+      </div>
+
+      <p>Instead, we use the <span class="term">Forward Algorithm</span> — a <span class="highlight">dynamic programming</span> algorithm that runs in O(N²T) time instead of exponential time. It reuses partial results stored in a table (the <span class="term">forward trellis</span>) instead of recomputing everything from scratch.</p>
+
+      <p>Each cell in the trellis, <span class="code-inline">α<sub>t</sub>(j)</span>, represents the probability of being in state j after seeing the first t observations:</p>
+
+      <div class="formula">α<sub>t</sub>(j) = P(o<sub>1</sub>, o<sub>2</sub> ... o<sub>t</sub>, q<sub>t</sub> = j | λ)</div>
+
+      <p>The recursion combines three things for every possible previous state i:</p>
+      <div class="formula">α<sub>t</sub>(j) = Σ<sub>i=1</sub><sup>N</sup> α<sub>t−1</sub>(i) · a<sub>ij</sub> · b<sub>j</sub>(o<sub>t</sub>)</div>
+
+      <ul>
+        <li><span class="code-inline">α_{t-1}(i)</span> — the probability of the path so far</li>
+        <li><span class="code-inline">a_ij</span> — the transition probability from state i to state j</li>
+        <li><span class="code-inline">b_j(o_t)</span> — the probability that state j emits observation o<sub>t</sub></li>
+      </ul>
+
+      <pre class="code-block"><span class="tok-kw">function</span> <span class="tok-fn">FORWARD</span>(observations, state_graph) <span class="tok-kw">returns</span> forward_prob
+  <span class="tok-com">// initialization step</span>
+  <span class="tok-kw">for each</span> state s <span class="tok-kw">in</span> 1..N:
+      forward[s][1] = <span class="tok-var">pi</span>[s] * <span class="tok-fn">b</span>(s, o1)
+
+  <span class="tok-com">// recursion step</span>
+  <span class="tok-kw">for</span> t <span class="tok-kw">in</span> 2..T:
+      <span class="tok-kw">for each</span> state s <span class="tok-kw">in</span> 1..N:
+          forward[s][t] = <span class="tok-fn">sum</span>(
+              forward[s_prev][t-1] * a[s_prev][s] * <span class="tok-fn">b</span>(s, o_t)
+              <span class="tok-kw">for</span> s_prev <span class="tok-kw">in</span> 1..N
+          )
+
+  <span class="tok-com">// termination step</span>
+  forward_prob = <span class="tok-fn">sum</span>(forward[s][T] <span class="tok-kw">for</span> s <span class="tok-kw">in</span> 1..N)
+  <span class="tok-kw">return</span> forward_prob</pre>
+
+      <div class="box example">
+        <div class="box-title">💡 Worked example</div>
+        For observations "3 1 3" with π=[.2,.8]: α<sub>1</sub>(HOT)=.32, α<sub>1</sub>(COLD)=.02. At time 2, α<sub>2</sub>(HOT) = .32×.6×.2 + .02×.5×.2 ≈ .0404, combining both possible previous states.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-section="s3">
+      <p>إحنا عايزين نحسب <span class="term">P(O|λ)</span>: يعني احتمال إننا نشوف سلسلة observations زي "3 1 3" (آيس كريم) بناءً على الـ HMM. المشكلة: إحنا ملناش سلسلة الطقس المخفية اللي ولدت السلسلة دي.</p>
+
+      <p>الحل الساذج هو نجرب <span class="highlight">كل سلسلة ممكنة</span> من الحالات المخفية، نحسب احتمال كل واحدة، ونجمعهم كلهم. بس مع N حالة وT خطوة زمنية، فيه N<sup>T</sup> سلسلة ممكنة — رقم كبير جداً مينفعش نتحقق منه واحدة واحدة.</p>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ ليه الحل الساذج فاشل</div>
+        لو معانا HMM متوسط (5 حالات، 20 observation)، يبقى N<sup>T</sup> = 5<sup>20</sup> ≈ 95 تريليون سلسلة. حساب كل واحدة لوحدها مستحيل من الناحية الحسابية.
+      </div>
+
+      <p>بدل ده، بنستخدم <span class="term">Forward Algorithm</span> — خوارزمية <span class="highlight">dynamic programming</span> بتعمل في زمن O(N²T) بدل الزمن الأسي. هي بتعيد استخدام نتايج جزئية محفوظة في جدول (الـ <span class="term">forward trellis</span>) بدل ما تحسب كل حاجة من الصفر.</p>
+
+      <p>كل خلية في الجدول، <span class="code-inline">α<sub>t</sub>(j)</span>، بتمثل احتمال إنك تكون في حالة j بعد ما تشوف أول t observations:</p>
+
+      <div class="formula">α<sub>t</sub>(j) = P(o<sub>1</sub>, o<sub>2</sub> ... o<sub>t</sub>, q<sub>t</sub> = j | λ)</div>
+
+      <p>المعادلة التكرارية بتجمع 3 عناصر لكل حالة سابقة ممكنة i:</p>
+      <div class="formula">α<sub>t</sub>(j) = Σ<sub>i=1</sub><sup>N</sup> α<sub>t−1</sub>(i) · a<sub>ij</sub> · b<sub>j</sub>(o<sub>t</sub>)</div>
+
+      <ul>
+        <li><span class="code-inline">α_{t-1}(i)</span> — احتمال المسار لحد دلوقتي</li>
+        <li><span class="code-inline">a_ij</span> — احتمال الانتقال من حالة i لحالة j</li>
+        <li><span class="code-inline">b_j(o_t)</span> — احتمال إن حالة j تنتج observation o<sub>t</sub></li>
+      </ul>
+
+      <pre class="code-block"><span class="tok-kw">function</span> <span class="tok-fn">FORWARD</span>(observations, state_graph) <span class="tok-kw">returns</span> forward_prob
+  <span class="tok-com">// خطوة التهيئة</span>
+  <span class="tok-kw">for each</span> state s <span class="tok-kw">in</span> 1..N:
+      forward[s][1] = <span class="tok-var">pi</span>[s] * <span class="tok-fn">b</span>(s, o1)
+
+  <span class="tok-com">// خطوة التكرار</span>
+  <span class="tok-kw">for</span> t <span class="tok-kw">in</span> 2..T:
+      <span class="tok-kw">for each</span> state s <span class="tok-kw">in</span> 1..N:
+          forward[s][t] = <span class="tok-fn">sum</span>(
+              forward[s_prev][t-1] * a[s_prev][s] * <span class="tok-fn">b</span>(s, o_t)
+              <span class="tok-kw">for</span> s_prev <span class="tok-kw">in</span> 1..N
+          )
+
+  <span class="tok-com">// خطوة الإنهاء</span>
+  forward_prob = <span class="tok-fn">sum</span>(forward[s][T] <span class="tok-kw">for</span> s <span class="tok-kw">in</span> 1..N)
+  <span class="tok-kw">return</span> forward_prob</pre>
+
+      <div class="box example">
+        <div class="box-title">💡 مثال محلول</div>
+        لـ observations "3 1 3" مع π=[.2,.8]: α<sub>1</sub>(HOT)=.32، α<sub>1</sub>(COLD)=.02. في الزمن 2، α<sub>2</sub>(HOT) = .32×.6×.2 + .02×.5×.2 ≈ .0404، بنجمع فيها كل الحالات السابقة الممكنة.
+      </div>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      The Forward Algorithm efficiently computes P(O|λ) in O(N²T) time by storing partial sums (α values) in a trellis, avoiding the exponential cost of checking every hidden path.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SECTION 4 ===================== -->
+<section class="section" id="s4">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">🧭</div>
+    <div>
+      <span class="eyebrow">Problem 2: Decoding</span>
+      <h2>4. The Viterbi Algorithm</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s4')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s4')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s4">
+      <p>Decoding answers a different question than the Forward algorithm. Instead of "how likely is this observation sequence overall," we ask: <span class="highlight">"what is the single most likely hidden state sequence?"</span></p>
+
+      <div class="formula">Decoding: given λ=(A,B) and O, find Q = q<sub>1</sub>q<sub>2</sub>...q<sub>T</sub> that maximizes P(Q|O,λ)</div>
+
+      <p>The <span class="term">Viterbi algorithm</span> looks almost identical to the Forward algorithm, with one key difference: it uses <span class="highlight">max</span> instead of <span class="highlight">sum</span>. Each cell stores the probability of the <span class="highlight">best</span> path leading to that state, not the total probability over all paths.</p>
+
+      <div class="formula">v<sub>t</sub>(j) = max<sub>i=1...N</sub> [ v<sub>t−1</sub>(i) · a<sub>ij</sub> · b<sub>j</sub>(o<sub>t</sub>) ]</div>
+
+      <p>Because we need to recover the actual best sequence (not just its probability), Viterbi also keeps <span class="term">backpointers</span> — at each cell, it remembers which previous state gave the maximum. At the end, we follow the backpointers backward to reconstruct the best path. This final step is called the <span class="term">Viterbi backtrace</span>.</p>
+
+      <pre class="code-block"><span class="tok-kw">function</span> <span class="tok-fn">VITERBI</span>(observations, state_graph) <span class="tok-kw">returns</span> best_path, best_prob
+  <span class="tok-com">// initialization</span>
+  <span class="tok-kw">for each</span> state s:
+      viterbi[s][1] = <span class="tok-var">pi</span>[s] * <span class="tok-fn">b</span>(s, o1)
+      backpointer[s][1] = 0
+
+  <span class="tok-com">// recursion — note: max(), not sum()</span>
+  <span class="tok-kw">for</span> t <span class="tok-kw">in</span> 2..T:
+      <span class="tok-kw">for each</span> state s:
+          viterbi[s][t] = <span class="tok-fn">max</span>(viterbi[s_prev][t-1] * a[s_prev][s] * <span class="tok-fn">b</span>(s, o_t))
+          backpointer[s][t] = <span class="tok-fn">argmax</span>(... <span class="tok-kw">same expression</span> ...)
+
+  <span class="tok-com">// termination + backtrace</span>
+  best_prob = <span class="tok-fn">max</span>(viterbi[s][T] <span class="tok-kw">for</span> s <span class="tok-kw">in</span> 1..N)
+  best_path = <span class="tok-fn">follow_backpointers</span>(backpointer)
+  <span class="tok-kw">return</span> best_path, best_prob</pre>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 Analogy</div>
+        Viterbi is like finding the single fastest route on a map app, while the Forward algorithm is like adding up the likelihood of all possible routes combined. Same map, different question.
+      </div>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ Common Mistake</div>
+        Don't run the Forward algorithm separately for every possible state sequence to find the best one — that's the exponential trap again. Viterbi already finds the best sequence in O(N²T) without ever enumerating all sequences.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-section="s4">
+      <p>الـ Decoding بيسأل سؤال مختلف عن Forward algorithm. بدل "ما احتمال السلسلة دي بشكل عام"، بنسأل: <span class="highlight">"ما هي أكتر سلسلة حالات مخفية محتملة؟"</span></p>
+
+      <div class="formula">Decoding: لو معانا λ=(A,B) و O، نلاقي Q = q<sub>1</sub>q<sub>2</sub>...q<sub>T</sub> اللي بيعظّم P(Q|O,λ)</div>
+
+      <p>خوارزمية <span class="term">Viterbi</span> شبه Forward algorithm جداً، بس بفرق أساسي واحد: بتستخدم <span class="highlight">max</span> بدل <span class="highlight">sum</span>. كل خلية بتخزن احتمال <span class="highlight">أفضل</span> مسار وصل للحالة دي، مش الاحتمال الكلي لكل المسارات.</p>
+
+      <div class="formula">v<sub>t</sub>(j) = max<sub>i=1...N</sub> [ v<sub>t−1</sub>(i) · a<sub>ij</sub> · b<sub>j</sub>(o<sub>t</sub>) ]</div>
+
+      <p>لأننا عايزين نرجع السلسلة الفعلية الأفضل (مش بس احتمالها)، الـ Viterbi كمان بتحتفظ بـ <span class="term">backpointers</span> — في كل خلية، بتفتكر إن الحالة السابقة اللي عطت أعلى قيمة كانت إيه. في الآخر، بنتبع الـ backpointers لورا عشان نبني المسار الأفضل. الخطوة الأخيرة دي اسمها <span class="term">Viterbi backtrace</span>.</p>
+
+      <pre class="code-block"><span class="tok-kw">function</span> <span class="tok-fn">VITERBI</span>(observations, state_graph) <span class="tok-kw">returns</span> best_path, best_prob
+  <span class="tok-com">// التهيئة</span>
+  <span class="tok-kw">for each</span> state s:
+      viterbi[s][1] = <span class="tok-var">pi</span>[s] * <span class="tok-fn">b</span>(s, o1)
+      backpointer[s][1] = 0
+
+  <span class="tok-com">// التكرار — لاحظ: max()، مش sum()</span>
+  <span class="tok-kw">for</span> t <span class="tok-kw">in</span> 2..T:
+      <span class="tok-kw">for each</span> state s:
+          viterbi[s][t] = <span class="tok-fn">max</span>(viterbi[s_prev][t-1] * a[s_prev][s] * <span class="tok-fn">b</span>(s, o_t))
+          backpointer[s][t] = <span class="tok-fn">argmax</span>(... <span class="tok-kw">same expression</span> ...)
+
+  <span class="tok-com">// الإنهاء + التتبع العكسي</span>
+  best_prob = <span class="tok-fn">max</span>(viterbi[s][T] <span class="tok-kw">for</span> s <span class="tok-kw">in</span> 1..N)
+  best_path = <span class="tok-fn">follow_backpointers</span>(backpointer)
+  <span class="tok-kw">return</span> best_path, best_prob</pre>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 تشبيه</div>
+        Viterbi زي إنك تلاقي أسرع طريق واحد في تطبيق خرائط، بينما Forward algorithm زي إنك تجمع احتمالية كل الطرق الممكنة مع بعض. نفس الخريطة، بس سؤال مختلف.
+      </div>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ غلطة شائعة</div>
+        متشغّلش Forward algorithm لوحده لكل سلسلة حالات ممكنة عشان تلاقي الأفضل — ده يرجعك لمصيدة الزمن الأسي تاني. Viterbi بالفعل بتلاقي أفضل سلسلة في O(N²T) من غير ما تعدّ كل السلاسل.
+      </div>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      Viterbi finds the single best hidden state sequence by replacing sum with max at each step, and uses backpointers plus a final backtrace to reconstruct that sequence.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SECTION 5 ===================== -->
+<section class="section" id="s5">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">🔄</div>
+    <div>
+      <span class="eyebrow">Problem 3: Learning</span>
+      <h2>5. Forward-Backward (Baum-Welch) Algorithm</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s5')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s5')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s5">
+      <p>The hardest problem: given only the observations (no labeled hidden states at all), can we <span class="term">learn</span> the transition probabilities A and emission probabilities B? This is solved by the <span class="term">Forward-Backward</span> algorithm, also called <span class="term">Baum-Welch</span> — a special case of the general <span class="term">EM (Expectation-Maximization)</span> algorithm.</p>
+
+      <p>If we already knew the hidden states (a <span class="highlight">fully visible</span> Markov model), this would be easy: just count transitions and emissions directly, like simple maximum likelihood estimation.</p>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ The real challenge</div>
+        We don't know the hidden states at all — not even partially! Baum-Welch solves this by repeatedly guessing soft (probabilistic) counts, then refining the model, then re-guessing — iterating until the estimates stabilize (converge).
+      </div>
+
+      <p>First we need the <span class="term">backward probability β</span> — the mirror image of the forward probability α. While α looks at observations <em>before</em> time t, β looks at observations <em>after</em> time t:</p>
+
+      <div class="formula">β<sub>t</sub>(i) = P(o<sub>t+1</sub>, o<sub>t+2</sub> ... o<sub>T</sub> | q<sub>t</sub> = i, λ)</div>
+
+      <p>The algorithm has two repeating steps, just like standard EM:</p>
+      <ul>
+        <li><span class="term">E-step (Expectation)</span> — using the current A and B, estimate two useful quantities:
+          <ul>
+            <li><span class="code-inline">ξ_t(i,j)</span> — probability of being in state i at time t and state j at time t+1</li>
+            <li><span class="code-inline">γ_t(j)</span> — probability of being in state j at time t</li>
+          </ul>
+        </li>
+        <li><span class="term">M-step (Maximization)</span> — use ξ and γ to re-estimate better A and B values</li>
+      </ul>
+
+      <div class="formula">
+        â<sub>ij</sub> = (expected transitions i→j) / (expected transitions out of i)<br>
+        b̂<sub>j</sub>(v<sub>k</sub>) = (expected times in state j observing v<sub>k</sub>) / (expected times in state j)
+      </div>
+
+      <pre class="code-block"><span class="tok-kw">function</span> <span class="tok-fn">FORWARD_BACKWARD</span>(observations, vocabulary, states) <span class="tok-kw">returns</span> A, B
+  <span class="tok-fn">initialize</span>(A, B)
+  <span class="tok-kw">while not</span> converged:
+      <span class="tok-com">// E-step</span>
+      gamma  = <span class="tok-fn">compute_gamma</span>(alpha, beta)
+      xi     = <span class="tok-fn">compute_xi</span>(alpha, beta, A, B)
+
+      <span class="tok-com">// M-step</span>
+      A = <span class="tok-fn">re_estimate_transitions</span>(xi)
+      B = <span class="tok-fn">re_estimate_emissions</span>(gamma, observations)
+  <span class="tok-kw">return</span> A, B</pre>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 Analogy</div>
+        It's like guessing the rules of a board game just by watching many games being played, without anyone telling you the rules. You guess a rule set, see how well it predicts the moves you observed, adjust the rules, and repeat until your guessed rules explain the games well.
+      </div>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ Important caveat</div>
+        Baum-Welch is sensitive to its starting point (initial A and B). In practice, the model structure is often partly fixed by hand, and only some parameters are actually learned from data.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-section="s5">
+      <p>أصعب مشكلة: لو معانا بس الـ observations (بدون أي حالات مخفية متعرّفة)، نقدر <span class="term">نتعلم</span> احتمالات الانتقال A واحتمالات الانبعاث B؟ ده بيتحل بخوارزمية <span class="term">Forward-Backward</span>، اللي كمان معروفة باسم <span class="term">Baum-Welch</span> — وهي حالة خاصة من خوارزمية <span class="term">EM (Expectation-Maximization)</span> العامة.</p>
+
+      <p>لو كنا عارفين الحالات المخفية فعلاً (يعني نموذج Markov <span class="highlight">ظاهر بالكامل</span>)، ده كان هيكون سهل: بس نعدّ الانتقالات والانبعاثات مباشرة، زي maximum likelihood estimation البسيطة.</p>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ التحدي الحقيقي</div>
+        إحنا ملناش أي معرفة بالحالات المخفية — حتى ولا جزئياً! Baum-Welch بتحل ده بإنها تتخمن عدّات "ناعمة" (احتمالية) بشكل متكرر، بعدين تحسّن النموذج، بعدين تتخمن تاني — وتكرر العملية لحد ما التقديرات تستقر (تتقارب).
+      </div>
+
+      <p>أول حاجة محتاجينها هي <span class="term">backward probability β</span> — وهي عكس الصورة بتاعة forward probability α. بينما α بتنظر للـ observations <em>قبل</em> الزمن t، β بتنظر للـ observations <em>بعد</em> الزمن t:</p>
+
+      <div class="formula">β<sub>t</sub>(i) = P(o<sub>t+1</sub>, o<sub>t+2</sub> ... o<sub>T</sub> | q<sub>t</sub> = i, λ)</div>
+
+      <p>الخوارزمية فيها خطوتين بتتكرر، زي EM العادية:</p>
+      <ul>
+        <li><span class="term">E-step (التوقع)</span> — باستخدام A وB الحاليين، نقدّر كميتين مفيدة:
+          <ul>
+            <li><span class="code-inline">ξ_t(i,j)</span> — احتمال إنك في حالة i بالزمن t وحالة j بالزمن t+1</li>
+            <li><span class="code-inline">γ_t(j)</span> — احتمال إنك في حالة j بالزمن t</li>
+          </ul>
+        </li>
+        <li><span class="term">M-step (التعظيم)</span> — نستخدم ξ و γ عشان نعيد تقدير A و B بشكل أفضل</li>
+      </ul>
+
+      <div class="formula">
+        â<sub>ij</sub> = (العدد المتوقع للانتقالات i→j) / (العدد المتوقع للانتقالات الخارجة من i)<br>
+        b̂<sub>j</sub>(v<sub>k</sub>) = (العدد المتوقع لكوننا في حالة j ونلاحظ v<sub>k</sub>) / (العدد المتوقع لكوننا في حالة j)
+      </div>
+
+      <pre class="code-block"><span class="tok-kw">function</span> <span class="tok-fn">FORWARD_BACKWARD</span>(observations, vocabulary, states) <span class="tok-kw">returns</span> A, B
+  <span class="tok-fn">initialize</span>(A, B)
+  <span class="tok-kw">while not</span> converged:
+      <span class="tok-com">// خطوة E</span>
+      gamma  = <span class="tok-fn">compute_gamma</span>(alpha, beta)
+      xi     = <span class="tok-fn">compute_xi</span>(alpha, beta, A, B)
+
+      <span class="tok-com">// خطوة M</span>
+      A = <span class="tok-fn">re_estimate_transitions</span>(xi)
+      B = <span class="tok-fn">re_estimate_emissions</span>(gamma, observations)
+  <span class="tok-kw">return</span> A, B</pre>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 تشبيه</div>
+        ده زي إنك تحاول تخمن قواعد لعبة طاولة بس من خلال مراقبة عدد كبير من الجولات، من غير ما حد يقولك القواعد. تخمن مجموعة قواعد، تشوف هي بتفسّر الحركات اللي شفتها كويس قد إيه، تعدّل القواعد، وتكرر لحد ما القواعد المخمّنة تفسر الجولات بشكل كويس.
+      </div>
+
+      <div class="box warning">
+        <div class="box-title">⚠️ ملاحظة مهمة</div>
+        Baum-Welch حساسة جداً لنقطة البداية (A و B الابتدائيين). في التطبيق العملي، غالباً بنية النموذج بتكون متحددة جزئياً باليد، وبس بعض البارامترات هي اللي بتتعلم فعلياً من البيانات.
+      </div>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      Forward-Backward (Baum-Welch) is an EM algorithm that learns HMM parameters A and B from unlabeled observations by iterating between estimating soft state/transition counts (E-step) and re-estimating probabilities (M-step).
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SECTION 6 ===================== -->
+<section class="section" id="s6">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">🗂️</div>
+    <div>
+      <span class="eyebrow">Recap</span>
+      <h2>6. Chapter Summary &amp; Comparison</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s6')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s6')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s6">
+      <p>HMMs connect a sequence of hidden states to a sequence of observable outputs. Three algorithms solve the three classic HMM problems:</p>
+
+      <table>
+        <thead><tr><th>Algorithm</th><th>Solves</th><th>Operation</th><th>Complexity</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Forward</strong></td><td>Likelihood — P(O|λ)</td><td>Sum over paths</td><td>O(N²T)</td></tr>
+          <tr><td><strong>Viterbi</strong></td><td>Decoding — best hidden sequence Q</td><td>Max over paths + backpointers</td><td>O(N²T)</td></tr>
+          <tr><td><strong>Forward-Backward</strong></td><td>Learning — estimate A and B</td><td>EM: alternate E-step / M-step</td><td>Iterative, O(N²T) per iteration</td></tr>
+        </tbody>
+      </table>
+
+      <p>All three rely on the same underlying trellis structure and the same two Markov simplifying assumptions (Markov assumption + output independence), which is what makes the math and the dynamic programming tractable.</p>
+    </div>
+
+    <div class="lang-content ar" data-section="s6">
+      <p>الـ HMM بيربط سلسلة من الحالات المخفية بسلسلة من المخرجات الظاهرة. 3 خوارزميات بتحل 3 مشاكل أساسية في الـ HMM:</p>
+
+      <table>
+        <thead><tr><th>الخوارزمية</th><th>تحل</th><th>العملية</th><th>التعقيد</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Forward</strong></td><td>Likelihood — P(O|λ)</td><td>جمع كل المسارات</td><td>O(N²T)</td></tr>
+          <tr><td><strong>Viterbi</strong></td><td>Decoding — أفضل سلسلة حالات مخفية Q</td><td>أخذ أكبر قيمة بين المسارات + backpointers</td><td>O(N²T)</td></tr>
+          <tr><td><strong>Forward-Backward</strong></td><td>Learning — تقدير A و B</td><td>EM: تبديل بين E-step و M-step</td><td>تكرارية، O(N²T) لكل دورة</td></tr>
+        </tbody>
+      </table>
+
+      <p>الثلاثة خوارزميات بتعتمد على نفس بنية الـ trellis، ونفس الفرضين المبسّطين (Markov assumption + output independence)، وده اللي بيخلي الرياضيات وdynamic programming قابلة للتنفيذ عملياً.</p>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      Forward solves likelihood, Viterbi solves decoding, and Forward-Backward solves learning — all three are dynamic-programming algorithms built on the same trellis idea.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SECTION 7 ===================== -->
+<section class="section" id="s7">
+  <div class="section-head" onclick="toggleSection(this)">
+    <div class="icon-badge">📜</div>
+    <div>
+      <span class="eyebrow">Background</span>
+      <h2>7. Bibliographical &amp; Historical Notes</h2>
+    </div>
+    <div class="toggle-arrow">▾</div>
+  </div>
+  <div class="section-body">
+
+    <div class="lang-tabs">
+      <button class="lang-tab active" onclick="switchLang(this,'s7')" data-lang="en">EN</button>
+      <button class="lang-tab" onclick="switchLang(this,'s7')" data-lang="ar">AR</button>
+    </div>
+
+    <div class="lang-content en active" data-section="s7">
+      <p>Markov chains trace back to <span class="term">Markov (1913)</span>, who used them to analyze whether letters in Pushkin's <em>Eugene Onegin</em> would be vowels or consonants. The <span class="term">Hidden Markov Model</span> itself was developed by Baum and colleagues at the Institute for Defense Analyses in the 1960s.</p>
+
+      <p>The <span class="term">Viterbi algorithm</span> has a remarkable history of independent discovery across multiple fields — information theory, speech processing, molecular biology, and computer science all separately discovered the same dynamic programming idea, under different names (e.g. in biology it's part of sequence alignment).</p>
+
+      <p>The "three fundamental problems" framing comes from an influential 1989 tutorial by <span class="term">Rabiner</span>, itself based on earlier 1960s tutorials by Jack Ferguson.</p>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 Fun Fact</div>
+        The same core algorithm (dynamic programming over an alignment-like grid) was independently invented at least 7 times across different fields between 1967 and 1974 — a striking example of convergent discovery in science.
+      </div>
+    </div>
+
+    <div class="lang-content ar" data-section="s7">
+      <p>الـ Markov chains رجعت لـ <span class="term">Markov (1913)</span>، اللي استخدمها عشان يحلل هل الحروف في رواية بوشكين <em>Eugene Onegin</em> هتكون حروف متحركة أو ساكنة. الـ <span class="term">Hidden Markov Model</span> نفسها طوّرها Baum وزمايله في معهد Institute for Defense Analyses في الستينات.</p>
+
+      <p>خوارزمية <span class="term">Viterbi</span> ليها تاريخ غريب من الاكتشاف المستقل في مجالات متعددة — نظرية المعلومات، معالجة الكلام، البيولوجيا الجزيئية، وعلوم الحاسب كلهم اكتشفوا نفس فكرة dynamic programming بشكل منفصل، تحت أسماء مختلفة (في البيولوجيا مثلاً هي جزء من sequence alignment).</p>
+
+      <p>فكرة "المشاكل الأساسية الثلاثة" جت من تيوتوريال مؤثر سنة 1989 لـ <span class="term">Rabiner</span>، والذي هو نفسه كان مبني على تيوتوريالز أقدم من الستينات لـ Jack Ferguson.</p>
+
+      <div class="box analogy">
+        <div class="box-title">🧩 معلومة طريفة</div>
+        نفس الخوارزمية الأساسية (dynamic programming على شبكة شبيهة بالـ alignment) تم اختراعها بشكل مستقل 7 مرات على الأقل في مجالات مختلفة بين سنة 1967 و1974 — مثال مذهل على الاكتشاف المتقارب في العلم.
+      </div>
+    </div>
+
+    <div class="box summary">
+      <div class="box-title">📌 Summary</div>
+      HMMs and the Viterbi algorithm have roots in early 20th-century probability theory and were independently rediscovered across speech processing, biology, and information theory.
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Study notes generated from "Speech and Language Processing" — Jurafsky &amp; Martin · Appendix A: Hidden Markov Models
+</footer>
+
+<script>
+function toggleTheme(){
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  if(html.getAttribute('data-theme') === 'dark'){
+    html.removeAttribute('data-theme');
+    btn.textContent = '🌙 Dark Mode';
+  } else {
+    html.setAttribute('data-theme','dark');
+    btn.textContent = '☀️ Light Mode';
+  }
+}
+
+function toggle(sectionEl){
+  sectionEl.classList.toggle('collapsed');
+}
+
+function toggleSection(headEl){
+  const section = headEl.closest('.section');
+  toggle(section);
+}
+
+function switchLang(btn, sectionId){
+  const tabs = btn.parentElement.querySelectorAll('.lang-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  const lang = btn.getAttribute('data-lang');
+  const contents = document.querySelectorAll('.lang-content[data-section="'+sectionId+'"]');
+  contents.forEach(c => {
+    if(c.classList.contains(lang)){
+      c.classList.add('active');
+    } else {
+      c.classList.remove('active');
+    }
+  });
+}
+
+function setAllLang(lang){
+  document.querySelectorAll('.section').forEach(section => {
+    const sectionId = section.id;
+    const tabs = section.querySelectorAll('.lang-tab');
+    tabs.forEach(tab => {
+      if(tab.getAttribute('data-lang') === lang){
+        switchLang(tab, sectionId);
+      }
+    });
+  });
+}
+
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(el){
+    el.classList.remove('collapsed');
+    el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+</script>
+
+</body>
+</html>

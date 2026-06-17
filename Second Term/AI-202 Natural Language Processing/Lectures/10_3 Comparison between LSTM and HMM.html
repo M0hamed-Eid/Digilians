@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMM vs LSTM — Bilingual Explainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #f8f7f4;
+    --surface:  #ffffff;
+    --border:   #e5e2d9;
+    --text:     #1a1916;
+    --muted:    #6b6860;
+    --faint:    #f0ede7;
+
+    --c1:  #534AB7; --c1b: #EEEDFE; --c1m: #CECBF6;
+    --c2:  #185FA5; --c2b: #E6F1FB; --c2m: #B5D4F4;
+    --c3:  #0F6E56; --c3b: #E1F5EE; --c3m: #9FE1CB;
+    --c4:  #993556; --c4b: #FBEAF0; --c4m: #F4C0D1;
+    --c5:  #BA7517; --c5b: #FAEEDA; --c5m: #FAC775;
+    --c6:  #A32D2D; --c6b: #FCEBEB; --c6m: #F7C1C1;
+    --c7:  #3B6D11; --c7b: #EAF3DE; --c7m: #C0DD97;
+
+    --radius: 10px;
+    --font: 'Sora', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:      #111110;
+      --surface: #1c1b19;
+      --border:  #2e2d2a;
+      --text:    #f0ede7;
+      --muted:   #8a8880;
+      --faint:   #252420;
+      --c1b: #26215C; --c1m: #3C3489; --c1: #AFA9EC;
+      --c2b: #042C53; --c2m: #0C447C; --c2: #85B7EB;
+      --c3b: #04342C; --c3m: #085041; --c3: #5DCAA5;
+      --c4b: #4B1528; --c4m: #72243E; --c4: #ED93B1;
+      --c5b: #412402; --c5m: #633806; --c5: #EF9F27;
+      --c6b: #501313; --c6m: #791F1F; --c6: #F09595;
+      --c7b: #173404; --c7m: #27500A; --c7: #97C459;
+    }
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .75rem;
+  }
+  .header-title {
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    font-weight: 600;
+    line-height: 1.25;
+    background: linear-gradient(120deg, var(--c1) 0%, var(--c2) 55%, var(--c3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: .5rem;
+  }
+  .header-sub {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── LANG BAR ── */
+  .lang-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .lang-label { font-size: 12px; color: var(--muted); }
+  .lang-btn {
+    padding: 6px 20px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .lang-btn.active {
+    border-color: var(--c2);
+    background: var(--c2b);
+    color: var(--c2);
+    font-weight: 500;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 1rem 2rem;
+    max-width: 860px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .toc-chip {
+    padding: 4px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: var(--font);
+    cursor: pointer;
+    border: 1px solid;
+    transition: opacity .12s;
+  }
+  .toc-chip:hover { opacity: .75; }
+  .toc-chip:nth-child(1) { background: var(--c1b); color: var(--c1); border-color: var(--c1m); }
+  .toc-chip:nth-child(2) { background: var(--c2b); color: var(--c2); border-color: var(--c2m); }
+  .toc-chip:nth-child(3) { background: var(--c3b); color: var(--c3); border-color: var(--c3m); }
+  .toc-chip:nth-child(4) { background: var(--c4b); color: var(--c4); border-color: var(--c4m); }
+  .toc-chip:nth-child(5) { background: var(--c5b); color: var(--c5); border-color: var(--c5m); }
+  .toc-chip:nth-child(6) { background: var(--c6b); color: var(--c6); border-color: var(--c6m); }
+  .toc-chip:nth-child(7) { background: var(--c7b); color: var(--c7); border-color: var(--c7m); }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 4rem;
+  }
+
+  /* ── SECTION CARDS ── */
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .section-card.s1 { border-left: 3px solid var(--c1); }
+  .section-card.s2 { border-left: 3px solid var(--c2); }
+  .section-card.s3 { border-left: 3px solid var(--c3); }
+  .section-card.s4 { border-left: 3px solid var(--c4); }
+  .section-card.s5 { border-left: 3px solid var(--c5); }
+  .section-card.s6 { border-left: 3px solid var(--c6); }
+  .section-card.s7 { border-left: 3px solid var(--c7); }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .12s;
+  }
+  .section-head:hover { background: var(--faint); }
+
+  .icon-badge {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .s1 .icon-badge { background: var(--c1b); color: var(--c1); }
+  .s2 .icon-badge { background: var(--c2b); color: var(--c2); }
+  .s3 .icon-badge { background: var(--c3b); color: var(--c3); }
+  .s4 .icon-badge { background: var(--c4b); color: var(--c4); }
+  .s5 .icon-badge { background: var(--c5b); color: var(--c5); }
+  .s6 .icon-badge { background: var(--c6b); color: var(--c6); }
+  .s7 .icon-badge { background: var(--c7b); color: var(--c7); }
+
+  .section-title { font-size: 15px; font-weight: 500; color: var(--text); flex: 1; }
+  .toggle-icon { color: var(--muted); font-size: 18px; transition: transform .2s; }
+  .toggle-icon.open { transform: rotate(180deg); }
+
+  .section-body { padding: 0 18px 18px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── BOXES ── */
+  .box {
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 12px 0;
+    font-size: 14px;
+    line-height: 1.65;
+    border-left: 3px solid;
+  }
+  .box-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--mono);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .box-analogy  { background: var(--c5b); border-color: var(--c5); }
+  .box-example  { background: var(--c2b); border-color: var(--c2); }
+  .box-summary  { background: var(--c3b); border-color: var(--c3); }
+  .box-warning  { background: var(--c6b); border-color: var(--c6); }
+  .box-analogy  .box-label { color: var(--c5); }
+  .box-example  .box-label { color: var(--c2); }
+  .box-summary  .box-label { color: var(--c3); }
+  .box-warning  .box-label { color: var(--c6); }
+
+  /* ── INLINE SPANS ── */
+  .term        { background: var(--c1b); color: var(--c1); border-radius: 4px; padding: 1px 6px; font-size: 13px; font-weight: 500; }
+  .highlight   { background: var(--c5b); color: var(--c5); border-radius: 4px; padding: 1px 6px; font-size: 13px; font-weight: 500; }
+  .code-inline { background: var(--faint); color: var(--text); border-radius: 4px; padding: 1px 6px; font-size: 12px; font-family: var(--mono); border: 1px solid var(--border); }
+
+  /* ── TYPOGRAPHY ── */
+  p  { font-size: 14px; line-height: 1.75; color: var(--text); margin-bottom: 10px; }
+  ul { font-size: 14px; line-height: 1.75; color: var(--text); padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 4px; }
+  h3 { font-size: 14px; font-weight: 600; color: var(--text); margin: 16px 0 6px; letter-spacing: .01em; }
+  strong { font-weight: 500; }
+
+  /* ── COMPARE TABLE ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+  .compare-table th { padding: 9px 12px; font-weight: 500; font-size: 12px; text-align: left; }
+  .compare-table td { padding: 8px 12px; border-top: 1px solid var(--border); color: var(--text); }
+  .th-hmm   { background: var(--c3b); color: var(--c3); }
+  .th-lstm  { background: var(--c2b); color: var(--c2); }
+  .th-label { background: var(--faint); color: var(--muted); }
+
+  /* ── RESULTS GRID ── */
+  .results-group { margin: 14px 0; }
+  .results-group-label { font-size: 11px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 6px; }
+  .results-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .metric-card { background: var(--faint); border-radius: 8px; padding: 10px 8px; text-align: center; border: 1px solid var(--border); }
+  .metric-val  { font-size: 19px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+  .metric-lbl  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .metric-diff { font-size: 11px; margin-top: 3px; font-weight: 500; }
+  .better { color: var(--c3); }
+  .worse  { color: var(--c6); }
+  .tie    { color: var(--c4); }
+
+  /* ── FORMULA BLOCK ── */
+  .formula-block {
+    background: #1a1916;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #e0dccd;
+    overflow-x: auto;
+    line-height: 1.8;
+  }
+
+  /* ── RTL for Arabic ── */
+  [dir="rtl"] { text-align: right; }
+  [dir="rtl"] ul { padding-left: 0; padding-right: 20px; }
+  [dir="rtl"] .box { border-left: none; border-right: 3px solid; }
+  [dir="rtl"] .box-analogy { border-right-color: var(--c5); }
+  [dir="rtl"] .box-example { border-right-color: var(--c2); }
+  [dir="rtl"] .box-summary { border-right-color: var(--c3); }
+  [dir="rtl"] .box-warning { border-right-color: var(--c6); }
+  [dir="rtl"] .compare-table th { text-align: right; }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    max-width: 860px;
+    margin: 0 auto;
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 600px) {
+    .header, .toc, .main { padding-left: 1rem; padding-right: 1rem; }
+    .results-grid { grid-template-columns: repeat(2, 1fr); }
+    .header-title { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">University of Groningen · Bachelor Thesis · Bram de Wit</div>
+  <h1 class="header-title">Stock Prediction:<br>HMM vs LSTM</h1>
+  <p class="header-sub">A bilingual, interactive guide to understanding the paper — English & Arabic</p>
+  <div class="lang-bar">
+    <span class="lang-label">Language / اللغة:</span>
+    <button class="lang-btn active" id="btn-en" onclick="switchLang('en')">English</button>
+    <button class="lang-btn" id="btn-ar" onclick="switchLang('ar')">العربية</button>
+  </div>
+</div>
+
+<nav class="toc">
+  <button class="toc-chip" onclick="jumpTo('s1')">1. Overview</button>
+  <button class="toc-chip" onclick="jumpTo('s2')">2. The Data</button>
+  <button class="toc-chip" onclick="jumpTo('s3')">3. HMM</button>
+  <button class="toc-chip" onclick="jumpTo('s4')">4. LSTM</button>
+  <button class="toc-chip" onclick="jumpTo('s5')">5. Metrics</button>
+  <button class="toc-chip" onclick="jumpTo('s6')">6. Results</button>
+  <button class="toc-chip" onclick="jumpTo('s7')">7. Discussion</button>
+</nav>
+
+<main class="main">
+
+  <!-- ═══════════════════════════════ SECTION 1 ═══ -->
+  <div class="section-card s1" id="s1">
+    <div class="section-head" onclick="toggle('b1','i1')">
+      <div class="icon-badge">📄</div>
+      <span class="section-title en">1. What is this paper about?</span>
+      <span class="section-title ar" style="display:none">1. عن ماذا تتكلم الدراسة؟</span>
+      <span class="toggle-icon open" id="i1">▾</span>
+    </div>
+    <div class="section-body open" id="b1">
+
+      <!-- EN -->
+      <div class="en">
+        <p>This is a bachelor's thesis from the University of Groningen that asks a simple but important question: <strong>which model is better at predicting stock prices — a Hidden Markov Model (HMM) or a Long Short-Term Memory network (LSTM)?</strong></p>
+        <p>The paper uses historical daily closing prices of <span class="term">AAPL (Apple)</span> stock from January 1990 to June 2019, alongside about 110 other S&amp;P 500 stocks used as contextual signals. Two very different models are trained and compared on how accurately they forecast the next day's Apple price.</p>
+        <div class="box box-analogy">
+          <span class="box-label">💡 Analogy</span>
+          Think of it like two weather forecasters using completely different methods. One consults a statistical rulebook built on probabilities (HMM). The other has a deep-learning brain that finds patterns in data (LSTM). The paper holds a competition between them.
+        </div>
+        <p><strong>Key finding:</strong> The HMM won on numerical error metrics — roughly half the error of the LSTM. But it may have been "cheating" by simply copying yesterday's price as tomorrow's prediction.</p>
+        <div class="box box-summary">
+          <span class="box-label">✦ Summary</span>
+          A comparison of two time-series models on real Apple stock data. HMM wins numerically, but neither model reliably predicts market direction better than a coin flip.
+        </div>
+      </div>
+
+      <!-- AR -->
+      <div class="ar" style="display:none" dir="rtl">
+        <p>دي رسالة بكالوريوس من جامعة Groningen الهولندية، وبتسأل سؤال بسيط بس مهم: <strong>أيهما أفضل في توقع أسعار الأسهم — نموذج ماركوف المخفي (HMM) ولا شبكة الذاكرة طويلة-قصيرة المدى (LSTM)؟</strong></p>
+        <p>استخدمت الدراسة بيانات أسعار إغلاق يومية لسهم <span class="term">AAPL (Apple)</span> من يناير 1990 لحد يونيو 2019، مع حوالي 110 سهم تاني من S&amp;P 500 كـ context. اتدرّب موديلين مختلفين تماماً وانقارنت دقتهم في توقع سعر Apple اليوم الجاي.</p>
+        <div class="box box-analogy">
+          <span class="box-label">💡 تشبيه</span>
+          تخيل اتنين محللي جو بيستخدموا طرق مختلفة تماماً. واحد بيرجع لكتاب قواعد إحصائي (HMM)، والتاني عنده عقل Deep Learning بيلاقي أنماط في البيانات (LSTM). الدراسة عاملة مسابقة بينهم.
+        </div>
+        <p><strong>النتيجة الرئيسية:</strong> الـHMM كسب من حيث أرقام الخطأ — نص خطأ الـLSTM تقريباً. بس ممكن يكون "بيغش" بإنه بس بيكرر سعر امبارح كتنبؤ لبكرا.</p>
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة</span>
+          مقارنة بين موديلين على بيانات سهم Apple الحقيقية. الـHMM أحسن عددياً، بس مش أي موديل يقدر يتنبأ باتجاه السوق أحسن من رمية عملة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SECTION 2 ═══ -->
+  <div class="section-card s2" id="s2">
+    <div class="section-head" onclick="toggle('b2','i2')">
+      <div class="icon-badge">🗄️</div>
+      <span class="section-title en">2. The Data</span>
+      <span class="section-title ar" style="display:none">2. البيانات</span>
+      <span class="toggle-icon" id="i2">▾</span>
+    </div>
+    <div class="section-body" id="b2">
+
+      <div class="en">
+        <p><strong>What was used:</strong> Daily closing prices for 110 S&amp;P 500 stocks from January 1990 to June 2019 — approximately <span class="highlight">7,000 trading days</span> per stock (~30 years of data).</p>
+        <h3>Data preparation steps</h3>
+        <ul>
+          <li><strong>Only the closing price</strong> was used — not open, high, or low.</li>
+          <li><span class="term">Linear interpolation</span>: missing days (holidays, gaps) were filled by drawing a straight line between known values.</li>
+          <li><span class="term">Random noise (0.01%)</span>: a tiny random perturbation was added to all data points to reduce overfitting.</li>
+          <li><span class="term">Odd-even splitting</span>: data was divided by index — even-indexed points form one group, odd-indexed form another. One group trains the model, the other tests it.</li>
+        </ul>
+        <div class="box box-example">
+          <span class="box-label">▶ Example — Odd-Even Split</span>
+          If data points are numbered 1, 2, 3, 4, 5, 6... — train on even (2, 4, 6...) and test on odd (1, 3, 5...). This is smart because it creates two groups with similar statistical properties and avoids "leaking" future information into training.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ Summary</span>
+          110 stocks × ~7,000 days of closing prices = the input to both models. Data was cleaned, slightly noised, and split without time-leakage.
+        </div>
+      </div>
+
+      <div class="ar" style="display:none" dir="rtl">
+        <p><strong>اللي اتستخدم:</strong> أسعار إغلاق يومية لـ110 سهم من S&amp;P 500 من يناير 1990 لحد يونيو 2019 — حوالي <span class="highlight">7,000 يوم تداول</span> لكل سهم (تقريباً 30 سنة بيانات).</p>
+        <h3>خطوات تحضير البيانات</h3>
+        <ul>
+          <li>اتستخدم بس <strong>سعر الإغلاق</strong> — مش الافتتاح أو الأعلى أو الأدنى.</li>
+          <li><span class="term">Linear interpolation</span>: الأيام الناقصة (إجازات، فراغات) اتملت برسم خط مستقيم بين القيم المعروفة.</li>
+          <li><span class="term">ضوضاء عشوائية (0.01%)</span>: اتضافت اضطرابات صغيرة جداً لكل النقاط عشان تقلل الـoverfitting.</li>
+          <li><span class="term">Odd-even splitting</span>: البيانات اتقسمت حسب الأرقام — الزوجية مجموعة، والفردية مجموعة تانية. واحدة للتدريب والتانية للاختبار.</li>
+        </ul>
+        <div class="box box-example">
+          <span class="box-label">▶ مثال — تقسيم الزوجي والفردي</span>
+          لو النقاط متنمرة 1، 2، 3، 4، 5، 6... — اتدرب على الزوجي (2،4،6...) واختُبر على الفردي (1،3،5...). ده ذكي لأنه بيعمل مجموعتين بخصائص إحصائية متشابهة ومن غير تسريب معلومات المستقبل في التدريب.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة</span>
+          110 سهم × ~7,000 يوم من أسعار الإغلاق = الـinput للموديلين. البيانات اتنظفت، وأُضيف ليها ضوضاء بسيطة، وانقسمت من غير تسريب زمني.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SECTION 3 ═══ -->
+  <div class="section-card s3" id="s3">
+    <div class="section-head" onclick="toggle('b3','i3')">
+      <div class="icon-badge">🔵</div>
+      <span class="section-title en">3. Hidden Markov Model (HMM)</span>
+      <span class="section-title ar" style="display:none">3. نموذج ماركوف المخفي (HMM)</span>
+      <span class="toggle-icon" id="i3">▾</span>
+    </div>
+    <div class="section-body" id="b3">
+
+      <div class="en">
+        <p>An HMM assumes the world is always in one of several <span class="term">hidden states</span> that you cannot observe directly. Each hidden state produces observable outputs according to a probability distribution.</p>
+        <h3>The 5 core components</h3>
+        <ul>
+          <li><strong>N — number of hidden states:</strong> "Market moods" like bullish, bearish, volatile. This study tested 2–8 and settled on <span class="highlight">6 states</span>.</li>
+          <li><strong>T — time steps:</strong> Length of the observation window. This study used a sliding window of <span class="code-inline">200 days</span>.</li>
+          <li><strong>π — initial state probabilities:</strong> Which state is the market most likely in at the very start?</li>
+          <li><strong>A — transition matrix (N×N):</strong> Probability of moving from state i to state j on the next day.</li>
+          <li><strong>B — emission probabilities:</strong> Each state has a <span class="term">Gaussian Mixture Model (GMM)</span> describing the distribution of prices it tends to produce.</li>
+        </ul>
+        <h3>The 4 key algorithms</h3>
+        <ul>
+          <li><span class="term">Forward algorithm</span>: Calculates the probability of seeing an observation sequence (left to right in time).</li>
+          <li><span class="term">Backward algorithm</span>: Same, but right to left.</li>
+          <li><span class="term">Viterbi algorithm</span>: Finds the most likely sequence of hidden states that produced the observations.</li>
+          <li><span class="term">Baum-Welch algorithm</span>: Trains the model by maximising the likelihood of the training data (the learning step).</li>
+        </ul>
+        <h3>How it predicts stock prices</h3>
+        <ul>
+          <li>A 200-day sliding window of all 110 stock prices is given as input.</li>
+          <li>Viterbi finds the most likely current hidden state s<sub>t</sub>.</li>
+          <li>The transition matrix A finds the most likely next state s<sub>t+1</sub>.</li>
+          <li>A random sample is drawn from that state's GMM using the CDF — this is the predicted price.</li>
+        </ul>
+        <div class="box box-analogy">
+          <span class="box-label">💡 Analogy — The Slot Machine</span>
+          Imagine a slot machine with 6 internal settings (hidden states). You cannot see which setting is active, but you can watch the output numbers. The HMM learns: (1) which setting is currently active, (2) how likely each setting is to switch to another, and (3) what numbers each setting tends to produce. Then it predicts what comes next.
+        </div>
+        <div class="box box-warning">
+          <span class="box-label">⚠ Key limitation of HMMs</span>
+          An HMM's transition only considers the current state — it cannot remember what happened 50 steps ago. This is the <span class="term">Markov assumption</span>: only the present matters for predicting the future. Long-term patterns are invisible to it.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ Summary</span>
+          The HMM models the market as switching between hidden "moods". It predicts the next price by estimating which mood is coming next and drawing from its price distribution. Best hyperparameter: 6 hidden states.
+        </div>
+      </div>
+
+      <div class="ar" style="display:none" dir="rtl">
+        <p>الـHMM بيفترض إن العالم دايماً في حالة معينة من مجموعة <span class="term">حالات مخفية (hidden states)</span> مش بتقدر تشوفها مباشرة. كل حالة مخفية بتنتج observations بناءً على توزيع احتمالي.</p>
+        <h3>المكونات الخمسة الأساسية</h3>
+        <ul>
+          <li><strong>N — عدد الحالات المخفية:</strong> "أمزجة السوق" زي صاعد، هابط، متقلب. الدراسة جربت من 2 لـ8 واستقرت على <span class="highlight">6 حالات</span>.</li>
+          <li><strong>T — الخطوات الزمنية:</strong> طول نافذة الملاحظة. الدراسة استخدمت نافذة منزلقة بطول <span class="code-inline">200 يوم</span>.</li>
+          <li><strong>π — احتمالات الحالة الابتدائية:</strong> أكتر حالة محتملة للسوق في البداية؟</li>
+          <li><strong>A — مصفوفة الانتقال (N×N):</strong> احتمال الانتقال من حالة i لحالة j في اليوم التالي.</li>
+          <li><strong>B — احتمالات الانبعاث:</strong> كل حالة عندها <span class="term">Gaussian Mixture Model (GMM)</span> بيصف توزيع الأسعار اللي بتنتجها.</li>
+        </ul>
+        <h3>الخوارزميات الأربعة الأساسية</h3>
+        <ul>
+          <li><span class="term">Forward algorithm</span>: بيحسب احتمال مشاهدة تسلسل معين (من اليسار لليمين زمنياً).</li>
+          <li><span class="term">Backward algorithm</span>: نفسه بس من اليمين لليسار.</li>
+          <li><span class="term">Viterbi algorithm</span>: بيلاقي أكتر تسلسل محتمل من الحالات المخفية اللي أنتجت الـobservations.</li>
+          <li><span class="term">Baum-Welch algorithm</span>: بيدرّب الموديل بتعظيم احتمال بيانات التدريب (خطوة التعلم).</li>
+        </ul>
+        <h3>إزاي بيتنبأ بأسعار الأسهم؟</h3>
+        <ul>
+          <li>بياخد نافذة منزلقة من 200 يوم لكل الـ110 سهم كـinput.</li>
+          <li>Viterbi بتلاقي أكتر حالة مخفية محتملة دلوقتي s<sub>t</sub>.</li>
+          <li>مصفوفة A بتلاقي أكتر حالة محتملة جاية s<sub>t+1</sub>.</li>
+          <li>بياخد عينة عشوائية من الـGMM بتاع الحالة دي عن طريق الـCDF — ده هو السعر المتنبأ بيه.</li>
+        </ul>
+        <div class="box box-analogy">
+          <span class="box-label">💡 تشبيه — ماكينة القمار</span>
+          تخيل ماكينة قمار عندها 6 إعدادات داخلية (حالات مخفية). مش شايف الإعداد الحالي، بس شايف الأرقام الخارجة. الـHMM بيتعلم: (1) أنا على أي إعداد دلوقتي؟ (2) كل إعداد محتمل يتحول لأي إعداد؟ (3) كل إعداد بيطلع أرقام إيه؟ وبناءً عليه يتنبأ بالجاي.
+        </div>
+        <div class="box box-warning">
+          <span class="box-label">⚠ حد أساسي للـHMM</span>
+          الانتقال في الـHMM بياخد في الحسبان الحالة الحالية بس — مش يقدر يتذكر اللي حصل قبل 50 خطوة. ده اسمه <span class="term">Markov assumption</span>: الحاضر بس هو اللي بيتنبأ بالمستقبل. الأنماط طويلة المدى مش مرئية ليه.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة</span>
+          الـHMM بيشوف السوق كإنه بيتنقل بين "أمزجة مخفية". بيتنبأ بالسعر الجاي بتخمين المزاج القادم والسحب من توزيعه. أفضل hyperparameter: 6 حالات مخفية.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SECTION 4 ═══ -->
+  <div class="section-card s4" id="s4">
+    <div class="section-head" onclick="toggle('b4','i4')">
+      <div class="icon-badge">🧠</div>
+      <span class="section-title en">4. Long Short-Term Memory (LSTM)</span>
+      <span class="section-title ar" style="display:none">4. الذاكرة طويلة-قصيرة المدى (LSTM)</span>
+      <span class="toggle-icon" id="i4">▾</span>
+    </div>
+    <div class="section-body" id="b4">
+
+      <div class="en">
+        <p>A standard neural network has no memory — it sees one input at a time and outputs one result. An LSTM is a special <span class="term">recurrent neural network (RNN)</span> designed to <strong>remember patterns over long sequences</strong> using a <span class="term">cell state</span>.</p>
+        <h3>Why not a basic RNN?</h3>
+        <p>Basic RNNs suffer from the <span class="term">vanishing gradient problem</span>: as you train through many time steps, the gradients used for learning shrink exponentially. Information from 100 steps ago effectively disappears. The LSTM solves this with a <span class="term">constant error carousel</span> — the cell state maintains a direct path for gradients, keeping them from vanishing.</p>
+        <h3>LSTM cell — the 6 equations</h3>
+        <div class="formula-block">
+f_t = σ(W_f · [h_{t-1}, x_t] + b_f)   ← forget gate: what to erase
+i_t = σ(W_i · [h_{t-1}, x_t] + b_i)   ← input gate: what to write
+Ĉ_t = tanh(W_C · [h_{t-1}, x_t] + b_C) ← candidate values
+C_t = f_t × C_{t-1} + i_t × Ĉ_t       ← updated cell state
+o_t = σ(W_o · [h_{t-1}, x_t] + b_o)   ← output gate
+h_t = o_t × tanh(C_t)                  ← hidden state (output)
+        </div>
+        <h3>Architecture used in this paper</h3>
+        <ul>
+          <li><strong>Input:</strong> Vector of closing prices for all 110 stocks at time t</li>
+          <li><strong>Layer 1 (LSTM):</strong> Full cell-state; learns temporal patterns</li>
+          <li><strong>Layer 2 (Dimension reduction):</strong> Compresses representation to <span class="highlight">45 dimensions</span> — prevents the model from lazily copying the input</li>
+          <li><strong>Layer 3 (Output):</strong> Reconstructs a prediction vector for all 110 stocks; AAPL value is extracted</li>
+        </ul>
+        <h3>Training details</h3>
+        <ul>
+          <li>Batch size: <span class="code-inline">200</span> with 100-step intervals between batches</li>
+          <li>Dropout: <span class="code-inline">20%</span> per layer (prevents overfitting)</li>
+          <li>Optimizer: <span class="term">ADAM</span> — adaptive learning rates</li>
+          <li>Loss function: <span class="term">Mean Squared Error (MSE)</span></li>
+          <li>Epochs: <span class="code-inline">200</span></li>
+        </ul>
+        <div class="box box-analogy">
+          <span class="box-label">💡 Analogy — The Student with a Notepad</span>
+          Imagine a student reading a 1,000-page book. A basic student forgets chapter 1 by chapter 10 (vanishing gradient). The LSTM student has a notepad (cell state). They constantly write what's important, cross out what's not, and can reference it even 900 chapters later. The forget gate decides what to erase; the input gate decides what to write.
+        </div>
+        <div class="box box-warning">
+          <span class="box-label">⚠ The "lazy trick" problem</span>
+          LSTMs naturally tend to predict t+1 ≈ t (tomorrow ≈ today). This reduces error impressively but means the model hasn't learned anything real. The dimension reduction layer forces compression — the model cannot simply pass through the current price, so it must learn genuine relationships.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ Summary</span>
+          The LSTM is a deep learning model with memory. It processes 110 stocks simultaneously over sequences, compresses what it learns, and predicts the next closing price. Best hyperparameter: 45 dimensions in the reduction layer.
+        </div>
+      </div>
+
+      <div class="ar" style="display:none" dir="rtl">
+        <p>الشبكة العصبية العادية معهاش ذاكرة — بتشوف input واحد وبتطلع output. الـLSTM هو نوع خاص من الـ<span class="term">Recurrent Neural Network (RNN)</span> متصمم عشان <strong>يتذكر أنماط على تسلسلات طويلة</strong> باستخدام الـ<span class="term">cell state</span>.</p>
+        <h3>ليه مش RNN عادي؟</h3>
+        <p>الـRNN العادي بيعاني من مشكلة <span class="term">vanishing gradient</span>: وانت بتتدرب على خطوات زمنية كتير، الـgradients المستخدمة في التعلم بتبقى صغيرة جداً أو تتلاشى. المعلومات من 100 خطوة اتاخرت بتختفي فعلياً. الـLSTM بيحل ده بـ<span class="term">constant error carousel</span> — الـcell state بيفضل طريق مباشر للـgradients، وبيمنعهم من الاختفاء.</p>
+        <h3>خلية الـLSTM — المعادلات الست</h3>
+        <div class="formula-block">
+f_t = σ(W_f · [h_{t-1}, x_t] + b_f)    ← forget gate: إيه اللي هنمسحه
+i_t = σ(W_i · [h_{t-1}, x_t] + b_i)    ← input gate: إيه اللي هنكتبه
+Ĉ_t = tanh(W_C · [h_{t-1}, x_t] + b_C) ← القيم المرشحة
+C_t = f_t × C_{t-1} + i_t × Ĉ_t        ← cell state المحدّث
+o_t = σ(W_o · [h_{t-1}, x_t] + b_o)    ← output gate
+h_t = o_t × tanh(C_t)                   ← hidden state (الـoutput)
+        </div>
+        <h3>الـarchitecture المستخدم في الدراسة</h3>
+        <ul>
+          <li><strong>Input:</strong> متجه بأسعار إغلاق كل الـ110 سهم في الوقت t</li>
+          <li><strong>Layer 1 (LSTM):</strong> cell-state كامل؛ بيتعلم الأنماط الزمنية</li>
+          <li><strong>Layer 2 (تقليل الأبعاد):</strong> بيضغط التمثيل لـ<span class="highlight">45 بُعد</span> — بيمنع الموديل من التكاسل ونسخ الـinput</li>
+          <li><strong>Layer 3 (Output):</strong> بيعيد بناء متجه تنبؤات لكل الأسهم؛ قيمة AAPL بتُستخرج منه</li>
+        </ul>
+        <h3>تفاصيل التدريب</h3>
+        <ul>
+          <li>Batch size: <span class="code-inline">200</span> بفواصل 100 خطوة بين الـbatches</li>
+          <li>Dropout: <span class="code-inline">20%</span> لكل طبقة (يمنع الـoverfitting)</li>
+          <li>Optimizer: <span class="term">ADAM</span> — معدلات تعلم تكيفية</li>
+          <li>Loss function: <span class="term">Mean Squared Error (MSE)</span></li>
+          <li>Epochs: <span class="code-inline">200</span></li>
+        </ul>
+        <div class="box box-analogy">
+          <span class="box-label">💡 تشبيه — الطالب بالدفتر</span>
+          تخيل طالب بيقرأ كتاب بـ1000 صفحة. الطالب العادي بينسى الفصل الأول وهو في الفصل العاشر (vanishing gradient). طالب الـLSTM معه دفتر (cell state). باستمرار بيكتب المهم ويمسح الغير مهم، ويقدر يرجع ليه حتى بعد 900 فصل. الـforget gate بيقرر إيه يُمسح، والـinput gate بيقرر إيه يُكتب.
+        </div>
+        <div class="box box-warning">
+          <span class="box-label">⚠ مشكلة "الحيلة الكسولة"</span>
+          الـLSTM طبيعياً بيتجه لتوقع t+1 ≈ t (بكرا ≈ النهارده). ده بيقلل الخطأ بشكل لافت بس معناه الموديل ما تعلمش حاجة حقيقية. طبقة تقليل الأبعاد بتجبر الضغط — الموديل ما يقدرش يمرر السعر الحالي ببساطة، فلازم يتعلم علاقات حقيقية.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة</span>
+          الـLSTM موديل Deep Learning بذاكرة. بيعالج 110 سهم في نفس الوقت على تسلسلات، وبيضغط اللي بيتعلمه، وبيتنبأ بسعر الإغلاق الجاي. أفضل hyperparameter: 45 بُعد في طبقة التقليل.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SECTION 5 ═══ -->
+  <div class="section-card s5" id="s5">
+    <div class="section-head" onclick="toggle('b5','i5')">
+      <div class="icon-badge">📏</div>
+      <span class="section-title en">5. Performance Metrics</span>
+      <span class="section-title ar" style="display:none">5. مقاييس الأداء</span>
+      <span class="toggle-icon" id="i5">▾</span>
+    </div>
+    <div class="section-body" id="b5">
+
+      <div class="en">
+        <p>Four measures were used to evaluate and compare the two models:</p>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th class="th-label">Metric</th>
+              <th class="th-label">What it measures</th>
+              <th class="th-label">Formula</th>
+              <th class="th-label">Goal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="term">RMSE</span></td>
+              <td>Average dollar error in predictions, penalising large errors more</td>
+              <td><span class="code-inline">√(Σ(R-P)²/n)</span></td>
+              <td>Lower ↓</td>
+            </tr>
+            <tr>
+              <td><span class="term">MAPE</span></td>
+              <td>Average % error — scale-independent, easier to interpret</td>
+              <td><span class="code-inline">100/n × Σ|R-P|/P</span></td>
+              <td>Lower ↓</td>
+            </tr>
+            <tr>
+              <td><span class="term">Correlation</span></td>
+              <td>Does prediction follow the same trend as real data?</td>
+              <td>Pearson formula</td>
+              <td>Closer to 1 ↑</td>
+            </tr>
+            <tr>
+              <td><span class="term">Fractal Dimension</span></td>
+              <td>Does prediction have the same "roughness" / complexity?</td>
+              <td>HL-based formula</td>
+              <td>Match real ≈</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="box box-example">
+          <span class="box-label">▶ Example — MAPE</span>
+          Real price = $100, predicted = $95. Error = |100−95|/95 × 100 = 5.26%. Average this across all predictions and you get MAPE. An HMM MAPE of 4.72 means it is wrong by about 4.72% on average.
+        </div>
+        <div class="box box-analogy">
+          <span class="box-label">💡 Why Fractal Dimension?</span>
+          Stock prices are jagged and complex — they are not smooth curves. Fractal dimension captures this roughness mathematically. If a model predicts too-smooth lines, its fractal dimension will be lower than the real data's even if the actual price numbers are close. It is a "shape of the noise" check.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ Summary</span>
+          RMSE and MAPE measure value accuracy. Correlation measures trend alignment. Fractal dimension measures whether the prediction looks like real stock data in terms of complexity and volatility pattern.
+        </div>
+      </div>
+
+      <div class="ar" style="display:none" dir="rtl">
+        <p>اتستخدمت 4 مقاييس لتقييم ومقارنة الموديلين:</p>
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th class="th-label">المقياس</th>
+              <th class="th-label">بيقيس إيه</th>
+              <th class="th-label">المعادلة</th>
+              <th class="th-label">الهدف</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="term">RMSE</span></td>
+              <td>متوسط الخطأ بالدولار، مع عقوبة أكبر للأخطاء الكبيرة</td>
+              <td><span class="code-inline">√(Σ(R-P)²/n)</span></td>
+              <td>أقل ↓</td>
+            </tr>
+            <tr>
+              <td><span class="term">MAPE</span></td>
+              <td>متوسط الخطأ كنسبة مئوية — أسهل في التفسير</td>
+              <td><span class="code-inline">100/n × Σ|R-P|/P</span></td>
+              <td>أقل ↓</td>
+            </tr>
+            <tr>
+              <td><span class="term">Correlation</span></td>
+              <td>هل التنبؤ بيتبع نفس اتجاه البيانات الحقيقية؟</td>
+              <td>معادلة Pearson</td>
+              <td>أقرب لـ1 ↑</td>
+            </tr>
+            <tr>
+              <td><span class="term">Fractal Dimension</span></td>
+              <td>هل التنبؤ عنده نفس "خشونة" وتعقيد البيانات الحقيقية؟</td>
+              <td>معادلة HL</td>
+              <td>يقارب الحقيقي ≈</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="box box-example">
+          <span class="box-label">▶ مثال — MAPE</span>
+          السعر الحقيقي = $100، المتنبأ = $95. الخطأ = |100−95|/95 × 100 = 5.26%. اعمل متوسط ده على كل التنبؤات وهتاخد الـMAPE. الـHMM عنده MAPE = 4.72 يعني خطأه في المتوسط حوالي 4.72%.
+        </div>
+        <div class="box box-analogy">
+          <span class="box-label">💡 ليه Fractal Dimension؟</span>
+          أسعار الأسهم متذبذبة ومعقدة — مش منحنيات ناعمة. الـFractal Dimension بيلتقط الخشونة دي رياضياً. لو الموديل بيتنبأ بخطوط ناعمة جداً، الـfractal dimension بتاعه هيكون أقل من الحقيقي حتى لو الأرقام قريبة. ده فحص "شكل الضوضاء".
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة</span>
+          RMSE وMAPE بيقيسوا دقة القيمة. Correlation بيقيس ملاءمة الاتجاه. Fractal Dimension بيقيس هل التنبؤ بيشبه بيانات الأسهم الحقيقية من حيث التعقيد ونمط التقلب.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SECTION 6 ═══ -->
+  <div class="section-card s6" id="s6">
+    <div class="section-head" onclick="toggle('b6','i6')">
+      <div class="icon-badge">📊</div>
+      <span class="section-title en">6. Results</span>
+      <span class="section-title ar" style="display:none">6. النتائج</span>
+      <span class="toggle-icon" id="i6">▾</span>
+    </div>
+    <div class="section-body" id="b6">
+
+      <div class="en">
+        <p>After k-fold cross-validation determined optimal hyperparameters, both best models were trained and tested on identical data:</p>
+
+        <div class="results-group">
+          <div class="results-group-label">MAPE — average % prediction error</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">MAPE</div><div class="metric-lbl">% error</div></div>
+            <div class="metric-card"><div class="metric-val">4.72</div><div class="metric-lbl">HMM</div><div class="metric-diff better">▼ lower = better</div></div>
+            <div class="metric-card"><div class="metric-val">12.72</div><div class="metric-lbl">LSTM</div><div class="metric-diff worse">▲ higher = worse</div></div>
+            <div class="metric-card"><div class="metric-val" style="color:var(--c3)">×2.7</div><div class="metric-lbl">HMM advantage</div></div>
+          </div>
+        </div>
+
+        <div class="results-group">
+          <div class="results-group-label">RMSE — average dollar error</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">RMSE</div><div class="metric-lbl">$ error</div></div>
+            <div class="metric-card"><div class="metric-val">2.49</div><div class="metric-lbl">HMM</div><div class="metric-diff better">▼ lower = better</div></div>
+            <div class="metric-card"><div class="metric-val">5.35</div><div class="metric-lbl">LSTM</div><div class="metric-diff worse">▲ higher = worse</div></div>
+            <div class="metric-card"><div class="metric-val" style="color:var(--c3)">×2.1</div><div class="metric-lbl">HMM advantage</div></div>
+          </div>
+        </div>
+
+        <div class="results-group">
+          <div class="results-group-label">Correlation — trend alignment</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">Corr</div><div class="metric-lbl">trend fit</div></div>
+            <div class="metric-card"><div class="metric-val">0.99</div><div class="metric-lbl">HMM</div></div>
+            <div class="metric-card"><div class="metric-val">0.99</div><div class="metric-lbl">LSTM</div></div>
+            <div class="metric-card"><div class="metric-val tie">tie</div><div class="metric-lbl">identical</div></div>
+          </div>
+        </div>
+
+        <div class="results-group">
+          <div class="results-group-label">Direction accuracy — up or down?</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">Dir %</div><div class="metric-lbl">correct direction</div></div>
+            <div class="metric-card"><div class="metric-val">50%</div><div class="metric-lbl">HMM</div><div class="metric-diff worse">= coin flip</div></div>
+            <div class="metric-card"><div class="metric-val">51%</div><div class="metric-lbl">LSTM</div><div class="metric-diff worse">≈ coin flip</div></div>
+            <div class="metric-card"><div class="metric-val" style="color:var(--c6)">both fail</div><div class="metric-lbl">no edge</div></div>
+          </div>
+        </div>
+
+        <div class="box box-summary">
+          <span class="box-label">✦ Summary</span>
+          HMM wins on RMSE and MAPE by a factor of ~2×. Both models tie on correlation (0.99). Critically, both fail completely at predicting whether the price goes up or down — exactly 50–51%, no better than guessing.
+        </div>
+      </div>
+
+      <div class="ar" style="display:none" dir="rtl">
+        <p>بعد k-fold cross-validation لتحديد أفضل hyperparameters، اتدرّب وباختُبر أفضل موديلين على نفس البيانات بالظبط:</p>
+
+        <div class="results-group">
+          <div class="results-group-label">MAPE — متوسط الخطأ كنسبة مئوية</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">MAPE</div><div class="metric-lbl">% خطأ</div></div>
+            <div class="metric-card"><div class="metric-val">4.72</div><div class="metric-lbl">HMM</div><div class="metric-diff better">▼ أقل = أحسن</div></div>
+            <div class="metric-card"><div class="metric-val">12.72</div><div class="metric-lbl">LSTM</div><div class="metric-diff worse">▲ أكبر = أسوأ</div></div>
+            <div class="metric-card"><div class="metric-val" style="color:var(--c3)">×2.7</div><div class="metric-lbl">ميزة HMM</div></div>
+          </div>
+        </div>
+
+        <div class="results-group">
+          <div class="results-group-label">RMSE — متوسط الخطأ بالدولار</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">RMSE</div><div class="metric-lbl">خطأ بالدولار</div></div>
+            <div class="metric-card"><div class="metric-val">2.49</div><div class="metric-lbl">HMM</div><div class="metric-diff better">▼ أقل = أحسن</div></div>
+            <div class="metric-card"><div class="metric-val">5.35</div><div class="metric-lbl">LSTM</div><div class="metric-diff worse">▲ أكبر = أسوأ</div></div>
+            <div class="metric-card"><div class="metric-val" style="color:var(--c3)">×2.1</div><div class="metric-lbl">ميزة HMM</div></div>
+          </div>
+        </div>
+
+        <div class="results-group">
+          <div class="results-group-label">Correlation — ملاءمة الاتجاه</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">Corr</div><div class="metric-lbl">ملاءمة الاتجاه</div></div>
+            <div class="metric-card"><div class="metric-val">0.99</div><div class="metric-lbl">HMM</div></div>
+            <div class="metric-card"><div class="metric-val">0.99</div><div class="metric-lbl">LSTM</div></div>
+            <div class="metric-card"><div class="metric-val tie">تعادل</div><div class="metric-lbl">متطابقان</div></div>
+          </div>
+        </div>
+
+        <div class="results-group">
+          <div class="results-group-label">دقة الاتجاه — صاعد ولا هابط؟</div>
+          <div class="results-grid">
+            <div class="metric-card"><div class="metric-val" style="color:var(--c5)">اتجاه</div><div class="metric-lbl">% صح</div></div>
+            <div class="metric-card"><div class="metric-val">50%</div><div class="metric-lbl">HMM</div><div class="metric-diff worse">= رمية عملة</div></div>
+            <div class="metric-card"><div class="metric-val">51%</div><div class="metric-lbl">LSTM</div><div class="metric-diff worse">≈ رمية عملة</div></div>
+            <div class="metric-card"><div class="metric-val" style="color:var(--c6)">كلاهما فشل</div><div class="metric-lbl">لا ميزة</div></div>
+          </div>
+        </div>
+
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة</span>
+          الـHMM كسب في RMSE وMAPE بعامل ~2×. الموديلين تعادلوا في الـcorrelation (0.99). بشكل حاسم، الاتنين فشلوا تماماً في توقع اتجاه السعر — 50-51% بالظبط، ما أحسنش من التخمين.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ SECTION 7 ═══ -->
+  <div class="section-card s7" id="s7">
+    <div class="section-head" onclick="toggle('b7','i7')">
+      <div class="icon-badge">💡</div>
+      <span class="section-title en">7. Discussion &amp; Key Takeaways</span>
+      <span class="section-title ar" style="display:none">7. النقاش والاستنتاجات</span>
+      <span class="toggle-icon" id="i7">▾</span>
+    </div>
+    <div class="section-body" id="b7">
+
+      <div class="en">
+        <h3>Did the HMM really win?</h3>
+        <p>On paper, yes. But the paper suspects it used the <span class="term">"copy trick"</span> — predicting tomorrow's price ≈ today's price. Since stock prices change slowly day to day, this produces low RMSE and MAPE without learning anything meaningful. The smoking gun: it predicted the correct direction only <span class="highlight">50% of the time</span> — exactly a coin flip. A model that truly understood the market should do better.</p>
+
+        <h3>What went wrong with the LSTM?</h3>
+        <ul>
+          <li><strong>Over-smoothing:</strong> The 45-dimension compression layer caused the LSTM to average out sharp movements — it predicted smooth trends, missing volatile spikes.</li>
+          <li><strong>Scale mismatch:</strong> The LSTM was trained on Apple stock prices ranging from $1 to $170 simultaneously. It learned to be too volatile at low prices and too calm at high prices — a systematic bias.</li>
+          <li>Prior studies have achieved better LSTM results — this architecture may not be optimal.</li>
+        </ul>
+
+        <h3>What does direction accuracy really mean?</h3>
+        <p>Both models can track the general level of the stock price (hence 0.99 correlation), but neither can predict <em>which way it moves next</em> better than random. This is actually a deep insight — it is consistent with the <span class="term">efficient-market hypothesis (EMH)</span>, which states that stock prices already reflect all available information, so future moves are inherently unpredictable.</p>
+
+        <h3>Suggested future research</h3>
+        <ul>
+          <li>Compress HMM input first (like the LSTM does) to prevent the copy trick.</li>
+          <li>Build a <strong>hybrid architecture</strong>: LSTM compresses the input → HMM models the hidden states → LSTM decodes the output.</li>
+          <li>Add more context: news sentiment, interest rates, earnings reports, macroeconomic indicators.</li>
+          <li>Try normalising prices to the same scale before training to eliminate the scale mismatch.</li>
+        </ul>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠ Key limitation</span>
+          This study uses only price data from 110 stocks. Real stock movements are driven by factors not in the data: news events, geopolitics, earnings, executive changes, macroeconomic shocks. Any model without these factors is working with incomplete information.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ Final Summary</span>
+          The HMM produced lower numerical errors (RMSE 2.49, MAPE 4.72) likely via the copy trick. The LSTM showed more genuine but weaker learning (RMSE 5.35, MAPE 12.72). Neither predicts market direction better than random. Future work: prevent copy trick, add richer context data, explore hybrid HMM-LSTM architectures.
+        </div>
+      </div>
+
+      <div class="ar" style="display:none" dir="rtl">
+        <h3>هل الـHMM فعلاً كسب؟</h3>
+        <p>على الورق، أيوه. بس الدراسة بتشك إنه استخدم <span class="term">"حيلة النسخ" (copy trick)</span> — يتنبأ بإن سعر بكرا ≈ سعر النهارده. لأن أسعار الأسهم بتتغير ببطء يوم بيوم، ده بينتج RMSE وMAPE منخفضين من غير ما يتعلم حاجة حقيقية. الدليل الأقوى: توقع الاتجاه الصح بس <span class="highlight">50% من الوقت</span> — رمية عملة بالظبط. موديل بيفهم السوق حقيقي المفروض يعمل أحسن.</p>
+
+        <h3>إيه اللي اتعمل غلط في الـLSTM؟</h3>
+        <ul>
+          <li><strong>التنعيم الزيادة:</strong> طبقة الضغط لـ45 بُعد خلّت الـLSTM يعمل متوسط للحركات الحادة — بيتنبأ باتجاهات ناعمة ويفوته التقلبات المفاجئة.</li>
+          <li><strong>عدم تطابق المقياس:</strong> الـLSTM اتدرّب على أسعار Apple بين $1 و$170 في نفس الوقت. اتعلم يكون متقلب زيادة بالأسعار المنخفضة وهادئ زيادة بالأعلى — تحيز منهجي.</li>
+          <li>دراسات سابقة حققت نتائج LSTM أحسن — الـarchitecture ده ممكن ما يكونش الأمثل.</li>
+        </ul>
+
+        <h3>إيه اللي بيعنيه دقة الاتجاه فعلاً؟</h3>
+        <p>الموديلين يقدروا يتتبعوا المستوى العام لسعر السهم (ومن هنا الـcorrelation = 0.99)، بس مش أي واحد فيهم يقدر يتنبأ <em>في أي اتجاه هيتحرك بعده</em> أحسن من العشوائية. ده في الحقيقة استبصار عميق — متوافق مع <span class="term">نظرية الأسواق الكفؤة (EMH)</span>، اللي بتقول إن أسعار الأسهم بعكس كل المعلومات المتاحة بالفعل، فالحركات المستقبلية بطبيعتها غير متوقعة.</p>
+
+        <h3>أبحاث مستقبلية مقترحة</h3>
+        <ul>
+          <li>ضغط الـinput أولاً قبل الـHMM (زي ما الـLSTM بيعمل) عشان يمنع حيلة النسخ.</li>
+          <li>بناء <strong>معمارية هجينة</strong>: LSTM يضغط الـinput → HMM يمثل الحالات المخفية → LSTM يفك الـoutput.</li>
+          <li>إضافة context أكتر: المشاعر الإخبارية، أسعار الفائدة، تقارير الأرباح، المؤشرات الاقتصادية.</li>
+          <li>تطبيع الأسعار لنفس المقياس قبل التدريب عشان تُزيل عدم تطابق المقياس.</li>
+        </ul>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠ قيد أساسي</span>
+          الدراسة بتستخدم بس بيانات أسعار من 110 سهم. تحركات الأسهم الحقيقية بتتأثر بعوامل مش في البيانات: أحداث إخبارية، جيوسياسة، أرباح، تغييرات تنفيذية، صدمات اقتصادية كلية. أي موديل من غير العوامل دي بيشتغل بمعلومات ناقصة.
+        </div>
+        <div class="box box-summary">
+          <span class="box-label">✦ خلاصة نهائية</span>
+          الـHMM أنتج أخطاء عددية أقل (RMSE 2.49، MAPE 4.72) غالباً عن طريق حيلة النسخ. الـLSTM أظهر تعلم أكثر حقيقية لكن أضعف (RMSE 5.35، MAPE 12.72). لا أي موديل يتنبأ باتجاه السوق أحسن من العشوائية. الأبحاث المستقبلية: منع حيلة النسخ، إضافة بيانات أغنى، استكشاف معمارية HMM-LSTM هجينة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  Based on: "Stock prediction using a Hidden Markov Model versus a Long Short-Term Memory" — Bram de Wit, University of Groningen &nbsp;·&nbsp; Bilingual explainer
+</footer>
+
+<script>
+  function toggle(bodyId, iconId) {
+    var body = document.getElementById(bodyId);
+    var icon = document.getElementById(iconId);
+    var isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    body.style.display = isOpen ? 'none' : 'block';
+    icon.classList.toggle('open', !isOpen);
+  }
+
+  function jumpTo(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var bodyId = 'b' + id.replace('s','');
+    var iconId = 'i' + id.replace('s','');
+    var body = document.getElementById(bodyId);
+    if (body && !body.classList.contains('open')) {
+      toggle(bodyId, iconId);
+    }
+    setTimeout(function(){ el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  }
+
+  function switchLang(lang) {
+    var isAr = lang === 'ar';
+    document.querySelectorAll('.en').forEach(function(el){
+      el.style.display = isAr ? 'none' : '';
+    });
+    document.querySelectorAll('.ar').forEach(function(el){
+      el.style.display = isAr ? '' : 'none';
+    });
+    document.getElementById('btn-en').classList.toggle('active', !isAr);
+    document.getElementById('btn-ar').classList.toggle('active', isAr);
+    document.querySelectorAll('.toc-chip').forEach(function(chip, i){
+      var labels = isAr
+        ? ['١. نظرة عامة','٢. البيانات','٣. HMM','٤. LSTM','٥. المقاييس','٦. النتائج','٧. النقاش']
+        : ['1. Overview','2. The Data','3. HMM','4. LSTM','5. Metrics','6. Results','7. Discussion'];
+      chip.textContent = labels[i];
+    });
+  }
+
+  // init — close all except first
+  document.querySelectorAll('.section-body').forEach(function(el){
+    if (!el.classList.contains('open')) el.style.display = 'none';
+  });
+</script>
+</body>
+</html>

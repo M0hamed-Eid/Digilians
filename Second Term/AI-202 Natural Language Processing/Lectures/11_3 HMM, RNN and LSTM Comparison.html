@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMM, RNN & LSTM — Comparison Study Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CSS VARIABLES — DESIGN SYSTEM
+============================================================ */
+:root{
+  /* 9 accent colors */
+  --accent-1:#6C5CE7; /* violet   */
+  --accent-2:#00B894; /* teal     */
+  --accent-3:#0984E3; /* blue     */
+  --accent-4:#E17055; /* terracotta */
+  --accent-5:#FDCB6E; /* amber    */
+  --accent-6:#E84393; /* pink     */
+  --accent-7:#00CEC9; /* aqua     */
+  --accent-8:#636E72; /* slate    */
+  --accent-9:#D63031; /* red      */
+
+  /* Foreground tier */
+  --fg-1:#1A1B25;
+  --fg-2:#3B3D52;
+  --fg-muted:#6B6F8A;
+
+  /* Background tier */
+  --bg-1:#FFFFFF;
+  --bg-2:#F7F7FB;
+  --bg-3:#EFEFF7;
+
+  /* Mid tier */
+  --mid-1:#E3E3F0;
+  --mid-2:#CBCBE0;
+
+  --radius:14px;
+  --shadow-sm:0 1px 3px rgba(26,27,37,0.06);
+  --shadow-md:0 6px 20px rgba(26,27,37,0.08);
+  --font-head:'Sora', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+
+[data-theme="dark"]{
+  --fg-1:#F1F1F8;
+  --fg-2:#C9CADC;
+  --fg-muted:#9596B5;
+
+  --bg-1:#13131C;
+  --bg-2:#191923;
+  --bg-3:#20202E;
+
+  --mid-1:#2B2B3B;
+  --mid-2:#3A3A4D;
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md:0 6px 24px rgba(0,0,0,0.45);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:'Sora', sans-serif;
+  background:var(--bg-2);
+  color:var(--fg-1);
+  transition:background .3s ease, color .3s ease;
+  line-height:1.65;
+}
+
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  padding:0 20px 80px;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+header.top{
+  position:relative;
+  overflow:hidden;
+  background:var(--bg-1);
+  border-bottom:1px solid var(--mid-1);
+  margin-bottom:36px;
+}
+.gradient-bar{
+  height:7px;
+  width:100%;
+  background:linear-gradient(90deg,
+    var(--accent-1), var(--accent-3), var(--accent-2),
+    var(--accent-5), var(--accent-4), var(--accent-6),
+    var(--accent-7), var(--accent-9), var(--accent-8));
+}
+.header-inner{
+  max-width:980px;
+  margin:0 auto;
+  padding:38px 20px 30px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.header-text h1{
+  font-family:var(--font-head);
+  font-size:2.05rem;
+  font-weight:800;
+  margin:0 0 10px;
+  background:linear-gradient(90deg, var(--accent-1), var(--accent-3) 45%, var(--accent-2));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  line-height:1.25;
+}
+.header-text p.subtitle{
+  margin:0;
+  color:var(--fg-muted);
+  font-size:.98rem;
+  max-width:560px;
+}
+.header-meta{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.pill{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  letter-spacing:.03em;
+  padding:6px 12px;
+  border-radius:20px;
+  background:var(--bg-3);
+  color:var(--fg-2);
+  border:1px solid var(--mid-1);
+  white-space:nowrap;
+}
+.theme-toggle{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  padding:8px 14px;
+  border-radius:20px;
+  border:1px solid var(--mid-2);
+  background:var(--bg-2);
+  color:var(--fg-1);
+  cursor:pointer;
+  transition:transform .15s ease, background .2s ease;
+}
+.theme-toggle:hover{ transform:translateY(-1px); background:var(--bg-3); }
+
+/* ============================================================
+   TOC
+============================================================ */
+.toc-block{
+  margin-bottom:40px;
+}
+.toc-title{
+  font-family:var(--font-head);
+  font-weight:700;
+  font-size:1.05rem;
+  margin:0 0 14px;
+  color:var(--fg-1);
+}
+.toc-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.toc-chip{
+  font-family:var(--font-mono);
+  font-size:.82rem;
+  padding:9px 16px;
+  border-radius:30px;
+  cursor:pointer;
+  border:1px solid transparent;
+  color:#fff;
+  font-weight:500;
+  box-shadow:var(--shadow-sm);
+  transition:transform .15s ease, box-shadow .15s ease;
+  user-select:none;
+}
+.toc-chip:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+
+/* per-chip color assignment via nth-child, rotating through 9 accents */
+.toc-chip:nth-child(1){ background:var(--accent-1); }
+.toc-chip:nth-child(2){ background:var(--accent-2); }
+.toc-chip:nth-child(3){ background:var(--accent-3); }
+.toc-chip:nth-child(4){ background:var(--accent-4); }
+.toc-chip:nth-child(5){ background:var(--accent-5); color:#3B2B00; }
+.toc-chip:nth-child(6){ background:var(--accent-6); }
+.toc-chip:nth-child(7){ background:var(--accent-7); color:#053331; }
+
+/* ============================================================
+   SECTION CARDS
+============================================================ */
+section.card{
+  background:var(--bg-1);
+  border-radius:var(--radius);
+  border:1px solid var(--mid-1);
+  box-shadow:var(--shadow-sm);
+  margin-bottom:30px;
+  overflow:hidden;
+  border-left:6px solid var(--section-color, var(--accent-1));
+  scroll-margin-top:20px;
+}
+.card-header{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:22px 24px;
+  cursor:pointer;
+  user-select:none;
+}
+.icon-badge{
+  flex:0 0 auto;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.25rem;
+  background:var(--section-color, var(--accent-1));
+  color:#fff;
+}
+.card-header h2{
+  font-family:var(--font-head);
+  font-size:1.18rem;
+  font-weight:700;
+  margin:0;
+  flex:1;
+  color:var(--fg-1);
+}
+.card-header .section-tag{
+  font-family:var(--font-mono);
+  font-size:.7rem;
+  color:var(--fg-muted);
+  display:block;
+  margin-top:3px;
+  font-weight:400;
+}
+.collapse-toggle{
+  flex:0 0 auto;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:1px solid var(--mid-2);
+  background:var(--bg-2);
+  color:var(--fg-2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1rem;
+  transition:transform .25s ease, background .2s ease;
+}
+.card.collapsed .collapse-toggle{ transform:rotate(-90deg); }
+.card-body{
+  padding:0 24px 26px;
+  border-top:1px solid var(--mid-1);
+  padding-top:20px;
+}
+.card.collapsed .card-body{ display:none; }
+
+/* ============================================================
+   LANGUAGE SYSTEM
+============================================================ */
+.lang-switch{
+  display:inline-flex;
+  background:var(--bg-3);
+  border-radius:30px;
+  padding:4px;
+  margin-bottom:18px;
+  border:1px solid var(--mid-1);
+}
+.lang-btn{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  font-weight:600;
+  padding:7px 18px;
+  border-radius:24px;
+  border:none;
+  background:transparent;
+  color:var(--fg-muted);
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease;
+}
+.lang-btn.active{
+  background:var(--section-color, var(--accent-1));
+  color:#fff;
+}
+.lang-panel{ display:none; }
+.lang-panel.active{ display:block; }
+.lang-panel[data-lang="ar"]{
+  direction:rtl;
+  text-align:right;
+  font-family:'Sora', 'Tahoma', sans-serif;
+}
+.lang-panel[data-lang="ar"] .term,
+.lang-panel[data-lang="ar"] .code-inline{
+  direction:ltr;
+  display:inline-block;
+}
+
+.lang-panel h3{
+  font-family:var(--font-head);
+  font-size:1rem;
+  font-weight:700;
+  color:var(--section-color, var(--accent-1));
+  margin:20px 0 10px;
+}
+.lang-panel h3:first-child{ margin-top:0; }
+.lang-panel p{ margin:0 0 12px; color:var(--fg-2); }
+.lang-panel ul{ margin:0 0 14px; padding-left:22px; color:var(--fg-2); }
+.lang-panel[data-lang="ar"] ul{ padding-left:0; padding-right:22px; }
+.lang-panel li{ margin-bottom:6px; }
+
+/* ============================================================
+   BOX TYPES
+============================================================ */
+.box{
+  border-radius:10px;
+  padding:16px 18px;
+  margin:16px 0;
+  font-size:.94rem;
+  border:1px solid transparent;
+}
+.box .box-label{
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  display:block;
+  margin-bottom:6px;
+}
+.box p{ margin:0; }
+.box p + p{ margin-top:8px; }
+
+.box-analogy{
+  background:#EEF1FF;
+  border-color:#C9D2FA;
+  color:#2A2F70;
+}
+.box-analogy .box-label{ color:#4A4FD0; }
+[data-theme="dark"] .box-analogy{ background:#1D1F38; border-color:#33356B; color:#C7CCF2; }
+[data-theme="dark"] .box-analogy .box-label{ color:#9AA2F0; }
+
+.box-example{
+  background:#E9F9F1;
+  border-color:#BEEBD3;
+  color:#175B3F;
+}
+.box-example .box-label{ color:#00935E; }
+[data-theme="dark"] .box-example{ background:#142823; border-color:#1F4A3B; color:#A9E8C7; }
+[data-theme="dark"] .box-example .box-label{ color:#3FD68F; }
+
+.box-summary{
+  background:#EAF3FC;
+  border-color:#C7E0F7;
+  color:#163A5E;
+}
+.box-summary .box-label{ color:#0A6CC4; }
+[data-theme="dark"] .box-summary{ background:#13212F; border-color:#1E3C57; color:#A9D2F2; }
+[data-theme="dark"] .box-summary .box-label{ color:#5CACE8; }
+
+.box-warning{
+  background:#FDEDEA;
+  border-color:#F7CFC4;
+  color:#7A2A14;
+}
+.box-warning .box-label{ color:#C1440E; }
+[data-theme="dark"] .box-warning{ background:#2A1A14; border-color:#4D2A1C; color:#F0BBA6; }
+[data-theme="dark"] .box-warning .box-label{ color:#F08358; }
+
+/* ============================================================
+   INLINE ELEMENTS
+============================================================ */
+.term{
+  font-weight:700;
+  color:var(--section-color, var(--accent-1));
+  border-bottom:1.5px dotted currentColor;
+  cursor:help;
+}
+.highlight{
+  background:linear-gradient(180deg, transparent 60%, rgba(253,203,110,.55) 60%);
+  font-weight:600;
+  padding:0 2px;
+}
+[data-theme="dark"] .highlight{
+  background:linear-gradient(180deg, transparent 60%, rgba(253,203,110,.30) 60%);
+}
+.code-inline{
+  font-family:var(--font-mono);
+  background:var(--bg-3);
+  border:1px solid var(--mid-1);
+  border-radius:5px;
+  padding:2px 7px;
+  font-size:.85em;
+  color:var(--accent-9);
+}
+[data-theme="dark"] .code-inline{ color:var(--accent-5); }
+
+/* ============================================================
+   TABLES
+============================================================ */
+.table-wrap{ overflow-x:auto; margin:18px 0; border-radius:10px; box-shadow:var(--shadow-sm); }
+table.compare{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.9rem;
+  min-width:480px;
+}
+table.compare thead th{
+  background:linear-gradient(90deg, var(--section-color, var(--accent-1)), var(--accent-3));
+  color:#fff;
+  font-family:var(--font-head);
+  font-weight:700;
+  text-align:left;
+  padding:12px 16px;
+  font-size:.88rem;
+}
+[dir="rtl"] table.compare thead th{ text-align:right; }
+table.compare tbody td{
+  padding:11px 16px;
+  border-bottom:1px solid var(--mid-1);
+  color:var(--fg-2);
+  background:var(--bg-1);
+}
+table.compare tbody tr:last-child td{ border-bottom:none; }
+table.compare tbody tr:nth-child(even) td{ background:var(--bg-2); }
+
+/* ============================================================
+   CODE BLOCKS — Catppuccin-inspired dark
+============================================================ */
+pre.code-block{
+  background:#1E1E2E;
+  color:#CDD6F4;
+  font-family:var(--font-mono);
+  font-size:.84rem;
+  padding:18px 20px;
+  border-radius:10px;
+  overflow-x:auto;
+  margin:16px 0;
+  line-height:1.55;
+  box-shadow:var(--shadow-md);
+}
+pre.code-block .cm{ color:#6C7086; }      /* comment / muted */
+pre.code-block .kw{ color:#CBA6F7; }      /* keyword - mauve */
+pre.code-block .fn{ color:#89B4FA; }      /* function - blue */
+pre.code-block .st{ color:#A6E3A1; }      /* string - green */
+pre.code-block .nm{ color:#FAB387; }      /* number - peach */
+pre.code-block .vr{ color:#F38BA8; }      /* variable - red/pink */
+
+/* ============================================================
+   FIGURES / DIAGRAMS
+============================================================ */
+.figure{
+  background:var(--bg-2);
+  border:1px solid var(--mid-1);
+  border-radius:12px;
+  padding:20px;
+  margin:18px 0;
+  text-align:center;
+}
+.figure svg{ max-width:100%; height:auto; }
+.figure figcaption{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  color:var(--fg-muted);
+  margin-top:10px;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+footer.end{
+  text-align:center;
+  padding:30px 20px;
+  color:var(--fg-muted);
+  font-size:.82rem;
+  font-family:var(--font-mono);
+}
+
+/* back to top */
+.back-top{
+  display:inline-block;
+  margin-top:10px;
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  color:var(--fg-muted);
+  text-decoration:none;
+  cursor:pointer;
+  border-bottom:1px dotted var(--fg-muted);
+}
+.back-top:hover{ color:var(--accent-3); }
+
+@media (max-width:600px){
+  .header-text h1{ font-size:1.5rem; }
+  .header-inner{ padding:28px 16px 22px; }
+  .card-header{ padding:18px 16px; }
+  .card-body{ padding:0 16px 22px; }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<header class="top">
+  <div class="gradient-bar"></div>
+  <div class="header-inner">
+    <div class="header-text">
+      <h1>HMM vs RNN vs LSTM</h1>
+      <p class="subtitle">A side-by-side comparison of three classic sequence models in NLP — how they relate, how they differ, and where each one shines. Bilingual study notes (English / العربية).</p>
+    </div>
+    <div class="header-meta">
+      <span class="pill">NLP · Sequence Models</span>
+      <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Dark mode</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============================ TOC ============================ -->
+  <div class="toc-block">
+    <p class="toc-title">📑 Table of Contents</p>
+    <div class="toc-chips">
+      <span class="toc-chip" onclick="scrollToId('sec1')">1. The Big Picture</span>
+      <span class="toc-chip" onclick="scrollToId('sec2')">2. Similarities</span>
+      <span class="toc-chip" onclick="scrollToId('sec3')">3. HMM vs RNN</span>
+      <span class="toc-chip" onclick="scrollToId('sec4')">4. HMM vs LSTM (Concept)</span>
+      <span class="toc-chip" onclick="scrollToId('sec5')">5. Stock Prediction Case Study</span>
+      <span class="toc-chip" onclick="scrollToId('sec6')">6. Reading the Charts</span>
+      <span class="toc-chip" onclick="scrollToId('sec7')">7. LSTM vs RNN</span>
+    </div>
+  </div>
+
+  <!-- ============================ SECTION 1 ============================ -->
+  <section class="card" id="sec1" style="--section-color:var(--accent-1)">
+    <div class="card-header" onclick="toggle('sec1')">
+      <div class="icon-badge">🧭</div>
+      <div>
+        <h2>The Big Picture: Three Ways to Model a Sequence</h2>
+        <span class="section-tag">INTRODUCTION</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec1','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec1','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>This topic compares three well-known models used in Natural Language Processing (NLP) and other sequence-related tasks: the <span class="term" title="A statistical model with hidden states that follow Markov assumptions">Hidden Markov Model (HMM)</span>, the <span class="term" title="A neural network that processes sequences step by step, passing information forward">Recurrent Neural Network (RNN)</span>, and the <span class="term" title="A special type of RNN designed to remember information over long sequences">Long Short-Term Memory (LSTM)</span>.</p>
+        <p>All three models exist to answer the same kind of question: <span class="highlight">"Given a sequence of items (words, prices, sounds), how do we model what comes next or what's hidden behind it?"</span> The difference between them is <em>how</em> they do this — one uses probability and statistics (HMM), and the other two use neural networks (RNN and LSTM), with LSTM being a more advanced version of RNN.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>Think of all three models as different types of <span class="term" title="Someone trying to guess what happens next">detectives</span> trying to predict the next event in a story. The HMM detective uses a notebook of probabilities ("80% of the time, after a rainy day comes a cloudy day"). The RNN detective remembers only the last clue they saw. The LSTM detective carries a special memory box that lets them remember important clues from much earlier in the story, even pages back.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>هذا الموضوع يقارن بين ثلاثة نماذج معروفة في مجال معالجة اللغات الطبيعية (NLP) وغيرها من المهام المرتبطة بالتسلسلات: <span class="term" title="نموذج إحصائي يعتمد على حالات مخفية">Hidden Markov Model (HMM)</span>، و<span class="term" title="شبكة عصبية تعالج التسلسل خطوة بخطوة">Recurrent Neural Network (RNN)</span>، و<span class="term" title="نوع خاص من RNN يتذكر معلومات لفترة أطول">Long Short-Term Memory (LSTM)</span>.</p>
+        <p>الثلاثة نماذج كلها بتحاول تجاوب على نفس السؤال: <span class="highlight">"لو عندي تسلسل من العناصر (كلمات، أسعار، أصوات)، إزاي أعرف اللي جاي بعد كده أو اللي مخفي وراه؟"</span> الفرق بينهم هو <em>إزاي</em> بيعملوا كده — HMM بيستخدم الاحتمالات والإحصاء، أما RNN و LSTM بيستخدموا شبكات عصبية، و LSTM هو نسخة أكثر تطوراً من RNN.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه</span>
+          <p>تخيل الثلاثة نماذج كأنهم محققين بيحاولوا يخمنوا اللي هيحصل بعد كده في قصة. المحقق HMM بيستخدم دفتر احتمالات ("80% من المرات، بعد يوم ممطر بييجي يوم غائم"). المحقق RNN بيتذكر بس آخر دليل شافه. المحقق LSTM معاه صندوق ذكريات خاص بيسمح له يتذكر أدلة مهمة من أول القصة، حتى لو كانت من صفحات بعيدة.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>HMM, RNN, and LSTM are three different ways to model sequences. HMM is statistical, while RNN and LSTM are neural-network based, with LSTM being a stronger upgrade of RNN.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 2 ============================ -->
+  <section class="card" id="sec2" style="--section-color:var(--accent-2)">
+    <div class="card-header" onclick="toggle('sec2')">
+      <div class="icon-badge">🔗</div>
+      <div>
+        <h2>Similarities Between HMM, RNN, and LSTM</h2>
+        <span class="section-tag">CORE CONCEPT</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec2','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec2','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>Even though HMM, RNN, and LSTM look very different on the inside, they share one important purpose: <span class="highlight">all of them can be used to model the distribution of a sequence of random observations</span> coming from a set of variables.</p>
+        <p>In simple words: all three models take a series of things that happen one after another (like words in a sentence, or stock prices over days) and try to learn the <span class="term" title="The pattern of how likely different outcomes are">pattern or probability</span> behind that sequence — so they can predict, classify, or generate similar sequences.</p>
+
+        <div class="figure">
+          <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg">
+            <!-- HMM diagram -->
+            <g>
+              <text x="95" y="22" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25">HMM</text>
+              <circle cx="40" cy="55" r="16" fill="#6C5CE7"/>
+              <circle cx="100" cy="55" r="16" fill="#6C5CE7"/>
+              <circle cx="160" cy="55" r="16" fill="#6C5CE7"/>
+              <text x="40" y="60" font-family="IBM Plex Mono" font-size="10" fill="#fff" text-anchor="middle">h1</text>
+              <text x="100" y="60" font-family="IBM Plex Mono" font-size="10" fill="#fff" text-anchor="middle">h2</text>
+              <text x="160" y="60" font-family="IBM Plex Mono" font-size="10" fill="#fff" text-anchor="middle">h3</text>
+              <line x1="56" y1="55" x2="84" y2="55" stroke="#9B8CFF" stroke-width="2" marker-end="url(#arrow1)"/>
+              <line x1="116" y1="55" x2="144" y2="55" stroke="#9B8CFF" stroke-width="2" marker-end="url(#arrow1)"/>
+              <circle cx="40" cy="115" r="14" fill="#00B894"/>
+              <circle cx="100" cy="115" r="14" fill="#00B894"/>
+              <circle cx="160" cy="115" r="14" fill="#00B894"/>
+              <text x="40" y="119" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">o1</text>
+              <text x="100" y="119" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">o2</text>
+              <text x="160" y="119" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">o3</text>
+              <line x1="40" y1="71" x2="40" y2="101" stroke="#B9E8D7" stroke-width="2" marker-end="url(#arrow2)"/>
+              <line x1="100" y1="71" x2="100" y2="101" stroke="#B9E8D7" stroke-width="2" marker-end="url(#arrow2)"/>
+              <line x1="160" y1="71" x2="160" y2="101" stroke="#B9E8D7" stroke-width="2" marker-end="url(#arrow2)"/>
+              <text x="100" y="155" font-family="IBM Plex Mono" font-size="10" fill="#6B6F8A" text-anchor="middle">hidden → observed</text>
+            </g>
+            <!-- RNN diagram -->
+            <g transform="translate(250,0)">
+              <text x="95" y="22" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25">RNN</text>
+              <rect x="60" y="40" width="36" height="36" rx="8" fill="#0984E3"/>
+              <rect x="130" y="40" width="36" height="36" rx="8" fill="#0984E3"/>
+              <rect x="200" y="40" width="36" height="36" rx="8" fill="#0984E3"/>
+              <text x="78" y="62" font-family="IBM Plex Mono" font-size="10" fill="#fff" text-anchor="middle">s1</text>
+              <text x="148" y="62" font-family="IBM Plex Mono" font-size="10" fill="#fff" text-anchor="middle">s2</text>
+              <text x="218" y="62" font-family="IBM Plex Mono" font-size="10" fill="#fff" text-anchor="middle">s3</text>
+              <line x1="96" y1="58" x2="130" y2="58" stroke="#74B9FF" stroke-width="2" marker-end="url(#arrow3)"/>
+              <line x1="166" y1="58" x2="200" y2="58" stroke="#74B9FF" stroke-width="2" marker-end="url(#arrow3)"/>
+              <line x1="78" y1="76" x2="78" y2="115" stroke="#74B9FF" stroke-width="2" marker-end="url(#arrow3)"/>
+              <line x1="148" y1="76" x2="148" y2="115" stroke="#74B9FF" stroke-width="2" marker-end="url(#arrow3)"/>
+              <line x1="218" y1="76" x2="218" y2="115" stroke="#74B9FF" stroke-width="2" marker-end="url(#arrow3)"/>
+              <circle cx="78" cy="125" r="11" fill="#A29BFE"/>
+              <circle cx="148" cy="125" r="11" fill="#A29BFE"/>
+              <circle cx="218" cy="125" r="11" fill="#A29BFE"/>
+              <text x="148" y="155" font-family="IBM Plex Mono" font-size="10" fill="#6B6F8A" text-anchor="middle">state passes forward</text>
+            </g>
+            <!-- LSTM diagram -->
+            <g transform="translate(540,0)">
+              <text x="80" y="22" font-family="Sora" font-size="14" font-weight="700" fill="#1A1B25">LSTM</text>
+              <rect x="30" y="35" width="170" height="115" rx="12" fill="#FDEDEA" stroke="#E17055" stroke-width="2"/>
+              <rect x="48" y="50" width="60" height="26" rx="6" fill="#E17055"/>
+              <text x="78" y="67" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">Forget</text>
+              <rect x="120" y="50" width="60" height="26" rx="6" fill="#0984E3"/>
+              <text x="150" y="67" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">Input</text>
+              <rect x="48" y="90" width="60" height="26" rx="6" fill="#00B894"/>
+              <text x="78" y="107" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">Memory</text>
+              <rect x="120" y="90" width="60" height="26" rx="6" fill="#6C5CE7"/>
+              <text x="150" y="107" font-family="IBM Plex Mono" font-size="9" fill="#fff" text-anchor="middle">Output</text>
+              <text x="115" y="170" font-family="IBM Plex Mono" font-size="10" fill="#6B6F8A" text-anchor="middle">gates control memory</text>
+            </g>
+            <defs>
+              <marker id="arrow1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9B8CFF"/></marker>
+              <marker id="arrow2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#B9E8D7"/></marker>
+              <marker id="arrow3" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#74B9FF"/></marker>
+            </defs>
+          </svg>
+          <figcaption>Simplified structure: HMM (hidden states → observations), RNN (state passed step to step), LSTM (memory cell controlled by gates)</figcaption>
+        </div>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example</span>
+          <p>Imagine predicting tomorrow's weather from the last 7 days. An HMM would estimate the probability of "sunny → cloudy → rainy" patterns. An RNN would look at the sequence of days and pass forward a running summary. An LSTM would do the same but specifically remember the one rainy day from 5 days ago if it's important for tomorrow's forecast.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>مع إن HMM و RNN و LSTM شكلهم مختلف جداً من جوه، إلا إنهم بيشتركوا في هدف مهم: <span class="highlight">كل واحد فيهم يقدر يمثل توزيع تسلسل من الملاحظات العشوائية</span> الجاية من مجموعة متغيرات.</p>
+        <p>بكلام بسيط: الثلاثة نماذج بياخدوا سلسلة من الأشياء اللي بتحصل واحدة ورا التانية (زي كلمات في جملة، أو أسعار سهم على مدار أيام) وبيحاولوا يتعلموا <span class="term" title="الشكل أو الاحتمالية اللي وراء الترتيب">النمط أو الاحتمالية</span> اللي وراء التسلسل ده — عشان يقدروا يتنبأوا أو يصنفوا أو ينتجوا تسلسلات شبيهة.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال</span>
+          <p>تخيل إنك بتتنبأ بحالة الجو بكرة من بيانات آخر 7 أيام. الـ HMM هيحسب احتمالية أنماط زي "مشمس → غائم → ممطر". الـ RNN هيشوف التسلسل ويمرر ملخص متراكم. الـ LSTM هيعمل نفس الشيء بس هيتذكر بالتحديد اليوم الممطر اللي كان من 5 أيام لو كان مهم للتنبؤ ببكرة.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>All three models share the same job: modeling a sequence of observations to find patterns. They differ only in the method used to reach that goal.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 3 ============================ -->
+  <section class="card" id="sec3" style="--section-color:var(--accent-3)">
+    <div class="card-header" onclick="toggle('sec3')">
+      <div class="icon-badge">⚖️</div>
+      <div>
+        <h2>HMM vs RNN: Random vs Deterministic</h2>
+        <span class="section-tag">COMPARISON</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec3','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec3','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>The key difference between HMM and RNN is about <span class="highlight">how the hidden variable is produced at each step</span>.</p>
+        <ul>
+          <li>In <span class="term" title="Recurrent Neural Network">RNN</span>, the hidden variable is <span class="term" title="Calculated exactly using a fixed formula — no randomness involved">deterministically</span> deduced from the current observation and the previous hidden variable. This means if you give the RNN the exact same inputs again, you always get the exact same hidden state — there's no randomness in how it's computed.</li>
+          <li>In <span class="term" title="Hidden Markov Model">HMM</span>, the hidden variables are <span class="term" title="Following a probability distribution, not a fixed rule">random</span>. The hidden state at each step is drawn from a probability distribution — so even with the same observations, there's some uncertainty baked into the model.</li>
+        </ul>
+
+        <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr><th>Aspect</th><th>HMM</th><th>RNN</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Nature of hidden variable</td><td>Random (probabilistic)</td><td>Deterministic (computed by a function)</td></tr>
+              <tr><td>How next state is found</td><td>Sampled from a probability distribution</td><td>Calculated from a formula using weights</td></tr>
+              <tr><td>Underlying foundation</td><td>Statistics / probability theory</td><td>Neural network (learned weights)</td></tr>
+              <tr><td>Output given same input</td><td>Can vary (random component)</td><td>Always the same (fixed computation)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>Think of HMM like rolling dice to decide the next hidden state — it depends on chance, even if the dice are "loaded" with certain probabilities. RNN is like using a calculator: you put in the same numbers, and you always get the exact same answer, with no randomness involved.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ Common Mistake</span>
+          <p>Don't confuse "random" with "messy" or "bad." In HMM, randomness is a deliberate, mathematically modeled part of the system — it's not noise or error, it's how the model captures uncertainty in real-world data.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>الفرق الأساسي بين HMM و RNN هو <span class="highlight">إزاي بيتم حساب المتغير المخفي في كل خطوة</span>.</p>
+        <ul>
+          <li>في <span class="term" title="Recurrent Neural Network">RNN</span>، المتغير المخفي بيتم استنتاجه بطريقة <span class="term" title="بمعادلة ثابتة، من غير عشوائية">حتمية (deterministic)</span> من الملاحظة الحالية والمتغير المخفي السابق. ده يعني لو دخّلت نفس المدخلات تاني، هتحصل على نفس النتيجة بالضبط — مفيش عشوائية في الحساب.</li>
+          <li>في <span class="term" title="Hidden Markov Model">HMM</span>، المتغيرات المخفية <span class="term" title="بتتبع توزيع احتمالي">عشوائية</span>. الحالة المخفية في كل خطوة بتتحدد من توزيع احتمالي — يعني حتى لو نفس الملاحظات، فيه نوع من عدم اليقين موجود في النموذج.</li>
+        </ul>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه</span>
+          <p>تخيل HMM زي ما ترمي حجر النرد عشان تحدد الحالة المخفية الجاية — بتعتمد على الحظ، حتى لو النرد "مظبوط" باحتمالات معينة. RNN زي استخدام آلة حاسبة: تدخل نفس الأرقام، وتحصل على نفس النتيجة بالضبط، من غير أي عشوائية.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>RNN computes its hidden state deterministically using a fixed function, while HMM's hidden states are random and drawn from a probability distribution.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 4 ============================ -->
+  <section class="card" id="sec4" style="--section-color:var(--accent-4)">
+    <div class="card-header" onclick="toggle('sec4')">
+      <div class="icon-badge">🔍</div>
+      <div>
+        <h2>HMM vs LSTM: Probability vs Pattern-Finding</h2>
+        <span class="section-tag">COMPARISON</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec4','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec4','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>The Hidden Markov Model relies on <span class="term" title="Numbers describing how likely each outcome is">statistics and probability distributions</span>, and therefore on <span class="highlight">probability maximization</span> — it tries to find the sequence of hidden states that makes the observed data most likely, according to its learned probabilities.</p>
+        <p>An LSTM, on the other hand, <span class="highlight">searches for relations</span> in the dataset. Instead of relying on a fixed statistical formula, it learns flexible, complex patterns directly from data using its network of weights and <span class="term" title="Small neural components that decide what information to keep, forget, or output">gates</span>.</p>
+
+        <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr><th>Aspect</th><th>HMM</th><th>LSTM</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Core approach</td><td>Statistics & probability distributions</td><td>Pattern/relation learning via neural network</td></tr>
+              <tr><td>Goal</td><td>Maximize probability of observed sequence</td><td>Minimize prediction error through learned weights</td></tr>
+              <tr><td>Memory of the past</td><td>Limited — depends only on current hidden state (Markov assumption)</td><td>Strong — memory cell can carry information across long sequences</td></tr>
+              <tr><td>Flexibility</td><td>Lower — fixed structure of states & transitions</td><td>Higher — can model very complex, nonlinear patterns</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>HMM is like a weather almanac that gives you fixed odds ("70% chance of rain after a cloudy day"). LSTM is like an experienced meteorologist who studies many subtle clues — wind, humidity, pressure trends from days ago — and forms a flexible judgment instead of using one fixed rule.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>نموذج Hidden Markov Model بيعتمد على <span class="term" title="أرقام بتوضح احتمالية كل نتيجة">الإحصاء والتوزيعات الاحتمالية</span>، وبالتالي على <span class="highlight">تعظيم الاحتمالية (probability maximization)</span> — بيحاول يلاقي تسلسل الحالات المخفية اللي يجعل البيانات المرصودة هي الأكثر احتمالاً، حسب الاحتمالات اللي تعلمها.</p>
+        <p>أما LSTM، فهو <span class="highlight">بيبحث عن العلاقات (relations)</span> في البيانات. بدل ما يعتمد على معادلة إحصائية ثابتة، بيتعلم أنماط مرنة ومعقدة مباشرة من البيانات باستخدام شبكة الأوزان و<span class="term" title="مكونات عصبية صغيرة بتحدد إيه اللي يفضل أو يُنسى أو يُخرج">البوابات (gates)</span>.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه</span>
+          <p>HMM زي تقويم الطقس اللي بيعطيك نسب ثابتة ("70% احتمال مطر بعد يوم غائم"). LSTM زي خبير أرصاد متمرس بيدرس أدلة دقيقة كثيرة — الريح، الرطوبة، اتجاه الضغط من أيام فاتت — ويبني حكم مرن بدل ما يعتمد على قاعدة واحدة ثابتة.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>HMM uses statistics and tries to maximize probability, while LSTM learns flexible relationships in the data using neural weights and gates.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 5 ============================ -->
+  <section class="card" id="sec5" style="--section-color:var(--accent-5)">
+    <div class="card-header" onclick="toggle('sec5')">
+      <div class="icon-badge">📈</div>
+      <div>
+        <h2>Case Study: Stock Prediction — HMM vs LSTM</h2>
+        <span class="section-tag">APPLIED EXAMPLE</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec5','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec5','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>A study compared using an HMM versus an LSTM to predict <span class="term" title="Future prices of company shares on the stock market">stock prices</span>. Both models were trained on historical price sequences and asked to predict future values.</p>
+        <p><span class="highlight">The conclusion of this study was that the HMM performed better than the LSTM when predicting stock prices</span> in this particular comparison.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example</span>
+          <p>Imagine giving both models the last several months of a company's daily closing prices. The HMM, by modeling the probability of price states (e.g. "rising," "falling," "stable") and their transitions, produced predictions that tracked the actual prices more closely than the LSTM did in this study.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ Important Note</span>
+          <p>This result does not mean HMM is always better than LSTM in every task. Stock prices are noisy and influenced by countless outside factors, so results can vary heavily depending on the dataset, the time period, and how each model was tuned. This is a finding from <em>one specific study</em>, not a universal rule.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>فيه دراسة قارنت بين استخدام HMM و LSTM للتنبؤ بـ<span class="term" title="الأسعار المستقبلية لأسهم الشركات في البورصة">أسعار الأسهم</span>. الموديلين اتدربوا على تسلسل أسعار تاريخية وطُلب منهم يتنبأوا بقيم مستقبلية.</p>
+        <p><span class="highlight">نتيجة الدراسة كانت إن HMM كان أداؤه أفضل من LSTM</span> عند التنبؤ بأسعار الأسهم في هذه المقارنة بالتحديد.</p>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال</span>
+          <p>تخيل إنك أعطيت الموديلين أسعار إغلاق يومية لشركة على مدار شهور. الـ HMM، عن طريق نمذجة احتمالية حالات السعر (زي "صاعد"، "نازل"، "مستقر") والانتقال بينها، أعطى تنبؤات أقرب للأسعار الفعلية مقارنة بـ LSTM في هذه الدراسة.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ ملاحظة مهمة</span>
+          <p>النتيجة دي ما تعنيش إن HMM أحسن من LSTM في كل المهام دايماً. أسعار الأسهم متقلبة ومتأثرة بعوامل خارجية كثيرة جداً، فالنتائج ممكن تتغير حسب البيانات والفترة الزمنية وضبط كل موديل. هذه نتيجة من <em>دراسة واحدة محددة</em>، وليست قاعدة عامة.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>In this particular stock-prediction study, HMM outperformed LSTM, though this is a study-specific result and not a universal conclusion about which model is "always better."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 6 ============================ -->
+  <section class="card" id="sec6" style="--section-color:var(--accent-6)">
+    <div class="card-header" onclick="toggle('sec6')">
+      <div class="icon-badge">📊</div>
+      <div>
+        <h2>Reading the Prediction Charts</h2>
+        <span class="section-tag">VISUAL ANALYSIS</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec6','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec6','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>The original material includes two line charts: one showing the <span class="term" title="What the model predicted">predictions made by the HMM</span> versus the actual stock data, and another showing the <span class="term" title="What the model predicted">predictions made by the LSTM</span> versus the actual data.</p>
+        <p>When reading charts like these, here's what to look for:</p>
+        <ul>
+          <li><span class="highlight">Closeness to the actual line</span> — the prediction line that hugs the real data curve most tightly is performing better.</li>
+          <li><span class="highlight">Lag</span> — sometimes a model's predicted curve looks like it's just "following" the real curve a step behind, which is a common weakness in sequence prediction.</li>
+          <li><span class="highlight">Overall trend capture</span> — does the model catch the general upward/downward direction, even if it misses small daily details?</li>
+        </ul>
+
+        <div class="figure">
+          <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+            <text x="170" y="20" font-family="Sora" font-size="13" font-weight="700" fill="#1A1B25" text-anchor="middle">HMM predictions vs actual</text>
+            <line x1="40" y1="170" x2="320" y2="170" stroke="#CBCBE0" stroke-width="1"/>
+            <line x1="40" y1="40" x2="40" y2="170" stroke="#CBCBE0" stroke-width="1"/>
+            <polyline points="40,150 70,140 100,148 130,120 160,110 190,90 220,80 250,60 280,55 310,40" fill="none" stroke="#636E72" stroke-width="2.5"/>
+            <polyline points="40,155 70,145 100,150 130,128 160,118 190,100 220,92 250,68 280,62 310,50" fill="none" stroke="#FDCB6E" stroke-width="2.5" stroke-dasharray="5,3"/>
+            <text x="40" y="195" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A">▬ actual&#160;&#160;&#160;┄ HMM prediction (closely tracks)</text>
+
+            <text x="530" y="20" font-family="Sora" font-size="13" font-weight="700" fill="#1A1B25" text-anchor="middle">LSTM predictions vs actual</text>
+            <line x1="400" y1="170" x2="680" y2="170" stroke="#CBCBE0" stroke-width="1"/>
+            <line x1="400" y1="40" x2="400" y2="170" stroke="#CBCBE0" stroke-width="1"/>
+            <polyline points="400,150 430,140 460,148 490,120 520,110 550,90 580,80 610,60 640,55 670,40" fill="none" stroke="#636E72" stroke-width="2.5"/>
+            <polyline points="400,160 430,155 460,150 490,150 520,135 550,120 580,110 610,95 640,85 670,75" fill="none" stroke="#E84393" stroke-width="2.5" stroke-dasharray="5,3"/>
+            <text x="400" y="195" font-family="IBM Plex Mono" font-size="9" fill="#6B6F8A">▬ actual&#160;&#160;&#160;┄ LSTM prediction (more lag/gap)</text>
+          </svg>
+          <figcaption>Illustrative redraw: in the source study, the HMM prediction line tracked the actual price line more closely than the LSTM prediction line did.</figcaption>
+        </div>
+
+        <div class="box box-example">
+          <span class="box-label">💡 Example</span>
+          <p>If the actual stock price line rises steadily and a model's prediction line rises too but stays a bit below or behind, that model has captured the trend direction but with some delay or underestimation — a common pattern when comparing model outputs to real data.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>المادة الأصلية فيها رسمين بيانيين: واحد بيوضح <span class="term" title="إيه اللي تنبأ به الموديل">تنبؤات HMM</span> مقابل بيانات السهم الفعلية، والثاني بيوضح <span class="term" title="إيه اللي تنبأ به الموديل">تنبؤات LSTM</span> مقابل البيانات الفعلية.</p>
+        <p>لما تقرا رسومات زي دي، هذا اللي تركز عليه:</p>
+        <ul>
+          <li><span class="highlight">القرب من الخط الفعلي</span> — خط التنبؤ اللي بيلاصق منحنى البيانات الحقيقية أكتر بيكون أداؤه أفضل.</li>
+          <li><span class="highlight">التأخير (lag)</span> — في بعض الأحيان، منحنى التنبؤ بيبان وكأنه "بيتبع" المنحنى الحقيقي بخطوة متأخرة، وده ضعف معروف في التنبؤ بالتسلسلات.</li>
+          <li><span class="highlight">رصد الاتجاه العام</span> — هل الموديل لقط الاتجاه العام صاعد أو نازل، حتى لو فوّت تفاصيل يومية صغيرة؟</li>
+        </ul>
+
+        <div class="box box-example">
+          <span class="box-label">💡 مثال</span>
+          <p>لو خط السعر الفعلي بيرتفع باستمرار، وخط تنبؤ الموديل برتفع كذلك بس فاضل تحت أو متأخر شوية، يبقى الموديل لقط اتجاه الترند لكن مع تأخير أو تقدير أقل من الحقيقة — نمط شائع لما تقارن مخرجات الموديل بالبيانات الحقيقية.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>The HMM prediction line tracked the actual stock data more closely than the LSTM line, visually confirming the study's conclusion that HMM performed better here.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ SECTION 7 ============================ -->
+  <section class="card" id="sec7" style="--section-color:var(--accent-7)">
+    <div class="card-header" onclick="toggle('sec7')">
+      <div class="icon-badge">🧠</div>
+      <div>
+        <h2>LSTM vs RNN: Solving the Long-Memory Problem</h2>
+        <span class="section-tag">COMPARISON</span>
+      </div>
+      <div class="collapse-toggle">▾</div>
+    </div>
+    <div class="card-body">
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('sec7','en')">EN</button>
+        <button class="lang-btn" onclick="switchLang('sec7','ar')">AR</button>
+      </div>
+
+      <div class="lang-panel active" data-lang="en">
+        <p>The main difference between RNN and LSTM lies in their ability to effectively handle <span class="term" title="When information from far back in a sequence still matters for a later prediction">long-range dependencies</span> in sequential data.</p>
+        <p>Plain RNNs suffer from the <span class="highlight">vanishing gradient problem</span>: during training, as information is passed backward through many time steps to update the network's weights, the signal (gradient) used for learning gets smaller and smaller, until it almost disappears. This makes it very hard for an RNN to learn from events that happened many steps earlier in a sequence.</p>
+        <p>LSTMs solve this by using a more sophisticated architecture with <span class="term" title="A special unit that stores information across many time steps">memory cells</span> and <span class="term" title="Small neural units that control what information is kept, removed, or passed on">gating mechanisms</span> (such as forget, input, and output gates). These gates let the network decide, at every step, what to keep in memory and what to throw away — protecting important information from vanishing over time.</p>
+
+        <pre class="code-block"><span class="cm"># Simplified idea of LSTM gates at each time step</span>
+<span class="kw">forget_gate</span> = sigmoid(W_f · [h_prev, x_t])
+<span class="kw">input_gate</span>  = sigmoid(W_i · [h_prev, x_t])
+<span class="kw">output_gate</span> = sigmoid(W_o · [h_prev, x_t])
+
+<span class="vr">cell_state</span> = forget_gate * <span class="vr">cell_state_prev</span> + input_gate * <span class="fn">candidate</span>(x_t, h_prev)
+<span class="vr">hidden_state</span> = output_gate * tanh(<span class="vr">cell_state</span>)</pre>
+
+        <div class="table-wrap">
+          <table class="compare">
+            <thead>
+              <tr><th>Aspect</th><th>RNN</th><th>LSTM</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Long-range dependency handling</td><td>Weak</td><td>Strong</td></tr>
+              <tr><td>Vanishing gradient problem</td><td>Suffers from it</td><td>Largely solved via gating</td></tr>
+              <tr><td>Architecture</td><td>Simple repeating unit</td><td>Repeating unit with memory cell + gates</td></tr>
+              <tr><td>Typical use case</td><td>Short sequences</td><td>Longer sequences needing memory of earlier context</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 Analogy</span>
+          <p>Plain RNN memory is like trying to remember a whisper that gets passed person to person down a long line — by the time it reaches the end, the message is faded or lost. LSTM is like having a notebook where someone can deliberately write down and keep important details, instead of relying only on a fading whisper.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ Common Mistake</span>
+          <p>Don't think LSTM has "infinite" memory — it's much better at long-range dependencies than plain RNN, but it can still struggle with extremely long sequences. That's part of why even more advanced architectures (like attention-based models) were later developed.</p>
+        </div>
+      </div>
+
+      <div class="lang-panel" data-lang="ar">
+        <p>الفرق الأساسي بين RNN و LSTM هو في القدرة على التعامل بفاعلية مع <span class="term" title="لما معلومة من بداية التسلسل لسه مهمة لتنبؤ لاحق">الاعتماديات طويلة المدى (long-range dependencies)</span> في البيانات التسلسلية.</p>
+        <p>الـ RNN العادي بيعاني من <span class="highlight">مشكلة التدرج المتلاشي (vanishing gradient)</span>: أثناء التدريب، لما المعلومة بتترجع للخلف على خطوات زمنية كثيرة لتحديث أوزان الشبكة، السيجنال (gradient) المستخدم في التعلم بيصغر أكتر وأكتر، لحد ما يكاد يختفي. ده بيخلي صعب جداً على RNN يتعلم من أحداث حصلت من فترة بعيدة في التسلسل.</p>
+        <p>الـ LSTM بيحل هذه المشكلة باستخدام بنية أكثر تطوراً فيها <span class="term" title="وحدة خاصة تخزن المعلومات على مدار خطوات زمنية كثيرة">خلايا ذاكرة (memory cells)</span> و<span class="term" title="وحدات عصبية صغيرة تتحكم في إيه اللي يُحفظ أو يُحذف أو يُمرر">آليات بوابات (gating mechanisms)</span> (زي بوابة النسيان، بوابة الإدخال، وبوابة الإخراج). هذه البوابات بتسمح للشبكة تقرر، في كل خطوة، إيه اللي تحتفظ به في الذاكرة وإيه اللي تتجاهله — وبذلك تحمي المعلومات المهمة من التلاشي مع الوقت.</p>
+
+        <div class="box box-analogy">
+          <span class="box-label">🧩 تشبيه</span>
+          <p>ذاكرة الـ RNN العادي زي همسة بتتنقل من شخص للتاني في صف طويل — لما توصل للآخر بتكون باهتة أو ضاعت. الـ LSTM زي دفتر ملاحظات حد بيكتب فيه التفاصيل المهمة بقصد ويحفظها، بدل ما يعتمد فقط على همسة بتتلاشى.</p>
+        </div>
+
+        <div class="box box-warning">
+          <span class="box-label">⚠️ غلطة شائعة</span>
+          <p>متفكرش إن LSTM عنده ذاكرة "لا نهائية" — هو أفضل بكتير من RNN العادي في الاعتماديات طويلة المدى، لكن ممكن يواجه صعوبة مع تسلسلات طويلة جداً جداً. وده جزء من سبب تطوير نماذج أكثر تقدماً بعد كده زي النماذج المعتمدة على Attention.</p>
+        </div>
+      </div>
+
+      <div class="box box-summary">
+        <span class="box-label">📌 Summary</span>
+        <p>RNNs struggle with long sequences due to the vanishing gradient problem, while LSTMs use memory cells and gates to preserve important information over longer ranges.</p>
+      </div>
+    </div>
+  </section>
+
+  <a class="back-top" onclick="scrollToId('top')">↑ Back to top</a>
+</div>
+
+<footer class="end">
+  Study Notes · HMM / RNN / LSTM Comparison · Generated for educational use
+</footer>
+
+<div id="top"></div>
+
+<script>
+/* ============================================================
+   toggle() — collapse/expand a section card
+============================================================ */
+function toggle(sectionId){
+  const card = document.getElementById(sectionId);
+  if(!card) return;
+  card.classList.toggle('collapsed');
+}
+
+/* ============================================================
+   switchLang() — switch between EN / AR panels within a section
+============================================================ */
+function switchLang(sectionId, lang){
+  const card = document.getElementById(sectionId);
+  if(!card) return;
+  const panels = card.querySelectorAll('.lang-panel');
+  const btns = card.querySelectorAll('.lang-btn');
+  panels.forEach(p => {
+    p.classList.toggle('active', p.getAttribute('data-lang') === lang);
+  });
+  btns.forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().toLowerCase() === lang);
+  });
+}
+
+/* ============================================================
+   scrollTo() — smooth scroll to a section by id (used by TOC chips)
+============================================================ */
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function scrollToId(id){
+  scrollTo(id);
+  // ensure section is expanded when navigated to
+  const card = document.getElementById(id);
+  if(card && card.classList.contains('collapsed')){
+    card.classList.remove('collapsed');
+  }
+}
+
+/* ============================================================
+   Theme toggle (light/dark mode)
+============================================================ */
+function toggleTheme(){
+  const body = document.body;
+  const btn = document.getElementById('themeBtn');
+  const isDark = body.getAttribute('data-theme') === 'dark';
+  body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  btn.textContent = isDark ? '🌙 Dark mode' : '☀️ Light mode';
+}
+</script>
+
+</body>
+</html>
