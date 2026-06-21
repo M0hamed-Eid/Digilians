@@ -228,6 +228,20 @@ li { margin-bottom: 5px; }
 [dir="rtl"] {
   font-family: 'Segoe UI', 'Tahoma', 'Arabic Typesetting', var(--font-sans);
 }
+[dir="rtl"] .box {
+  border-left: none;
+  border-right: 3px solid;
+  border-radius: 10px 0 0 10px;
+}
+[dir="rtl"] .box-summary {
+  border-left: none;
+  border-right: 3px solid var(--c6-fg);
+  border-radius: 10px 0 0 10px;
+}
+[dir="rtl"] ul, [dir="rtl"] ol {
+  padding-left: 0;
+  padding-right: 20px;
+}
 </style>
 </head>
 <body>
@@ -258,8 +272,8 @@ li { margin-bottom: 5px; }
   </div>
   <div class="sec-body open" id="sb-intro">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('intro','en')">English</button>
-      <button class="lang-tab" onclick="lang('intro','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('intro','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('intro','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -341,8 +355,8 @@ li { margin-bottom: 5px; }
   </div>
   <div class="sec-body open" id="sb-ohe">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('ohe','en')">English</button>
-      <button class="lang-tab" onclick="lang('ohe','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('ohe','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('ohe','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -448,8 +462,8 @@ li { margin-bottom: 5px; }
   </div>
   <div class="sec-body open" id="sb-bow">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('bow','en')">English</button>
-      <button class="lang-tab" onclick="lang('bow','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('bow','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('bow','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -556,8 +570,8 @@ li { margin-bottom: 5px; }
   </div>
   <div class="sec-body open" id="sb-cv">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('cv','en')">English</button>
-      <button class="lang-tab" onclick="lang('cv','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('cv','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('cv','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -666,8 +680,8 @@ X = cv.<span class="fn">fit_transform</span>(corpus)
   </div>
   <div class="sec-body open" id="sb-tfidf">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('tfidf','en')">English</button>
-      <button class="lang-tab" onclick="lang('tfidf','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('tfidf','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('tfidf','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -793,8 +807,8 @@ X = tfidf.<span class="fn">fit_transform</span>(corpus)
   </div>
   <div class="sec-body open" id="sb-ngram">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('ngram','en')">English</button>
-      <button class="lang-tab" onclick="lang('ngram','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('ngram','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('ngram','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -897,8 +911,8 @@ cv_both = <span class="cls">CountVectorizer</span>(ngram_range=(<span class="nm"
   </div>
   <div class="sec-body open" id="sb-matrix">
     <div class="lang-tabs">
-      <button class="lang-tab active" onclick="lang('matrix','en')">English</button>
-      <button class="lang-tab" onclick="lang('matrix','ar')">Arabic — العربية</button>
+      <button class="lang-tab active" onclick="switchLang('matrix','en')">English</button>
+      <button class="lang-tab" onclick="switchLang('matrix','ar')">Arabic — العربية</button>
     </div>
 
     <!-- EN -->
@@ -1037,16 +1051,19 @@ function toggle(id) {
   icon.classList.toggle('open', open);
 }
 
-function lang(section, l) {
+function switchLang(section, l) {
   const body = document.getElementById('sb-' + section);
-  body.querySelectorAll('.lang-tab').forEach(t => {
-    t.classList.toggle('active',
-      (l === 'en' && t.textContent.includes('English')) ||
-      (l === 'ar' && t.textContent.includes('Arabic'))
-    );
+  if (!body) return;
+  body.querySelectorAll('.lang-tab').forEach(function(t) {
+    var onclick = t.getAttribute('onclick') || '';
+    var isEn = onclick.indexOf(",'en'") !== -1;
+    var isAr = onclick.indexOf(",'ar'") !== -1;
+    t.classList.toggle('active', (l === 'en' && isEn) || (l === 'ar' && isAr));
   });
-  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
-  const panel = document.getElementById(section + '-' + l);
+  body.querySelectorAll('.lang-panel').forEach(function(p) {
+    p.classList.remove('active');
+  });
+  var panel = document.getElementById(section + '-' + l);
   if (panel) panel.classList.add('active');
 }
 
