@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 16 — Human Pose Estimation: YOLOv8 & MediaPipe | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* SKELETON DIAGRAM (additive, follows same visual language) */
+.skeleton-wrap{
+  display:flex;justify-content:center;margin:16px 0;
+}
+.skeleton-box{
+  position:relative;
+  width:220px;height:400px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+.sk-bone{
+  position:absolute;
+  height:2px;
+  background:var(--muted);
+  transform-origin:0 50%;
+  opacity:0.7;
+}
+.sk-pt{
+  position:absolute;
+  width:12px;height:12px;
+  border-radius:50%;
+  background:var(--accent);
+  border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent);
+  transform:translate(-50%,-50%);
+  display:flex;align-items:center;justify-content:center;
+}
+.sk-pt.head{background:var(--accent4)}
+.sk-pt.arm{background:var(--accent3)}
+.sk-pt.leg{background:var(--accent2)}
+.sk-lbl{
+  position:absolute;
+  font-family:var(--font-mono);
+  font-size:9px;
+  color:var(--muted);
+  white-space:nowrap;
+  transform:translate(-50%,-50%);
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 CV Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Lecture Introduction</a>
+    <div class="nav-section">Part I — Foundations</div>
+    <a href="#s1" onclick="setActive(this)">1. What is Pose Estimation</a>
+    <a href="#s2" onclick="setActive(this)">2. Why Pose Estimation</a>
+    <a href="#s3" onclick="setActive(this)">3. Keypoints as Features</a>
+    <div class="nav-section">Part II — YOLOv8-Pose</div>
+    <a href="#s4" onclick="setActive(this)">4. YOLOv8-Pose Model</a>
+    <a href="#s5" onclick="setActive(this)">5. The 17 Keypoints</a>
+    <a href="#s6" onclick="setActive(this)">6. Worked Example — Raised Hand</a>
+    <div class="nav-section">Part III — MediaPipe</div>
+    <a href="#s7" onclick="setActive(this)">7. MediaPipe Overview</a>
+    <a href="#s8" onclick="setActive(this)">8. On-Device ML</a>
+    <a href="#s9" onclick="setActive(this)">9. MediaPipe Vision Solutions</a>
+    <a href="#s10" onclick="setActive(this)">10. MediaPipe Pose vs YOLOv8-Pose</a>
+    <div class="nav-section">Part IV — Other Landmarks</div>
+    <a href="#s11" onclick="setActive(this)">11. Hand & Face Landmarks</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 16 — HUMAN POSE ESTIMATION: YOLOV8 & MEDIAPIPE</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 16</div>
+  <h1>Human Pose Estimation: YOLOv8 & MediaPipe</h1>
+  <p>Predicting Body Joint Coordinates and Turning Keypoints into Actionable Features</p>
+  <p class="author">Dr. Ahmed Yousry &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">15</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">11</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">17/33</span><span class="lbl">Keypoints</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Pose Estimation</span>
+    <span class="tag tag-green">Keypoint Detection</span>
+    <span class="tag tag-purple">YOLOv8-Pose</span>
+    <span class="tag tag-orange">MediaPipe</span>
+    <span class="tag tag-blue">Fall Detection</span>
+    <span class="tag tag-green">Sequence Models</span>
+    <span class="tag tag-purple">On-Device ML</span>
+    <span class="tag tag-orange">Landmark Detection</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 2</span>
+    <h2>1. What is Pose Estimation</h2>
+  </div>
+  <p class="section-subtitle">Predicting the Location of Key Body Joints</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>What is pose estimation:</strong> Predicting the location of the key body joints of a human.</li>
+      <li><strong>Also called:</strong> Pose detection or keypoint detection.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Pose Estimation</span> is a Computer Vision task whose goal is to predict the <strong>(x, y) pixel coordinates</strong> of a set of important <strong>body joints</strong> — nose, shoulders, elbows, wrists, hips, knees, ankles — from an image or a video frame.</p>
+    <br/>
+    <p>Instead of a single label ("this is a person") or a bounding box ("the person is roughly here"), pose estimation gives you a <strong>skeleton</strong>: a set of numbered points that describe exactly how the person's body is arranged in space.</p>
+    <div class="def-box">
+      <div class="def-term">Alternate Names</div>
+      <p style="margin-top:6px;font-size:13px">The same task is also called <strong>Pose Detection</strong> or <strong>Keypoint Detection</strong>. All three names refer to the same underlying idea: locating a fixed set of anatomically meaningful points on a human body.</p>
+    </div>
+    <p style="margin-top:10px">Each detected joint is called a <strong>keypoint</strong>. A model that performs pose estimation outputs, for every keypoint, an (x, y) coordinate — and often a confidence score indicating how sure the model is that the joint is really there and visible.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>تقدير الوضعية (Pose Estimation)</strong> هي مهمة في رؤية الحاسوب هدفها التنبؤ بموقع <strong>مفاصل الجسم الأساسية</strong> للإنسان — مثل الأنف، الكتفين، المرفقين، المعصمين، الوركين، الركبتين، والكاحلين — داخل الصورة، على شكل إحداثيات (x, y).</p>
+    <br/>
+    <p>بدلًا من إعطاء تصنيف واحد للصورة أو رسم مستطيل حول الشخص، تقدير الوضعية يُعطينا "هيكلًا عظميًا" (skeleton): مجموعة من النقاط المرقمة التي تصف بالضبط كيف يتوضّع جسم الإنسان في الصورة.</p>
+    <br/>
+    <p><strong>الأسماء البديلة:</strong> تُسمّى هذه المهمة أيضًا <strong>Pose Detection</strong> أو <strong>Keypoint Detection</strong> — الاسم يختلف لكن الفكرة واحدة: تحديد مجموعة ثابتة من النقاط التشريحية المهمة على جسم الإنسان.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>Keypoint (نقطة رئيسية)</strong> — كل مفصل يتم اكتشافه يسمى keypoint</li>
+      <li><strong>Coordinate (إحداثي)</strong> — الموقع (x, y) للنقطة داخل الصورة</li>
+      <li><strong>Confidence (درجة الثقة)</strong> — مدى ثقة النموذج أن هذا المفصل موجود وواضح</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example</div>
+    <p>Take a photo of a person doing yoga. A pose estimation model returns 17 (x, y) points — one for each joint. Drawing lines between related points (shoulder→elbow→wrist, hip→knee→ankle) recreates a stick-figure skeleton overlaid on the original photo — exactly what fitness apps show you on screen.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Pose estimation = predicting (x, y) coordinates of key body joints</li>
+      <li>📌 Also called pose detection or keypoint detection — same task, three names</li>
+      <li>📌 Output is a set of keypoints, not a single label or a single bounding box</li>
+      <li>📌 Common exam Q: "What distinguishes pose estimation from object detection?" → Pose estimation locates individual joints inside the person, not just the person's overall bounding box</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pose estimation predicts the (x, y) location of key body joints (keypoints), producing a skeleton-like representation of a person. Also known as pose detection or keypoint detection.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 3</span>
+    <h2>2. Why Pose Estimation Matters</h2>
+  </div>
+  <p class="section-subtitle">A Wide Range of Real-World Applications Built on Body Keypoints</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Human activity prediction</li>
+      <li>Sports analysis</li>
+      <li>Detecting accidents (fall detection)</li>
+      <li>AI fitness app</li>
+      <li>AR and VR (personal avatars)</li>
+      <li>Motion capture (teaching robots, gaming, etc.)</li>
+      <li>Surveillance (crime detection)</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once a model can output a person's keypoints, that skeleton becomes a compact, reusable signal that many downstream applications can build on. Each application below reads the same kind of coordinate output but interprets it differently:</p>
+    <ul class="e-list" style="margin-top:10px">
+      <li>🏃 <strong>Human activity prediction</strong> — the pattern of joint movement over time tells you whether someone is walking, running, sitting, or waving.</li>
+      <li>⚽ <strong>Sports analysis</strong> — coaches track an athlete's joint angles and stride to measure form, e.g. checking a runner's knee lift or a golfer's swing.</li>
+      <li>🚨 <strong>Fall detection (accidents)</strong> — a sudden, large change in body posture (especially the head dropping close to the floor) can trigger an automatic alert for elderly care.</li>
+      <li>💪 <strong>AI fitness apps</strong> — the app compares your joint positions to a reference exercise pose to count reps or correct your form in real time.</li>
+      <li>🕶️ <strong>AR / VR personal avatars</strong> — your keypoints drive a virtual avatar's arms and legs so it mimics your real movement inside a headset or app.</li>
+      <li>🤖 <strong>Motion capture</strong> — keypoint sequences are recorded and replayed to animate video game characters or to teach a robot how a human performs a task.</li>
+      <li>🕵️ <strong>Surveillance (crime detection)</strong> — unusual body postures or sudden motions (e.g. a fight, a person falling, running away) are flagged automatically from camera feeds.</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد أن يستطيع النموذج إخراج <strong>keypoints</strong> جسد الإنسان، يصبح هذا "الهيكل" إشارة مضغوطة يمكن استخدامها في تطبيقات كثيرة جدًا:</p>
+    <ul style="padding-right:20px;margin-top:10px;font-size:14px">
+      <li>🏃 <strong>التنبؤ بالنشاط البشري</strong> — نمط حركة المفاصل بمرور الوقت يوضح إن كان الشخص يمشي أو يجري أو يجلس</li>
+      <li>⚽ <strong>تحليل الرياضة</strong> — تتبع زوايا المفاصل لتحسين أداء اللاعب أو تصحيح حركته</li>
+      <li>🚨 <strong>كشف السقوط (Fall Detection)</strong> — تغيّر مفاجئ وكبير في وضعية الجسم يُشغّل تنبيهًا فوريًا، مفيد لرعاية كبار السن</li>
+      <li>💪 <strong>تطبيقات اللياقة الذكية</strong> — مقارنة وضع مفاصلك بوضعية تمرين مرجعية لعد التكرارات أو تصحيح الأداء</li>
+      <li>🕶️ <strong>الواقع المعزز والافتراضي (AR/VR)</strong> — الـ keypoints تُحرّك شخصية افتراضية (avatar) تحاكي حركتك</li>
+      <li>🤖 <strong>Motion Capture</strong> — تسجيل تسلسل الحركات لتحريك شخصيات الألعاب أو تعليم الروبوتات مهمة بشرية</li>
+      <li>🕵️ <strong>المراقبة (كشف الجرائم)</strong> — رصد وضعيات أو حركات غير طبيعية (شجار، سقوط، هروب) تلقائيًا من كاميرات المراقبة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — One Skeleton, Many Uses</div>
+    <p>Imagine the exact same 17-keypoint skeleton extracted from a camera in a gym. A fitness app uses it to count squats. A security system in the same building uses an identical skeleton stream to flag a person lying motionless on the floor. Same underlying data — different downstream logic.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — 7 Applications</div>
+    <p><strong>"Sports Fans Always Ask Motion Cops"</strong></p>
+    <p><strong>S</strong>ports, <strong>F</strong>itness app, <strong>A</strong>ctivity prediction, <strong>A</strong>R/VR avatars, <strong>M</strong>otion capture, <strong>C</strong>rime surveillance — plus the seventh: Fall (accident) detection.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Know all 7 applications from the slide: activity prediction, sports analysis, fall detection, fitness apps, AR/VR avatars, motion capture, surveillance</li>
+      <li>📌 All applications reuse the same keypoint output — the difference is in the downstream logic/model applied to those coordinates</li>
+      <li>📌 Fall detection and surveillance are safety-oriented; fitness and AR/VR are consumer-oriented; motion capture is production-oriented (games, robotics)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pose estimation output (keypoints) powers many applications: activity prediction, sports analysis, fall detection, fitness apps, AR/VR avatars, motion capture, and surveillance. Same coordinates, different downstream logic.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 4–5</span>
+    <h2>3. Using Pose Keypoints as Features</h2>
+  </div>
+  <p class="section-subtitle">From Raw Coordinates to Predicted Actions — Rules vs. Learned Models</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 4 — Pose estimation results as features:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>We can use the pose estimation coordinates as features to predict an action.</li>
+      <li>For simple tasks, we can compare the coordinates using simple rules.</li>
+      <li>Example — fall detection: compare the vertical distance (head–foot) with some threshold.</li>
+    </ul>
+    <br/>
+    <p><strong>Slide 5 — Pose estimation results as features (continued):</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>For complex tasks, we can create a dataset of coordinates.</li>
+      <li>Then we train a machine learning model using that dataset.</li>
+      <li>Simple models (frame-by-frame): Logistic Regression, Decision Tree, SVM, …</li>
+      <li>Or Sequence models: LSTM, 1D Conv.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once you have keypoint coordinates, they become <strong>features</strong> you can feed into any decision-making logic — from a simple "if" statement to a full machine learning model. The right approach depends on how complex the action is.</p>
+
+    <div class="def-box" style="margin-top:12px">
+      <div class="def-term">Approach 1 — Simple Rule-Based Comparison</div>
+      <p style="margin-top:6px;font-size:13px">For simple, well-defined actions, you don't need a trained model at all — just compare a few coordinates against a fixed <strong>threshold</strong>.</p>
+      <p style="font-size:13px;margin-top:6px"><strong>Fall detection example:</strong> compute the vertical distance between the head keypoint's y-coordinate and the foot keypoint's y-coordinate. If a person is standing, this distance is large. If they fall, the distance shrinks dramatically because the whole body collapses toward the ground.</p>
+      <div class="formula">vertical_distance = foot_y − head_y &nbsp;→&nbsp; if vertical_distance &lt; threshold → "fallen"</div>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Approach 2 — Machine Learning on a Coordinate Dataset</div>
+      <p style="margin-top:6px;font-size:13px">For complex actions (that a single hand-written rule can't reliably capture), the process becomes: (1) run pose estimation on many labeled videos/photos, (2) save each frame's keypoint coordinates as a row in a dataset, labeled with the action being performed, (3) train a model on that dataset.</p>
+    </div>
+
+    <div class="cmp-grid" style="margin-top:10px">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Frame-by-Frame Models</h4>
+        <ul>
+          <li>Treat each frame's keypoints independently</li>
+          <li>Logistic Regression</li>
+          <li>Decision Tree</li>
+          <li>SVM</li>
+          <li>Good for static poses (e.g. "sitting" vs "standing")</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Sequence Models</h4>
+        <ul>
+          <li>Consider a sequence of frames over time</li>
+          <li>LSTM (Long Short-Term Memory)</li>
+          <li>1D Convolution (1D Conv)</li>
+          <li>Good for movements (e.g. "waving", "falling", "jumping")</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px;font-size:13px">The key distinction: a <strong>frame-by-frame model</strong> only ever looks at one snapshot in time, so it can recognize a static pose but struggles with actions defined by <em>motion</em>. A <strong>sequence model</strong> looks at how keypoints change across several consecutive frames, which is essential for recognizing dynamic movements.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد الحصول على إحداثيات الـ keypoints، تصبح هذه الإحداثيات <strong>features</strong> يمكن استخدامها لاتخاذ قرار — من قاعدة بسيطة (if) إلى نموذج تعلم آلي كامل.</p>
+    <br/>
+    <p><strong>الطريقة الأولى — قاعدة بسيطة (Rule-Based):</strong></p>
+    <p style="font-size:14px">للمهام البسيطة، لا حاجة لتدريب نموذج — فقط نقارن بعض الإحداثيات بـ <strong>threshold</strong> (عتبة) ثابتة. مثال كشف السقوط: نحسب المسافة الرأسية بين إحداثي y للرأس وإحداثي y للقدم. عندما يكون الشخص واقفًا، المسافة كبيرة. عند السقوط، تنخفض المسافة بشكل كبير لأن الجسم كله ينهار نحو الأرض.</p>
+    <br/>
+    <p><strong>الطريقة الثانية — تعلم آلي على مجموعة بيانات إحداثيات:</strong></p>
+    <p style="font-size:14px">للمهام المعقدة، نجمع إحداثيات الـ keypoints من فيديوهات/صور كثيرة موسومة بنوع الحركة، وننشئ dataset، ثم نُدرّب model عليها:</p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>نماذج إطار بإطار (Frame-by-Frame)</strong> — مثل Logistic Regression وDecision Tree وSVM، تنظر لكل إطار بمفرده، مناسبة للوضعيات الثابتة (جلوس/وقوف)</li>
+      <li><strong>نماذج تسلسلية (Sequence Models)</strong> — مثل LSTM و1D Conv، تنظر لتسلسل إطارات عبر الزمن، مناسبة للحركات (تلويح، سقوط، قفز)</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Threshold (عتبة)</strong> — قيمة حدّية للمقارنة</li>
+      <li><strong>Coordinate Dataset (مجموعة بيانات إحداثيات)</strong> — بيانات مُجمّعة من الـ keypoints</li>
+      <li><strong>Frame-by-Frame (إطار بإطار)</strong> — تحليل كل لقطة بشكل منفصل</li>
+      <li><strong>Sequence Model (نموذج تسلسلي)</strong> — يأخذ بعين الاعتبار الزمن بين اللقطات</li>
+      <li><strong>LSTM / 1D Conv</strong> — نماذج مخصصة للبيانات المتسلسلة زمنيًا</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Numeric Example — Fall Detection Threshold</div>
+    <p>Suppose in a 480-pixel-tall video frame, the head keypoint is at <code>y = 50</code> and the foot keypoint is at <code>y = 400</code> (remember: y increases downward, so a larger y means lower on the screen).</p>
+    <pre><code>vertical_distance = foot_y - head_y = 400 - 50 = 350
+threshold = 150
+
+if vertical_distance &lt; threshold:
+    action = "fallen"
+else:
+    action = "standing / normal"
+
+# 350 is NOT less than 150 → action = "standing / normal"</code></pre>
+    <p style="margin-top:8px">Now imagine the person falls: head_y = 340, foot_y = 400 → vertical_distance = 60, which IS less than the threshold of 150 → the rule correctly outputs <strong>"fallen"</strong>.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Limitation of Simple Rules</div>
+    <p>A fixed threshold works only for the specific scenario it was tuned for. Different camera angles, a person lying down deliberately (e.g. doing floor exercises), or partial occlusion of the head/foot keypoints can break a simple rule. This is exactly why more complex actions need a trained ML model instead of a hand-picked threshold.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Simple tasks → rule-based comparison of coordinates against a threshold (e.g. fall detection: head-foot vertical distance)</li>
+      <li>📌 Complex tasks → build a coordinate dataset and train an ML model</li>
+      <li>📌 Frame-by-frame models: Logistic Regression, Decision Tree, SVM — no memory of previous frames</li>
+      <li>📌 Sequence models: LSTM, 1D Conv — designed to capture how keypoints change over time</li>
+      <li>📌 Choose sequence models for actions that are defined by <em>movement</em>, not just a static pose</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Keypoint coordinates can drive simple threshold rules (e.g. fall detection: head-foot distance vs. threshold) or feed a trained ML model built from a coordinate dataset — frame-by-frame models (Logistic Regression, Decision Tree, SVM) for static poses, or sequence models (LSTM, 1D Conv) for movements over time.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 6–7</span>
+    <h2>4. YOLOv8-Pose</h2>
+  </div>
+  <p class="section-subtitle">Extending YOLOv8 for Multi-Person Keypoint Detection</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Use "-pose" suffix in the model's name. Example: <code>yolov8n-pose.pt</code></li>
+      <li>The result will have an attribute for keypoints.</li>
+      <li>It detects 17 keypoints.</li>
+      <li>Can detect multiple humans in the same image.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">YOLOv8</span> — best known as a fast object detector — also ships a <strong>pose-estimation variant</strong>. You get it simply by appending the <code>-pose</code> suffix to the regular model name.</p>
+    <div class="def-box">
+      <div class="def-term">Naming Convention</div>
+      <p style="margin-top:6px;font-size:13px">A regular detection model might be named <code>yolov8n.pt</code> (the "n" means "nano", the smallest/fastest size). The pose variant of the same size is <code>yolov8n-pose.pt</code>. Larger sizes follow the same pattern (e.g. <code>yolov8s-pose.pt</code>, <code>yolov8m-pose.pt</code>).</p>
+    </div>
+    <pre><code><span class="code-kw">from</span> ultralytics <span class="code-kw">import</span> YOLO
+
+<span class="code-cm"># Load the pose variant instead of the regular detector</span>
+model = YOLO(<span class="code-str">"yolov8n-pose.pt"</span>)
+
+results = model(<span class="code-str">"person.jpg"</span>)
+
+<span class="code-cm"># The result object now has a .keypoints attribute</span>
+<span class="code-fn">print</span>(results[<span class="code-nb">0</span>].keypoints)</code></pre>
+    <p style="margin-top:10px"><strong>Two key facts from the slides:</strong></p>
+    <ul class="e-list">
+      <li>🔢 <strong>17 keypoints</strong> — YOLOv8-Pose is trained to output exactly 17 body joints per detected person (see Section 5 for the full list).</li>
+      <li>👥 <strong>Multi-person capability</strong> — because YOLOv8 is fundamentally a detector, it first finds every person in the image, then estimates the 17 keypoints for <em>each</em> person separately. A single image with a crowd of people returns a keypoint set per person.</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>YOLOv8</strong> معروف كنموذج سريع لاكتشاف الأجسام (object detection)، ولكنه يوفّر أيضًا نسخة مخصّصة لتقدير الوضعية (pose)، ويتم الحصول عليها فقط بإضافة اللاحقة <code>-pose</code> إلى اسم النموذج العادي.</p>
+    <br/>
+    <p><strong>قاعدة التسمية:</strong> النموذج العادي لاكتشاف الأجسام قد يُسمّى <code>yolov8n.pt</code> (الحرف n يعني "nano" أي الأصغر والأسرع). نسخة تقدير الوضعية لنفس الحجم تُسمّى <code>yolov8n-pose.pt</code>.</p>
+    <br/>
+    <p><strong>حقيقتان مهمتان:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>🔢 <strong>17 keypoint</strong> — يكتشف YOLOv8-Pose 17 مفصلًا لكل شخص في الصورة (التفاصيل في القسم 5)</li>
+      <li>👥 <strong>اكتشاف أشخاص متعددين</strong> — بما أن YOLOv8 أساسًا نموذج كشف أجسام، فهو يكتشف كل شخص في الصورة أولًا، ثم يستخرج 17 نقطة لكل شخص على حدة. صورة فيها حشد من الناس تُعطي مجموعة keypoints لكل شخص</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Suffix (لاحقة)</strong> — جزء يُضاف لآخر اسم النموذج</li>
+      <li><strong>Keypoints Attribute (خاصية النقاط الرئيسية)</strong> — الحقل في نتيجة النموذج الذي يحمل الإحداثيات</li>
+      <li><strong>Multi-Person Detection (كشف أشخاص متعددين)</strong> — استخراج الوضعية لأكثر من شخص في نفس الصورة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>A single photo of a basketball team huddle (5 players) fed into <code>yolov8n-pose.pt</code> returns 5 separate sets of 17 keypoints — one skeleton per player — all in one inference call. This multi-person capability is what makes YOLOv8-Pose practical for crowd or team-sport analysis, unlike single-person-only models.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Pose variant = append "-pose" to the model name, e.g. <code>yolov8n-pose.pt</code></li>
+      <li>📌 The results object gains a <code>.keypoints</code> attribute compared to the plain detection model</li>
+      <li>📌 YOLOv8-Pose detects exactly 17 keypoints per person</li>
+      <li>📌 YOLOv8-Pose supports multi-person detection in a single image — a key differentiator vs. some single-person-only pose models</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>YOLOv8-Pose = YOLOv8 + "-pose" suffix (e.g. <code>yolov8n-pose.pt</code>). Results include a <code>.keypoints</code> attribute. Detects 17 keypoints per person and supports multiple people per image.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 8</span>
+    <h2>5. The 17 YOLOv8 Keypoints</h2>
+  </div>
+  <p class="section-subtitle">The Fixed Index-to-Body-Part Mapping Used by YOLOv8-Pose</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p style="font-size:14px">A numbered diagram of a human body with 17 labeled points (0–16), and a two-column index table mapping each index to a body part name (Nose, Left/Right eye, Left/Right ear, Left/Right shoulder, Left/Right elbow, Left/Right wrist, Left/Right hip, Left/Right knee, Left/Right ankle).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>YOLOv8-Pose always outputs keypoints in the <strong>same fixed order</strong>. Index 0 is always the nose, index 16 is always the right ankle, and so on. Knowing this order is essential because your code will access keypoints by their numeric index (e.g. <code>keypoints[5]</code> for the left shoulder).</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Index</th><th>Body Part</th><th>Index</th><th>Body Part</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0</td><td>Nose</td><td>9</td><td>Left wrist</td></tr>
+          <tr><td>1</td><td>Left eye</td><td>10</td><td>Right wrist</td></tr>
+          <tr><td>2</td><td>Right eye</td><td>11</td><td>Left hip</td></tr>
+          <tr><td>3</td><td>Left ear</td><td>12</td><td>Right hip</td></tr>
+          <tr><td>4</td><td>Right ear</td><td>13</td><td>Left knee</td></tr>
+          <tr><td>5</td><td>Left shoulder</td><td>14</td><td>Right knee</td></tr>
+          <tr><td>6</td><td>Right shoulder</td><td>15</td><td>Left ankle</td></tr>
+          <tr><td>7</td><td>Left elbow</td><td>16</td><td>Right ankle</td></tr>
+          <tr><td>8</td><td>Right elbow</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:12px"><strong>Visual skeleton map — where each index sits on the body:</strong></p>
+    <div class="skeleton-wrap">
+      <div class="skeleton-box">
+        <!-- bones -->
+        <div class="sk-bone" style="left:80px;top:70px;width:60px;transform:rotate(0deg)"></div>
+        <div class="sk-bone" style="left:80px;top:70px;width:53.85px;transform:rotate(111.8deg)"></div>
+        <div class="sk-bone" style="left:140px;top:70px;width:53.85px;transform:rotate(68.2deg)"></div>
+        <div class="sk-bone" style="left:60px;top:120px;width:47.4px;transform:rotate(108.4deg)"></div>
+        <div class="sk-bone" style="left:160px;top:120px;width:47.4px;transform:rotate(71.6deg)"></div>
+        <div class="sk-bone" style="left:80px;top:70px;width:120.4px;transform:rotate(85.2deg)"></div>
+        <div class="sk-bone" style="left:140px;top:70px;width:120.4px;transform:rotate(94.8deg)"></div>
+        <div class="sk-bone" style="left:90px;top:190px;width:40px;transform:rotate(0deg)"></div>
+        <div class="sk-bone" style="left:90px;top:190px;width:80.16px;transform:rotate(93.6deg)"></div>
+        <div class="sk-bone" style="left:130px;top:190px;width:80.16px;transform:rotate(86.4deg)"></div>
+        <div class="sk-bone" style="left:85px;top:270px;width:80.16px;transform:rotate(93.6deg)"></div>
+        <div class="sk-bone" style="left:135px;top:270px;width:80.16px;transform:rotate(86.4deg)"></div>
+        <!-- points -->
+        <div class="sk-pt head" style="left:110px;top:25px"></div><div class="sk-lbl" style="left:110px;top:12px">0 Nose</div>
+        <div class="sk-pt head" style="left:100px;top:20px"></div><div class="sk-lbl" style="left:65px;top:20px">1 L eye</div>
+        <div class="sk-pt head" style="left:120px;top:20px"></div><div class="sk-lbl" style="left:158px;top:20px">2 R eye</div>
+        <div class="sk-pt head" style="left:90px;top:24px"></div><div class="sk-lbl" style="left:45px;top:34px">3 L ear</div>
+        <div class="sk-pt head" style="left:130px;top:24px"></div><div class="sk-lbl" style="left:178px;top:34px">4 R ear</div>
+        <div class="sk-pt arm" style="left:80px;top:70px"></div><div class="sk-lbl" style="left:38px;top:70px">5 L shoulder</div>
+        <div class="sk-pt arm" style="left:140px;top:70px"></div><div class="sk-lbl" style="left:182px;top:70px">6 R shoulder</div>
+        <div class="sk-pt arm" style="left:60px;top:120px"></div><div class="sk-lbl" style="left:30px;top:120px">7 L elbow</div>
+        <div class="sk-pt arm" style="left:160px;top:120px"></div><div class="sk-lbl" style="left:190px;top:120px">8 R elbow</div>
+        <div class="sk-pt arm" style="left:45px;top:165px"></div><div class="sk-lbl" style="left:22px;top:165px">9 L wrist</div>
+        <div class="sk-pt arm" style="left:175px;top:165px"></div><div class="sk-lbl" style="left:198px;top:165px">10 R wrist</div>
+        <div class="sk-pt leg" style="left:90px;top:190px"></div><div class="sk-lbl" style="left:55px;top:198px">11 L hip</div>
+        <div class="sk-pt leg" style="left:130px;top:190px"></div><div class="sk-lbl" style="left:165px;top:198px">12 R hip</div>
+        <div class="sk-pt leg" style="left:85px;top:270px"></div><div class="sk-lbl" style="left:48px;top:270px">13 L knee</div>
+        <div class="sk-pt leg" style="left:135px;top:270px"></div><div class="sk-lbl" style="left:172px;top:270px">14 R knee</div>
+        <div class="sk-pt leg" style="left:80px;top:350px"></div><div class="sk-lbl" style="left:45px;top:358px">15 L ankle</div>
+        <div class="sk-pt leg" style="left:140px;top:350px"></div><div class="sk-lbl" style="left:175px;top:358px">16 R ankle</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:6px">Orange = head/face keypoints (0–4) · Green = arm keypoints (5–10) · Purple = hip/leg keypoints (11–16)</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>يُخرج YOLOv8-Pose الـ keypoints دائمًا <strong>بالترتيب نفسه الثابت</strong>. الفهرس (index) 0 هو الأنف دائمًا، والفهرس 16 هو الكاحل الأيمن دائمًا، وهكذا. معرفة هذا الترتيب ضروري لأن الكود يصل إلى كل نقطة عبر رقمها (مثل <code>keypoints[5]</code> للكتف الأيسر).</p>
+    <br/>
+    <p><strong>الجدول:</strong> الأنف (0)، العين اليسرى (1)، العين اليمنى (2)، الأذن اليسرى (3)، الأذن اليمنى (4)، الكتف الأيسر (5)، الكتف الأيمن (6)، المرفق الأيسر (7)، المرفق الأيمن (8)، المعصم الأيسر (9)، المعصم الأيمن (10)، الورك الأيسر (11)، الورك الأيمن (12)، الركبة اليسرى (13)، الركبة اليمنى (14)، الكاحل الأيسر (15)، الكاحل الأيمن (16).</p>
+    <br/>
+    <p>لاحظ النمط: كل زوج متتالي من الأرقام الفردية/الزوجية يمثّل الجانب الأيسر (Left) ثم الأيمن (Right) لنفس المفصل — وهذا يسهّل تذكر الترتيب.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Reading Keypoints in Code</div>
+    <pre><code>keypoints = results[<span class="code-nb">0</span>].keypoints.xy[<span class="code-nb">0</span>]  <span class="code-cm"># first detected person</span>
+
+nose        = keypoints[<span class="code-nb">0</span>]
+left_shoulder  = keypoints[<span class="code-nb">5</span>]
+right_shoulder = keypoints[<span class="code-nb">6</span>]
+left_wrist  = keypoints[<span class="code-nb">9</span>]
+right_ankle = keypoints[<span class="code-nb">16</span>]</code></pre>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the fixed order: 0 Nose · 1–4 eyes/ears · 5–10 shoulders/elbows/wrists · 11–16 hips/knees/ankles</li>
+      <li>📌 Odd vs. even pattern is NOT strict left/right alternation for every pair — always check the table, don't guess</li>
+      <li>📌 The keypoint index is what you use in code to grab a specific joint's (x, y) coordinate</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>YOLOv8-Pose always returns 17 keypoints in a fixed order: 0 Nose, 1 Left eye, 2 Right eye, 3 Left ear, 4 Right ear, 5 Left shoulder, 6 Right shoulder, 7 Left elbow, 8 Right elbow, 9 Left wrist, 10 Right wrist, 11 Left hip, 12 Right hip, 13 Left knee, 14 Right knee, 15 Left ankle, 16 Right ankle.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 9</span>
+    <h2>6. Worked Example — Detecting a Raised Hand</h2>
+  </div>
+  <p class="section-subtitle">Comparing Wrist and Shoulder Y-Coordinates — and the Coordinate-System Gotcha</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>If the wrist is higher than the shoulder → the hand is raised.</li>
+      <li>For the left hand, compare keypoints 9 (left wrist) and 5 (left shoulder).</li>
+      <li>For the right hand, compare keypoints 10 (right wrist) and 6 (right shoulder).</li>
+      <li>We compare the y-coordinates.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This is a perfect small example of the "simple rule-based" approach from Section 3: it uses just <strong>two keypoints</strong> and one comparison to decide whether a hand is raised — no trained model required.</p>
+    <ol class="steps">
+      <li>Run YOLOv8-Pose on the frame and get all 17 keypoints for the person.</li>
+      <li>For the left hand, read keypoint 9 (left wrist) and keypoint 5 (left shoulder).</li>
+      <li>For the right hand, read keypoint 10 (right wrist) and keypoint 6 (right shoulder).</li>
+      <li>Compare only the <strong>y-coordinate</strong> (vertical position) of each pair.</li>
+      <li>If the wrist's y-coordinate is <strong>smaller</strong> than the shoulder's y-coordinate → the wrist is physically higher on screen → hand raised.</li>
+    </ol>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> The Coordinate-System Gotcha — "Higher" Means a SMALLER y-Value</div>
+    <p>In everyday math graphs, moving "up" means the y-value gets <strong>larger</strong>. In image coordinates, it's the <strong>opposite</strong>: the origin (0, 0) is at the <strong>top-left corner</strong> of the image, and y-values <strong>increase as you go down</strong> the image.</p>
+    <p style="margin-top:8px">So when the slide says "the wrist is higher than the shoulder," it actually means: <strong>wrist_y &lt; shoulder_y</strong> (a smaller number, not a bigger one). This trips up almost every beginner the first time they implement pose-based logic — always double check whether you're thinking in "graph coordinates" or "image coordinates".</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Numeric Example</div>
+    <pre><code><span class="code-cm"># Case 1 — arm raised</span>
+left_wrist_y    = <span class="code-nb">120</span>
+left_shoulder_y = <span class="code-nb">200</span>
+
+<span class="code-kw">if</span> left_wrist_y &lt; left_shoulder_y:
+    <span class="code-fn">print</span>(<span class="code-str">"Left hand is raised"</span>)   <span class="code-cm"># 120 &lt; 200 -> TRUE -> raised</span>
+
+<span class="code-cm"># Case 2 — arm down</span>
+left_wrist_y    = <span class="code-nb">250</span>
+left_shoulder_y = <span class="code-nb">200</span>
+
+<span class="code-kw">if</span> left_wrist_y &lt; left_shoulder_y:
+    <span class="code-fn">print</span>(<span class="code-str">"Left hand is raised"</span>)
+<span class="code-kw">else</span>:
+    <span class="code-fn">print</span>(<span class="code-str">"Left hand is down"</span>)      <span class="code-cm"># 250 &lt; 200 -> FALSE -> down</span></code></pre>
+    <p style="margin-top:8px">Same logic mirrored for the right hand using keypoints 10 (right wrist) and 6 (right shoulder).</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذا مثال بسيط ورائع على أسلوب "القاعدة البسيطة": يستخدم فقط <strong>نقطتين (keypoints)</strong> ومقارنة واحدة لتحديد إن كانت اليد مرفوعة، بدون أي نموذج تعلم آلي.</p>
+    <ol style="padding-right:20px;font-size:14px;margin-top:8px">
+      <li>نُشغّل YOLOv8-Pose على الصورة ونحصل على كل الـ 17 keypoint للشخص</li>
+      <li>لليد اليسرى: نقرأ keypoint 9 (المعصم الأيسر) وkeypoint 5 (الكتف الأيسر)</li>
+      <li>لليد اليمنى: نقرأ keypoint 10 (المعصم الأيمن) وkeypoint 6 (الكتف الأيمن)</li>
+      <li>نُقارن فقط إحداثي <strong>y</strong> (الموضع الرأسي) لكل زوج</li>
+      <li>إذا كان إحداثي y للمعصم <strong>أصغر</strong> من إحداثي y للكتف → المعصم أعلى فعليًا على الشاشة → اليد مرفوعة</li>
+    </ol>
+    <br/>
+    <div class="card-warn" style="margin-top:6px">
+      <p style="font-size:14px"><strong>⚠️ الفخ الشائع للمبتدئين:</strong> في إحداثيات الصور، نقطة الأصل (0,0) توجد في <strong>الزاوية العلوية اليسرى</strong>، وإحداثي y <strong>يزداد كلما اتجهنا للأسفل</strong>. لذلك "أعلى" تعني رقم y <strong>أصغر</strong>، وليس أكبر كما نتوقع في الرسوم البيانية العادية. هذه النقطة تُربك أغلب المبتدئين عند تطبيق منطق تقدير الوضعية لأول مرة.</p>
+    </div>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Hand raised rule: wrist_y &lt; shoulder_y (smaller y = higher on screen)</li>
+      <li>📌 Left hand → compare keypoints 9 and 5. Right hand → compare keypoints 10 and 6.</li>
+      <li>📌 Image coordinate origin is top-left; y increases downward — opposite of a standard math graph</li>
+      <li>📌 Common exam trap: writing "wrist_y &gt; shoulder_y" for "raised" is WRONG — remember the flipped axis</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Hand-raised detection compares the y-coordinate of the wrist keypoint (9 left / 10 right) against the shoulder keypoint (5 left / 6 right). Because image y-coordinates increase downward, "higher" means a SMALLER y-value, not larger.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>7. MediaPipe Overview</h2>
+  </div>
+  <p class="section-subtitle">Google's Cross-Platform ML Framework for Live and Streaming Media</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>An open source, cross-platform, customizable ML solution for live and streaming media.</li>
+      <li>Created by Google, and it powers the ML in many Google products.</li>
+      <li>Provides solutions for: Computer Vision, Natural Language Processing, Audio, Others.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">MediaPipe</span> is a <strong>ready-made ML toolkit</strong>, not just a single model. Four properties define it, straight from the slide:</p>
+    <div class="def-box">
+      <div class="def-term">Open Source</div>
+      <p style="font-size:13px;margin-top:4px">Free to use, inspect, and modify — anyone can build on top of it.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Cross-Platform</div>
+      <p style="font-size:13px;margin-top:4px">The same solutions run across many operating systems and device types (covered in detail in Section 8, On-Device ML).</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Customizable</div>
+      <p style="font-size:13px;margin-top:4px">Developers can configure or fine-tune the provided solutions rather than being locked into one fixed behavior.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">For Live and Streaming Media</div>
+      <p style="font-size:13px;margin-top:4px">Optimized for real-time video/audio streams (like a live camera feed), not just static files processed offline.</p>
+    </div>
+    <p style="margin-top:10px">MediaPipe is <strong>built by Google</strong> and quietly powers ML features inside many Google products (e.g. real-time background blur, gesture-based controls). Beyond Computer Vision, it also covers <strong>Natural Language Processing (NLP)</strong>, <strong>Audio</strong>, and other domains — CV is just one of its solution categories.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>MediaPipe</strong> هو مجموعة أدوات تعلم آلي جاهزة، ليس مجرد نموذج واحد. أربعة خصائص تُعرّفه:</p>
+    <ul style="padding-right:20px;font-size:14px;margin-top:8px">
+      <li><strong>مفتوح المصدر (Open Source)</strong> — مجاني للاستخدام والتعديل</li>
+      <li><strong>متعدد المنصات (Cross-Platform)</strong> — يعمل على أنظمة تشغيل وأجهزة مختلفة</li>
+      <li><strong>قابل للتخصيص (Customizable)</strong> — يمكن للمطورين ضبط الحلول المقدَّمة حسب حاجتهم</li>
+      <li><strong>مخصص للبث المباشر (Live and Streaming Media)</strong> — مُحسَّن لمعالجة فيديو/صوت في الوقت الفعلي، وليس فقط ملفات ثابتة</li>
+    </ul>
+    <br/>
+    <p>طوّرته <strong>Google</strong>، ويُشغّل جزءًا من ميزات التعلم الآلي في العديد من منتجاتها. بالإضافة إلى رؤية الحاسوب (Computer Vision)، يوفّر MediaPipe حلولًا في معالجة اللغة الطبيعية (NLP)، الصوت (Audio)، ومجالات أخرى — رؤية الحاسوب هي مجرد فئة واحدة من فئات حلوله.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>Google Meet's real-time background blur and virtual backgrounds use segmentation solutions built on the same kind of ML pipeline MediaPipe provides — running live, frame by frame, directly as you speak on a call.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 MediaPipe = open source + cross-platform + customizable + built for live/streaming media</li>
+      <li>📌 Created and maintained by Google; powers ML in many Google products</li>
+      <li>📌 Covers 4 solution domains: Computer Vision, NLP, Audio, Others</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>MediaPipe is Google's open-source, cross-platform, customizable ML toolkit for live and streaming media, covering Computer Vision, NLP, Audio, and other domains.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 11</span>
+    <h2>8. On-Device ML</h2>
+  </div>
+  <p class="section-subtitle">Running Models Locally Instead of on a Remote Server</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Run your model on the user's device.</li>
+      <li>No need for a server.</li>
+      <li>Supported platforms: Android/iOS, Web, Python, Desktop, Raspberry Pi.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">On-Device ML</span> means the machine learning model runs directly on the <strong>user's own device</strong> — a phone, laptop, browser tab, or even a Raspberry Pi — instead of sending data to a remote server for processing.</p>
+    <p style="margin-top:8px"><strong>Supported platforms from the slide:</strong> Android/iOS, Web, Python, Desktop, Raspberry Pi. This wide platform support is exactly what makes MediaPipe's "cross-platform" claim from Section 7 concrete.</p>
+    <div class="cmp-grid" style="margin-top:10px">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">On-Device ML</h4>
+        <ul>
+          <li>Model runs locally, no server call</li>
+          <li>Data never leaves the device — better privacy</li>
+          <li>No network round-trip — lower latency</li>
+          <li>No ongoing server hosting cost</li>
+          <li>Limited by the device's own compute power</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Cloud Inference</h4>
+        <ul>
+          <li>Data sent over the network to a server</li>
+          <li>Privacy depends on what's transmitted/stored</li>
+          <li>Extra latency from network round-trip</li>
+          <li>Requires paying for server infrastructure</li>
+          <li>Can run much larger, more powerful models</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>On-Device ML</strong> يعني تشغيل نموذج التعلم الآلي مباشرة على جهاز المستخدم — هاتف، لابتوب، متصفح، أو حتى Raspberry Pi — بدون إرسال البيانات إلى سيرفر بعيد للمعالجة.</p>
+    <br/>
+    <p><strong>المنصات المدعومة من الشريحة:</strong> Android/iOS، الويب (Web)، بايثون (Python)، سطح المكتب (Desktop)، وRaspberry Pi. هذا الدعم الواسع للمنصات هو ما يجعل صفة "متعدد المنصات" الخاصة بـ MediaPipe (من القسم 7) حقيقة عملية.</p>
+    <br/>
+    <p><strong>مقارنة On-Device مقابل السحابة (Cloud):</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>On-Device:</strong> النموذج يعمل محليًا، لا حاجة لسيرفر، خصوصية أعلى (البيانات لا تُغادر الجهاز)، استجابة أسرع (لا انتظار شبكة)، لا تكلفة استضافة، لكنه محدود بقدرة الجهاز نفسه</li>
+      <li><strong>Cloud Inference:</strong> البيانات تُرسل عبر الشبكة، قد تكون الخصوصية أقل، تأخير إضافي بسبب الشبكة، يتطلب دفع تكلفة السيرفرات، لكنه يستطيع تشغيل نماذج أكبر وأقوى</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>A fitness app running MediaPipe's pose landmark detection entirely on your phone's camera feed can count your reps in real time even with no internet connection — because the whole model runs on-device. No video is ever uploaded anywhere.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 On-device ML = run the model on the user's device, no server required</li>
+      <li>📌 Benefits: privacy (data stays local), lower latency, no server hosting cost</li>
+      <li>📌 Supported platforms: Android/iOS, Web, Python, Desktop, Raspberry Pi</li>
+      <li>📌 Trade-off: device compute is more limited than a cloud server</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>On-Device ML runs a model directly on the user's device (Android/iOS, Web, Python, Desktop, Raspberry Pi) without needing a server — improving privacy and latency at the cost of limited device compute.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 12</span>
+    <h2>9. MediaPipe's Available Vision Solutions</h2>
+  </div>
+  <p class="section-subtitle">A Full Catalog of Ready-Made Computer Vision Solutions</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Object detection</li>
+      <li>Image classification</li>
+      <li>Hand landmark</li>
+      <li>Hand gesture recognition</li>
+      <li>Image segmentation</li>
+      <li>Interactive segmentation</li>
+      <li>Face detection</li>
+      <li>Face landmark detection</li>
+      <li>Pose landmark detection</li>
+      <li>Image embedding</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>MediaPipe packages 10 ready-to-use Computer Vision solutions. Instead of training your own model for common tasks, you can call these directly:</p>
+    <div style="margin-top:10px">
+      <span class="tag tag-blue">Object detection</span>
+      <span class="tag tag-blue">Image classification</span>
+      <span class="tag tag-green">Hand landmark</span>
+      <span class="tag tag-green">Hand gesture recognition</span>
+      <span class="tag tag-purple">Image segmentation</span>
+      <span class="tag tag-purple">Interactive segmentation</span>
+      <span class="tag tag-orange">Face detection</span>
+      <span class="tag tag-orange">Face landmark detection</span>
+      <span class="tag tag-blue">Pose landmark detection</span>
+      <span class="tag tag-green">Image embedding</span>
+    </div>
+    <p style="margin-top:12px">A few worth clarifying:</p>
+    <ul class="e-list">
+      <li>📦 <strong>Object detection / Image classification</strong> — the same general CV tasks covered in earlier lectures, offered as pre-built MediaPipe solutions.</li>
+      <li>✋ <strong>Hand landmark / Hand gesture recognition</strong> — locates finger joints and recognizes gestures like thumbs-up (covered more in Section 11).</li>
+      <li>🎭 <strong>Image segmentation / Interactive segmentation</strong> — pixel-level masks; "interactive" means a user can guide the segmentation (e.g. by clicking).</li>
+      <li>🙂 <strong>Face detection / Face landmark detection</strong> — finds faces, then finds detailed facial points (covered more in Section 11).</li>
+      <li>🕴️ <strong>Pose landmark detection</strong> — MediaPipe's own body pose solution, covered in depth in Section 10.</li>
+      <li>🔢 <strong>Image embedding</strong> — converts an image into a numeric vector for comparison/search (similar images → similar vectors).</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>يقدّم MediaPipe 10 حلول جاهزة لرؤية الحاسوب. بدلًا من تدريب نموذج من الصفر لمهمة شائعة، يمكن استخدام هذه الحلول مباشرة:</p>
+    <ul style="padding-right:20px;font-size:14px;margin-top:8px">
+      <li><strong>Object Detection (كشف الأجسام)</strong> و <strong>Image Classification (تصنيف الصور)</strong> — نفس مهام رؤية الحاسوب المعروفة، جاهزة الاستخدام</li>
+      <li><strong>Hand Landmark (نقاط اليد)</strong> و <strong>Hand Gesture Recognition (التعرف على إيماءات اليد)</strong> — تحديد مفاصل الأصابع والتعرف على إشارات مثل "لايك"</li>
+      <li><strong>Image Segmentation (تجزئة الصورة)</strong> و <strong>Interactive Segmentation (تجزئة تفاعلية)</strong> — أقنعة على مستوى البيكسل، والتفاعلية تعني إمكانية توجيه النتيجة من المستخدم</li>
+      <li><strong>Face Detection (كشف الوجه)</strong> و <strong>Face Landmark Detection (كشف نقاط الوجه)</strong> — إيجاد الوجه ثم تحديد نقاط تفصيلية عليه</li>
+      <li><strong>Pose Landmark Detection (كشف نقاط الوضعية)</strong> — حل MediaPipe الخاص بتقدير وضعية الجسم (تفصيل كامل في القسم 10)</li>
+      <li><strong>Image Embedding (تضمين الصورة)</strong> — تحويل الصورة إلى متجه رقمي للمقارنة أو البحث</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>A single mobile app could combine three of these MediaPipe solutions at once: Face detection to find a user's face, Face landmark detection to place AR glasses on it, and Hand gesture recognition to let the user "swipe" through filters with a hand wave — all running on-device.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize all 10 solutions: object detection, image classification, hand landmark, hand gesture recognition, image segmentation, interactive segmentation, face detection, face landmark detection, pose landmark detection, image embedding</li>
+      <li>📌 "Interactive segmentation" differs from plain segmentation by allowing user-guided input</li>
+      <li>📌 Pose landmark detection is MediaPipe's own pose solution — distinct from YOLOv8-Pose (compared in Section 10)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>MediaPipe ships 10 pre-built vision solutions: object detection, image classification, hand landmark, hand gesture recognition, image segmentation, interactive segmentation, face detection, face landmark detection, pose landmark detection, and image embedding.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 10 ===================== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 13</span>
+    <h2>10. MediaPipe Pose (33 Landmarks) vs. YOLOv8-Pose (17 Keypoints)</h2>
+  </div>
+  <p class="section-subtitle">Two Pose Solutions — Different Landmark Density and Person-Count Support</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>MediaPipe's pose model tracks 33 body landmark locations.</li>
+      <li>Note: the legacy model can detect only one person per image.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-purple">MediaPipe Pose</span> tracks a much denser set of <strong>33 body landmarks</strong> compared to YOLOv8-Pose's 17 keypoints. The extra points fill in details like individual fingers' bases, foot index, and heel — useful when fine-grained body detail matters.</p>
+    <div class="card-warn" style="margin-top:12px">
+      <div class="card-title"><span class="icon">⚠️</span> Legacy Model Limitation</div>
+      <p>The slide explicitly notes: MediaPipe's <strong>legacy</strong> pose model can detect <strong>only one person per image</strong>. This is the opposite of YOLOv8-Pose, which was built on top of a multi-person object detector and naturally supports multiple people per image.</p>
+    </div>
+    <div class="cmp-grid" style="margin-top:10px">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent2)">MediaPipe Pose</h4>
+        <ul>
+          <li>33 body landmarks (denser)</li>
+          <li>Legacy model: single person per image only</li>
+          <li>Part of a broader on-device ML toolkit</li>
+          <li>Good for detailed single-subject analysis (e.g. one person's yoga form)</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">YOLOv8-Pose</h4>
+        <ul>
+          <li>17 keypoints (coarser but sufficient for most tasks)</li>
+          <li>Multi-person detection built in</li>
+          <li>Built on YOLOv8's detection backbone</li>
+          <li>Good for crowd scenes, team sports, surveillance with several people</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px"><strong>Why the landmark count matters:</strong> more landmarks (33) give finer anatomical resolution — useful for subtle movements (e.g. individual finger/foot positioning). Fewer landmarks (17) are faster to compute and are usually enough for coarse action recognition (walking, sitting, raised arm). <strong>Why multi-person support matters:</strong> any application involving more than one person in frame (sports teams, crowds, surveillance) needs multi-person detection — a single-person-only model would simply miss everyone except the one it locks onto.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>نموذج <strong>MediaPipe Pose</strong> يتتبع مجموعة أكثر كثافة من النقاط: <strong>33 landmark</strong> مقارنة بـ 17 keypoint في YOLOv8-Pose. هذه النقاط الإضافية تغطي تفاصيل أدق مثل قاعدة الأصابع وأطراف القدم.</p>
+    <br/>
+    <div class="card-warn">
+      <p style="font-size:14px"><strong>⚠️ قيد النموذج القديم (Legacy):</strong> تنص الشريحة صراحة أن النموذج القديم من MediaPipe يستطيع اكتشاف <strong>شخص واحد فقط</strong> في الصورة. هذا عكس YOLOv8-Pose، المبني على نموذج كشف أجسام يدعم عدة أشخاص بشكل طبيعي.</p>
+    </div>
+    <br/>
+    <p><strong>مقارنة سريعة:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>MediaPipe Pose:</strong> 33 نقطة (أكثر تفصيلًا)، النموذج القديم يدعم شخصًا واحدًا فقط، مناسب لتحليل تفصيلي لشخص واحد (مثل تحليل وضعية يوغا)</li>
+      <li><strong>YOLOv8-Pose:</strong> 17 نقطة (أقل تفصيلًا لكن كافية لمعظم المهام)، يدعم عدة أشخاص في نفس الصورة، مناسب لمشاهد الحشود والرياضات الجماعية والمراقبة</li>
+    </ul>
+    <br/>
+    <p><strong>لماذا يهم عدد النقاط؟</strong> عدد أكبر من النقاط (33) يعني دقة تشريحية أعلى — مفيد للحركات الدقيقة. عدد أقل (17) أسرع في الحساب وكافٍ لمهام التعرف الخشن على الحركة (مشي، جلوس، رفع يد). <strong>لماذا يهم دعم تعدد الأشخاص؟</strong> أي تطبيق فيه أكثر من شخص بالصورة (فرق رياضية، حشود، مراقبة) يحتاج نموذجًا يدعم اكتشاف أشخاص متعددين، وإلا سيتم تجاهل كل الأشخاص إلا من يقفل عليه النموذج.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>Choosing between them in practice: a solo-user fitness mirror app (one person, front of camera, needs fine detail) fits MediaPipe Pose's 33-landmark single-person model well. A stadium camera analyzing an entire football team's positioning needs YOLOv8-Pose's multi-person 17-keypoint support instead.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 MediaPipe Pose: 33 landmarks. YOLOv8-Pose: 17 keypoints.</li>
+      <li>📌 MediaPipe's legacy pose model: single person per image only. YOLOv8-Pose: multi-person support.</li>
+      <li>📌 More landmarks = finer anatomical detail but heavier computation; fewer landmarks = faster, usually sufficient for coarse actions</li>
+      <li>📌 Common exam Q: "Which pose model would you pick for a crowded surveillance camera?" → YOLOv8-Pose, because of multi-person support</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>MediaPipe Pose tracks 33 landmarks but its legacy model detects only one person per image. YOLOv8-Pose tracks 17 keypoints but supports multiple people per image. Choose based on landmark detail needed vs. number of people in frame.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 11 ===================== -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 14–15</span>
+    <h2>11. Hand Landmark & Face Landmark Detection</h2>
+  </div>
+  <p class="section-subtitle">Two More MediaPipe Landmark Solutions, Briefly Introduced</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 14:</strong> Hand landmark.</p>
+    <p style="margin-top:6px"><strong>Slide 15:</strong> Face landmark detection.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>These two slides briefly introduce two more of MediaPipe's landmark-based solutions already listed in Section 9's catalog — worth a dedicated mention since they follow the exact same "locate anatomical keypoints" idea used for body pose, just applied to a hand or a face.</p>
+    <div class="def-box">
+      <div class="def-term">✋ Hand Landmark Detection</div>
+      <p style="font-size:13px;margin-top:6px">Locates keypoints along the fingers, palm, and wrist of a detected hand. This is the foundation for MediaPipe's <strong>Hand Gesture Recognition</strong> solution (from Section 9) — once you know where each finger joint is, recognizing a gesture like a thumbs-up or a peace sign becomes a matter of checking the relative positions of those landmarks.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">🙂 Face Landmark Detection</div>
+      <p style="font-size:13px;margin-top:6px">Locates keypoints across the face — eyes, eyebrows, nose, lips, jawline. It plays the same role that face mesh does in earlier lectures: enabling expression analysis, biometric measurements, and AR filters that track facial features in real time.</p>
+    </div>
+    <p style="margin-top:8px">The common thread across body pose, hand landmark, and face landmark detection: all three are "keypoint/landmark detection" tasks that differ only in <em>which</em> part of the body they target and how many points they track.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هاتان الشريحتان تقدّمان بشكل مختصر حلّين آخرين من حلول MediaPipe القائمة على الـ landmarks، وقد ذُكرا سابقًا في قائمة القسم 9 — يستحقان إشارة خاصة لأنهما يتبعان نفس فكرة "تحديد نقاط تشريحية"، لكن على اليد أو الوجه بدلًا من الجسم كاملًا.</p>
+    <br/>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>✋ Hand Landmark (نقاط اليد):</strong> تحديد نقاط على الأصابع وراحة اليد والمعصم. هذا هو الأساس لحل "التعرف على إيماءات اليد" (Hand Gesture Recognition) — بمجرد معرفة موقع كل مفصل من الأصابع، يصبح التعرف على إيماءة مثل "لايك" أو علامة النصر مسألة مقارنة مواقع نسبية لهذه النقاط.</li>
+      <li><strong>🙂 Face Landmark Detection (نقاط الوجه):</strong> تحديد نقاط على العينين والحواجب والأنف والشفتين وخط الفك. تلعب نفس دور "Face Mesh" من محاضرات سابقة: تفعيل تحليل التعبيرات، القياسات البيومترية، وفلاتر الواقع المعزز التي تتبع ملامح الوجه في الوقت الفعلي.</li>
+    </ul>
+    <br/>
+    <p>الخيط المشترك بين تقدير وضعية الجسم وHand Landmark وFace Landmark: الثلاثة مهام "كشف نقاط/معالم"، والفرق فقط في أي جزء من الجسم يستهدفونه وعدد النقاط التي يتتبعونها.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>A sign-language translation app uses Hand Landmark Detection to track finger positions frame by frame, feeding the sequence of hand keypoints into a sequence model (like the LSTM models from Section 3) to recognize which sign is being made — the same "keypoints as features" pipeline, just applied to hands instead of the whole body.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Hand Landmark Detection locates keypoints on fingers/palm/wrist — the basis for Hand Gesture Recognition</li>
+      <li>📌 Face Landmark Detection locates keypoints across facial features — enables expression analysis and AR filters</li>
+      <li>📌 Body pose, hand landmark, and face landmark detection are all variations of the same "keypoint detection" concept applied to different body regions</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Hand Landmark Detection tracks finger/palm/wrist points (basis of gesture recognition). Face Landmark Detection tracks facial points (basis of expression analysis and AR filters). Both apply the same keypoint-detection idea to a different body region than full-body pose estimation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice, True/False, and Short Answer Questions</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Pose estimation is best described as:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Classifying an image into one label</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Predicting the (x, y) location of key body joints</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Drawing a single bounding box around a person</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Segmenting the background from the foreground</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Pose estimation (also called pose/keypoint detection) predicts the coordinates of key body joints.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. Which is NOT one of the applications listed for pose estimation?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Fall detection</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) AI fitness apps</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Optical character recognition</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) AR/VR personal avatars</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — OCR is a text-recognition task, unrelated to pose estimation's listed applications.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. In YOLOv8, how do you get the pose-estimation variant of a model?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Add "-seg" to the model name</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Add "-pose" to the model name, e.g. yolov8n-pose.pt</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Install a completely separate library</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Set a "pose=True" flag when loading any model</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Append the "-pose" suffix, e.g. yolov8n-pose.pt.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. How many keypoints does YOLOv8-Pose detect per person?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 33</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 17</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 468</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 21</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — YOLOv8-Pose detects 17 keypoints per person. (MediaPipe Pose detects 33.)</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Which keypoint indices should be compared to detect if the RIGHT hand is raised?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 9 and 5</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 10 and 6</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 11 and 12</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 15 and 16</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Right wrist is keypoint 10, right shoulder is keypoint 6.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. In image coordinates, a keypoint that is physically HIGHER on the screen has:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'A')">A) A smaller y-value</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) A larger y-value</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) A larger x-value</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A negative x-value</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: A</strong> — Image coordinates start at the top-left (0,0) and y increases downward, so "higher" = smaller y.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. Which model type is BEST suited for recognizing a dynamic movement like "waving" across several frames?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Logistic Regression</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Decision Tree</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) LSTM (a sequence model)</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) None of these can be used</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — LSTM is a sequence model that considers multiple frames over time, ideal for detecting movement rather than a single static pose.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. MediaPipe is created by:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Meta</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Microsoft</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Google</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) OpenAI</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — MediaPipe is built by Google and powers ML features in many Google products.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: MediaPipe's legacy pose model can detect multiple people per image.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — The legacy MediaPipe pose model can detect only ONE person per image, unlike YOLOv8-Pose.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: On-device ML requires sending data to a remote server for every prediction.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — On-device ML runs the model directly on the user's device, with no server needed.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: For a simple fall-detection rule, a small vertical distance between head and foot keypoints can indicate the person has fallen.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — When standing, head-to-foot vertical distance is large; when fallen, it shrinks below the chosen threshold.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Explain the difference between frame-by-frame models and sequence models for classifying actions from pose keypoints. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Frame-by-frame models (Logistic Regression, Decision Tree, SVM) look at the keypoints of a single frame in isolation, making them suited to recognizing static poses (e.g. sitting vs. standing) but blind to how the pose changes over time. Sequence models (LSTM, 1D Conv) take a sequence of frames as input and can capture how keypoints move across time, which is necessary for recognizing dynamic actions such as waving, falling, or jumping.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Why does "the wrist is higher than the shoulder" translate to "wrist_y &lt; shoulder_y" in code? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Image coordinate systems place the origin (0,0) at the top-left corner of the image, and the y-axis increases downward — the opposite of a standard math graph where y increases upward. So a point that is visually higher on the screen actually has a smaller y-value. To say the wrist is "higher" than the shoulder, its y-coordinate must be numerically smaller, hence wrist_y &lt; shoulder_y.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Compare YOLOv8-Pose and MediaPipe Pose in terms of landmark count and multi-person support. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> YOLOv8-Pose detects 17 keypoints per person and, because it's built on a multi-person object detector, supports detecting multiple people in the same image. MediaPipe Pose tracks a denser set of 33 body landmarks, giving finer anatomical detail, but its legacy model can detect only one person per image. The choice depends on whether the use case needs fine single-person detail (MediaPipe Pose) or coarser multi-person coverage (YOLOv8-Pose).</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: What are the benefits and trade-offs of On-Device ML compared to cloud inference? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> On-Device ML runs the model directly on the user's device (Android/iOS, Web, Python, Desktop, Raspberry Pi), which keeps data private (nothing leaves the device), reduces latency (no network round-trip), and avoids server hosting costs. The trade-off is that on-device compute is more limited than a cloud server, so on-device models are usually smaller/faster but less powerful than what could run on dedicated cloud infrastructure.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 15 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Computer Vision — Pose Estimation — YOLOv8 and MediaPipe" — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — What is pose estimation (definition, alternate names) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Why pose estimation (7 applications) — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — Pose estimation results as features: simple rule-based comparison, fall-detection threshold example — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Pose estimation results as features (continued): coordinate dataset, frame-by-frame models vs sequence models — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — YOLOv8: "-pose" suffix, yolov8n-pose.pt, keypoints attribute — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — YOLOv8: 17 keypoints, multi-person detection — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — YOLOv8: full 17-keypoint index table and body diagram — ✅ Section 5 (table + skeleton diagram)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Hand raised example: comparing keypoints 9/5 and 10/6, y-coordinate logic — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — MediaPipe overview: open source, cross-platform, Google, CV/NLP/Audio/Others — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — On-device ML: no server needed, supported platforms — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — MediaPipe's available vision solutions (10 solutions listed) — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — MediaPipe's pose model: 33 landmarks, legacy single-person limitation — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Hand landmark — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Face landmark detection — ✅ Section 11</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 15/15 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, keypoint tables, code snippets, worked numeric examples, and comparisons have been explained in both English and Arabic with additional examples, memory tricks, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Definition:</strong> <span class="tag tag-blue">Pose Estimation</span> = <span class="tag tag-blue">Pose Detection</span> = <span class="tag tag-blue">Keypoint Detection</span></p>
+      <p><strong>Applications:</strong> <span class="tag tag-green">Activity Prediction</span> <span class="tag tag-green">Sports Analysis</span> <span class="tag tag-green">Fall Detection</span> <span class="tag tag-green">Fitness Apps</span> <span class="tag tag-green">AR/VR Avatars</span> <span class="tag tag-green">Motion Capture</span> <span class="tag tag-green">Surveillance</span></p>
+      <p><strong>Keypoints as Features:</strong> <span class="tag tag-purple">Rule-Based (Threshold)</span> → <span class="tag tag-purple">Frame-by-Frame ML (LogReg/Tree/SVM)</span> → <span class="tag tag-purple">Sequence Models (LSTM/1D Conv)</span></p>
+      <p><strong>YOLOv8-Pose:</strong> <span class="tag tag-orange">"-pose" suffix</span> → <span class="tag tag-orange">17 keypoints</span> → <span class="tag tag-orange">Multi-person</span></p>
+      <p><strong>Raised-Hand Rule:</strong> <span class="tag tag-blue">wrist_y &lt; shoulder_y</span> (keypoints 9/5 left, 10/6 right)</p>
+      <p><strong>MediaPipe:</strong> <span class="tag tag-green">Open Source</span> <span class="tag tag-green">Cross-Platform</span> <span class="tag tag-green">Customizable</span> <span class="tag tag-green">Google</span> → <span class="tag tag-green">CV / NLP / Audio / Others</span></p>
+      <p><strong>On-Device ML:</strong> <span class="tag tag-purple">No Server</span> → <span class="tag tag-purple">Android/iOS · Web · Python · Desktop · Raspberry Pi</span></p>
+      <p><strong>MediaPipe Vision Solutions:</strong> <span class="tag tag-orange">Detection · Classification · Hand/Face/Pose Landmarks · Segmentation · Embedding</span></p>
+      <p><strong>Pose Model Comparison:</strong> <span class="tag tag-blue">MediaPipe Pose = 33 landmarks, single-person legacy</span> vs <span class="tag tag-blue">YOLOv8-Pose = 17 keypoints, multi-person</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

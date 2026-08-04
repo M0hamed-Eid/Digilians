@@ -1,0 +1,2165 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 14 — The R-CNN Family: From R-CNN to Mask R-CNN & Detectron2 | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* PIPELINE DIAGRAM (additive, same visual language) */
+.pipeline{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin:16px 0;padding:16px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+}
+.pipe-step{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+  font-size:12.5px;
+  text-align:center;
+  flex:1;min-width:130px;
+}
+.pipe-step .pipe-label{
+  font-family:var(--font-mono);
+  font-size:9px;
+  color:var(--accent);
+  text-transform:uppercase;
+  letter-spacing:1px;
+  margin-bottom:4px;
+  display:block;
+}
+.pipe-step.pipe-hot{border-color:var(--danger);background:rgba(248,113,113,0.08)}
+.pipe-step.pipe-cool{border-color:var(--accent3);background:rgba(52,211,153,0.08)}
+.pipe-arrow{color:var(--muted);font-size:18px;flex-shrink:0}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .pipeline{flex-direction:column}
+  .pipe-arrow{transform:rotate(90deg)}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 CV Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — The Original R-CNN</div>
+    <a href="#s1" onclick="setActive(this)">1. R-CNN Overview</a>
+    <a href="#s2" onclick="setActive(this)">2. Selective Search Algorithm</a>
+    <a href="#s3" onclick="setActive(this)">3. R-CNN Architecture & Bottleneck</a>
+    <div class="nav-section">Part II — Making It Faster</div>
+    <a href="#s4" onclick="setActive(this)">4. Fast R-CNN</a>
+    <a href="#s5" onclick="setActive(this)">5. Fast R-CNN Architecture</a>
+    <div class="nav-section">Part III — Making It Learn</div>
+    <a href="#s6" onclick="setActive(this)">6. Faster R-CNN & Anchor Boxes</a>
+    <a href="#s7" onclick="setActive(this)">7. How RPN Labels Anchors (IoU)</a>
+    <div class="nav-section">Part IV — Pixel-Level Detection</div>
+    <a href="#s8" onclick="setActive(this)">8. Mask R-CNN</a>
+    <div class="nav-section">Part V — The Big Picture</div>
+    <a href="#s9" onclick="setActive(this)">9. Evolution Summary Table</a>
+    <div class="nav-section">Part VI — Tools of the Trade</div>
+    <a href="#s10" onclick="setActive(this)">10. Detectron2</a>
+    <a href="#s11" onclick="setActive(this)">11. Training on Custom Data (COCO)</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 14 — THE R-CNN FAMILY: FROM R-CNN TO MASK R-CNN &amp; DETECTRON2</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 14</div>
+  <h1>The R-CNN Family: From R-CNN to Mask R-CNN &amp; Detectron2</h1>
+  <p>The Evolutionary Story of Object Detection — Region Proposals, Shared Features, Learnable Proposals, and Pixel Masks</p>
+  <p class="author">Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">17</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">11</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">4</span><span class="lbl">Model Generations</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">R-CNN</span>
+    <span class="tag tag-green">Selective Search</span>
+    <span class="tag tag-purple">Fast R-CNN</span>
+    <span class="tag tag-orange">Faster R-CNN</span>
+    <span class="tag tag-blue">RPN</span>
+    <span class="tag tag-green">Anchor Boxes</span>
+    <span class="tag tag-purple">IoU</span>
+    <span class="tag tag-orange">Mask R-CNN</span>
+    <span class="tag tag-blue">RoIAlign</span>
+    <span class="tag tag-green">Detectron2</span>
+    <span class="tag tag-purple">COCO Format</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 2</span>
+    <h2>1. R-CNN Overview — Object Detection with Region Proposals</h2>
+  </div>
+  <p class="section-subtitle">The first deep-learning object detector: propose regions, then classify each one</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>R-CNN for object detection</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>Scan the input image for possible objects using an algorithm called Selective Search, generating ~2000 region proposals.</li>
+      <li>Run a convolutional neural net (CNN) on top of each of these region proposals.</li>
+      <li>Take the output of each CNN and feed it into: an SVM to classify the region, and a Linear regressor to tighten the bounding box of the object if such an object exists.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">R-CNN (Regions with CNN features)</span> was the first successful attempt to combine deep CNNs with object detection. Before R-CNN, object detectors either scanned the whole image with a sliding window (very slow) or used hand-crafted features. R-CNN's insight: don't look everywhere — first guess <em>where</em> objects probably are, then only run the expensive neural network on those guesses.</p>
+    <br/>
+    <p><strong>The R-CNN pipeline, step by step:</strong></p>
+    <ol class="steps">
+      <li>Take the input image and run <strong>Selective Search</strong> — a classical (non-neural) algorithm — to generate roughly <strong>2000 region proposals</strong> (candidate rectangles that might contain an object).</li>
+      <li>For <em>each</em> of those ~2000 proposals, crop and warp the region to a fixed size, then run a full <strong>CNN forward pass</strong> on it to extract a feature vector.</li>
+      <li>Feed that feature vector into an <strong>SVM (Support Vector Machine)</strong> classifier to decide what class of object is in the region (or "no object").</li>
+      <li>Separately feed the same feature vector into a <strong>linear regressor</strong> that nudges the box coordinates so the bounding box fits the object more tightly.</li>
+    </ol>
+    <br/>
+    <p>Notice the two independent "decision-makers" at the end: the SVM answers <strong>"what is it?"</strong> and the linear regressor answers <strong>"where exactly is it?"</strong> — R-CNN needed both because a rough region proposal is rarely a perfect box around the object.</p>
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> The Catch</div>
+      <p>Running a full CNN forward pass ~2000 times per single image is extremely expensive. R-CNN gave good accuracy for its time but was painfully slow — this weakness is exactly what later models (Fast R-CNN, Faster R-CNN) were built to fix.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>R-CNN (Regions with CNN features)</strong> كانت أول محاولة ناجحة لدمج الشبكات العصبية الالتفافية (CNN) مع مهمة اكتشاف الأجسام (Object Detection). قبل R-CNN، كانت أنظمة الكشف تفحص الصورة كاملة بنافذة منزلقة (Sliding Window) وهذا كان بطيئًا جدًا. الفكرة الجديدة في R-CNN: لا تبحث في كل مكان، بل خمّن أولًا أين يُحتمل وجود الأجسام (باستخدام region proposals)، ثم شغّل الشبكة العصبية المكلفة فقط على هذه الأماكن المرشحة.</p>
+    <br/>
+    <p><strong>خطوات R-CNN:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>تشغيل خوارزمية <strong>Selective Search</strong> (خوارزمية كلاسيكية بدون تعلم عميق) على الصورة لتوليد حوالي <strong>2000 منطقة مرشحة (region proposals)</strong>.</li>
+      <li>لكل منطقة من هذه المناطق، يتم تشغيل <strong>CNN كاملة</strong> لاستخراج vector من الميزات (features).</li>
+      <li>هذا الـ vector يُمرَّر إلى <strong>SVM</strong> لتصنيف نوع الجسم الموجود في المنطقة.</li>
+      <li>وفي نفس الوقت يُمرَّر إلى <strong>linear regressor</strong> لتعديل حدود صندوق الإحاطة (bounding box) ليصبح أدق وأكثر التصاقًا بالجسم.</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>Region Proposal (منطقة مرشحة)</strong> — مستطيل يُحتمل أن يحتوي على جسم</li>
+      <li><strong>Selective Search</strong> — خوارزمية توليد المناطق المرشحة</li>
+      <li><strong>CNN (شبكة عصبية التفافية)</strong> — تستخرج الميزات من كل منطقة</li>
+      <li><strong>SVM (آلة المتجهات الداعمة)</strong> — تُصنّف نوع الجسم</li>
+      <li><strong>Bounding Box (صندوق الإحاطة)</strong> — المستطيل الذي يحيط بالجسم</li>
+      <li><strong>Linear Regressor (منحدر خطي)</strong> — يُعدّل موضع الصندوق ليصبح أدق</li>
+    </ul>
+    <br/>
+    <p><strong>أهم النقاط:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>✅ R-CNN = Selective Search + CNN لكل منطقة + SVM للتصنيف + Regressor لتحسين الصندوق</li>
+      <li>⚠️ العيب الأساسي: تشغيل CNN حوالي 2000 مرة لكل صورة — بطيء للغاية</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — Spotting Cars in a Street Photo</div>
+    <p>Imagine a photo of a busy street. Selective Search first draws ~2000 candidate rectangles anywhere it thinks "something might be here" — around cars, people, even random patches of sidewalk. For each rectangle, R-CNN crops that patch, resizes it, and asks the CNN "what do you see here?" The SVM says "car" or "not a car," and the regressor slides/resizes the rectangle to hug the actual car shape more precisely.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — R-CNN Pipeline</div>
+    <p><strong>"Search, See, Sort, Snap"</strong></p>
+    <p>Search (Selective Search proposes regions) → See (CNN extracts features) → Sort (SVM classifies) → Snap (regressor tightens the box)</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 R-CNN = Selective Search (proposals) → CNN per region (features) → SVM (classify) + Linear Regressor (box refinement)</li>
+      <li>📌 ~2000 region proposals per image is the standard number to remember</li>
+      <li>📌 R-CNN uses TWO separate learned components at the end: SVM and regressor — not a single unified network</li>
+      <li>📌 Common exam Q: "Why is R-CNN slow?" → It runs a full CNN forward pass once per region proposal (~2000 times per image)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>R-CNN: Selective Search generates ~2000 region proposals → each region is warped and passed through a full CNN → CNN features feed an SVM (classification) and a linear regressor (box refinement). Accurate but extremely slow because of running the CNN ~2000 times per image.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 3</span>
+    <h2>2. The Selective Search Algorithm</h2>
+  </div>
+  <p class="section-subtitle">How R-CNN generates its ~2000 candidate regions — a bottom-up merging process</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Initial Segmentation:</strong> Over-segments the image into thousands of tiny, initial starter regions.</li>
+      <li><strong>Similarity Calculation:</strong> Measures how alike adjacent regions are based on color, texture, size, and shape fit.</li>
+      <li><strong>Iterative Merging:</strong> Continually merges the two most similar neighboring regions into a larger one.</li>
+      <li><strong>Hierarchical Grouping:</strong> Repeats this merging process from the bottom up until the entire image is a single region.</li>
+      <li><strong>Proposal Generation:</strong> Draws bounding boxes around every region created during the process, resulting in the ~2000 region proposals.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Selective Search</span> is a classical (pre-deep-learning) computer vision algorithm — it uses no neural network at all. Its job is purely to guess "here are some rectangles that probably contain something interesting," without knowing what that something is yet.</p>
+    <br/>
+    <p><strong>The five exact steps:</strong></p>
+    <ol class="steps">
+      <li><strong>Initial Segmentation</strong> — Over-segment the image into thousands of tiny starter regions (like shattering the image into many small puzzle pieces based on low-level pixel similarity).</li>
+      <li><strong>Similarity Calculation</strong> — For every pair of adjacent (touching) regions, compute a similarity score based on <strong>color</strong>, <strong>texture</strong>, <strong>size</strong>, and <strong>shape fit</strong> (do the two regions combine into a nice compact shape?).</li>
+      <li><strong>Iterative Merging</strong> — Find the two most similar neighboring regions in the whole image and merge them into one larger region.</li>
+      <li><strong>Hierarchical Grouping</strong> — Repeat step 3 over and over, bottom-up, so regions keep merging into bigger regions, until eventually the entire image has merged into a single region.</li>
+      <li><strong>Proposal Generation</strong> — Every region that ever existed at any point during this whole merging process (tiny starter pieces, medium merged blobs, and the final whole-image region) gets a bounding box drawn around it. Collecting all of these boxes across every merge step is what produces the final ~2000 region proposals.</li>
+    </ol>
+    <br/>
+    <p>The key mental model: Selective Search doesn't decide "this is the region" once — it builds an entire <strong>hierarchy</strong> of regions from tiny to huge, and keeps a snapshot bounding box at every level of that hierarchy. That is why it naturally produces proposals at many different scales (small objects and large objects alike).</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Selective Search</strong> هي خوارزمية كلاسيكية (لا تستخدم أي شبكة عصبية) وظيفتها الوحيدة هي تخمين "هذه مستطيلات يُحتمل أن تحتوي على شيء مهم"، دون أن تعرف ما هو هذا الشيء بعد.</p>
+    <br/>
+    <p><strong>الخطوات الخمس بالتفصيل:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>التجزيء الابتدائي (Initial Segmentation)</strong> — تقسيم الصورة إلى آلاف المناطق الصغيرة جدًا في البداية.</li>
+      <li><strong>حساب التشابه (Similarity Calculation)</strong> — قياس مدى تشابه كل منطقتين متجاورتين بناءً على <strong>اللون (color)</strong> و<strong>النقشة (texture)</strong> و<strong>الحجم (size)</strong> و<strong>مدى تناسب الشكل (shape fit)</strong>.</li>
+      <li><strong>الدمج التكراري (Iterative Merging)</strong> — دمج أكثر منطقتين متجاورتين تشابهًا في منطقة واحدة أكبر.</li>
+      <li><strong>التجميع الهرمي (Hierarchical Grouping)</strong> — تكرار عملية الدمج من الأسفل إلى الأعلى حتى تتحول الصورة كاملة إلى منطقة واحدة فقط.</li>
+      <li><strong>توليد المقترحات (Proposal Generation)</strong> — رسم صندوق إحاطة (bounding box) حول كل منطقة ظهرت في أي خطوة من عملية الدمج، فتنتج في النهاية حوالي 2000 منطقة مرشحة.</li>
+    </ol>
+    <br/>
+    <p>الفكرة الأساسية: الخوارزمية لا تقرر منطقة واحدة نهائية، بل تبني <strong>هرمًا كاملًا</strong> من المناطق (من الصغيرة جدًا إلى الكبيرة جدًا)، وتحتفظ بصندوق إحاطة عند كل مستوى من هذا الهرم. هذا هو سبب حصولنا على مقترحات بمقاييس مختلفة (أجسام صغيرة وكبيرة).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Over-segmentation (التجزيء المفرط)</strong> — تقسيم الصورة لقطع صغيرة جدًا في البداية</li>
+      <li><strong>Similarity (التشابه)</strong> — بناءً على اللون والنقشة والحجم والشكل</li>
+      <li><strong>Hierarchical (هرمي)</strong> — من الأسفل إلى الأعلى (bottom-up)</li>
+      <li><strong>Region Proposal (منطقة مرشحة)</strong> — صندوق إحاطة نهائي مُقترح</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Merging Puzzle Pieces</div>
+    <p>Imagine shattering a photo into 5000 tiny jigsaw pieces (initial segmentation). You then repeatedly glue together the two pieces that look most alike — same color, same pattern (similarity calculation + merging). You keep gluing pairs together, over and over, level after level (hierarchical grouping), until finally the whole photo is one giant glued piece. At every single gluing step along the way, you took a photo of the current piece's outline (bounding box) — those thousands of snapshots are your region proposals.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>Selective Search does NOT know what objects are in the image. It has zero semantic understanding — it is purely a bottom-up grouping algorithm based on low-level pixel statistics. All the "what is this object?" reasoning happens later, inside the CNN + SVM.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the 5 steps in order: Initial Segmentation → Similarity Calculation → Iterative Merging → Hierarchical Grouping → Proposal Generation</li>
+      <li>📌 Similarity is based on 4 cues: color, texture, size, shape fit</li>
+      <li>📌 The process is bottom-up: small regions merge into progressively bigger ones</li>
+      <li>📌 Every intermediate region (not just the final ones) contributes a bounding box proposal</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Selective Search over-segments the image, then repeatedly merges the most similar adjacent regions (by color/texture/size/shape) bottom-up until one region remains, drawing a bounding box around every region ever created — producing ~2000 proposals.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 4</span>
+    <h2>3. R-CNN Architecture &amp; Its Big Weakness</h2>
+  </div>
+  <p class="section-subtitle">Visualizing the full pipeline end-to-end, and why it doesn't scale</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>R-CNN Architecture</strong> (diagram slide) — a visual pipeline showing the input image, the region proposals drawn on top of it, each proposal being warped to a fixed size, run through a CNN, and the resulting feature vector feeding an SVM classifier and a bounding-box regressor.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This slide is a diagram, so let's rebuild it conceptually as a left-to-right pipeline:</p>
+    <div class="pipeline">
+      <div class="pipe-step"><span class="pipe-label">Input</span>Full Image</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 1</span>Selective Search generates ~2000 region proposals</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step pipe-hot"><span class="pipe-label">Step 2 (×2000!)</span>Warp each region to fixed size → run a full CNN forward pass</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 3</span>Feature vector per region</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 4a</span>SVM → class label</div>
+    </div>
+    <div class="pipeline">
+      <div class="pipe-step"><span class="pipe-label">Same feature vector</span>↓</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 4b</span>Linear regressor → tightened bounding box</div>
+    </div>
+    <p>Every proposal from Selective Search takes an independent trip through the entire warp → CNN → SVM/regressor pipeline. Nothing is shared or reused between proposals — even if two region proposals overlap by 90%, R-CNN still processes them as two completely separate CNN runs.</p>
+    <br/>
+    <div class="card-danger" style="margin:0">
+      <div class="card-title"><span class="icon">🚫</span> The Big Weakness — Speed</div>
+      <p>R-CNN is <strong>painfully slow</strong> because it runs a full CNN forward pass approximately <strong>2000 times per image</strong>. On the hardware of its time, detecting objects in a single image could take on the order of tens of seconds. This makes R-CNN completely impractical for real-time applications (video, robotics, self-driving cars) and even slow for batch processing of large image datasets.</p>
+      <p style="margin-top:8px">The root cause: R-CNN treats feature extraction as a <em>per-region</em> operation, when really most of those 2000 regions overlap and share huge portions of the same image pixels. Recomputing CNN features from scratch for every overlapping patch is massively redundant computation.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذه الشريحة رسم بياني (diagram)، فلنعيد بناءها كخط أنابيب (pipeline) من اليسار إلى اليمين:</p>
+    <p style="font-size:14px;margin-top:8px">الصورة الكاملة → Selective Search تُولّد ~2000 منطقة مرشحة → كل منطقة تُشوَّه (warp) لحجم ثابت وتُمرَّر عبر CNN كاملة (2000 مرة!) → متجه ميزات (feature vector) لكل منطقة → يُمرَّر إلى SVM لتحديد التصنيف، وإلى linear regressor لتحسين صندوق الإحاطة.</p>
+    <br/>
+    <p>كل منطقة مرشحة من Selective Search تأخذ رحلة مستقلة تمامًا عبر كامل الـ pipeline (تشويه → CNN → SVM/regressor). لا يوجد أي مشاركة أو إعادة استخدام بين المناطق — حتى لو تداخلت منطقتان بنسبة 90%، فإن R-CNN يُعالجهما كتشغيلين منفصلين تمامًا للـ CNN.</p>
+    <br/>
+    <div class="card card-danger" style="margin:10px 0 0">
+      <div class="card-title" style="direction:rtl"><span class="icon">🚫</span> نقطة الضعف الكبرى — السرعة</div>
+      <p>R-CNN <strong>بطيئة للغاية</strong> لأنها تُشغّل CNN كاملة حوالي <strong>2000 مرة لكل صورة واحدة</strong>. هذا يجعلها غير عملية تمامًا للتطبيقات الفورية (الفيديو، الروبوتات، السيارات ذاتية القيادة).</p>
+      <p style="margin-top:8px">السبب الجذري: معظم المناطق الـ 2000 تتداخل مع بعضها وتُغطي نفس بيكسلات الصورة، ومع ذلك تُعيد R-CNN حساب ميزات CNN من الصفر لكل منطقة متداخلة — وهذا حساب زائد ومُكرر بشكل ضخم.</p>
+    </div>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Warp (تشويه/تحجيم)</strong> — تحويل المنطقة إلى حجم ثابت قبل إدخالها للـ CNN</li>
+      <li><strong>Feature Vector (متجه الميزات)</strong> — تمثيل رقمي مستخرج من الـ CNN</li>
+      <li><strong>Redundant Computation (حساب زائد)</strong> — إعادة حساب نفس الشيء بدون فائدة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Why This Matters</div>
+    <p>If a single CNN forward pass takes ~10 milliseconds on old hardware, and you must run it 2000 times per image, that's already 20 seconds — just for feature extraction, before SVM/regression even happen. Processing a video at even 1 frame per second would be impossible. This single number (~2000 CNN passes) is the entire motivation for every model that came after R-CNN.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Be able to draw the R-CNN pipeline: Image → Selective Search → warp each region → CNN per region → SVM + regressor</li>
+      <li>📌 The critical bottleneck: ~2000 separate CNN forward passes per image</li>
+      <li>📌 Root cause of the slowness: redundant computation on overlapping regions</li>
+      <li>📌 This weakness directly motivates Fast R-CNN's "one CNN pass over the whole image" design</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>R-CNN's architecture runs the full warp→CNN→SVM/regressor pipeline independently for every one of ~2000 region proposals, with zero feature sharing between overlapping regions. This makes it accurate but extremely slow — the exact problem Fast R-CNN solves next.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 5</span>
+    <h2>4. Fast R-CNN — One CNN Pass Instead of 2000</h2>
+  </div>
+  <p class="section-subtitle">Sharing computation across region proposals and unifying classification into the network</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>The purpose of the Fast Region-based Convolutional Network (Fast R-CNN) is to reduce the time consumption related to the high number of models necessary to analyze all region proposals.</li>
+      <li>Performing feature extraction over the image before proposing regions, thus only running one CNN over the entire image instead of 2000 CNN's over 2000 overlapping regions.</li>
+      <li>Replacing the SVM with a softmax layer, thus extending the neural network for predictions instead of creating a new model.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Fast R-CNN</span> keeps the idea of "propose regions, then classify them," but fixes the single biggest inefficiency in R-CNN: <strong>redundant CNN computation</strong>.</p>
+    <br/>
+    <p><strong>The key innovation:</strong> instead of running a CNN separately on each of the 2000 cropped/warped region images, Fast R-CNN runs the CNN <strong>exactly once, on the entire image</strong>, producing one shared <strong>convolutional feature map</strong>. Since region proposals are just rectangular areas of the original image, their corresponding areas can be located and cropped directly out of that single shared feature map — no need to re-run the CNN for each one.</p>
+    <br/>
+    <p>Once each region's chunk of the feature map is located, a small operation called <strong>RoI Pooling</strong> (Region of Interest Pooling) resizes that variable-sized chunk into a fixed-size feature grid, so it can be fed into the following fully-connected layers regardless of the original region's shape.</p>
+    <br/>
+    <p>Fast R-CNN also replaces the separate SVM classifier with a <strong>softmax layer</strong> that is part of the same neural network. This means classification is no longer a separate model trained afterwards — it is trained together with the feature extractor in one single end-to-end network, learned jointly via backpropagation.</p>
+    <br/>
+    <p><strong>R-CNN vs Fast R-CNN, side by side:</strong></p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent4)">R-CNN</h4>
+        <ul>
+          <li>~2000 separate CNN forward passes per image</li>
+          <li>Classifier: separate SVM (trained apart from the CNN)</li>
+          <li>Very slow — tens of seconds per image</li>
+          <li>Box refinement: separate linear regressor</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Fast R-CNN</h4>
+        <ul>
+          <li>1 shared CNN forward pass per image</li>
+          <li>Classifier: softmax layer inside the same network</li>
+          <li>Much faster — roughly 10x+ speed-up at test time</li>
+          <li>Box refinement: regression head inside the same network</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px">Region proposals in Fast R-CNN still come from the same external <strong>Selective Search</strong> algorithm — that part has not changed yet. Selective Search is still a bottleneck, and that is exactly what Faster R-CNN solves next.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Fast R-CNN</strong> يحافظ على فكرة "اقترح مناطق ثم صنّفها"، لكنه يُصلح أكبر مصدر بطء في R-CNN: <strong>الحساب المُكرر</strong>.</p>
+    <br/>
+    <p><strong>الابتكار الأساسي:</strong> بدلًا من تشغيل CNN بشكل منفصل على كل منطقة من الـ 2000 منطقة، يُشغّل Fast R-CNN الـ CNN <strong>مرة واحدة فقط على الصورة كاملة</strong>، لإنتاج <strong>خريطة ميزات مشتركة (shared feature map)</strong>. وبما أن كل منطقة مرشحة هي مجرد جزء مستطيل من الصورة الأصلية، يمكن تحديد موقعها المقابل مباشرة داخل خريطة الميزات المشتركة تلك — بدون الحاجة لإعادة تشغيل CNN لكل منطقة.</p>
+    <br/>
+    <p>بعد تحديد الجزء المقابل لكل منطقة داخل خريطة الميزات، تأتي عملية تُسمى <strong>RoI Pooling</strong> (تجميع منطقة الاهتمام) والتي تُحوّل هذا الجزء (ذو الحجم المتغير) إلى شبكة ميزات بحجم ثابت، بحيث يمكن تمريرها للطبقات الكاملة الاتصال بعدها بدون مشكلة.</p>
+    <br/>
+    <p>كما يستبدل Fast R-CNN الـ SVM المنفصل بـ <strong>طبقة softmax</strong> جزء من نفس الشبكة العصبية. هذا يعني أن التصنيف لا يعود نموذجًا منفصلًا يتم تدريبه بعد ذلك، بل يتم تدريبه مع مستخرج الميزات معًا في شبكة واحدة متكاملة من البداية للنهاية (end-to-end)، عبر backpropagation.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Shared Feature Map (خريطة ميزات مشتركة)</strong> — نتيجة تشغيل CNN مرة واحدة على الصورة كاملة</li>
+      <li><strong>RoI Pooling</strong> — تحويل جزء متغير الحجم من خريطة الميزات إلى حجم ثابت</li>
+      <li><strong>Softmax Layer</strong> — طبقة داخل الشبكة تُخرج احتمالية كل تصنيف</li>
+      <li><strong>End-to-End Training (تدريب من النهاية إلى النهاية)</strong> — تدريب كل الأجزاء معًا في نموذج واحد</li>
+    </ul>
+    <br/>
+    <p><strong>مقارنة سريعة:</strong> R-CNN = 2000 تشغيل CNN + SVM منفصل + بطيء جدًا. Fast R-CNN = تشغيل CNN واحد فقط + softmax مدمجة + أسرع بكثير. لكن يبقى Selective Search (المُقترح الخارجي للمناطق) عائقًا لأنه لا يزال خوارزمية كلاسيكية بطيئة نسبيًا — وهذا ما تُصلحه Faster R-CNN بعد ذلك.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Photocopying vs. Cutting the Original</div>
+    <p>R-CNN is like photocopying the entire document 2000 times just so you can highlight 2000 different paragraphs separately. Fast R-CNN instead photocopies the document <em>once</em>, then simply looks at the relevant paragraph coordinates directly on that single copy — much less wasted work, same end result.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Fast R-CNN's core fix: ONE shared CNN feature map for the whole image, not one CNN run per region</li>
+      <li>📌 RoI Pooling extracts a fixed-size feature grid from a variable-sized region of the shared feature map</li>
+      <li>📌 SVM is replaced by a softmax layer trained jointly with the network (end-to-end)</li>
+      <li>📌 Fast R-CNN still relies on Selective Search for region proposals — this is still slow and is fixed in Faster R-CNN</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Fast R-CNN runs the CNN once over the whole image to get a shared feature map, uses RoI Pooling to extract fixed-size features for each region proposal from that map, and replaces the SVM with an internal softmax layer for true end-to-end training. Selective Search is still used externally for proposals.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 6</span>
+    <h2>5. Fast R-CNN Architecture</h2>
+  </div>
+  <p class="section-subtitle">Visualizing the shared feature map and RoI projection</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Fast R-CNN Architecture</strong> (diagram slide) — a visual pipeline showing the whole image entering a single CNN, producing one convolutional feature map, with region proposals (from Selective Search) projected onto that feature map, then RoI Pooling extracting fixed-size features per region, feeding fully-connected layers that end in a softmax classifier and a bounding-box regressor.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Rebuilding this diagram slide as a pipeline:</p>
+    <div class="pipeline">
+      <div class="pipe-step pipe-cool"><span class="pipe-label">Step 1 (×1 only!)</span>Whole image → single CNN pass</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step pipe-cool"><span class="pipe-label">Output</span>One shared convolutional feature map</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">In parallel</span>Selective Search proposes regions on original image</div>
+    </div>
+    <div class="pipeline">
+      <div class="pipe-step"><span class="pipe-label">Step 2</span>Project each region proposal onto the shared feature map</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 3</span>RoI Pooling → fixed-size feature grid per region</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 4</span>Fully-connected layers</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">Step 5a</span>Softmax → class probabilities</div>
+    </div>
+    <p>Notice the CNN box only appears <strong>once</strong> in this diagram — that single box is reused for every region proposal, unlike R-CNN's diagram where the CNN box would need to repeat 2000 times. The region proposals only enter the picture <em>after</em> the expensive CNN computation has already happened, and only to tell the network "look at this part of the already-computed feature map."</p>
+    <br/>
+    <p>The two outputs at the end — softmax classification and bounding-box regression — both branch out from the same fully-connected layers, which is why Fast R-CNN is often described as having a "multi-task loss": one loss for classification, one loss for box regression, trained together.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>إعادة بناء هذا الرسم البياني كخط أنابيب:</p>
+    <p style="font-size:14px;margin-top:8px">الصورة كاملة → تشغيل CNN مرة واحدة فقط → خريطة ميزات مشتركة واحدة. وبالتوازي: Selective Search يُقترح مناطق على الصورة الأصلية. ثم: تُعرض (project) كل منطقة مرشحة على خريطة الميزات المشتركة → RoI Pooling يُنتج شبكة ميزات بحجم ثابت لكل منطقة → طبقات كاملة الاتصال → مخرجان: softmax للتصنيف، و regression لتحسين صندوق الإحاطة.</p>
+    <br/>
+    <p>لاحظ أن مربع CNN يظهر <strong>مرة واحدة فقط</strong> في هذا الرسم — يُعاد استخدام هذا المربع الواحد لكل منطقة مرشحة، على عكس رسم R-CNN الذي كان يحتاج تكرار مربع CNN 2000 مرة. المناطق المرشحة تدخل الصورة فقط بعد انتهاء الحساب المكلف للـ CNN، وفقط لتقول للشبكة "انظر إلى هذا الجزء من خريطة الميزات المحسوبة مسبقًا".</p>
+    <br/>
+    <p>المخرجان النهائيان (softmax للتصنيف + regression لصندوق الإحاطة) يخرجان من نفس الطبقات كاملة الاتصال، ولهذا يُوصف Fast R-CNN بأن له "دالة خسارة متعددة المهام" (multi-task loss) — خسارة واحدة للتصنيف وخسارة أخرى لتحسين الصندوق، تُدرَّبان معًا.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Project (عرض/إسقاط)</strong> — تحديد موقع المنطقة المرشحة داخل خريطة الميزات</li>
+      <li><strong>Multi-task Loss (خسارة متعددة المهام)</strong> — دمج خسارتين مختلفتين في تدريب واحد</li>
+      <li><strong>Fully-Connected Layers (طبقات كاملة الاتصال)</strong> — طبقات تربط كل عصبون بكل عصبون في الطبقة التالية</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Visual Intuition</div>
+    <p>Think of the shared feature map as a giant, already-computed "X-ray" of the whole image. Selective Search's rectangles are just coordinates saying "look here" on that X-ray. RoI Pooling then crops and resizes that specific patch of the X-ray to a standard size — like always printing photos at the same size no matter how big the original crop was.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 The CNN box appears exactly once in the Fast R-CNN diagram — a key visual difference from R-CNN's diagram</li>
+      <li>📌 Region proposals are projected onto the feature map, not re-computed from raw pixels</li>
+      <li>📌 RoI Pooling standardizes variable-sized regions into a fixed-size grid for the FC layers</li>
+      <li>📌 Fast R-CNN trains classification + box regression jointly (multi-task loss)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Fast R-CNN's architecture: one CNN pass produces a shared feature map; Selective Search proposals are projected onto that map; RoI Pooling extracts fixed-size features per region; fully-connected layers output softmax classification and box regression jointly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 7</span>
+    <h2>6. Faster R-CNN — Region Proposals Become Learnable</h2>
+  </div>
+  <p class="section-subtitle">The single most important idea in this lecture: replacing Selective Search with a tiny trainable neural network</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Faster R-CNN</strong></p>
+    <ul style="padding-left:20px;font-size:14px;margin-top:8px">
+      <li><strong>Step 1: Feature Extraction</strong> — The input image is passed through a pre-trained CNN backbone (the original Faster R-CNN used VGG). The network extracts a convolutional feature map, which is then used for subsequent processing.</li>
+      <li><strong>Step 2: Region Proposal Network (RPN)</strong> — The RPN takes the feature map and proposes a set of candidate regions (bounding boxes) that may contain objects. It does this by generating multiple region proposals using k anchor boxes of predefined scales and aspect ratios. k anchor boxes = the number of predefined bounding box shapes (scales + ratios) that the network uses at each feature map location to generate region proposals. Each anchor = one rectangle shape. You choose different scales (small, medium, large) and different aspect ratios (e.g., 1:1, 2:1, 1:2). This module significantly speeds up both training and inference compared to earlier methods.</li>
+      <li><strong>Step 3: R-CNN Module</strong> — For each proposed region, the R-CNN head performs two tasks: Classification — determine what object (if any) is inside the region, including the "background" category; Bounding Box Regression — refine the bounding box coordinates to better align with the detected object.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Fast R-CNN fixed the CNN redundancy problem, but it still relied on <strong>Selective Search</strong> — a slow, CPU-based, non-learnable classical algorithm — to generate region proposals. <span class="hl">Faster R-CNN's</span> single big idea: replace Selective Search entirely with a small neural network that proposes regions <em>itself</em>, learned end-to-end alongside everything else.</p>
+    <br/>
+    <p><strong>The 3 steps of Faster R-CNN:</strong></p>
+    <ol class="steps">
+      <li><strong>Feature Extraction</strong> — The image passes through a pre-trained CNN backbone (originally VGG) to produce a shared convolutional feature map, exactly like in Fast R-CNN.</li>
+      <li><strong>Region Proposal Network (RPN)</strong> — Instead of Selective Search, a small neural network called the RPN slides over the feature map and proposes candidate boxes directly, using <strong>k anchor boxes</strong> at every location.</li>
+      <li><strong>R-CNN Head</strong> — For every region the RPN proposed, classify what's inside (including a "background" option) and regress the box coordinates to fit tighter — same idea as before, just now fed by RPN proposals instead of Selective Search proposals.</li>
+    </ol>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">What is an Anchor Box? (Simple Analogy)</div>
+      <p style="margin-top:6px;font-size:13px">Imagine you have a set of transparent stencils of different sizes and shapes — a small square, a medium square, a tall thin rectangle, a wide short rectangle — and at every single position on a grid over the image, you hold up all of these stencils and ask "does an object roughly this shape and size sit here?" Each stencil is an <strong>anchor box</strong>: a predefined rectangle shape (a combination of <strong>scale</strong> — small/medium/large — and <strong>aspect ratio</strong> — e.g. 1:1 square, 2:1 wide, 1:2 tall) placed at a fixed grid location on the feature map. <strong>k</strong> is simply how many different stencils (anchor shapes) you use at each location — a typical Faster R-CNN setup uses k=9 (3 scales × 3 aspect ratios).</p>
+    </div>
+    <br/>
+    <p><strong>Why this matters — Fast R-CNN vs Faster R-CNN:</strong></p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent4)">Fast R-CNN</h4>
+        <ul>
+          <li>Region proposals from Selective Search</li>
+          <li>Selective Search runs on the CPU, is hand-designed, not learned</li>
+          <li>Proposal generation is a separate, slow pre-processing step</li>
+          <li>Cannot be improved by training — it's fixed, classical logic</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Faster R-CNN</h4>
+        <ul>
+          <li>Region proposals from the RPN (a small neural network)</li>
+          <li>RPN runs on the GPU, shares the same backbone feature map, is fully learned</li>
+          <li>Proposal generation is baked into the same forward pass — nearly free</li>
+          <li>Trained end-to-end with the rest of the network, so it keeps getting better</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card-exam" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⭐</span> The Single Most Important Idea Here</div>
+      <p>The real leap from Fast R-CNN to Faster R-CNN is NOT about the classifier or RoI Pooling — those stay basically the same. It's that region proposal generation moves from being an external, slow, CPU-bound, non-learnable classical algorithm (Selective Search) to being an internal, fast, GPU-bound, <strong>learnable</strong> tiny neural network (the RPN) that shares computation with the rest of the detector. This is why Faster R-CNN is dramatically faster and can even approach real-time speeds.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>حلّ Fast R-CNN مشكلة تكرار حساب CNN، لكنه كان لا يزال يعتمد على <strong>Selective Search</strong> — خوارزمية كلاسيكية بطيئة تعمل على المعالج (CPU) ولا تتعلم من البيانات. الفكرة الكبرى في <strong>Faster R-CNN</strong>: استبدال Selective Search بالكامل بشبكة عصبية صغيرة تُقترح المناطق <em>بنفسها</em>، وتتعلم مع باقي الشبكة من البداية للنهاية.</p>
+    <br/>
+    <p><strong>خطوات Faster R-CNN الثلاث:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>استخراج الميزات (Feature Extraction)</strong> — الصورة تمر عبر CNN مُدرَّب مسبقًا (كانت VGG في الأصل) لإنتاج خريطة ميزات مشتركة، تمامًا كما في Fast R-CNN.</li>
+      <li><strong>شبكة اقتراح المناطق (RPN)</strong> — بدلًا من Selective Search، شبكة عصبية صغيرة تُسمى RPN تتحرك فوق خريطة الميزات وتُقترح مناطق مباشرة، باستخدام <strong>k صندوق مرجعي (anchor boxes)</strong> عند كل موضع.</li>
+      <li><strong>رأس R-CNN (R-CNN Head)</strong> — لكل منطقة اقترحتها RPN، يُصنَّف ما بداخلها (بما فيها خيار "خلفية/background")، ويُحسَّن صندوق الإحاطة — نفس الفكرة السابقة، لكن الآن المُدخلات من RPN بدلًا من Selective Search.</li>
+    </ol>
+    <br/>
+    <div class="def-box" style="direction:rtl">
+      <div class="def-term" style="direction:ltr;text-align:right">ما هو Anchor Box؟ (تشبيه مبسّط)</div>
+      <p style="margin-top:6px;font-size:13px">تخيل أن لديك مجموعة من الأستنسل (استنسلات) الشفافة بأشكال وأحجام مختلفة — مربع صغير، مربع متوسط، مستطيل رفيع طويل، مستطيل عريض قصير — وعند كل نقطة على شبكة منتشرة فوق الصورة، تضع كل هذه الأستنسلات وتسأل "هل يوجد جسم بهذا الشكل والحجم هنا تقريبًا؟" كل استنسل هو <strong>anchor box</strong>: مستطيل محدد مسبقًا (مزيج من <strong>المقياس (scale)</strong> — صغير/متوسط/كبير — و<strong>نسبة الأبعاد (aspect ratio)</strong> — مثل 1:1 مربع، 2:1 عريض، 1:2 طويل) يُوضع في موضع ثابت على خريطة الميزات. <strong>k</strong> هو ببساطة عدد الأستنسلات (أشكال anchor) المستخدمة عند كل موضع — الإعداد النموذجي في Faster R-CNN هو k=9 (3 مقاييس × 3 نسب أبعاد).</p>
+    </div>
+    <br/>
+    <p><strong>أهم نقطة في الشريحة كلها:</strong> الفرق الحقيقي بين Fast R-CNN و Faster R-CNN ليس في المُصنِّف أو RoI Pooling — هذه تبقى تقريبًا كما هي. الفرق هو أن توليد المقترحات (region proposals) انتقل من خوارزمية خارجية بطيئة تعمل على CPU ولا تتعلم (Selective Search)، إلى شبكة عصبية صغيرة داخلية سريعة تعمل على GPU <strong>وتتعلم</strong> (RPN) وتُشارك الحساب مع باقي الشبكة. هذا هو سبب كون Faster R-CNN أسرع بشكل كبير وقادرة على الاقتراب من السرعة الفورية (real-time).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Backbone (العمود الفقري)</strong> — الشبكة الأساسية لاستخراج الميزات (مثل VGG)</li>
+      <li><strong>RPN (شبكة اقتراح المناطق)</strong> — شبكة صغيرة تتعلم توليد المقترحات</li>
+      <li><strong>Anchor Box (صندوق مرجعي)</strong> — شكل مستطيل محدد مسبقًا</li>
+      <li><strong>Scale (المقياس)</strong> — حجم الصندوق: صغير/متوسط/كبير</li>
+      <li><strong>Aspect Ratio (نسبة الأبعاد)</strong> — نسبة العرض للارتفاع</li>
+      <li><strong>Learnable (قابل للتعلم)</strong> — يتحسن مع التدريب، على عكس Selective Search</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Anchors on a Grid</div>
+    <p>Imagine the feature map is a 20×15 grid of positions. At every one of those 300 positions, Faster R-CNN places k=9 anchor boxes (3 scales × 3 ratios), giving 2700 candidate boxes total per image — all generated in one fast pass through the small RPN network, compared to Selective Search's slower external computation for a similar ~2000 proposals.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Faster R-CNN's 3 Steps</div>
+    <p><strong>"Feature, Find, Finish"</strong></p>
+    <p>Feature Extraction (CNN backbone) → Find candidates (RPN + anchors) → Finish the job (R-CNN head classifies + regresses)</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Faster R-CNN = Fast R-CNN + RPN replacing Selective Search</li>
+      <li>📌 The RPN is a small neural network — it is trainable, unlike Selective Search</li>
+      <li>📌 Anchor box = predefined rectangle at a scale + aspect ratio, k = number of anchor shapes per location (commonly 9)</li>
+      <li>📌 The R-CNN head still does classification (with a "background" class) + box regression, same as Fast R-CNN</li>
+      <li>📌 Common exam Q: "What is THE key innovation of Faster R-CNN?" → Making region proposal generation learnable via the RPN</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Faster R-CNN = CNN backbone extracts a feature map → Region Proposal Network (RPN) uses k anchor boxes at each location to propose regions (replacing Selective Search) → R-CNN head classifies + refines each proposed box. The RPN's learnability is the single biggest speed and accuracy improvement.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 8–9</span>
+    <h2>7. How the RPN Labels Anchor Boxes (IoU Thresholds)</h2>
+  </div>
+  <p class="section-subtitle">Teaching the RPN which anchors are "object" and which are "background"</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>How RPN Detects Objects (Anchor Box Labeling)</strong></p>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Intersection over Union (IoU):</strong> Measures the overlap between the Anchor Box and the Ground Truth (true object box).</li>
+      <li><strong>Positive Anchors (Object):</strong> Boxes with high IoU (e.g., &gt; 0.7) are labeled as containing an object.</li>
+      <li><strong>Negative Anchors (Background):</strong> Boxes with low IoU (e.g., &lt; 0.3) are labeled as background.</li>
+      <li><strong>RPN Classification Head:</strong> Outputs a probability score for each anchor box p_object vs. p_background to filter out empty regions.</li>
+      <li><strong>Bounding Box Regression:</strong> Automatically adjusts the coordinates of the chosen anchor box to tightly fit the object.</li>
+    </ul>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">(Slide 9 is a supporting illustration of anchors overlapping a ground-truth box — described conceptually below.)</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The RPN generates thousands of anchor boxes across the image, but during training it needs a rule to decide: <strong>"is this particular anchor a good match for a real object, or should it be ignored as background?"</strong> That rule is based on <span class="hl">Intersection over Union (IoU)</span>.</p>
+    <br/>
+    <div class="formula">IoU = (Area of Overlap between Anchor and Ground Truth) / (Area of Union of Anchor and Ground Truth)</div>
+    <p>IoU ranges from 0 (no overlap at all) to 1 (perfectly identical boxes).</p>
+    <br/>
+    <div class="table-wrap">
+      <table>
+        <tr><th>IoU Range</th><th>Label</th><th>Meaning</th></tr>
+        <tr><td>IoU &gt; 0.7</td><td><span class="hl-green">Positive (Object)</span></td><td>The anchor overlaps enough with a real ground-truth box to count as containing an object</td></tr>
+        <tr><td>0.3 ≤ IoU ≤ 0.7</td><td><span class="hl">Ignored</span></td><td>Ambiguous overlap — excluded from training so the network isn't confused by borderline cases</td></tr>
+        <tr><td>IoU &lt; 0.3</td><td><span class="hl-purple">Negative (Background)</span></td><td>The anchor barely or never overlaps a ground-truth box — labeled as background</td></tr>
+      </table>
+    </div>
+    <br/>
+    <p><strong>Worked numeric example — three anchors compared to one ground-truth box:</strong></p>
+    <p style="font-size:13px">Ground-truth box GT = (100,100) to (300,300) → a 200×200 box, area = 40,000 px².</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Anchor Box</th><th>Overlap Area</th><th>Union Area</th><th>IoU</th><th>Label</th></tr>
+        <tr><td>A1: (110,110)–(310,310)</td><td>190×190 = 36,100</td><td>40,000+40,000−36,100 = 43,900</td><td>36,100/43,900 ≈ <strong>0.82</strong></td><td><span class="hl-green">Positive</span> (&gt;0.7)</td></tr>
+        <tr><td>A2: (150,150)–(350,350)</td><td>150×150 = 22,500</td><td>40,000+40,000−22,500 = 57,500</td><td>22,500/57,500 ≈ <strong>0.39</strong></td><td><span class="hl">Ignored</span> (0.3–0.7)</td></tr>
+        <tr><td>A3: (500,500)–(700,700)</td><td>0 (no overlap)</td><td>40,000+40,000−0 = 80,000</td><td>0/80,000 = <strong>0.00</strong></td><td><span class="hl-purple">Negative</span> (&lt;0.3)</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:8px;font-size:13px">This is exactly why the thresholds matter: A1 is close enough to the ground truth to teach the RPN "an object looks like this here," A3 correctly teaches it "nothing is here," and A2 is deliberately thrown away during training because it's neither clearly right nor clearly wrong — including it would send a noisy, confusing signal to the network.</p>
+    <br/>
+    <p><strong>After labeling, two heads act on every anchor:</strong></p>
+    <ul class="e-list">
+      <li>🎯 <strong>RPN Classification Head</strong> — outputs p_object vs p_background (a simple two-class probability) for every anchor, filtering out the empty ones</li>
+      <li>📐 <strong>Bounding Box Regression</strong> — for anchors labeled positive, adjusts the anchor's coordinates (x, y, width, height offsets) so the final box tightly hugs the actual object instead of just roughly overlapping it</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>تُولّد RPN آلاف صناديق anchor عبر الصورة، لكنها تحتاج أثناء التدريب إلى قاعدة لتحديد: <strong>"هل هذا الـ anchor مطابق بشكل جيد لجسم حقيقي، أم يجب اعتباره خلفية؟"</strong> هذه القاعدة تعتمد على <strong>Intersection over Union (IoU)</strong> — نسبة التقاطع على الاتحاد.</p>
+    <br/>
+    <div class="formula" style="direction:ltr">IoU = مساحة التقاطع بين Anchor و Ground Truth ÷ مساحة الاتحاد بينهما</div>
+    <p>تتراوح قيمة IoU بين 0 (لا يوجد تداخل) و 1 (الصندوقان متطابقان تمامًا).</p>
+    <br/>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>IoU أكبر من 0.7</strong> → <span class="hl-green">إيجابي (Positive/Object)</span> — يُعتبر الـ anchor يحتوي على جسم حقيقي</li>
+      <li><strong>بين 0.3 و 0.7</strong> → <span class="hl">مُتجاهَل (Ignored)</span> — تداخل غير واضح، يُستثنى من التدريب</li>
+      <li><strong>IoU أقل من 0.3</strong> → <span class="hl-purple">سلبي (Negative/Background)</span> — يُعتبر خلفية بلا جسم</li>
+    </ul>
+    <br/>
+    <p><strong>مثال رقمي محلول:</strong> صندوق حقيقي (Ground Truth) بحجم 200×200 = 40,000 بيكسل مربع. Anchor قريب جدًا منه يُعطي IoU ≈ 0.82 (إيجابي). Anchor متوسط التداخل يُعطي IoU ≈ 0.39 (مُتجاهَل). Anchor بعيد كليًا يُعطي IoU = 0.00 (سلبي). هذا يوضح سبب أهمية العتبات: الـ anchor القريب يُعلّم الشبكة شكل الجسم، والـ anchor البعيد يُعلّمها شكل الخلفية، والحالة الوسطى تُستبعد لأنها لا واضحة الصحة ولا واضحة الخطأ.</p>
+    <br/>
+    <p><strong>بعد التصنيف، يعمل رأسان على كل anchor:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>رأس تصنيف RPN</strong> — يُخرج احتمالية p_object مقابل p_background لكل anchor</li>
+      <li><strong>Bounding Box Regression</strong> — للـ anchors الإيجابية، يُعدّل الإحداثيات لتُصبح أكثر التصاقًا بالجسم الحقيقي</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>IoU (نسبة التقاطع على الاتحاد)</strong> — مقياس التداخل بين صندوقين</li>
+      <li><strong>Ground Truth (الحقيقة الأرضية/الجسم الفعلي)</strong> — الصندوق الصحيح المُعلَّم يدويًا في بيانات التدريب</li>
+      <li><strong>Positive/Negative Anchor (anchor إيجابي/سلبي)</strong></li>
+      <li><strong>p_object / p_background</strong> — احتمالية وجود جسم أو خلفية</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Illustration Recap (Slide 9)</div>
+    <p>Picture a ground-truth box drawn tightly around a dog. Around it, a grid of dashed anchor boxes of different sizes overlaps the image. The anchors that mostly sit right on top of the dog's box are colored green (positive, high IoU); the anchors far away over the background grass are colored red (negative, low IoU); and a few anchors that clip only part of the dog sit in a gray "ignored" zone. That is exactly the illustration this slide is showing — IoU visualized spatially.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>The 0.7 / 0.3 thresholds are not arbitrary decoration — the gap between them (the "ignored" zone) is a deliberate design choice to prevent the network from learning from ambiguous, noisy examples. Removing the ignored zone (using a single threshold instead) tends to hurt training stability.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 IoU = overlap area / union area, ranges 0 to 1</li>
+      <li>📌 IoU &gt; 0.7 → positive/object anchor; IoU &lt; 0.3 → negative/background anchor; in between → ignored</li>
+      <li>📌 Be able to compute IoU numerically given two box coordinates</li>
+      <li>📌 RPN classification head outputs p_object vs p_background; bounding box regression refines positive anchors' coordinates</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>IoU measures overlap between an anchor box and the ground-truth box. IoU &gt; 0.7 → positive (object) anchor; IoU &lt; 0.3 → negative (background) anchor; the 0.3–0.7 zone is ignored during training. The RPN then outputs p_object/p_background per anchor and regresses positive anchors' coordinates to fit the object tightly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 10–12</span>
+    <h2>8. Mask R-CNN — From Boxes to Pixel-Level Masks</h2>
+  </div>
+  <p class="section-subtitle">Extending Faster R-CNN with instance segmentation</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Mask R-CNN</strong> (slide 10), <strong>Steps of Mask R-CNN</strong> (slide 11, diagram), and <strong>Mask R-CNN Architecture</strong> (slide 12, diagram) — these three slides together introduce Mask R-CNN as an extension of Faster R-CNN that adds a branch for predicting a pixel-level segmentation mask for each detected object, in addition to its class and bounding box.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Mask R-CNN</span> takes Faster R-CNN and adds one more capability: instead of just saying "there is a dog here, in this box," it also draws the <strong>exact pixel-level outline</strong> of the dog inside that box. This upgrades the task from object detection to <strong>instance segmentation</strong> — every individual object instance gets its own precise pixel mask, not just a rectangle.</p>
+    <br/>
+    <p><strong>Steps of Mask R-CNN (building on Faster R-CNN's 3 steps):</strong></p>
+    <ol class="steps">
+      <li><strong>Feature Extraction</strong> — same CNN backbone as Faster R-CNN produces a shared feature map.</li>
+      <li><strong>Region Proposal Network (RPN)</strong> — same as Faster R-CNN, proposes candidate object regions using anchor boxes.</li>
+      <li><strong>RoIAlign</strong> — extracts a fixed-size feature grid for each proposed region, similar in spirit to RoI Pooling but with an important precision fix (explained below).</li>
+      <li><strong>Classification + Box Regression head</strong> — identical to Faster R-CNN: what object is it, and where exactly is its box.</li>
+      <li><strong>Mask Head (the new branch)</strong> — a small convolutional network that runs in parallel with the classification/box head, outputting a small binary mask (e.g. 28×28) per class that marks exactly which pixels inside the box belong to the object.</li>
+    </ol>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">RoIAlign vs. RoIPool — Why the Upgrade?</div>
+      <p style="margin-top:6px;font-size:13px"><strong>RoIPool</strong> (used in Fast/Faster R-CNN) snaps the region's boundaries to the nearest grid cell on the feature map — a process called <strong>quantization</strong>. For box classification this small misalignment barely matters. But for predicting a precise pixel mask, that same small misalignment causes visibly blurry, shifted masks.</p>
+      <p style="font-size:13px;margin-top:6px"><strong>RoIAlign</strong> avoids this by using bilinear interpolation to sample feature values at exact, non-quantized floating-point locations, instead of snapping to the nearest grid cell. This keeps spatial alignment between the input pixels and the extracted features precise — which matters enormously once you're trying to predict a mask at the individual-pixel level.</p>
+    </div>
+    <br/>
+    <p>Mask R-CNN's architecture, visualized:</p>
+    <div class="pipeline">
+      <div class="pipe-step"><span class="pipe-label">1</span>CNN backbone → feature map</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-label">2</span>RPN → region proposals</div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step pipe-cool"><span class="pipe-label">3</span>RoIAlign (precision-preserving)</div>
+    </div>
+    <div class="pipeline">
+      <div class="pipe-step"><span class="pipe-label">4a</span>Classification + Box Regression head</div>
+      <div class="pipe-arrow">+</div>
+      <div class="pipe-step pipe-cool"><span class="pipe-label">4b (new!)</span>Mask Head → per-pixel binary mask</div>
+    </div>
+    <p>The classification/box branch and the mask branch run <strong>in parallel</strong>, both fed from the same RoIAlign features — this is why Mask R-CNN is often described as adding "just one more head" to Faster R-CNN rather than being a completely new architecture.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Mask R-CNN</strong> يأخذ Faster R-CNN ويُضيف قدرة جديدة: بدلًا من أن يقول فقط "يوجد كلب هنا داخل هذا الصندوق"، فإنه يرسم أيضًا <strong>الحدود الدقيقة على مستوى البيكسل</strong> لهذا الكلب داخل الصندوق. هذا يُرقّي المهمة من كشف الأجسام (object detection) إلى <strong>تجزئة الحالات (instance segmentation)</strong> — كل جسم فردي يحصل على قناع بيكسلي دقيق خاص به، وليس فقط مستطيلًا.</p>
+    <br/>
+    <p><strong>خطوات Mask R-CNN (بناءً على خطوات Faster R-CNN الثلاث):</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>استخراج الميزات</strong> — نفس عمود CNN في Faster R-CNN يُنتج خريطة ميزات مشتركة.</li>
+      <li><strong>RPN</strong> — نفس الفكرة، تُقترح مناطق باستخدام anchor boxes.</li>
+      <li><strong>RoIAlign</strong> — يستخرج شبكة ميزات بحجم ثابت لكل منطقة، بشكل مشابه لـ RoI Pooling لكن مع إصلاح دقيق مهم (مُوضّح أدناه).</li>
+      <li><strong>رأس التصنيف + Box Regression</strong> — مطابق لـ Faster R-CNN: ما هو الجسم، وأين موقعه الدقيق.</li>
+      <li><strong>رأس القناع (الفرع الجديد)</strong> — شبكة التفافية صغيرة تعمل بالتوازي مع رأس التصنيف، تُخرج قناعًا ثنائيًا صغيرًا (مثل 28×28) لكل تصنيف يُحدد بالضبط أي بيكسلات داخل الصندوق تنتمي للجسم.</li>
+    </ol>
+    <br/>
+    <div class="def-box" style="direction:rtl">
+      <div class="def-term" style="direction:ltr;text-align:right">RoIAlign مقابل RoIPool — لماذا هذا التطوير؟</div>
+      <p style="margin-top:6px;font-size:13px"><strong>RoIPool</strong> (المستخدم في Fast/Faster R-CNN) يُقرِّب حدود المنطقة إلى أقرب خلية شبكية على خريطة الميزات — عملية تُسمى <strong>quantization (التكميم)</strong>. بالنسبة لتصنيف الصندوق، هذا الخطأ الصغير في المحاذاة لا يُهم كثيرًا. لكن لتوقع قناع بيكسلي دقيق، يتسبب نفس الخطأ الصغير في أقنعة ضبابية ومُنزلقة بشكل واضح.</p>
+      <p style="font-size:13px;margin-top:6px"><strong>RoIAlign</strong> يتجنب هذه المشكلة باستخدام الاستيفاء الثنائي الخطي (bilinear interpolation) لأخذ قيم الميزات عند مواضع دقيقة (غير مُقرَّبة)، بدلًا من التقريب لأقرب خلية شبكية. هذا يحافظ على محاذاة مكانية دقيقة بين بيكسلات الصورة الأصلية والميزات المُستخرجة — وهو أمر بالغ الأهمية عند محاولة توقع قناع على مستوى البيكسل الفردي.</p>
+    </div>
+    <br/>
+    <p>فرعا التصنيف/الصندوق وفرع القناع يعملان <strong>بالتوازي</strong>، وكلاهما يستمد من نفس ميزات RoIAlign — لهذا يُوصف Mask R-CNN غالبًا بأنه "إضافة رأس واحد فقط" فوق Faster R-CNN، لا بنية جديدة تمامًا.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Instance Segmentation (تجزئة الحالات)</strong> — قناع بيكسلي منفصل لكل جسم فردي</li>
+      <li><strong>Mask Head (رأس القناع)</strong> — الفرع الجديد الذي يُنتج القناع</li>
+      <li><strong>RoIAlign</strong> — نسخة محسّنة ودقيقة من RoI Pooling</li>
+      <li><strong>Quantization (التكميم)</strong> — تقريب موقع إلى أقرب خلية شبكية، مصدر خطأ في RoIPool</li>
+      <li><strong>Bilinear Interpolation (استيفاء ثنائي خطي)</strong> — طريقة حساب دقيقة تتجنب التقريب</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Detection vs. Instance Segmentation</div>
+    <p><strong>Faster R-CNN output:</strong> "Dog: box (120,80)–(340,290)" — a rectangle that includes some background (grass, sky) inside its corners.</p>
+    <p style="margin-top:6px"><strong>Mask R-CNN output:</strong> the same box, PLUS a precise silhouette mask that colors exactly the dog-shaped pixels inside that box and leaves the background pixels (inside the same rectangle) uncolored — useful for things like removing the background behind the dog in a photo editor, or letting a robot know exactly which pixels it can safely grasp.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Mask R-CNN = Faster R-CNN + a parallel mask-prediction branch = instance segmentation</li>
+      <li>📌 RoIAlign replaces RoIPool specifically to fix pixel misalignment caused by quantization</li>
+      <li>📌 The mask head, classification head, and box regression head all run in parallel from the same RoIAlign features</li>
+      <li>📌 Common exam Q: "Why can't Mask R-CNN just use RoIPool?" → Quantization misalignment is tolerable for boxes but destroys mask precision</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Mask R-CNN extends Faster R-CNN with a parallel mask-prediction branch fed by RoIAlign (instead of RoIPool, which loses precision to quantization). The result: for every detected object you get a class, a refined bounding box, AND a pixel-accurate segmentation mask — i.e. instance segmentation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="slide-badge">SUMMARY</span>
+    <h2>9. The Full Evolution: R-CNN → Fast R-CNN → Faster R-CNN → Mask R-CNN</h2>
+  </div>
+  <p class="section-subtitle">Tying the whole family tree together — what changed at each step, and why</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p>This section is a capstone synthesis, not a single slide — it consolidates the four models covered across slides 2–12 into one comparison so the evolution is easy to hold in memory before moving on to Detectron2.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Each model in this family fixed exactly one weakness of the model before it. Seeing them side by side makes the whole story click:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Model</th><th>Region Proposals</th><th># CNN Passes / Image</th><th>Classifier</th><th>Output</th><th>Relative Speed</th></tr>
+        <tr><td><strong>R-CNN</strong></td><td>Selective Search (external, classical)</td><td>~2000 (one per region)</td><td>Separate SVM</td><td>Class + box</td><td>Very slow</td></tr>
+        <tr><td><strong>Fast R-CNN</strong></td><td>Selective Search (external, classical)</td><td>1 shared pass + RoI Pooling</td><td>Softmax (in-network)</td><td>Class + box</td><td>Much faster (~10x+)</td></tr>
+        <tr><td><strong>Faster R-CNN</strong></td><td>RPN (internal, learned, anchor-based)</td><td>1 shared pass + RoI Pooling</td><td>Softmax (in-network)</td><td>Class + box</td><td>Near real-time</td></tr>
+        <tr><td><strong>Mask R-CNN</strong></td><td>RPN (internal, learned, anchor-based)</td><td>1 shared pass + RoIAlign</td><td>Softmax (in-network)</td><td>Class + box + pixel mask</td><td>Near real-time (slightly heavier due to mask head)</td></tr>
+      </table>
+    </div>
+    <br/>
+    <p><strong>The two big turning points to remember:</strong></p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Turning Point 1 — Fast R-CNN</h4>
+        <ul>
+          <li>Fixed: redundant CNN computation</li>
+          <li>How: 1 shared feature map instead of ~2000 CNN passes</li>
+          <li>Also folded SVM into the network as a softmax layer</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent2)">Turning Point 2 — Faster R-CNN</h4>
+        <ul>
+          <li>Fixed: slow, non-learnable, external proposal generation</li>
+          <li>How: RPN — a tiny learnable network using anchor boxes</li>
+          <li>Region proposals now trained jointly with the whole network</li>
+        </ul>
+      </div>
+    </div>
+    <br/>
+    <p><strong>And the third turning point — Mask R-CNN</strong> doesn't fix a weakness so much as <em>extend</em> the capability: it adds pixel-level output on top of an already-fast, already-learnable pipeline, made precise thanks to RoIAlign.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>كل نموذج في هذه العائلة حلّ نقطة ضعف واحدة تحديدًا في النموذج السابق له. رؤيتها جنبًا إلى جنب تجعل القصة كاملة واضحة:</p>
+    <ul style="padding-right:20px;font-size:14px;margin-top:8px">
+      <li><strong>R-CNN</strong>: Selective Search خارجي + ~2000 تشغيل CNN + SVM منفصل → بطيء جدًا</li>
+      <li><strong>Fast R-CNN</strong>: نفس Selective Search + تشغيل CNN واحد مشترك + softmax داخلية → أسرع بكثير</li>
+      <li><strong>Faster R-CNN</strong>: RPN داخلية قابلة للتعلم (تعتمد على anchor boxes) بدلًا من Selective Search → قريب من الوقت الفعلي</li>
+      <li><strong>Mask R-CNN</strong>: نفس RPN + RoIAlign بدلًا من RoI Pooling + رأس قناع جديد → يُخرج قناعًا بيكسليًا بالإضافة للصندوق والتصنيف</li>
+    </ul>
+    <br/>
+    <p><strong>نقطتا التحول الكبيرتان:</strong></p>
+    <p style="font-size:14px"><strong>التحول الأول (Fast R-CNN):</strong> حلّ مشكلة الحساب المُكرر — عبر خريطة ميزات مشتركة واحدة بدلًا من ~2000 تشغيل CNN، ودمج SVM كطبقة softmax داخل الشبكة.</p>
+    <p style="font-size:14px;margin-top:8px"><strong>التحول الثاني (Faster R-CNN):</strong> حلّ مشكلة توليد المقترحات البطيء غير القابل للتعلم — عبر RPN، شبكة صغيرة قابلة للتعلم تعتمد على anchor boxes، تُدرَّب مع باقي الشبكة معًا.</p>
+    <p style="font-size:14px;margin-top:8px"><strong>التحول الثالث (Mask R-CNN):</strong> لا يُصلح نقطة ضعف بقدر ما <em>يُوسّع</em> القدرة — يُضيف مخرجًا على مستوى البيكسل فوق خط أنابيب سريع وقابل للتعلم بالفعل، بدقة عالية بفضل RoIAlign.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> One-Sentence Summary of Each Generation</div>
+    <ul class="e-list">
+      <li>🐢 <strong>R-CNN</strong>: "Propose 2000 regions, run a full CNN on every single one."</li>
+      <li>⚡ <strong>Fast R-CNN</strong>: "Run the CNN once, share it across all proposals."</li>
+      <li>🧠 <strong>Faster R-CNN</strong>: "Let a small neural network learn to propose the regions itself."</li>
+      <li>🎭 <strong>Mask R-CNN</strong>: "Also tell me exactly which pixels belong to the object."</li>
+    </ul>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — The Evolution Chain</div>
+    <p><strong>"Redundant → Reused → Reasoned → Refined to pixels"</strong></p>
+    <p>R-CNN (redundant CNN calls) → Fast R-CNN (reused feature map) → Faster R-CNN (reasoned proposals via RPN) → Mask R-CNN (refined to pixel-level masks)</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize this table cold — it's the single most likely exam/interview centerpiece for this lecture</li>
+      <li>📌 Know exactly WHAT changed at each step and WHY (the specific weakness being fixed)</li>
+      <li>📌 R-CNN→Fast R-CNN fixes computation redundancy; Fast R-CNN→Faster R-CNN fixes proposal learnability; Faster R-CNN→Mask R-CNN adds pixel-level output</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>R-CNN (2000 CNN passes, SVM, boxes only) → Fast R-CNN (1 shared CNN pass, softmax, boxes only) → Faster R-CNN (learned RPN proposals instead of Selective Search, boxes only) → Mask R-CNN (same as Faster R-CNN + RoIAlign + mask head, boxes AND pixel masks).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 10 ===================== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 13–15</span>
+    <h2>10. Detectron2 — Putting the R-CNN Family into Practice</h2>
+  </div>
+  <p class="section-subtitle">Facebook AI Research's production-grade object detection library</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Detectron2</strong></p>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Detectron2 was built by Facebook AI Research (FAIR) to support rapid implementation and evaluation of novel computer vision research.</li>
+      <li>Detectron2 is now implemented in PyTorch.</li>
+      <li>Detectron2 is flexible and extensible, and able to provide fast training on single or multiple GPU servers.</li>
+      <li>Detectron2 can be used as a library to support different projects on top of it.</li>
+    </ul>
+    <p style="margin-top:10px"><strong>Detectron2 Model Zoo:</strong> https://github.com/facebookresearch/detectron2/blob/master/MODEL_ZOO.md</p>
+    <p style="margin-top:8px"><strong>Detectron2 — Inference</strong> (slide 15, illustration of running a pretrained model on a new image).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Everything covered so far — R-CNN, Fast R-CNN, Faster R-CNN, Mask R-CNN — describes the underlying <em>theory</em> of these architectures. <span class="hl">Detectron2</span> is the actual software people use to build, train, and deploy these models without reimplementing them from scratch.</p>
+    <br/>
+    <ul class="e-list">
+      <li>🏢 <strong>Built by Facebook AI Research (FAIR)</strong> — created specifically to let researchers quickly implement and evaluate new computer vision ideas without rebuilding the entire detection pipeline every time.</li>
+      <li>🔥 <strong>Implemented in PyTorch</strong> — an earlier version (Detectron) was built on Caffe2; Detectron2 is a full PyTorch rewrite, making it easier to extend and integrate with the rest of the PyTorch ecosystem.</li>
+      <li>🧩 <strong>Flexible and extensible</strong> — supports many detection/segmentation architectures (Faster R-CNN, Mask R-CNN, and others) through a modular, configurable design rather than hardcoding one specific model.</li>
+      <li>🚀 <strong>Fast multi-GPU training</strong> — designed from the ground up to scale training efficiently across single or multiple GPU servers.</li>
+      <li>📚 <strong>Used as a library</strong> — rather than being a single standalone app, Detectron2 is meant to be imported and built upon inside other computer vision projects.</li>
+    </ul>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">📦 Detectron2 Model Zoo</div>
+      <p style="margin-top:6px;font-size:13px">A curated collection of <strong>pretrained models</strong> (Faster R-CNN, Mask R-CNN, RetinaNet, and more, trained on datasets like COCO) that anyone can download and use immediately — either directly for inference, or as a strong starting point (via transfer learning / fine-tuning) for a custom dataset instead of training from scratch.</p>
+    </div>
+    <br/>
+    <p><strong>Detectron2 — Inference (in practice):</strong> once you pick a model from the Model Zoo, running inference typically means: load the pretrained weights and config → feed in a new image → the model outputs bounding boxes, class labels, confidence scores, and (if using a Mask R-CNN config) segmentation masks — all through a simple predictor API, no need to touch the underlying architecture code.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>كل ما تم تغطيته حتى الآن — R-CNN و Fast R-CNN و Faster R-CNN و Mask R-CNN — يصف <em>النظرية</em> الأساسية لهذه البُنى. <strong>Detectron2</strong> هو البرنامج الفعلي الذي يستخدمه الناس لبناء وتدريب ونشر هذه النماذج دون إعادة برمجتها من الصفر.</p>
+    <br/>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>بناه Facebook AI Research (FAIR)</strong> — لتمكين الباحثين من تطبيق وتقييم أفكار جديدة في رؤية الحاسوب بسرعة، دون إعادة بناء خط أنابيب الكشف الكامل كل مرة.</li>
+      <li><strong>مُنفَّذ بلغة PyTorch</strong> — النسخة الأقدم (Detectron) كانت مبنية على Caffe2؛ أما Detectron2 فهي إعادة كتابة كاملة بـ PyTorch، مما يُسهّل توسيعها ودمجها مع باقي منظومة PyTorch.</li>
+      <li><strong>مرنة وقابلة للتوسيع</strong> — تدعم عدة بُنى للكشف والتجزئة (Faster R-CNN وMask R-CNN وغيرها) بتصميم معياري قابل للتهيئة.</li>
+      <li><strong>تدريب سريع متعدد الـ GPU</strong> — مصممة أصلًا لتوسيع التدريب بكفاءة على خادم واحد أو عدة خوادم GPU.</li>
+      <li><strong>تُستخدم كمكتبة (library)</strong> — لا تُعتبر تطبيقًا مستقلًا واحدًا، بل تُستورد وتُبنى عليها مشاريع رؤية حاسوب أخرى.</li>
+    </ul>
+    <br/>
+    <div class="def-box" style="direction:rtl">
+      <div class="def-term" style="direction:ltr;text-align:right">📦 Detectron2 Model Zoo</div>
+      <p style="margin-top:6px;font-size:13px">مجموعة مُنسّقة من <strong>النماذج المُدرَّبة مسبقًا (pretrained models)</strong> (Faster R-CNN، Mask R-CNN، RetinaNet، وغيرها، مُدرَّبة على مجموعات بيانات مثل COCO) يمكن لأي شخص تحميلها واستخدامها مباشرة — إما للاستدلال (inference) مباشرة، أو كنقطة انطلاق قوية (عبر transfer learning) لمجموعة بيانات خاصة بدلًا من التدريب من الصفر.</p>
+    </div>
+    <br/>
+    <p><strong>الاستدلال (Inference) عمليًا:</strong> بعد اختيار نموذج من Model Zoo، يعني تشغيل الاستدلال عمومًا: تحميل الأوزان المُدرَّبة مسبقًا والتهيئة (config) → إدخال صورة جديدة → يُخرج النموذج صناديق إحاطة وتصنيفات ونسب ثقة (وأقنعة تجزئة إذا كان النموذج Mask R-CNN) — كل ذلك عبر واجهة predictor بسيطة، بدون الحاجة لمس كود البنية الأساسية.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>FAIR (Facebook AI Research)</strong> — مختبر الأبحاث الذي طوّر Detectron2</li>
+      <li><strong>Model Zoo (مخزون النماذج)</strong> — مجموعة نماذج مُدرَّبة مسبقًا جاهزة للاستخدام</li>
+      <li><strong>Transfer Learning (التعلم بالنقل)</strong> — استخدام نموذج مُدرَّب مسبقًا كنقطة انطلاق</li>
+      <li><strong>Inference (الاستدلال)</strong> — تشغيل النموذج على بيانات جديدة للحصول على تنبؤات</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Why Researchers Use Detectron2</div>
+    <p>A researcher wants to test a new idea for improving Mask R-CNN's mask head. Instead of writing a Faster R-CNN backbone, RPN, RoIAlign, and training loop from scratch (weeks of work), they configure Detectron2 to load a Model Zoo Mask R-CNN checkpoint, swap out only the mask head component, and start experimenting within hours. This is exactly the "rapid implementation and evaluation" FAIR built Detectron2 to enable.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Detectron2 was built by Facebook AI Research (FAIR)</li>
+      <li>📌 It is implemented in PyTorch (successor to the Caffe2-based Detectron)</li>
+      <li>📌 Key traits: flexible/extensible, fast multi-GPU training, usable as a library</li>
+      <li>📌 The Model Zoo provides pretrained models for direct use or fine-tuning</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Detectron2 is FAIR's PyTorch-based object detection/segmentation library — flexible, extensible, supports fast multi-GPU training, used as a library in other projects, and ships a Model Zoo of pretrained models (Faster R-CNN, Mask R-CNN, etc.) ready for inference or fine-tuning.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 11 ===================== -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 16</span>
+    <h2>11. Training Detectron2 on a Custom Dataset (COCO Format)</h2>
+  </div>
+  <p class="section-subtitle">The one conversion step every custom Detectron2 project needs first</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Train Detectron2 On A Custom Dataset</strong></p>
+    <p style="margin-top:8px">Convert your dataset to COCO-format. The COCO dataset is formatted in JSON and has five annotation types: object detection, keypoint detection, stuff segmentation, panoptic segmentation, and image captioning. It is a collection of "info", "licenses", "images", "annotations", "categories" (in most cases), and "segment info" (in one case).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Detectron2's built-in data loaders are designed around the <span class="hl">COCO dataset format</span>. So before you can train any Detectron2 model (Faster R-CNN, Mask R-CNN, etc.) on your own images, the very first practical step is: <strong>convert your custom dataset's annotations into COCO's JSON structure.</strong></p>
+    <br/>
+    <p><strong>COCO supports five annotation types:</strong></p>
+    <ul class="e-list">
+      <li>📦 <strong>Object Detection</strong> — bounding boxes + class labels</li>
+      <li>🕺 <strong>Keypoint Detection</strong> — labeled body/joint keypoints (e.g. for pose estimation)</li>
+      <li>🌫️ <strong>Stuff Segmentation</strong> — pixel labels for background/texture regions (sky, grass, wall) rather than distinct countable objects</li>
+      <li>🧩 <strong>Panoptic Segmentation</strong> — combines instance segmentation (countable objects, each with its own mask) with stuff segmentation (background regions) into one unified labeling</li>
+      <li>📝 <strong>Image Captioning</strong> — natural-language text descriptions paired with images</li>
+    </ul>
+    <br/>
+    <p><strong>Every COCO-format JSON file is built from these top-level sections:</strong></p>
+    <ul class="e-list">
+      <li>ℹ️ <strong>info</strong> — metadata about the dataset itself (description, version, contributor)</li>
+      <li>📜 <strong>licenses</strong> — license info for the images used</li>
+      <li>🖼️ <strong>images</strong> — a list of image entries, each with an id, filename, width, height</li>
+      <li>🏷️ <strong>annotations</strong> — the actual labels: for each object, its image_id, category_id, bounding box, and/or segmentation polygon/mask</li>
+      <li>📂 <strong>categories</strong> — the list of class names and their ids (present in most annotation types)</li>
+      <li>🧩 <strong>segment_info</strong> — extra per-segment metadata used specifically for panoptic segmentation (present in that one annotation type)</li>
+    </ul>
+    <br/>
+    <p><strong>A simplified example of the COCO JSON structure:</strong></p>
+    <pre><code>{
+  "info": {
+    "description": "My Custom Dataset",
+    "version": "1.0"
+  },
+  "licenses": [
+    { "id": 1, "name": "CC-BY-4.0" }
+  ],
+  "images": [
+    { "id": 1, "file_name": "img_001.jpg", "width": 640, "height": 480 }
+  ],
+  "annotations": [
+    {
+      "id": 1,
+      "image_id": 1,
+      "category_id": 2,
+      "bbox": [x, y, width, height],
+      "segmentation": [[x1, y1, x2, y2, x3, y3, ...]],
+      "area": 15234,
+      "iscrowd": 0
+    }
+  ],
+  "categories": [
+    { "id": 1, "name": "cat" },
+    { "id": 2, "name": "dog" }
+  ]
+}</code></pre>
+    <p style="font-size:13px;color:var(--muted)">Once this JSON (plus the actual image files) exists, Detectron2's <code>register_coco_instances()</code> utility can load the dataset directly, and standard training configs (e.g. a Mask R-CNN config from the Model Zoo) can be pointed at it for fine-tuning with almost no extra code.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>مُحمِّلات البيانات المدمجة في Detectron2 مُصممة حول <strong>تنسيق مجموعة بيانات COCO</strong>. لذلك قبل تدريب أي نموذج من Detectron2 (Faster R-CNN، Mask R-CNN...) على صورك الخاصة، الخطوة العملية الأولى هي: <strong>تحويل تعليقات (annotations) مجموعة بياناتك الخاصة إلى بنية JSON الخاصة بـ COCO.</strong></p>
+    <br/>
+    <p><strong>يدعم COCO خمسة أنواع من التعليقات (annotation types):</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Object Detection (كشف الأجسام)</strong> — صناديق إحاطة + تصنيفات</li>
+      <li><strong>Keypoint Detection (كشف النقاط المرجعية)</strong> — نقاط مفصلية مُعلَّمة (لتقدير الوضعية مثلًا)</li>
+      <li><strong>Stuff Segmentation (تجزئة الأشياء غير المُعدودة)</strong> — تصنيف بيكسلات مناطق الخلفية/النقشة (سماء، عشب، حائط) بدلًا من أجسام قابلة للعد</li>
+      <li><strong>Panoptic Segmentation (التجزئة الشاملة)</strong> — تدمج تجزئة الحالات (أجسام قابلة للعد، كل منها بقناع خاص) مع تجزئة الأشياء (مناطق الخلفية) في تصنيف واحد موحّد</li>
+      <li><strong>Image Captioning (وصف الصور)</strong> — وصف نصي طبيعي مرتبط بالصور</li>
+    </ul>
+    <br/>
+    <p><strong>كل ملف COCO JSON يُبنى من هذه الأقسام الرئيسية:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>info</strong> — بيانات وصفية عن مجموعة البيانات نفسها</li>
+      <li><strong>licenses</strong> — معلومات الترخيص للصور المستخدمة</li>
+      <li><strong>images</strong> — قائمة إدخالات الصور (id، اسم الملف، العرض، الارتفاع)</li>
+      <li><strong>annotations</strong> — التصنيفات الفعلية: لكل جسم، image_id وcategory_id وصندوق الإحاطة و/أو قناع التجزئة</li>
+      <li><strong>categories</strong> — قائمة أسماء الفئات ومُعرّفاتها (موجودة في معظم أنواع التعليقات)</li>
+      <li><strong>segment_info</strong> — بيانات وصفية إضافية لكل مقطع، تُستخدم فقط في التجزئة الشاملة (panoptic)</li>
+    </ul>
+    <br/>
+    <p><strong>مثال مُبسّط لبنية COCO JSON:</strong> ملف JSON يحتوي على info، licenses، قائمة images (كل صورة برقم وعرض وارتفاع)، قائمة annotations (كل تعليق يحتوي على image_id وcategory_id وbbox وsegmentation)، وقائمة categories (اسم كل فئة ومُعرّفها).</p>
+    <p style="font-size:13px;margin-top:8px">بعد إنشاء هذا الملف (مع ملفات الصور الفعلية)، يمكن لأداة <code>register_coco_instances()</code> في Detectron2 تحميل مجموعة البيانات مباشرة، ويمكن توجيه إعدادات التدريب القياسية (مثل تهيئة Mask R-CNN من Model Zoo) إليها لإجراء fine-tuning بأقل كود إضافي.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — From Raw Photos to Training-Ready</div>
+    <ol class="steps">
+      <li>Collect and label photos of your custom objects (e.g. factory defects on a conveyor belt) using an annotation tool (e.g. drawing polygons around each defect)</li>
+      <li>Export those annotations into the COCO JSON structure (images + annotations + categories)</li>
+      <li>Call <code>register_coco_instances("my_dataset", {}, "annotations.json", "images/")</code> in Detectron2</li>
+      <li>Load a Mask R-CNN config from the Model Zoo and point its dataset name at "my_dataset"</li>
+      <li>Fine-tune the pretrained weights on your custom data instead of training from random initialization — dramatically less data and time needed</li>
+    </ol>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistake</div>
+    <p>Forgetting that "categories" and "segment_info" are used differently depending on annotation type — "categories" appears in most types, while "segment_info" is specific to panoptic segmentation. Mixing these up when hand-writing a converter script is a common source of Detectron2 loading errors.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 First step to train Detectron2 on custom data: convert the dataset to COCO format (JSON)</li>
+      <li>📌 5 COCO annotation types: object detection, keypoint detection, stuff segmentation, panoptic segmentation, image captioning</li>
+      <li>📌 Top-level JSON keys: info, licenses, images, annotations, categories (most types), segment_info (panoptic only)</li>
+      <li>📌 Fine-tuning a Model Zoo checkpoint on your own COCO-format data is far more efficient than training from scratch</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>To train Detectron2 on a custom dataset, first convert your annotations to COCO's JSON format (info, licenses, images, annotations, categories, and segment_info for panoptic), which supports detection, keypoint, stuff-segmentation, panoptic-segmentation, and captioning annotation types.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice and Short Answer Questions covering the full R-CNN family evolution</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. In R-CNN, roughly how many times is the CNN run per image?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Once</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) 9 times (once per anchor shape)</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) About 2000 times (once per region proposal)</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 5 times (once per Selective Search step)</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — R-CNN runs a full CNN forward pass for each of the ~2000 region proposals generated by Selective Search — the source of its severe slowness.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. What is the main innovation that makes Fast R-CNN faster than R-CNN?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It uses fewer region proposals</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It runs the CNN once on the whole image and shares the resulting feature map across all region proposals</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It removes the bounding box regressor</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It uses anchor boxes instead of Selective Search</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Fast R-CNN computes one shared convolutional feature map for the whole image, then uses RoI Pooling to extract per-region features from it, avoiding redundant CNN passes.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What does the Region Proposal Network (RPN) in Faster R-CNN replace?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The CNN backbone</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) RoI Pooling</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Selective Search</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The softmax classifier</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — The RPN is a small learnable neural network that replaces the slow, external, classical Selective Search algorithm for generating region proposals.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. An anchor box is best described as:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The final, fully-refined bounding box output by the model</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) A predefined rectangle shape (scale + aspect ratio) placed at a fixed location, used as a reference/starting point for proposals</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) A pixel-level segmentation mask</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A region generated by Selective Search</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Anchor boxes are predefined shapes (combinations of scale and aspect ratio) placed at every location on the feature map; the RPN uses k of them per location.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. An anchor box has an IoU of 0.85 with a ground-truth box. How should it be labeled?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'A')">A) Positive (object) anchor</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Negative (background) anchor</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Ignored anchor</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Cannot be determined from IoU alone</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: A</strong> — IoU &gt; 0.7 labels an anchor as positive/object. 0.85 is well above that threshold.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. What is the key reason Mask R-CNN uses RoIAlign instead of RoIPool?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) RoIAlign is faster to compute</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) RoIAlign requires no ground-truth labels</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) RoIAlign avoids the quantization misalignment that would blur pixel-level mask predictions</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) RoIAlign replaces the need for a CNN backbone</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — RoIPool snaps region boundaries to the nearest feature-map grid cell (quantization), which is tolerable for box classification but degrades pixel-precise mask prediction. RoIAlign uses bilinear interpolation to avoid this.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. Detectron2 was built by:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Google Brain</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Facebook AI Research (FAIR)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) OpenAI</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Microsoft Research</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Detectron2 was built by Facebook AI Research (FAIR) and is implemented in PyTorch.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. To train Detectron2 on a custom dataset, the first practical step is:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Manually rewrite the RPN code</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Convert the dataset's annotations into COCO's JSON format</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Disable the mask head</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Switch the backbone from PyTorch to Caffe2</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Detectron2's data loaders expect COCO-format JSON (info, licenses, images, annotations, categories, and segment_info for panoptic), so converting your dataset to that structure is the required first step.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Trace the full evolution from R-CNN to Mask R-CNN, explaining what problem each new model solved. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> <strong>R-CNN</strong> uses Selective Search to generate ~2000 region proposals and runs a full CNN on each one separately, then classifies with an SVM and refines the box with a linear regressor — accurate but extremely slow due to ~2000 redundant CNN passes. <strong>Fast R-CNN</strong> fixes the redundancy by running the CNN once over the whole image to get a shared feature map, using RoI Pooling to extract per-region features, and replacing the SVM with an in-network softmax layer for end-to-end training — but it still depends on the slow, non-learnable Selective Search for proposals. <strong>Faster R-CNN</strong> fixes that remaining bottleneck by replacing Selective Search with a Region Proposal Network (RPN) — a small learnable neural network that proposes regions using k anchor boxes at each feature-map location, trained jointly with the rest of the model, making the whole pipeline learnable and near real-time. <strong>Mask R-CNN</strong> extends Faster R-CNN by adding a parallel mask-prediction branch (fed by RoIAlign instead of RoIPool for pixel-precision) so that, in addition to a class and a bounding box, each detected object also gets a precise pixel-level segmentation mask — upgrading the task to instance segmentation.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: What is an anchor box, and what does "k anchor boxes" mean in the context of the RPN? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> An anchor box is a predefined rectangle shape — a specific combination of scale (small/medium/large) and aspect ratio (e.g. 1:1, 2:1, 1:2) — placed at a fixed location on the feature map, used as a reference starting shape that the RPN tests against the underlying image content. "k anchor boxes" means the RPN uses k different predefined shapes at every single location on the feature map (a common setup is k=9, from 3 scales × 3 aspect ratios), so it can propose objects of many different sizes and shapes at once, all from the same location.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Explain how the RPN decides whether an anchor box is "positive" or "negative," including the IoU thresholds. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> The RPN computes the Intersection over Union (IoU) between each anchor box and the nearest ground-truth object box: IoU = overlap area ÷ union area, ranging from 0 to 1. If IoU &gt; 0.7, the anchor is labeled positive (it contains an object). If IoU &lt; 0.3, the anchor is labeled negative (background). Anchors with IoU between 0.3 and 0.7 are ignored during training because their status is ambiguous and would introduce noisy training signal. The RPN's classification head then learns to output p_object vs p_background for every anchor, and bounding box regression further refines the coordinates of positive anchors to tightly fit the actual object.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why can't Mask R-CNN simply reuse Fast/Faster R-CNN's RoI Pooling for its mask branch? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> RoI Pooling snaps a region's boundaries to the nearest cell on the discrete feature-map grid — a process called quantization. For classifying "what object is roughly in this box," that small misalignment barely matters. But predicting a pixel-accurate segmentation mask requires precise spatial correspondence between input pixels and extracted features; the same small misalignment that's harmless for classification produces visibly blurry, shifted masks. RoIAlign solves this by using bilinear interpolation to sample feature values at exact, non-quantized locations, preserving the spatial alignment needed for accurate per-pixel mask prediction.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming coverage of all 17 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Computer Vision (CV) — [R-CNN Family]" — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — R-CNN for object detection (Selective Search, CNN per region, SVM, linear regressor) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Selective Search Algorithm (5 steps: Initial Segmentation, Similarity Calculation, Iterative Merging, Hierarchical Grouping, Proposal Generation) — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — R-CNN Architecture (diagram) — ✅ Section 3, including the speed bottleneck it illustrates</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Fast R-CNN (shared feature map, single CNN pass, softmax replacing SVM) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Fast R-CNN Architecture (diagram) — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — Faster R-CNN (3 steps: Feature Extraction, RPN with k anchor boxes, R-CNN module) — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — How RPN Detects Objects / Anchor Box Labeling (IoU, positive &gt;0.7, negative &lt;0.3, classification head, box regression) — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Supporting illustration of anchor/ground-truth overlap — ✅ Referenced in Section 7's illustration recap</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Mask R-CNN (introduction) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Steps of Mask R-CNN (diagram) — ✅ Section 8, steps list</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Mask R-CNN Architecture (diagram, RoIAlign, mask head) — ✅ Section 8, architecture pipeline</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Detectron2 (built by FAIR, PyTorch, flexible/extensible, multi-GPU, usable as a library) — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Detectron2 Model Zoo (link to pretrained models) — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Detectron2 - Inference — ✅ Section 10, inference-in-practice explanation</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 16</strong> — Train Detectron2 on a Custom Dataset (COCO format: JSON, 5 annotation types, info/licenses/images/annotations/categories/segment_info) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 17</strong> — Closing/reference slide (no body content in source material) — ✅ Acknowledged; all substantive content from slides 1–16 fully covered</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 17/17 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All algorithms, architectures, thresholds, comparisons, and tooling notes have been explained in both English and Arabic with additional analogies, worked numeric examples, memory tricks, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>R-CNN:</strong> <span class="tag tag-blue">Selective Search (5 steps)</span> → <span class="tag tag-blue">~2000 CNN passes</span> → <span class="tag tag-blue">SVM + Linear Regressor</span></p>
+      <p><strong>Fast R-CNN:</strong> <span class="tag tag-green">1 shared CNN pass</span> → <span class="tag tag-green">RoI Pooling</span> → <span class="tag tag-green">Softmax (in-network)</span></p>
+      <p><strong>Faster R-CNN:</strong> <span class="tag tag-purple">CNN backbone</span> → <span class="tag tag-purple">RPN (k anchor boxes)</span> → <span class="tag tag-purple">R-CNN head (class + box)</span></p>
+      <p><strong>Anchor Labeling:</strong> <span class="tag tag-orange">IoU &gt; 0.7 = positive</span> · <span class="tag tag-orange">IoU &lt; 0.3 = negative</span> · <span class="tag tag-orange">0.3–0.7 = ignored</span></p>
+      <p><strong>Mask R-CNN:</strong> <span class="tag tag-blue">Faster R-CNN base</span> → <span class="tag tag-blue">RoIAlign</span> → <span class="tag tag-blue">Mask Head (instance segmentation)</span></p>
+      <p><strong>Evolution:</strong> <span class="tag tag-green">Redundant CNN calls</span> → <span class="tag tag-green">Shared feature map</span> → <span class="tag tag-green">Learnable proposals (RPN)</span> → <span class="tag tag-green">Pixel-level masks</span></p>
+      <p><strong>Tooling:</strong> <span class="tag tag-purple">Detectron2 (FAIR, PyTorch)</span> → <span class="tag tag-purple">Model Zoo</span> → <span class="tag tag-purple">COCO-format training data</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 20 — Vision Transformer (ViT): Images as Sequences of Patches | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .patch-grid{grid-template-columns:repeat(6,1fr)!important}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* PATCH DIAGRAM (additive, follows existing visual language) */
+.patch-diagram{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  margin:16px 0;padding:18px;
+  background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+}
+.patch-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:3px;width:180px;height:180px;flex-shrink:0;
+  border:2px solid var(--accent);border-radius:8px;overflow:hidden;
+  padding:3px;background:var(--bg);
+}
+.patch-cell{
+  border:1px solid rgba(56,189,248,0.35);
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:9px;
+  color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(56,189,248,0.05);
+  transition:background .15s;
+}
+.patch-cell:nth-child(4n+1){background:rgba(56,189,248,0.12)}
+.patch-cell:nth-child(4n+2){background:rgba(129,140,248,0.12)}
+.patch-cell:nth-child(4n+3){background:rgba(52,211,153,0.12)}
+.patch-cell:nth-child(4n){background:rgba(251,146,60,0.12)}
+.patch-arrow{font-size:22px;color:var(--muted);flex-shrink:0}
+.patch-seq{
+  display:flex;flex-direction:column;gap:5px;flex:1;min-width:180px;
+}
+.patch-token{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:4px 10px;
+  font-family:var(--font-mono);font-size:11px;
+}
+.patch-token .swatch{
+  width:14px;height:14px;border-radius:3px;flex-shrink:0;
+}
+.cls-token{
+  background:rgba(244,114,182,0.15)!important;
+  border-color:var(--accent5)!important;
+  color:var(--accent5);
+}
+/* ARCHITECTURE PIPE */
+.arch-pipe{
+  display:flex;flex-direction:column;gap:2px;margin:16px 0;
+}
+.arch-step{
+  background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--accent);
+  border-radius:8px;padding:12px 16px;font-size:13px;
+}
+.arch-step .arch-lbl{font-family:var(--font-mono);font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:3px}
+.arch-down{text-align:center;color:var(--muted);font-size:14px;margin:2px 0}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 ViT Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Lecture Introduction</a>
+    <div class="nav-section">Part I — Motivation</div>
+    <a href="#s1" onclick="setActive(this)">1. From CNNs to Transformers in Vision</a>
+    <a href="#s2" onclick="setActive(this)">2. The Core Problem — Raw Pixels vs. Attention</a>
+    <div class="nav-section">Part II — The ViT Idea</div>
+    <a href="#s3" onclick="setActive(this)">3. The ViT Solution — Patches as "Words"</a>
+    <a href="#s4" onclick="setActive(this)">4. The Full ViT Architecture</a>
+    <div class="nav-section">Part III — Why It Works</div>
+    <a href="#s5" onclick="setActive(this)">5. Why ViT Needs Big Data</a>
+    <a href="#s6" onclick="setActive(this)">6. What Came Next — CLIP & DINOv2</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 20 — VISION TRANSFORMER (ViT): IMAGES AS SEQUENCES OF PATCHES</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 20</div>
+  <h1>Vision Transformer (ViT): Images as Sequences of Patches</h1>
+  <p>"An Image Is Worth 16×16 Words" — Dosovitskiy et al., Google Research, Brain Team (2020)</p>
+  <p class="author">Complete Bilingual Study Guide 🇬🇧 🇸🇦 &nbsp;|&nbsp; Reconstructed from an OCR'd slide deck using canonical ViT-paper knowledge</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">15</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">6</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+    <div class="stat-chip"><span class="num">3</span><span class="lbl">Forward Refs</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Vision Transformer</span>
+    <span class="tag tag-green">ViT</span>
+    <span class="tag tag-purple">Patch Embedding</span>
+    <span class="tag tag-orange">CLS Token</span>
+    <span class="tag tag-blue">Positional Embedding</span>
+    <span class="tag tag-green">Self-Attention</span>
+    <span class="tag tag-purple">Inductive Bias</span>
+    <span class="tag tag-orange">CLIP</span>
+    <span class="tag tag-blue">DINOv2</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 1–3</span>
+    <h2>1. From CNNs to Transformers in Vision</h2>
+  </div>
+  <p class="section-subtitle">The Timeline: Why Would Anyone Try Putting a Text Model on Images?</p>
+
+  <!-- Original Content Box -->
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 1 — Computer Vision's Dominating Architecture Timeline:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li><strong>1989</strong> — Convolutional Neural Networks (CNNs) become the dominant architecture for vision.</li>
+      <li><strong>2017</strong> — Transformers introduced (originally for NLP / sequence tasks).</li>
+      <li><strong>2020</strong> — Vision Transformers (ViT) bring the Transformer architecture into computer vision.</li>
+      <li>Later — models such as <strong>CLIP</strong> and <strong>DINOv2</strong> build on the Transformer-for-vision idea.</li>
+    </ul>
+    <br/>
+    <p><strong>Slides 2–3 — The Paper:</strong> "<em>An Image Is Worth 16×16 Words: Transformers For Image Recognition At Scale</em>" — Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit, Neil Houlsby — Google Research, Brain Team.</p>
+  </div>
+
+  <!-- English Explanation -->
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This lecture opens with a <span class="hl-blue">timeline of "dominating architectures"</span> in computer vision, because ViT is best understood as a challenger that dethroned a 30-year incumbent.</p>
+    <br/>
+    <div style="margin:14px 0;padding-left:20px;border-left:2px solid var(--accent)">
+      <p>🟦 <strong>1989 — Convolutional Neural Networks (CNNs)</strong>: LeCun's early CNNs (and later AlexNet in 2012, ResNet in 2015) became the default backbone for essentially every vision task — classification, detection, segmentation — for nearly three decades.</p>
+      <p style="margin-top:6px">🟩 <strong>2017 — Transformers</strong>: Vaswani et al.'s "Attention Is All You Need" introduced the Transformer for <em>language</em>. It used self-attention instead of recurrence, and it exploded in popularity for NLP (this is exactly the encoder architecture covered in Lectures 18–19).</p>
+      <p style="margin-top:6px">🟪 <strong>2020 — Vision Transformer (ViT)</strong>: Dosovitskiy et al. asked: "Transformers work incredibly well for sequences of words — can we make an image look like a sequence of words?" The answer became ViT.</p>
+      <p style="margin-top:6px">🟧 <strong>After ViT — CLIP, DINOv2, etc.</strong>: Once ViT proved Transformers could match/beat CNNs on images, an entire new generation of vision models built on top of the ViT backbone.</p>
+    </div>
+    <p><strong>Why try this at all?</strong> By 2020, Transformers had already replaced RNNs/LSTMs across almost all of NLP because self-attention lets every token look directly at every other token, capturing long-range relationships that convolution (which only looks at a small local neighborhood at a time) struggles with. Researchers wanted that same global, flexible reasoning for images — but images are not naturally a sequence of discrete tokens the way sentences are. That mismatch is exactly the problem the next section digs into.</p>
+    <br/>
+    <p><strong>The paper title itself:</strong> "An Image Is Worth 16×16 Words" is a pun on the old idiom "a picture is worth a thousand words." The literal technical meaning is that the authors cut an image into small 16×16-pixel patches and treat each patch the way NLP treats a word — as one input token.</p>
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+      <p>ViT did not throw away CNNs and "invent" attention. It reused the exact standard Transformer encoder from NLP almost unchanged — the innovation is entirely in how the <em>image is turned into a sequence</em> before it ever reaches that encoder.</p>
+    </div>
+  </div>
+
+  <!-- Arabic Explanation -->
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>هذا الدرس يبدأ بخط زمني يوضح كيف تغيّرت الـ <strong>architecture</strong> السائدة في رؤية الحاسوب (Computer Vision) عبر الزمن:</p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>🟦 <strong>1989</strong> — ظهرت شبكات <strong>CNN (Convolutional Neural Networks)</strong> وأصبحت الخيار الأساسي لكل مهام الـ vision تقريبًا لمدة 30 سنة.</li>
+      <li>🟩 <strong>2017</strong> — ظهر <strong>Transformer</strong> لأول مرة لمعالجة اللغة (NLP)، يعتمد على self-attention بدل التكرار (RNN).</li>
+      <li>🟪 <strong>2020</strong> — ظهر <strong>Vision Transformer (ViT)</strong>: فكرة أخذ نفس الـ Transformer المستخدم في اللغة وتطبيقه على الصور.</li>
+      <li>🟧 <strong>بعد ViT</strong> — ظهرت نماذج أحدث مثل <strong>CLIP</strong> و <strong>DINOv2</strong> بُنيت على أساس ViT.</li>
+    </ul>
+    <br/>
+    <p><strong>لماذا حاول الباحثون هذا أصلًا؟</strong> الـ Transformer نجح بشكل مذهل في NLP لأن self-attention تسمح لكل كلمة (token) أن "تنظر" مباشرة لكل الكلمات الأخرى في الجملة، فيفهم النموذج علاقات بعيدة المدى. أرادوا نفس القدرة في الصور، لكن الصورة ليست أصلًا مقسّمة إلى tokens مثل الجملة — وهذا هو التحدي الذي يشرحه القسم التالي.</p>
+    <br/>
+    <p><strong>عنوان الورقة البحثية</strong> "An Image Is Worth 16x16 Words" هو تلاعب لفظي على المثل الإنجليزي "صورة تساوي ألف كلمة". المعنى التقني الحقيقي: يقسّم الباحثون الصورة إلى patches (قطع) بحجم 16×16 بكسل، ويعاملون كل patch مثل ما تعامل NLP الكلمة الواحدة — أي كـ token دخل واحد.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>CNN</strong> — شبكة عصبية التفافية، العمود الفقري التقليدي للـ vision</li>
+      <li><strong>Transformer</strong> — نموذج يعتمد على self-attention بدل التكرار</li>
+      <li><strong>Vision Transformer (ViT)</strong> — تطبيق الـ Transformer على الصور عبر تقسيمها لـ patches</li>
+      <li><strong>Patch (قطعة)</strong> — جزء صغير من الصورة (مثلًا 16×16 بكسل)</li>
+      <li><strong>CLIP / DINOv2</strong> — نماذج لاحقة بُنيت فوق فكرة ViT</li>
+    </ul>
+  </div>
+
+  <!-- Example -->
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Reusing a Toolbox in a New Room</div>
+    <p>Imagine the Transformer as a power tool built for carpentry (NLP / words). ViT's authors didn't redesign the tool — they figured out how to cut a completely different material (an image) into pieces shaped like the wood planks the tool was designed for (word-like tokens), so the same power tool could be reused as-is.</p>
+  </div>
+
+  <!-- Memory Trick -->
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — The Timeline</div>
+    <p><strong>"CNN Threw the Very Constant Diamond"</strong></p>
+    <p><strong>C</strong>NN (1989) → <strong>T</strong>ransformer (2017) → <strong>V</strong>iT (2020) → <strong>C</strong>LIP/<strong>D</strong>INOv2 (later)</p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Four architectures, four eras of dominance in vision.</p>
+  </div>
+
+  <!-- Exam Notes -->
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the four timeline milestones and their years: CNN (1989), Transformer (2017), ViT (2020), CLIP/DINOv2 (after)</li>
+      <li>📌 Know the exact paper title and that it's from Google Research, Brain Team (Dosovitskiy et al.)</li>
+      <li>📌 Understand ViT reuses the standard NLP Transformer encoder — the novelty is the input representation, not the encoder itself</li>
+      <li>📌 Common exam Q: "Why did researchers want to apply Transformers to images?" → to get the same long-range, global self-attention reasoning that worked so well in NLP</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Vision architectures evolved: <strong>CNN (1989)</strong> dominated for ~30 years → <strong>Transformer (2017)</strong> revolutionized NLP via self-attention → <strong>ViT (2020)</strong> — Dosovitskiy et al., Google Brain — applied the same Transformer to images by treating patches as "words" → later models like <strong>CLIP</strong> and <strong>DINOv2</strong> built on the ViT backbone.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 4–6</span>
+    <h2>2. The Core Problem — Why You Can't Feed Raw Pixels to a Transformer</h2>
+  </div>
+  <p class="section-subtitle">Quadratic Attention Cost: 512×512 Pixels Would Need a 262,144 × 262,144 Attention Matrix</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Using a Transformer as-is:</strong> In standard self-attention, each token attends to all other tokens.</li>
+      <li><strong>Feeding an image to a Transformer directly:</strong> each pixel would attend to every other pixel.</li>
+      <li>A modest input sequence of pixels quickly becomes huge (slide shows an example around ~65K pixels producing a 65k × 65k attention matrix).</li>
+      <li><strong>Concrete example:</strong> a 512×512 image = 262,144 pixels → a 262,144 × 262,144 attention matrix.</li>
+      <li><strong>Quadratic dependency on sequence length</strong> — handling images as raw pixel sequences results in far too long sequence lengths to be computationally feasible.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>To understand why ViT needed a clever trick, you first need to understand <span class="hl">why the "obvious" approach fails</span>.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">How Self-Attention Normally Works (Text)</div>
+      <p style="margin-top:6px;font-size:13px">In a standard Transformer, every token in the input sequence computes an attention score against <strong>every other token</strong>. For a sentence of length <em>n</em> (say, 50–500 words), this means computing an <em>n × n</em> attention matrix. For text, <em>n</em> is small — a paragraph might be a few hundred tokens — so this is cheap.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">The "Obvious" (Broken) Idea for Images</div>
+      <p style="margin-top:6px;font-size:13px">What if we just treat <strong>every single pixel</strong> as one token, exactly like a word? Then self-attention would let every pixel attend to every other pixel — theoretically giving the model perfect, unrestricted global reasoning about the whole image.</p>
+    </div>
+    <p><strong>The problem is the numbers.</strong> A modest 512×512 image has:</p>
+    <div class="formula">512 × 512 = 262,144 pixels (the sequence length n)</div>
+    <p>Self-attention cost scales <strong>quadratically</strong> with sequence length — it needs an <em>n × n</em> attention matrix, and the compute/memory cost of computing it scales as O(n²):</p>
+    <div class="formula">Attention matrix size = n × n = 262,144 × 262,144 ≈ 6.87 × 10¹⁰ entries</div>
+    <p style="font-size:13px">That's roughly <strong>69 billion</strong> attention-score entries for just <em>one</em> 512×512 image, at just <em>one</em> attention layer. Real Transformers stack many attention layers and process batches of many images — this is computationally infeasible on any realistic hardware, and it only gets worse as image resolution grows (double the resolution → quadruple the pixels → the attention matrix grows by 16×).</p>
+    <br/>
+    <p><strong>Why does text avoid this?</strong> Language is naturally "chunked" into words/subwords — a whole paragraph might be only a few hundred tokens. Images have no such natural chunking: a raw image is just a dense grid of individual pixel values with no obvious way to group them into a short sequence — <em>unless you invent one</em>, which is exactly what ViT does in the next section.</p>
+    <div class="card-danger" style="margin-top:14px">
+      <div class="card-title"><span class="icon">🚫</span> Key Takeaway</div>
+      <p>The bottleneck is <strong>sequence length</strong>, not "images are hard" in some vague sense. If you can shrink the sequence length dramatically (fewer, larger tokens) while still covering the whole image, self-attention becomes tractable again — that's the entire motivation for patches.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>لنفهم سبب حاجة ViT لحل ذكي، يجب أولًا أن نفهم <strong>لماذا تفشل الفكرة "المباشرة"</strong>.</p>
+    <br/>
+    <p><strong>كيف يعمل self-attention عادةً في النصوص؟</strong></p>
+    <p style="font-size:14px">في الـ Transformer العادي، كل token يحسب درجة attention مع <strong>كل token آخر</strong> في الجملة. بالنسبة للنص، طول الـ sequence عادةً صغير (فقرة قد تكون مئات الكلمات فقط)، فالتكلفة الحسابية معقولة.</p>
+    <br/>
+    <p><strong>الفكرة "البديهية" (والفاشلة) للصور:</strong></p>
+    <p style="font-size:14px">ماذا لو عاملنا كل <strong>بكسل</strong> على أنه token واحد، تمامًا مثل الكلمة؟ نظريًا سيسمح ذلك لكل بكسل أن "ينظر" لكل بكسل آخر في الصورة.</p>
+    <br/>
+    <p><strong>المشكلة في الأرقام:</strong> صورة متواضعة بحجم 512×512 تحتوي على:</p>
+    <p style="font-size:14px;text-align:center;direction:ltr" class="term-ar">512 × 512 = 262,144 بكسل (طول الـ sequence)</p>
+    <p style="font-size:14px">تكلفة self-attention تتناسب <strong>تربيعيًا (quadratic)</strong> مع طول الـ sequence — تحتاج إلى مصفوفة attention بحجم n × n، أي حوالي <strong>262,144 × 262,144</strong> ≈ 69 مليار خلية! وهذا لصورة واحدة فقط ولطبقة attention واحدة فقط. هذا غير قابل للتنفيذ حسابيًا على أي جهاز حقيقي.</p>
+    <br/>
+    <p><strong>لماذا لا تواجه اللغة هذه المشكلة؟</strong> اللغة مقسّمة طبيعيًا إلى كلمات — فقرة كاملة قد تكون بضع مئات من الـ tokens فقط. الصورة ليس لها تقسيم طبيعي مشابه — هي فقط شبكة كثيفة من قيم البكسلات، إلا إذا اخترعنا طريقة لتقسيمها لـ sequence قصيرة، وهذا بالضبط ما يفعله ViT في القسم التالي.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Self-Attention</strong> — كل token يحسب درجة ارتباطه بكل token آخر</li>
+      <li><strong>Sequence Length (طول التسلسل)</strong> — عدد الـ tokens في الإدخال</li>
+      <li><strong>Quadratic Dependency (اعتماد تربيعي)</strong> — التكلفة تتضاعف بمعدل n²</li>
+      <li><strong>Attention Matrix (مصفوفة الانتباه)</strong> — مصفوفة بحجم n×n تخزّن درجات الاهتمام بين كل زوج tokens</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — Doing the Math</div>
+    <table style="width:100%;font-size:13px;margin-top:6px">
+      <tr><th style="text-align:left;padding:6px 0">Image size</th><th style="text-align:left">Pixels (sequence length n)</th><th style="text-align:left">Attention matrix (n × n)</th></tr>
+    </table>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Image Size</th><th>Sequence Length (pixels)</th><th>Attention Matrix Size</th></tr>
+        <tr><td>28 × 28 (tiny, e.g. MNIST)</td><td>784</td><td>784 × 784 ≈ 615K entries</td></tr>
+        <tr><td>224 × 224 (standard ImageNet)</td><td>50,176</td><td>50,176 × 50,176 ≈ 2.5 billion entries</td></tr>
+        <tr><td>512 × 512 (slide's example)</td><td>262,144</td><td>262,144 × 262,144 ≈ 69 billion entries</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Even a "standard" 224×224 ImageNet image already produces an unmanageable ~2.5 billion-entry attention matrix if you attend pixel-to-pixel. This is why raw-pixel attention was considered a non-starter before ViT's patch trick.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>This is <em>not</em> primarily a memory-storage problem you could just buy more GPUs for — it's a fundamental algorithmic scaling problem. Even with unlimited memory, computing and passing gradients through a matrix with tens of billions of entries per image, per layer, is far too slow to be practical for training at scale.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Self-attention cost is O(n²) in sequence length n</li>
+      <li>📌 Memorize the slide's numbers: 512×512 image = 262,144 pixels → 262,144 × 262,144 attention matrix</li>
+      <li>📌 Be able to explain why treating every pixel as a token is computationally infeasible</li>
+      <li>📌 This quadratic bottleneck is exactly what motivates the patch-based tokenization in ViT</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Standard self-attention costs <strong>O(n²)</strong> in sequence length n. Treating every pixel as a token makes n huge (a 512×512 image = 262,144 pixels), producing an infeasible 262,144×262,144 attention matrix (~69 billion entries). This quadratic blow-up is why Transformers cannot be fed raw pixels directly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 7–10</span>
+    <h2>3. The ViT Solution — Patches as "Words"</h2>
+  </div>
+  <p class="section-subtitle">Cutting the Image into 16×16 Chunks and Flattening Each into an Embedding Vector</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>How Vision Transformer Works:</strong> split the image into fixed-size patches (example shown: 224×224 image, patch size = 16×16).</li>
+      <li><strong>Number of patches</strong> = (224 / 16) × (224 / 16) = 14 × 14 = <strong>196 patches</strong>.</li>
+      <li>Each 16×16×3 (RGB) patch is <strong>flattened from 2D into a 1D vector</strong>.</li>
+      <li>Each flattened 1D vector is passed through a <strong>linear projection</strong> (Wx + b) into a lower-dimensional embedding.</li>
+      <li>These are exactly analogous to word embeddings in NLP — "an image is worth 16×16 words."</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>ViT's core trick is beautifully simple: instead of feeding the Transformer 262,144 individual pixels, <span class="hl">chop the image into a small number of larger chunks (patches)</span>, and feed the Transformer a short sequence of patches instead of a long sequence of pixels.</p>
+    <br/>
+    <p><strong>Step-by-step, using the slide's own example (a 224×224 image):</strong></p>
+    <ol class="steps">
+      <li>Choose a patch size — the paper's headline choice is <strong>16×16 pixels</strong></li>
+      <li>Slide a 16×16 window across the image with stride 16 (non-overlapping) to cut it into a grid of patches</li>
+      <li>Number of patches = (224 / 16) × (224 / 16) = 14 × 14 = <strong>196 patches</strong></li>
+      <li>Each patch is a small 16×16×3 image (16 pixels tall, 16 wide, 3 RGB color channels)</li>
+      <li><strong>Flatten</strong> each 2D (16×16×3) patch into a single 1D vector of length 16×16×3 = 768 numbers</li>
+      <li><strong>Linearly project</strong> that 768-number vector down (or up) to a fixed embedding dimension D using a learned weight matrix: <code>Wx + b</code></li>
+      <li>The result: 196 embedding vectors — one per patch — exactly like 196 "word embeddings" in an NLP sentence</li>
+    </ol>
+    <br/>
+    <p><strong>The Patch Embedding Formula:</strong> for a general image of height H, width W, and C channels, split into patches of size P × P:</p>
+    <div class="formula">Number of patches: N = (H × W) / (P × P)</div>
+    <div class="formula">Each patch flattened size: P² · C &nbsp;→&nbsp; Linearly projected to embedding dimension D</div>
+    <p style="font-size:13px">Plugging in the slide's numbers: H = W = 224, P = 16, C = 3 → N = (224×224)/(16×16) = 196 patches, each flattened to 16²×3 = 768 values, then linearly projected to D (e.g. D = 768 in the ViT-Base model).</p>
+    <br/>
+    <p><strong>Why "an image is worth 16×16 words"?</strong> In NLP, a sentence is a sequence of word tokens, each converted to an embedding vector via a lookup table or linear layer. In ViT, an image becomes a sequence of <strong>patch tokens</strong>, each converted to an embedding vector via that same kind of linear projection. A 16×16 patch plays exactly the structural role that one word plays in a sentence.</p>
+    <br/>
+    <p><strong>The Patch Grid → Sequence Diagram:</strong></p>
+    <div class="patch-diagram">
+      <div class="patch-grid">
+        <div class="patch-cell">P1</div><div class="patch-cell">P2</div><div class="patch-cell">P3</div><div class="patch-cell">P4</div>
+        <div class="patch-cell">P5</div><div class="patch-cell">P6</div><div class="patch-cell">P7</div><div class="patch-cell">P8</div>
+        <div class="patch-cell">P9</div><div class="patch-cell">P10</div><div class="patch-cell">P11</div><div class="patch-cell">P12</div>
+        <div class="patch-cell">P13</div><div class="patch-cell">P14</div><div class="patch-cell">P15</div><div class="patch-cell">P16</div>
+      </div>
+      <div class="patch-arrow">➜ flatten &amp; project ➜</div>
+      <div class="patch-seq">
+        <div class="patch-token"><span class="swatch" style="background:var(--accent5)"></span>[CLS] learnable token</div>
+        <div class="patch-token"><span class="swatch" style="background:rgba(56,189,248,0.5)"></span>Embedding(P1) + pos(1)</div>
+        <div class="patch-token"><span class="swatch" style="background:rgba(129,140,248,0.5)"></span>Embedding(P2) + pos(2)</div>
+        <div class="patch-token"><span class="swatch" style="background:rgba(52,211,153,0.5)"></span>Embedding(P3) + pos(3)</div>
+        <div class="patch-token"><span class="swatch" style="background:rgba(251,146,60,0.5)"></span>Embedding(P4) + pos(4)</div>
+        <div class="patch-token" style="color:var(--muted)">… continues for all 196 patches …</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted)">A 4×4 mini-grid shown for clarity (the real ViT-Base/16 example on a 224×224 image produces a 14×14 grid = 196 patches). Each colored cell becomes one row/token in the sequence fed to the Transformer encoder.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>فكرة ViT الأساسية بسيطة وعبقرية: بدل تغذية الـ Transformer بـ 262,144 بكسل منفرد، نقوم <strong>بتقطيع الصورة إلى عدد قليل من القطع الكبيرة (patches)</strong>، ونعطي الـ Transformer sequence قصيرة من الـ patches بدل sequence طويلة من البكسلات.</p>
+    <br/>
+    <p><strong>خطوة بخطوة (باستخدام مثال الشريحة: صورة 224×224):</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>نختار حجم الـ patch — الاختيار الأساسي في الورقة البحثية هو <strong>16×16 بكسل</strong></li>
+      <li>نقطع الصورة لشبكة (grid) من الـ patches بدون تداخل</li>
+      <li>عدد الـ patches = (224 / 16) × (224 / 16) = 14 × 14 = <strong>196 patch</strong></li>
+      <li>كل patch هو صورة صغيرة بحجم 16×16×3 (16 بكسل ارتفاع، 16 عرض، 3 قنوات ألوان RGB)</li>
+      <li><strong>Flatten</strong>: تحويل كل patch ثنائي الأبعاد إلى vector أحادي الأبعاد طوله 16×16×3 = 768 رقم</li>
+      <li><strong>Linear Projection</strong>: نمرر هذا الـ vector عبر مصفوفة أوزان متعلّمة (Wx + b) لتحويله إلى embedding بحجم ثابت D</li>
+      <li>النتيجة: 196 embedding vector، واحد لكل patch — تمامًا مثل 196 "word embedding" في جملة NLP</li>
+    </ol>
+    <br/>
+    <p><strong>معادلة Patch Embedding:</strong> لصورة بارتفاع H وعرض W وعدد قنوات C، مقسّمة إلى patches بحجم P×P:</p>
+    <p class="term-ar" style="direction:ltr;display:block;text-align:center;margin:6px 0">N = (H × W) / (P × P)</p>
+    <p style="font-size:14px">كل patch بعد الـ flatten حجمه P²·C، ثم يتم projection له إلى بُعد D عبر طبقة خطية (linear layer).</p>
+    <br/>
+    <p><strong>لماذا "الصورة تساوي 16×16 كلمة"؟</strong> في NLP، الجملة عبارة عن sequence من tokens (كلمات)، كل واحدة تتحول إلى embedding. في ViT، الصورة تتحول لـ sequence من "patch tokens"، كل واحد يتحول إلى embedding بنفس الطريقة. الـ patch بحجم 16×16 يلعب نفس الدور البنيوي الذي تلعبه كلمة واحدة في جملة.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Patch (قطعة)</strong> — جزء صغير مقطوع من الصورة</li>
+      <li><strong>Flatten (تسطيح)</strong> — تحويل مصفوفة 2D إلى vector 1D</li>
+      <li><strong>Linear Projection (إسقاط خطي)</strong> — تحويل vector إلى بُعد آخر باستخدام Wx+b</li>
+      <li><strong>Patch Embedding (تضمين القطعة)</strong> — الـ vector النهائي الذي يمثل الـ patch</li>
+      <li><strong>Sequence Length (طول التسلسل)</strong> — هنا أصبح 196 بدل 262,144!</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — From 262,144 Down to 196</div>
+    <p>Compare the two approaches on the exact same 224×224 image:</p>
+    <div class="cmp-grid" style="margin-top:8px">
+      <div class="cmp-col">
+        <h4 style="color:var(--danger)">Raw Pixels (Broken)</h4>
+        <ul>
+          <li>Sequence length n = 224 × 224 = 50,176 pixels</li>
+          <li>Attention matrix ≈ 2.5 billion entries</li>
+          <li>Computationally infeasible</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">16×16 Patches (ViT)</h4>
+        <ul>
+          <li>Sequence length n = 196 patches</li>
+          <li>Attention matrix = 196 × 196 ≈ 38,416 entries</li>
+          <li>Easily tractable on a GPU</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Grouping pixels into 16×16 patches shrinks the sequence length by a factor of 256 (16×16) — turning an impossible ~2.5 billion-entry attention problem into a trivial ~38K-entry one.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Patch Pipeline</div>
+    <p><strong>"Slice, Squash, Shrink"</strong></p>
+    <p><strong>Slice</strong> the image into 16×16 patches → <strong>Squash</strong> (flatten) each patch into a 1D vector → <strong>Shrink</strong> (linearly project) into a fixed embedding dimension D.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the worked numbers: 224×224 image, 16×16 patch → 14×14 = 196 patches</li>
+      <li>📌 Know the formula N = (H×W)/(P×P) and flattened patch size P²·C</li>
+      <li>📌 Be able to explain "flatten then linearly project" as the patch embedding step</li>
+      <li>📌 Understand the "16×16 Words" title pun — each patch is the image equivalent of one word/token</li>
+      <li>📌 Common exam Q: "How does ViT reduce the effective sequence length compared to raw pixels?" → by grouping pixels into patches, shrinking n from H×W down to (H×W)/(P×P)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>ViT splits an image into fixed-size (e.g. 16×16) patches, giving N = (H×W)/(P×P) patches (196 for a 224×224 image with 16×16 patches). Each patch is flattened (P²·C values) and linearly projected into an embedding vector, treated exactly like a "word" token in NLP.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 8–13</span>
+    <h2>4. The Full ViT Architecture</h2>
+  </div>
+  <p class="section-subtitle">Patch + Position Embedding → [CLS] Token → Standard Transformer Encoder → MLP Head</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Patch + Position Embedding:</strong> patch embeddings get an added positional embedding so the model knows patch order/location.</li>
+      <li><strong>Extra learnable [class] embedding</strong> ("*") prepended to the sequence of patch embeddings.</li>
+      <li>The resulting sequence ("Embedded Patches") is fed into a <strong>Transformer Encoder</strong>, applied <strong>Nx</strong> times (stacked layers).</li>
+      <li>Inside each encoder layer: <strong>Multi-Head (Self) Attention</strong>, <strong>Feed-forward layer</strong>, <strong>Norm</strong> (Layer Normalization), with <strong>Add &amp; Normalize</strong> residual connections.</li>
+      <li>Final output is passed through an <strong>MLP Head</strong> to produce class predictions.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once the image has been turned into a short sequence of patch embeddings, the rest of ViT is <span class="hl">almost identical to the standard NLP Transformer encoder you already studied in Lectures 18–19</span>. Here is the complete pipeline:</p>
+    <div class="arch-pipe">
+      <div class="arch-step"><span class="arch-lbl">Step 1 — Patch Embedding</span>Split image into patches → flatten → linearly project each into a D-dimensional vector (Section 3).</div>
+      <div class="arch-down">↓</div>
+      <div class="arch-step"><span class="arch-lbl">Step 2 — Prepend [CLS] Token</span>An extra <strong>learnable</strong> "[class]" embedding vector is added to the front of the sequence, exactly like BERT's [CLS] token in NLP. It doesn't correspond to any real patch — it exists purely to accumulate global information.</div>
+      <div class="arch-down">↓</div>
+      <div class="arch-step"><span class="arch-lbl">Step 3 — Add Positional Embeddings</span>Because the Transformer encoder has no innate sense of order (self-attention treats the sequence as an unordered set), a <strong>learnable positional embedding</strong> is added to every token (including [CLS]) so the model knows which patch came from which grid location.</div>
+      <div class="arch-down">↓</div>
+      <div class="arch-step"><span class="arch-lbl">Step 4 — Transformer Encoder (× N layers)</span>The combined sequence — [CLS] + 196 patch tokens, each carrying position info — is fed through N stacked standard Transformer encoder blocks. Each block contains: <strong>Multi-Head Self-Attention</strong> → residual <strong>Add &amp; Norm</strong> → <strong>Feed-Forward (MLP) layer</strong> → residual <strong>Add &amp; Norm</strong>. This is the exact same encoder architecture from Lectures 18–19 — ViT does not modify it at all.</div>
+      <div class="arch-down">↓</div>
+      <div class="arch-step"><span class="arch-lbl">Step 5 — MLP Classification Head</span>After N encoder layers, take only the final output vector corresponding to the <strong>[CLS] token</strong> (it has now "attended to" and absorbed information from every patch). Feed that single vector through a small MLP (classification head) to output class probabilities.</div>
+    </div>
+    <br/>
+    <p><strong>Why prepend a [CLS] token instead of, say, averaging all patch outputs?</strong> This design choice comes straight from BERT-style NLP models. Because self-attention lets [CLS] attend to (and be attended to by) every patch across every layer, by the final layer its representation has aggregated a learned, weighted summary of the entire image — a single vector suitable for classification.</p>
+    <br/>
+    <p><strong>Why add positional embeddings?</strong> Without them, shuffling the patches would produce an identical output — the model would have no way to tell "top-left patch" from "bottom-right patch." The paper found simple <strong>learnable 1D positional embeddings</strong> work about as well as more complex 2D-aware schemes.</p>
+    <br/>
+    <p><strong>Direct cross-reference to Lectures 18–19:</strong> if you already understand the standard Transformer encoder — multi-head self-attention, feed-forward sublayers, layer normalization, and residual ("Add & Norm") connections — you already understand 90% of ViT's architecture. ViT's only real additions are (1) the patch embedding front-end, (2) the [CLS] token, and (3) the MLP head at the very end.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد تحويل الصورة إلى sequence قصيرة من patch embeddings، باقي بنية ViT <strong>مطابقة تقريبًا لـ Transformer encoder</strong> القياسي الذي درسناه في المحاضرتين 18 و19. إليك الـ pipeline الكامل:</p>
+    <ol style="padding-right:20px;font-size:14px;margin-top:8px">
+      <li><strong>الخطوة 1 — Patch Embedding:</strong> تقسيم الصورة لـ patches → flatten → linear projection لكل واحد إلى vector بُعده D</li>
+      <li><strong>الخطوة 2 — إضافة [CLS] token:</strong> يُضاف embedding متعلّم إضافي في بداية الـ sequence، تمامًا مثل [CLS] في BERT. لا يمثل أي patch حقيقي — وظيفته فقط تجميع المعلومات العامة عن الصورة</li>
+      <li><strong>الخطوة 3 — إضافة Positional Embeddings:</strong> بما أن الـ Transformer لا يعرف الترتيب طبيعيًا (self-attention يعامل الـ sequence كمجموعة غير مرتبة)، نضيف positional embedding متعلّم لكل token (بما فيهم [CLS]) ليعرف النموذج مكان كل patch</li>
+      <li><strong>الخطوة 4 — Transformer Encoder (×N مرات):</strong> الـ sequence الكاملة (CLS + 196 patch) تمر عبر N طبقة من الـ encoder القياسي: Multi-Head Self-Attention → Add &amp; Norm → Feed-Forward layer → Add &amp; Norm. هذه نفس بنية الـ encoder من المحاضرتين 18 و19 بدون أي تعديل</li>
+      <li><strong>الخطوة 5 — MLP Classification Head:</strong> نأخذ فقط الـ output النهائي المقابل لـ [CLS] token، ونمرره عبر MLP صغير لإخراج تصنيف الصورة (class probabilities)</li>
+    </ol>
+    <br/>
+    <p><strong>لماذا [CLS] token وليس مثلًا average لكل الـ patches؟</strong> هذا الاختيار مأخوذ من نماذج BERT في NLP. بفضل self-attention، الـ [CLS] token "ينتبه" لكل الـ patches عبر كل الطبقات، فيتجمّع فيه في النهاية ملخص متعلّم لكل الصورة — vector واحد جاهز للتصنيف.</p>
+    <br/>
+    <p><strong>لماذا نحتاج positional embeddings؟</strong> بدونها، لو بدّلنا ترتيب الـ patches سيكون الناتج مطابقًا! النموذج لن يعرف الفرق بين patch في أعلى اليسار وpatch في أسفل اليمين.</p>
+    <br/>
+    <p><strong>ربط مباشر بالمحاضرتين 18 و19:</strong> إذا كنت تفهم بنية الـ Transformer encoder القياسية (multi-head self-attention + feed-forward + layer normalization + residual connections)، فأنت تفهم تقريبًا 90% من بنية ViT. الإضافات الحقيقية الوحيدة في ViT هي: (1) طبقة patch embedding في البداية، (2) الـ [CLS] token، و(3) الـ MLP head في النهاية.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>[CLS] Token</strong> — token متعلّم إضافي يُستخدم للتصنيف النهائي</li>
+      <li><strong>Positional Embedding (تضمين الموضع)</strong> — يعطي النموذج معلومة عن ترتيب/موقع كل patch</li>
+      <li><strong>Multi-Head Self-Attention</strong> — عدة "رؤوس" attention تعمل بالتوازي</li>
+      <li><strong>Feed-Forward Layer</strong> — طبقة كثيفة (dense) بعد الـ attention في كل طبقة encoder</li>
+      <li><strong>Add &amp; Norm (Residual + Layer Norm)</strong> — اتصال residual مع تطبيع الطبقة</li>
+      <li><strong>MLP Head</strong> — الطبقة النهائية التي تُخرج التصنيف</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Classifying a Photo of a Dog</div>
+    <ol class="steps">
+      <li>Take a 224×224 photo of a dog → split into 196 patches of 16×16 pixels each</li>
+      <li>Flatten and linearly project each patch → 196 patch embedding vectors</li>
+      <li>Prepend one learnable [CLS] embedding → sequence length becomes 197</li>
+      <li>Add learnable positional embeddings to all 197 tokens</li>
+      <li>Pass the 197-token sequence through N Transformer encoder layers (self-attention lets patches showing "ear," "tail," "fur texture" inform each other)</li>
+      <li>Take the final [CLS] output vector → feed into MLP head → output: "Dog" (98% confidence)</li>
+    </ol>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>Students often think ViT has some special "vision attention" mechanism. It does not — the Multi-Head Self-Attention, Feed-Forward sublayers, and Add & Norm residual connections in ViT's encoder are the exact same mechanisms from the general-purpose Transformer encoder used for text. ViT is a demonstration that the encoder itself is modality-agnostic once the input is tokenized correctly.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the 5-step pipeline: Patch Embedding → Prepend [CLS] → Add Positional Embedding → Transformer Encoder ×N → MLP Head</li>
+      <li>📌 The [CLS] token's final-layer output (not an average of patches) feeds the classification head</li>
+      <li>📌 Positional embeddings are necessary because self-attention is permutation-invariant without them</li>
+      <li>📌 ViT's Transformer encoder = the same encoder block from Lectures 18–19 (MHSA + FFN + LayerNorm + residuals), unmodified</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>ViT pipeline: patches → embeddings → prepend learnable <strong>[CLS]</strong> token → add learnable <strong>positional embeddings</strong> → feed through N stacked standard <strong>Transformer encoder</strong> layers (multi-head self-attention + feed-forward + Add & Norm, identical to Lectures 18–19) → take the final [CLS] output → <strong>MLP head</strong> produces the class prediction.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 14</span>
+    <h2>5. Why ViT Needs Big Data</h2>
+  </div>
+  <p class="section-subtitle">Inductive Bias: What CNNs Get "for Free" and ViT Must Learn from Scratch</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Inductive Bias:</strong> "high inductive bias" gives the model built-in guidance about the structure of the data.</li>
+      <li><strong>Transformer's self-attention</strong>: each token can attend to any token in every layer → "much less guidance" baked in — i.e. much lower / weaker inductive bias than a CNN.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">Inductive bias</span> refers to the built-in assumptions an architecture bakes into its design about the kind of patterns it expects to find in the data. More inductive bias = the model needs less data to learn well, because the architecture already "knows" some of the right structure; less inductive bias = the model is more flexible and general, but must learn everything — including basic structural patterns — purely from examples.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">CNNs Have Strong, Built-In Inductive Biases</div>
+      <ul style="font-size:13px;padding-left:16px;margin-top:6px">
+        <li><strong>Locality</strong>: a convolution filter only looks at a small local neighborhood of pixels at a time — baking in the assumption "nearby pixels are related"</li>
+        <li><strong>Translation equivariance</strong>: the same filter slides across the whole image, so a pattern (e.g. an edge or eye) is detected the same way no matter where it appears in the image</li>
+        <li>These priors match how natural images actually work — features are usually local and shift around the image — so CNNs learn efficiently even from modest-sized datasets</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">ViT Has Very Weak Inductive Bias</div>
+      <p style="font-size:13px;margin-top:6px">In self-attention, <strong>every patch token can attend to every other patch token in every layer</strong>, regardless of spatial distance. There is no built-in notion that nearby patches matter more than far-away ones, and no automatic sharing of "the same detector everywhere." The model has to discover locality- and translation-like patterns entirely from data if they turn out to be useful — "much less guidance" is baked in, exactly as the slide states.</p>
+    </div>
+    <br/>
+    <p><strong>The consequence — small data vs. big data:</strong></p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent4)">CNN</h4>
+        <ul>
+          <li>Strong priors: locality + translation equivariance</li>
+          <li>Data-efficient — good even on small/medium datasets (e.g. ImageNet-1K ~1.3M images)</li>
+          <li>Performance plateaus at very large scale — priors that used to help can start to limit flexibility</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">ViT</h4>
+        <ul>
+          <li>Few built-in priors — must learn spatial structure purely from data</li>
+          <li>Underperforms CNNs when trained on small/medium datasets</li>
+          <li>Needs pretraining on massive datasets (e.g. <strong>ImageNet-21k</strong> ~14M images, or <strong>JFT-300M</strong> ~300M images) to learn what CNNs get "for free"</li>
+          <li>Once pretrained at that scale, matches or <strong>surpasses</strong> CNNs (e.g. ResNet) on downstream benchmarks, and scales further with more data/compute than CNNs typically do</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:10px;font-size:13px">This is the paper's central empirical finding: ViT trained on ImageNet alone (~1.3M images) underperforms comparable CNNs, but ViT pretrained on JFT-300M and then fine-tuned matches or beats state-of-the-art CNNs on tasks like ImageNet classification.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>الـ Inductive Bias</strong> تعني الافتراضات المدمجة داخل تصميم الـ architecture حول نوع الأنماط التي يتوقع إيجادها في البيانات. كلما زاد الـ inductive bias، احتاج النموذج بيانات أقل ليتعلم جيدًا لأن البنية "تعرف" مسبقًا بعض البنية الصحيحة. كلما قلّ، أصبح النموذج أكثر مرونة وعمومية، لكنه يحتاج تعلّم كل شيء — حتى الأنماط الأساسية — من الأمثلة فقط.</p>
+    <br/>
+    <p><strong>CNN لديها inductive bias قوي:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Locality (المحلية)</strong>: الـ filter في الـ convolution ينظر فقط لمنطقة صغيرة مجاورة من البكسلات، أي أن البنية "تفترض" أن البكسلات القريبة مرتبطة</li>
+      <li><strong>Translation Equivariance (ثبات الانتقال)</strong>: نفس الـ filter ينزلق على كل الصورة، فيُكتشف نفس النمط (حافة، عين...) بنفس الطريقة أينما ظهر في الصورة</li>
+    </ul>
+    <br/>
+    <p><strong>ViT لديه inductive bias ضعيف جدًا:</strong></p>
+    <p style="font-size:14px">في self-attention، <strong>كل patch token يمكنه الانتباه لكل patch آخر في كل طبقة</strong>، بدون أي افتراض مسبق أن الـ patches القريبة أهم. النموذج يجب أن يتعلم أنماط شبيهة بالـ locality والـ translation equivariance بنفسه من البيانات — "توجيه أقل بكثير" كما تقول الشريحة.</p>
+    <br/>
+    <p><strong>النتيجة — بيانات قليلة vs. بيانات ضخمة:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>CNN: كفاءة عالية مع بيانات محدودة، لكن أداءها قد "يتوقف عن التحسّن" مع بيانات ضخمة جدًا</li>
+      <li>ViT: أداء أضعف من CNN على بيانات صغيرة/متوسطة، لكنه يحتاج فقط pretraining على بيانات ضخمة جدًا (مثل <strong>JFT-300M</strong> بحجم 300 مليون صورة، أو <strong>ImageNet-21k</strong>) ليتفوّق على CNN أو يعادلها</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Inductive Bias (الانحياز الاستقرائي)</strong> — افتراضات مدمجة في تصميم النموذج</li>
+      <li><strong>Locality (المحلية)</strong> — التركيز على منطقة صغيرة مجاورة</li>
+      <li><strong>Translation Equivariance (ثبات الانتقال)</strong> — اكتشاف النمط بنفس الطريقة في أي موضع</li>
+      <li><strong>JFT-300M / ImageNet-21k</strong> — مجموعات بيانات ضخمة استُخدمت في pretraining ViT</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — The Tourist vs. The Local Guide</div>
+    <p>A CNN is like a local tour guide who already knows the city's layout (locality + translation equivariance) — they can navigate a small town efficiently with little extra information. ViT is like a brilliant but "blank slate" analyst dropped into a city with no map — given enough time and data exploring many different cities (massive pretraining datasets), they eventually build a deeper, more flexible, and ultimately more powerful mental model than the local guide, but they need a LOT of exploration first.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Thinking ViT is "always better" than CNNs — it only wins when pretrained on very large-scale data</li>
+      <li>❌ Confusing "inductive bias" with "accuracy" — a strong inductive bias means data-efficiency, not necessarily a higher performance ceiling</li>
+      <li>❌ Forgetting that on small datasets from scratch, ViT typically underperforms a comparable CNN like ResNet</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Define inductive bias and give the two CNN examples: locality, translation equivariance</li>
+      <li>📌 Know why ViT's self-attention has weak inductive bias: every token attends to every token in every layer, with no spatial prior</li>
+      <li>📌 Know the two large pretraining datasets named in ViT research: JFT-300M, ImageNet-21k</li>
+      <li>📌 Common exam Q: "Why does ViT need more data than a CNN to reach good performance?" → it lacks built-in locality/translation priors, so it must learn spatial structure purely from data</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>CNNs</strong> have strong inductive bias (locality, translation equivariance) → data-efficient, strong on small/medium datasets. <strong>ViT</strong> has weak inductive bias — every patch attends to every other patch with no spatial prior — so it needs massive pretraining data (JFT-300M, ImageNet-21k) but then matches or surpasses CNNs and scales further.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 15</span>
+    <h2>6. What Came Next — CLIP &amp; DINOv2</h2>
+  </div>
+  <p class="section-subtitle">ViT as a Backbone for the Next Generation of Vision Models</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>The timeline slide (Section 1) placed <strong>CLIP</strong> and <strong>DINOv2</strong> after ViT (2020) on the computer vision architecture timeline, as the next dominant approaches building on the Transformer-for-vision idea.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once ViT proved that a plain Transformer encoder could match/beat CNNs on images given enough pretraining data, it quickly became the new default <strong>backbone</strong> that later, more specialized vision models were built on top of.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">CLIP — Contrastive Language-Image Pretraining (OpenAI)</div>
+      <p style="font-size:13px;margin-top:6px">Trains a ViT (or CNN) image encoder <strong>jointly</strong> with a text encoder on ~400 million image-text pairs scraped from the internet, pulling matching image/text embeddings close together in a shared embedding space and pushing non-matching pairs apart (contrastive learning). This is exactly the mechanism behind the <strong>Zero-Shot Learning</strong> concept introduced back in Lecture 10 — at inference time, you can classify an image against any set of text class-name descriptions it was never explicitly trained on, because the shared embedding space already generalizes.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">DINOv2 — Self-Supervised Vision Transformer Features (Meta AI)</div>
+      <p style="font-size:13px;margin-top:6px">Trains a ViT backbone with <strong>no labels at all</strong> (self-supervised learning), using techniques where the model learns to produce consistent representations of the same image under different augmentations/views. The resulting patch and [CLS] embeddings turn out to be extremely strong general-purpose visual features, reusable for classification, segmentation, depth estimation, and more — without task-specific fine-tuning in many cases.</p>
+    </div>
+    <br/>
+    <p><strong>The big-picture takeaway:</strong> ViT's real legacy isn't just "a slightly better classifier" — it's that it unlocked a whole family of foundation-model-style vision architectures (CLIP, DINOv2, and many others) that reuse the same patch-embedding + Transformer-encoder recipe, changing only the training objective (contrastive text-image matching for CLIP, self-supervised consistency for DINOv2) rather than the underlying architecture.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد أن أثبت ViT أن الـ Transformer encoder العادي يمكن أن يعادل أو يتفوّق على CNN في الصور (بشرط بيانات pretraining كافية)، أصبح سريعًا الـ <strong>backbone</strong> الافتراضي الذي بُنيت فوقه نماذج vision أحدث وأكثر تخصصًا.</p>
+    <br/>
+    <p><strong>CLIP — Contrastive Language-Image Pretraining (من OpenAI):</strong></p>
+    <p style="font-size:14px">يدرّب ViT (أو CNN) كـ image encoder بالتوازي مع text encoder على حوالي 400 مليون زوج (صورة-نص) من الإنترنت، بحيث يقترب embedding الصورة من embedding النص المطابق له في فضاء مشترك، ويبتعد عن النصوص غير المطابقة (contrastive learning). هذه هي الآلية الحقيقية وراء <strong>Zero-Shot Learning</strong> التي درسناها في المحاضرة 10 — يمكن تصنيف صورة مقابل أي وصف نصي جديد لم يرَه النموذج أثناء التدريب.</p>
+    <br/>
+    <p><strong>DINOv2 — تعلّم ذاتي الإشراف لميزات ViT (من Meta AI):</strong></p>
+    <p style="font-size:14px">يدرّب ViT بدون أي تسميات (labels) على الإطلاق (self-supervised learning)، عبر تعليم النموذج أن يُنتج تمثيلات متسقة لنفس الصورة تحت تحويلات/زوايا مختلفة. الـ embeddings الناتجة تكون ميزات بصرية قوية جدًا وعامة، قابلة لإعادة الاستخدام في التصنيف والتجزئة وتقدير العمق بدون الحاجة لتدريب إضافي في كثير من الحالات.</p>
+    <br/>
+    <p><strong>الخلاصة الكبرى:</strong> إرث ViT الحقيقي ليس فقط "مصنّف أفضل بقليل" — بل أنه فتح الباب لعائلة كاملة من نماذج vision الأساسية (foundation models) مثل CLIP وDINOv2، والتي تعيد استخدام نفس تركيبة patch-embedding + Transformer-encoder، وتغيّر فقط هدف التدريب.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>CLIP</strong> — تدريب مشترك لنص وصورة باستخدام contrastive learning</li>
+      <li><strong>DINOv2</strong> — تدريب ViT ذاتي الإشراف بدون تسميات</li>
+      <li><strong>Zero-Shot Learning</strong> — تصنيف فئات لم يرها النموذج أثناء التدريب (رُبطت بمحاضرة 10)</li>
+      <li><strong>Foundation Model (نموذج أساسي)</strong> — نموذج ضخم مُدرّب مسبقًا يُعاد استخدامه لمهام متعددة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Zero-Shot Classification with CLIP</div>
+    <p>Give CLIP a photo of a platypus and a list of text prompts it was never fine-tuned on: "a photo of a cat", "a photo of a platypus", "a photo of a car". CLIP's ViT image encoder embeds the photo, its text encoder embeds each prompt, and CLIP simply picks whichever text embedding is closest (highest cosine similarity) to the image embedding — correctly picking "a photo of a platypus" purely from the shared embedding space learned during contrastive pretraining, with zero platypus-specific training examples.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 CLIP = contrastive image-text pretraining, enables zero-shot classification (links back to Lecture 10)</li>
+      <li>📌 DINOv2 = self-supervised ViT feature learning, no labels required</li>
+      <li>📌 Both reuse the ViT patch-embedding + Transformer-encoder backbone, differing only in training objective</li>
+      <li>📌 Know the timeline placement: CNN (1989) → Transformer (2017) → ViT (2020) → CLIP / DINOv2 (later)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>ViT became the default backbone for later vision models. <strong>CLIP</strong> pairs a ViT image encoder with a text encoder via contrastive learning on ~400M image-text pairs, enabling zero-shot classification. <strong>DINOv2</strong> trains a ViT backbone with self-supervised learning (no labels), producing strong general-purpose visual features.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice, True/False, and Short Answer Questions</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Why can't a Transformer simply treat every raw pixel of an image as one attention token?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Pixels don't have numeric values</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Self-attention cost scales quadratically with sequence length, and pixel count makes the sequence far too long</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Transformers cannot process color images</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) CNNs already solved this problem so it was never attempted</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — A 512×512 image has 262,144 pixels; the resulting 262,144×262,144 attention matrix (O(n²) cost) is computationally infeasible.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. In ViT, an image of size 224×224 split into 16×16 patches produces how many patches?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 14 patches</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 196 patches</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 224 patches</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 50,176 patches</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — N = (224/16) × (224/16) = 14 × 14 = 196 patches.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What happens to each 16×16×3 patch before it enters the Transformer encoder?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It is passed through a convolution filter</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It is flattened into a 1D vector and linearly projected into an embedding</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It is resized to 224×224</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It is discarded if it contains background pixels</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Flatten (2D → 1D vector of size P²·C) then a linear layer (Wx+b) projects it to embedding dimension D.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. What is the purpose of the learnable [CLS] token in ViT?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It represents one specific image patch</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It aggregates information from all patches via self-attention, and its final output feeds the classification head</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It stores the positional embedding for the whole image</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It is only used during pretraining, never at inference</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — [CLS] doesn't correspond to a real patch; across layers it attends to all patches and its final-layer output is passed to the MLP head.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Why are positional embeddings added to the patch embeddings in ViT?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) To increase the model's parameter count for regularization</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Self-attention has no innate sense of token order, so position must be explicitly encoded</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) To compress the patch embeddings into a smaller dimension</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) To convert RGB patches into grayscale</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Self-attention treats a sequence as an unordered set; without positional embeddings, shuffled patches would produce an identical output.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. Which statement best describes the difference in inductive bias between CNNs and ViT?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) CNNs and ViT have identical inductive biases</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) CNNs have strong built-in priors (locality, translation equivariance); ViT's self-attention lets every token attend to every other token with far less built-in guidance</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) ViT has stronger inductive bias than CNNs because it uses more layers</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Inductive bias only matters for text models, not vision</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — CNN convolution filters bake in locality and translation equivariance; ViT's attention has no such spatial prior and must learn structure from data.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. What is the practical consequence of ViT's weak inductive bias?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) ViT trains faster than CNNs on any dataset size</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) ViT needs very large-scale pretraining data (e.g. JFT-300M, ImageNet-21k) to match/beat CNNs; it underperforms on small datasets</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) ViT cannot be used for classification tasks</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) ViT requires no training data at all</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Without built-in spatial priors, ViT must learn locality/translation-like structure purely from data, requiring massive pretraining datasets to reach or exceed CNN performance.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. Which model uses contrastive learning between images and text, building on a ViT-style backbone, to enable zero-shot classification?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) DINOv2</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) CLIP</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) ResNet</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) YOLO</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — CLIP trains an image encoder and text encoder jointly via contrastive learning on ~400M image-text pairs, enabling zero-shot classification.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: ViT's Transformer encoder uses a fundamentally different attention mechanism from the one used for text.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — ViT reuses the exact standard Transformer encoder (multi-head self-attention, feed-forward, Add & Norm) from NLP, unmodified.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: Attention matrix size scales linearly with sequence length.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — It scales quadratically (O(n²)): doubling sequence length quadruples the attention matrix size.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: DINOv2 requires labeled training data to learn its visual features.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — DINOv2 uses self-supervised learning with no labels, learning consistent representations across different views/augmentations of the same image.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 4: ViT was introduced before the original NLP Transformer architecture.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — The Transformer was introduced in 2017 for NLP; ViT applied it to vision in 2020.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Explain in detail why feeding raw pixels into a Transformer's self-attention is computationally infeasible. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Standard self-attention requires every token in a sequence to compute an attention score against every other token, producing an n × n attention matrix whose compute/memory cost scales as O(n²) in sequence length n. If each pixel is treated as one token, n equals the total pixel count. A modest 512×512 image already has n = 262,144 pixels, producing a 262,144 × 262,144 attention matrix (~69 billion entries) for a single image at a single attention layer. Real models stack many layers and process many images per batch, so this cost is far beyond what any realistic hardware can compute — unlike text, where a paragraph might be only a few hundred tokens, images have no natural short "tokenization," so raw-pixel attention is a non-starter.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Walk through the complete patch embedding process ViT uses, including the formula for the number of patches. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> An image of height H, width W, and C channels is split into non-overlapping patches of size P × P. The number of patches is N = (H × W) / (P × P) — e.g. for a 224×224 image with P=16, N = (224×224)/(16×16) = 196. Each 2D patch (P×P×C values) is flattened into a 1D vector of length P²·C (e.g. 16²×3 = 768), then passed through a learned linear projection (Wx+b) that maps it into a fixed embedding dimension D. The result is a sequence of N embedding vectors, one per patch, functionally equivalent to a sequence of word embeddings in NLP.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Compare CNN and ViT inductive bias, and explain why this difference makes ViT need much more training data. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Inductive bias is the set of assumptions an architecture bakes in about expected data patterns. CNNs have strong inductive bias via convolution: <strong>locality</strong> (filters only look at small local neighborhoods, assuming nearby pixels are related) and <strong>translation equivariance</strong> (the same filter slides across the whole image, detecting a pattern the same way regardless of position). These priors match how natural images work, so CNNs learn efficiently from modest datasets. ViT's self-attention lets every patch token attend to every other patch token in every layer with no spatial prior — it has to discover locality-like and translation-like structure purely from data if such structure turns out to be useful. Without that "free" structural guidance, ViT trained on small/medium datasets underperforms CNNs, but once pretrained on massive datasets (JFT-300M, ImageNet-21k), it learns effective structure on its own and matches or surpasses CNNs.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: What role does the [CLS] token play, and how does it differ from simply averaging all patch embeddings? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> ViT prepends an extra learnable "[class]" embedding to the front of the patch sequence, borrowed from BERT-style NLP models. It does not correspond to any real image patch. As the sequence passes through the stacked Transformer encoder layers, self-attention lets the [CLS] token attend to (and be attended to by) every patch at every layer, so by the final layer its representation has become a learned, attention-weighted summary of the whole image, which is then fed into the MLP classification head. This differs from simple averaging because the weighting of "how much each patch matters" is learned and can vary per-image and per-layer, rather than being a fixed uniform average.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming coverage of all 15 slides — reconstructed from an OCR'd, image-heavy deck using canonical ViT-paper knowledge where the extracted text was garbled</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — CV Dominating Architecture Timeline (CNN 1989 → Transformers 2017 → ViT 2020 → DINOv2/CLIP later) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Paper title: "An Image Is Worth 16×16 Words: Transformers For Image Recognition At Scale" — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Authors: Dosovitskiy, Beyer, Kolesnikov, Weissenborn, Zhai, Unterthiner, Dehghani, Minderer, Heigold, Gelly, Uszkoreit, Houlsby — Google Research, Brain Team — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — "Using a Transformer as-is": self-attention, each token attends to all other tokens — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Feeding an image directly: each pixel attends to all other pixels; input sequence ~65k pixels example; attention matrix 65k × 65k; quadratic dependency on sequence length — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Concrete numbers: 512×512 image = 262,144 pixels → 262,144 × 262,144 attention matrix; "handling images as-is results in too long sequence lengths" — ✅ Section 2, with worked table across image sizes</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — "How Vision Transformer Works" overview diagram (patch + position embedding, transformer encoder, MLP head, output probabilities) — ✅ Sections 3 &amp; 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — 224×224 image split into 16×16 patches; number of patches = (224/16)×(224/16) = 14×14 = 196 — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Flatten the patches from 2D to 1D; 196 patches, each 16×16×3 (RGB) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Linear projection of flattened patches (Wx+b) into lower-dimensional embedding vectors — ✅ Section 3, formula boxes</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Position Embedding added to linearly-projected patch embeddings — ✅ Section 4, Step 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Full Transformer Encoder diagram: Multi-Head Attention, Norm, Feed-forward layer, Embedded Patches, Nx stacked layers — ✅ Section 4, Steps 4–5, cross-referenced to Lectures 18–19</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Extra learnable [class] embedding prepended to Patch + Position Embedding; MLP Head producing output probabilities — ✅ Section 4, Steps 2 &amp; 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Inductive Bias: high inductive bias gives more guidance to the model; Transformer self-attention lets each token attend to any token in every layer → much less guidance — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Timeline's forward references to CLIP and DINOv2 as later architectures built on the Transformer-for-vision idea — ✅ Section 6</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 15/15 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">The source PDF was an image-heavy, scanned deck; the extracted OCR text was frequently garbled (broken formulas, missing diagram labels, scrambled fragments). Where OCR text was ambiguous or incomplete, standard, well-established knowledge of the ViT paper ("An Image Is Worth 16×16 Words," Dosovitskiy et al., 2020) was used to accurately reconstruct architecture details, formulas, and terminology (patch embedding math, [CLS] token role, positional embeddings, Transformer encoder structure, inductive bias discussion, and the CLIP/DINOv2 forward references) while keeping all numbers the OCR did capture correctly (224×224 image, 16×16 patches, 196 patches, 512×512 → 262,144 pixels, 262,144×262,144 attention matrix) exactly as given.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Timeline:</strong> <span class="tag tag-blue">CNN (1989)</span> → <span class="tag tag-green">Transformer (2017)</span> → <span class="tag tag-purple">ViT (2020)</span> → <span class="tag tag-orange">CLIP / DINOv2 (later)</span></p>
+      <p><strong>The Problem:</strong> <span class="tag tag-orange">Self-Attention O(n²)</span> + <span class="tag tag-orange">262,144 pixels → 262,144² attention matrix</span> = infeasible</p>
+      <p><strong>The Fix:</strong> <span class="tag tag-blue">16×16 Patches</span> → <span class="tag tag-blue">Flatten (P²·C)</span> → <span class="tag tag-blue">Linear Projection (Wx+b)</span> → <span class="tag tag-blue">N = (H·W)/(P·P) tokens</span></p>
+      <p><strong>Architecture:</strong> <span class="tag tag-green">Patch Embedding</span> + <span class="tag tag-green">[CLS] Token</span> + <span class="tag tag-green">Positional Embedding</span> → <span class="tag tag-green">Transformer Encoder ×N (MHSA + FFN + Add&Norm)</span> → <span class="tag tag-green">MLP Head</span></p>
+      <p><strong>Data Requirement:</strong> <span class="tag tag-purple">CNN = strong inductive bias (locality, translation equivariance) → data-efficient</span></p>
+      <p><span class="tag tag-purple">ViT = weak inductive bias → needs JFT-300M / ImageNet-21k pretraining → then matches/beats CNNs</span></p>
+      <p><strong>Legacy:</strong> <span class="tag tag-orange">CLIP = contrastive image-text → zero-shot learning</span> | <span class="tag tag-orange">DINOv2 = self-supervised ViT features</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

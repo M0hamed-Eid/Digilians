@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 15 — Real-Time Face Recognition: MTCNN, VGG-Face & YOLOv8 | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .pipeline-diagram{flex-direction:column}
+  .pipeline-arrow{transform:rotate(90deg)}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* ===== ADDITIVE: PIPELINE / LAYER-STACK DIAGRAMS (same visual language) ===== */
+.pipeline-diagram{
+  display:flex;align-items:stretch;gap:10px;
+  margin:16px 0;flex-wrap:wrap;
+}
+.pipeline-stage{
+  flex:1;min-width:140px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  text-align:center;
+}
+.pipeline-stage .stage-name{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent);
+  letter-spacing:1px;
+  margin-bottom:6px;
+  font-weight:700;
+}
+.pipeline-stage .stage-desc{font-size:12px;color:var(--muted)}
+.pipeline-arrow{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:18px;
+}
+.layer-stack{
+  display:flex;flex-direction:column;gap:4px;
+  margin:16px 0;
+}
+.layer-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 16px;
+  font-size:12px;
+  font-family:var(--font-mono);
+}
+.layer-row.conv{border-left:4px solid var(--accent)}
+.layer-row.pool{border-left:4px solid var(--accent3)}
+.layer-row.fc{border-left:4px solid var(--accent2)}
+.layer-row.trunc{border-left:4px solid var(--danger);opacity:0.6;text-decoration:line-through}
+.layer-count{color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 Face Rec Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Lecture Introduction</a>
+    <div class="nav-section">Part I — Detection</div>
+    <a href="#s1" onclick="setActive(this)">1. The Face Recognition Pipeline</a>
+    <a href="#s2" onclick="setActive(this)">2. MTCNN Architecture (P-Net/R-Net/O-Net)</a>
+    <a href="#s3" onclick="setActive(this)">3. MTCNN vs YOLOv8</a>
+    <div class="nav-section">Part II — Embeddings</div>
+    <a href="#s4" onclick="setActive(this)">4. VGG-Face Deep Embeddings</a>
+    <a href="#s5" onclick="setActive(this)">5. VGG-Face Architecture</a>
+    <div class="nav-section">Part III — Pipeline & Matching</div>
+    <a href="#s6" onclick="setActive(this)">6. Real-Time Processing Pipeline</a>
+    <a href="#s7" onclick="setActive(this)">7. Similarity Distance Metrics</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 15 — REAL-TIME FACE RECOGNITION: MTCNN, VGG-FACE &amp; YOLOV8</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 15</div>
+  <h1>Real-Time Face Recognition: MTCNN, VGG-Face &amp; YOLOv8</h1>
+  <p>An End-to-End Deep Learning Framework Integrating MTCNN, VGG-Face, and YOLOv8 Models</p>
+  <p class="author">Dr. Ahmed Yousry &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">10</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">7</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">3</span><span class="lbl">Core Models</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Face Detection</span>
+    <span class="tag tag-green">MTCNN</span>
+    <span class="tag tag-purple">VGG-Face</span>
+    <span class="tag tag-orange">Embeddings</span>
+    <span class="tag tag-blue">Cosine Similarity</span>
+    <span class="tag tag-green">YOLOv8</span>
+    <span class="tag tag-purple">Real-Time Pipeline</span>
+    <span class="tag tag-orange">Transfer Learning</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 1–3</span>
+    <h2>1. The Face Recognition Pipeline — High-Level Overview</h2>
+  </div>
+  <p class="section-subtitle">Framing the End-to-End System: Detection → Embedding → Matching</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 1 — Title:</strong> "Real-Time Face Recognition &amp; Detection" — An End-to-End Deep Learning Framework Integrating MTCNN, VGG-Face, and YOLOv8 Models. Dr. Ahmed Yousry.</p>
+    <br/>
+    <p><strong>Slides 2–3</strong> are transition/agenda slides in the source deck (no extractable body text) — they set up the three-model integration story that the rest of the lecture builds on: a <em>detector</em> finds the face, an <em>embedder</em> turns the face into numbers, and a <em>matcher</em> decides identity.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This lecture builds a complete <span class="hl-blue">real-time face recognition system</span> by chaining together three specialized deep learning models, each solving one part of the problem:</p>
+    <div class="pipeline-diagram">
+      <div class="pipeline-stage">
+        <div class="stage-name">🔍 DETECT</div>
+        <div class="stage-desc">MTCNN or YOLOv8 finds <em>where</em> the face is in the frame</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">🧬 EMBED</div>
+        <div class="stage-desc">VGG-Face turns the cropped face into a 2622-number vector</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">🎯 MATCH</div>
+        <div class="stage-desc">Cosine similarity compares the vector to a known database</div>
+      </div>
+    </div>
+    <p>This is the same "detection → representation → decision" pattern used across most modern biometric systems, and it's why the lecture integrates <strong>three separate models</strong> rather than one monolithic network — each stage is a specialist:</p>
+    <ul class="e-list">
+      <li>👁️ <strong>MTCNN</strong> — a highly accurate, multi-stage cascade detector, ideal when alignment precision matters</li>
+      <li>⚡ <strong>YOLOv8</strong> — a single-pass detector built for speed, ideal for live/edge deployment</li>
+      <li>🧠 <strong>VGG-Face</strong> — a pretrained CNN that converts any cropped face into a fixed-length "fingerprint" vector (an <strong>embedding</strong>)</li>
+    </ul>
+    <br/>
+    <p>The rest of this lecture walks through each stage in depth: how MTCNN's cascade works internally, how it compares to YOLOv8, how VGG-Face produces embeddings and why, its internal architecture, how all of this comes together in a live video loop, and finally how a numeric distance threshold decides "known person" vs. "Unknown".</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>هذه المحاضرة تبني نظام <strong>Real-Time Face Recognition</strong> كامل من خلال ربط ثلاثة موديلات (models) متخصصة، كل واحد يحل جزءًا من المشكلة:</p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>🔍 <strong>Detect (الكشف)</strong> — نستخدم MTCNN أو YOLOv8 لتحديد مكان الوجه في الصورة</li>
+      <li>🧬 <strong>Embed (التمثيل الرقمي)</strong> — نستخدم VGG-Face لتحويل الوجه المقصوص إلى متجه (vector) من 2622 رقم</li>
+      <li>🎯 <strong>Match (المطابقة)</strong> — نستخدم cosine similarity للمقارنة بين المتجه الجديد وقاعدة بيانات الوجوه المعروفة</li>
+    </ul>
+    <br/>
+    <p>السبب في استخدام ثلاثة models مختلفة بدلاً من model واحد: كل model متخصص في مهمة محددة:</p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>MTCNN</strong> — دقيق جدًا في تحديد موقع الوجه، مناسب عندما تكون الدقة (accuracy) أهم من السرعة</li>
+      <li><strong>YOLOv8</strong> — سريع جدًا (single-pass)، مناسب للأنظمة اللحظية (real-time) وأجهزة الحافة (edge devices)</li>
+      <li><strong>VGG-Face</strong> — model مُدرَّب مسبقًا (pretrained) يحوّل أي وجه مقصوص إلى "بصمة رقمية" فريدة (embedding)</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Pipeline (خط المعالجة)</strong> — تسلسل من الخطوات المتصلة ببعضها</li>
+      <li><strong>Model (النموذج)</strong> — الشبكة العصبية المدرَّبة</li>
+      <li><strong>Embedding (التمثيل المتجهي)</strong> — تمثيل رقمي مضغوط للوجه</li>
+      <li><strong>Real-Time (الوقت الفعلي)</strong> — معالجة الفيديو مباشرة أثناء تصويره</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — Airport Face Gate Analogy</div>
+    <p>Think of an airport smart-gate: a camera first <strong>detects</strong> your face in the crowd (MTCNN/YOLOv8), a computer then <strong>describes</strong> your face as a set of numbers instead of pixels (VGG-Face embedding), and finally the system <strong>compares</strong> those numbers to your passport photo's numbers to decide "match" or "no match" (cosine similarity). All three steps happen in a fraction of a second.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the three-stage pattern: Detect → Embed → Match</li>
+      <li>📌 Be ready to name which model handles which stage: MTCNN/YOLOv8 = detect, VGG-Face = embed, cosine similarity = match</li>
+      <li>📌 Common exam Q: "Why not use one single model for the whole task?" → Specialization: detection and representation-learning are different problems with different optimal architectures</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>The system integrates <strong>MTCNN/YOLOv8</strong> (detection) + <strong>VGG-Face</strong> (embedding) + <strong>cosine similarity</strong> (matching) into one real-time pipeline: find the face → turn it into a 2622-D vector → compare that vector to a database.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 4</span>
+    <h2>2. MTCNN Architecture — The Three-Stage Cascade</h2>
+  </div>
+  <p class="section-subtitle">P-Net → R-Net → O-Net: Progressive Refinement from Coarse Proposals to Precise Landmarks</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Stage 1 (P-Net – Proposal Network):</strong> A fully convolutional network that generates candidate windows and bounding box calibration. It uses an image pyramid for multi-scale detection.</li>
+      <li><strong>Stage 2 (R-Net – Refinement Network):</strong> A CNN that takes the proposals from P-Net, rejects non-faces, and refines the bounding boxes using Non-Maximum Suppression (NMS).</li>
+      <li><strong>Stage 3 (O-Net – Output Network):</strong> A more complex CNN that further refines the bounding boxes and outputs the locations of five facial landmarks (eyes, nose, mouth corners).</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl">MTCNN (Multi-task Cascaded Convolutional Networks)</span> finds faces using a "coarse-to-fine" cascade of three progressively more discerning networks. Each stage filters out obviously-wrong candidates cheaply, so only the most promising windows survive to the expensive, precise final stage.</p>
+    <ol class="steps" style="margin-top:12px">
+      <li><strong>P-Net (Proposal Network)</strong> — a small, fully convolutional network that scans the image and proposes many candidate face windows plus a rough bounding-box correction for each. It runs over an <strong>image pyramid</strong> (see below) so it can catch faces of many sizes.</li>
+      <li><strong>R-Net (Refinement Network)</strong> — a slightly deeper CNN that takes P-Net's candidates, throws away the ones that are clearly not faces, and tightens the surviving bounding boxes. It applies <strong>Non-Maximum Suppression (NMS)</strong> to collapse many overlapping boxes around the same face into one.</li>
+      <li><strong>O-Net (Output Network)</strong> — the most complex of the three CNNs. It does one final refinement pass on the boxes and additionally outputs <strong>five facial landmark coordinates</strong>: the two eyes, the nose tip, and the two mouth corners.</li>
+    </ol>
+    <div class="pipeline-diagram" style="margin-top:16px">
+      <div class="pipeline-stage">
+        <div class="stage-name">P-NET</div>
+        <div class="stage-desc">Fully conv · image pyramid · many rough candidate windows</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">R-NET</div>
+        <div class="stage-desc">CNN · rejects non-faces · NMS · tighter boxes</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">O-NET</div>
+        <div class="stage-desc">Deepest CNN · final box refine · 5 landmarks</div>
+      </div>
+    </div>
+
+    <div class="def-box" style="margin-top:14px">
+      <div class="def-term">What is an "Image Pyramid"?</div>
+      <p style="font-size:13px;margin-top:6px">An image pyramid is simply the <strong>same image resized to many different scales</strong> (e.g., 100%, 80%, 64%, 51%...), stacked like layers of a pyramid from large at the bottom to small at the top. P-Net scans <em>every</em> layer with a fixed-size window.</p>
+      <p style="font-size:13px;margin-top:6px"><strong>Why it matters — multi-scale detection:</strong> a face 2 meters from the camera looks huge; a face 20 meters away looks tiny. A single fixed window size can only reliably catch faces of roughly one size. By resizing the whole image up and down and re-scanning at each size, the same small detector window ends up "seeing" faces of every size in the original photo — near and far, big and small — without needing a separate detector per scale.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">The Five Facial Landmarks (from O-Net)</div>
+      <p style="font-size:13px;margin-top:6px">O-Net doesn't just output a box — it also pinpoints five specific (x, y) locations on the face:</p>
+      <ul style="font-size:12px;padding-left:16px;margin-top:4px">
+        <li>👁️ Left eye center</li>
+        <li>👁️ Right eye center</li>
+        <li>👃 Nose tip</li>
+        <li>👄 Left mouth corner</li>
+        <li>👄 Right mouth corner</li>
+      </ul>
+      <p style="font-size:13px;margin-top:6px">These five points let downstream systems (like VGG-Face) <strong>align</strong> the face — rotate and scale it so the eyes are always level and in the same relative position — before extracting embeddings. Good alignment dramatically improves recognition accuracy.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>MTCNN</strong> يكتشف الوجوه باستخدام تسلسل (cascade) من ثلاث شبكات (networks) تزداد دقة تدريجيًا، من "خشن" إلى "دقيق":</p>
+    <br/>
+    <p><strong>١. P-Net (Proposal Network):</strong></p>
+    <p style="font-size:14px">شبكة صغيرة fully convolutional تفحص الصورة وتقترح مرشحين كثيرين (candidate windows) لمكان الوجه، مع تصحيح أولي تقريبي لصندوق الإحاطة (bounding box). تعمل على <strong>image pyramid</strong> لتغطي أحجام مختلفة من الوجوه في نفس الصورة.</p>
+    <br/>
+    <p><strong>٢. R-Net (Refinement Network):</strong></p>
+    <p style="font-size:14px">شبكة CNN أعمق قليلاً تستقبل مرشحات P-Net، وترفض (reject) المرشحات التي ليست وجوهًا، وتُحسّن صناديق الإحاطة الباقية باستخدام <strong>Non-Maximum Suppression (NMS)</strong> — أي دمج الصناديق المتكررة حول نفس الوجه في صندوق واحد.</p>
+    <br/>
+    <p><strong>٣. O-Net (Output Network):</strong></p>
+    <p style="font-size:14px">أعقد الشبكات الثلاث. تعمل تحسينًا نهائيًا للصناديق وتُخرج أيضًا مواقع <strong>خمس نقاط مرجعية (landmarks)</strong> على الوجه: العينين، طرف الأنف، وزاويتي الفم.</p>
+    <br/>
+    <p><strong>ما هو Image Pyramid؟</strong></p>
+    <p style="font-size:14px">هو نفس الصورة مُعاد تحجيمها (resized) لعدة مقاسات مختلفة (كبيرة، متوسطة، صغيرة) مكدَّسة فوق بعضها كطبقات الهرم. السبب: الوجه القريب من الكاميرا يبدو كبيرًا، والوجه البعيد يبدو صغيرًا. بفحص الصورة بأحجام متعددة، يستطيع نفس الكاشف الصغير أن "يرى" وجوهًا بأحجام مختلفة (multi-scale detection) بدون الحاجة لكاشف منفصل لكل حجم.</p>
+    <br/>
+    <p><strong>النقاط المرجعية الخمس (5 Facial Landmarks):</strong></p>
+    <p style="font-size:14px">العين اليسرى، العين اليمنى، طرف الأنف، زاوية الفم اليسرى، زاوية الفم اليمنى. تُستخدم هذه النقاط لاحقًا لعملية <strong>alignment (محاذاة الوجه)</strong> — تدوير وتحجيم الوجه بحيث تكون العينان دومًا في نفس الموضع النسبي — وهذا يحسّن دقة VGG-Face بشكل كبير.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Cascade (التسلسل المتتابع)</strong> — سلسلة من الشبكات المتتالية</li>
+      <li><strong>Fully Convolutional Network (شبكة التفافية كاملة)</strong> — بدون طبقات fully-connected</li>
+      <li><strong>Image Pyramid (هرم الصورة)</strong> — نسخ متعددة الأحجام من نفس الصورة</li>
+      <li><strong>NMS (كبت غير الأقصى)</strong> — دمج الصناديق المتكررة</li>
+      <li><strong>Landmark (نقطة مرجعية)</strong> — نقطة محددة على الوجه</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — Scanning a Group Photo</div>
+    <ol class="steps">
+      <li>Take a photo with 3 people at different distances from the camera</li>
+      <li>P-Net scans the image pyramid and proposes ~2,000 candidate windows across all scales (many overlapping, many false positives)</li>
+      <li>R-Net filters those down to ~50 strong candidates and merges overlaps with NMS</li>
+      <li>O-Net examines the final ~5 candidates, confirms 3 real faces, rejects 2 false positives, and outputs 5 landmarks per confirmed face</li>
+      <li>Result: 3 tightly-cropped, aligned face boxes ready for VGG-Face embedding</li>
+    </ol>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — P, R, O</div>
+    <p><strong>"Propose, Refine, Output"</strong> — exactly matches P-Net → R-Net → O-Net, and precision increases (and network complexity increases) at every stage.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Order matters: P-Net (propose) → R-Net (refine + NMS) → O-Net (finalize + landmarks)</li>
+      <li>📌 Only O-Net outputs facial landmarks (5 points)</li>
+      <li>📌 Image pyramid = multi-scale copies of the same image, used only at the P-Net stage</li>
+      <li>📌 NMS is explicitly used in R-Net to remove duplicate/overlapping boxes</li>
+      <li>📌 Each stage is progressively more computationally expensive but sees fewer candidates — this is what makes the cascade efficient</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>MTCNN = 3-stage cascade. <strong>P-Net</strong> proposes many candidates over an image pyramid (multi-scale). <strong>R-Net</strong> rejects non-faces and refines boxes with NMS. <strong>O-Net</strong> does final refinement and outputs 5 landmarks (eyes, nose, mouth corners) used for face alignment.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 5</span>
+    <h2>3. MTCNN vs. YOLOv8 — Choosing a Face Detector</h2>
+  </div>
+  <p class="section-subtitle">Accuracy-Focused Cascade vs. Speed-Focused Single-Pass Regression</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>MTCNN (Multi-Stage Cascade):</strong> Accuracy-focused. Leverages a three-tier network to detect facial keypoints and landmarks simultaneously. Offers excellent alignment precision but suffers from higher computational latency during fast movement.</li>
+      <li><strong>YOLOv8 (Single-Stage Regression):</strong> Speed-focused. Detects face bounding boxes in a single pass of the network. Built for ultra-high framerates, rendering it ideal for CPU-bound or hardware-constrained edge servers.</li>
+      <li><strong>Comparison of Detection Methods</strong></li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>MTCNN and YOLOv8 solve the same problem — "find the face" — with two fundamentally different design philosophies: <span class="hl">multi-stage precision</span> vs. <span class="hl-green">single-pass speed</span>.</p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent4)">MTCNN — Accuracy-Focused</h4>
+        <ul>
+          <li>Three-tier cascade (P-Net → R-Net → O-Net)</li>
+          <li>Detects facial keypoints/landmarks simultaneously with detection</li>
+          <li>Excellent alignment precision (great for enrollment-quality crops)</li>
+          <li>Higher computational latency, especially with fast motion in the frame</li>
+          <li>Best when accuracy &gt; speed</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">YOLOv8 — Speed-Focused</h4>
+        <ul>
+          <li>Single-stage regression — one forward pass predicts boxes directly</li>
+          <li>Detects the face bounding box in a single pass of the network</li>
+          <li>Built for ultra-high framerates</li>
+          <li>Ideal for CPU-bound or hardware-constrained edge servers</li>
+          <li>Best when speed &gt; micro-level accuracy</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:12px"><strong>Practical guidance — which one to choose:</strong></p>
+    <ul class="e-list">
+      <li>🖼️ <strong>Enrollment / photo capture</strong> (registering a new person's reference face into the database) → use <strong>MTCNN</strong>. You only do this once per person, so latency doesn't matter, but landmark precision and alignment quality directly improve the embedding's reliability.</li>
+      <li>📹 <strong>Live verification on edge devices</strong> (e.g., a doorbell camera, a CPU-only kiosk, a mobile phone) → use <strong>YOLOv8</strong>. You need to process every incoming frame in real time, and a single-pass detector keeps framerate high even on limited hardware.</li>
+      <li>⚖️ Some production systems even use both: MTCNN offline for high-quality enrollment photos, YOLOv8 online for the live camera feed.</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>MTCNN</strong> و <strong>YOLOv8</strong> يحلّان المشكلة نفسها — "إيجاد الوجه" — لكن بفلسفتين مختلفتين تمامًا: الدقة عبر مراحل متعددة، أو السرعة عبر مرور واحد فقط.</p>
+    <br/>
+    <p><strong>MTCNN — يركّز على الدقة (Accuracy-Focused):</strong></p>
+    <p style="font-size:14px">يستخدم تسلسل من ثلاث مستويات (three-tier network) يكتشف الوجه ونقاطه المرجعية (landmarks) في نفس الوقت. دقة محاذاة (alignment) ممتازة، لكنه أبطأ (higher latency) خصوصًا مع الحركة السريعة.</p>
+    <br/>
+    <p><strong>YOLOv8 — يركّز على السرعة (Speed-Focused):</strong></p>
+    <p style="font-size:14px">يكتشف صندوق الوجه (bounding box) في مرور واحد فقط (single pass) للشبكة. مصمم لمعدلات إطارات عالية جدًا (framerate)، ومثالي للأجهزة محدودة الموارد أو التي تعمل بـ CPU فقط بدلاً من GPU.</p>
+    <br/>
+    <p><strong>متى أستخدم كل واحد؟</strong></p>
+    <ul style="padding-right:18px;font-size:14px">
+      <li><strong>MTCNN</strong>: عند تسجيل وجه جديد لأول مرة في قاعدة البيانات (enrollment) — الدقة أهم من السرعة هنا لأنها تحدث مرة واحدة فقط</li>
+      <li><strong>YOLOv8</strong>: عند التحقق اللحظي (live verification) على أجهزة الحافة (edge devices) مثل كاميرا جرس الباب أو الموبايل — السرعة أهم من الدقة الدقيقة هنا</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Single-Stage Regression (انحدار من مرحلة واحدة)</strong> — التنبؤ المباشر بالصندوق بدون مراحل متعددة</li>
+      <li><strong>Latency (زمن الاستجابة)</strong> — الوقت المستغرق لإنتاج نتيجة</li>
+      <li><strong>Edge Device (جهاز حافة)</strong> — جهاز صغير محدود الموارد يعمل قريبًا من مصدر البيانات</li>
+      <li><strong>Framerate (معدل الإطارات)</strong> — عدد الصور المعالجة في الثانية</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Smart Door Lock Product</div>
+    <p>A company building a smart door lock would likely use <strong>MTCNN once</strong> during setup, when the homeowner registers their face with a clear, well-lit selfie (accuracy matters, it's a one-time event). Then, every time someone approaches the door, the lock runs <strong>YOLOv8</strong> on its cheap embedded CPU to detect faces in the live video stream at 30 fps, before passing the crop to VGG-Face for the actual identity check.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>MTCNN and YOLOv8 are <strong>both only detectors</strong> — neither one, by itself, tells you <em>who</em> the person is. They only answer "is there a face here, and where?" Identity comes later from VGG-Face embeddings + cosine similarity.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 MTCNN = multi-stage cascade, accuracy-focused, outputs landmarks, higher latency</li>
+      <li>📌 YOLOv8 = single-pass regression, speed-focused, ultra-high framerate, good for CPU/edge</li>
+      <li>📌 Trade-off axis: accuracy/alignment quality vs. speed/hardware constraints</li>
+      <li>📌 Common exam Q: "Which detector for a live CPU-only camera feed?" → YOLOv8</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>MTCNN</strong>: 3-tier cascade, high accuracy + landmarks, slower — good for enrollment. <strong>YOLOv8</strong>: single-pass, ultra-fast, good for live/edge deployment. Neither determines identity — that's VGG-Face's job.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 6</span>
+    <h2>4. VGG-Face Deep Embeddings — Turning a Face into Numbers</h2>
+  </div>
+  <p class="section-subtitle">2622-Dimensional Feature Vectors and Why Classification Layers Are Removed</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>2622-Dimensional Feature Vectors:</strong> To establish identity verification, cropped facial images are processed through the pre-trained VGG-Face model.</li>
+      <li>The model architecture processes normalized 224 × 224 images.</li>
+      <li>Extracted outputs map visual features into a dense vector space.</li>
+      <li>Feature representations capture subtle invariants (e.g., eye spacing, jawlines).</li>
+      <li>Class classification layers are removed to keep features highly generalizable.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once MTCNN or YOLOv8 has cropped a face out of a frame, the crop is fed into <span class="hl-blue">VGG-Face</span>, a CNN pretrained specifically on faces, to produce an <strong>embedding</strong>.</p>
+    <div class="def-box">
+      <div class="def-term">What is an "embedding" / "feature vector"? (Simple Explanation)</div>
+      <p style="font-size:13px;margin-top:6px">Imagine describing a person's face not with a photo, but with a very long list of numbers — say, 2622 numbers — where each number captures some subtle characteristic (how far apart the eyes are, how sharp the jawline is, how wide the nose is, etc., though not literally labeled that way). This list of numbers is called a <strong>feature vector</strong> or <strong>embedding</strong>.</p>
+      <p style="font-size:13px;margin-top:6px">The key property that makes this useful: if you feed VGG-Face <em>two different photos of the same person</em> (different lighting, different angle), it produces <strong>two vectors that are very close to each other</strong> in that 2622-dimensional number space. But if you feed it a photo of a <em>different</em> person, the resulting vector will be <strong>far away</strong> from the first person's vector. Identity becomes a question of "how close are these two lists of numbers?" instead of "do these two images look the same pixel-by-pixel?" — which is exactly what makes recognition robust to lighting, angle, and expression changes.</p>
+    </div>
+    <p><strong>Step-by-step process:</strong></p>
+    <ol class="steps">
+      <li>Take the cropped facial image from the detection stage</li>
+      <li>Resize/normalize it to <strong>224 × 224 pixels</strong> — the fixed input size VGG-Face expects</li>
+      <li>Pass it through the pretrained VGG-Face CNN</li>
+      <li>Read off the output of the second-to-last layer — a dense <strong>2622-dimensional vector</strong> of floating-point numbers</li>
+      <li>This vector <strong>is</strong> the face's digital identity — store it, or compare it against stored vectors</li>
+    </ol>
+    <div class="def-box" style="margin-top:12px">
+      <div class="def-term">Why are the classification layers removed?</div>
+      <p style="font-size:13px;margin-top:6px">VGG-Face was originally trained to <strong>classify</strong> a fixed list of celebrity identities (a softmax layer with one output per known celebrity). But we don't want to only recognize those specific celebrities — we want the network's <em>learned representation</em> of "faceness" in general, so it can generalize to <strong>any new, unseen person</strong>.</p>
+      <p style="font-size:13px;margin-top:6px">By <strong>removing the final classification (softmax) layer</strong> and reading the layer just before it, we keep the rich, general-purpose 2622-D feature space that the network learned, without being locked into its original fixed label set. This is a classic application of <strong>transfer learning</strong> — reusing a pretrained network's internal representation for a new task (feature extraction) rather than its original task (classification) — the same pattern used elsewhere in this course whenever a pretrained CNN backbone is repurposed for a new downstream task.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد أن يقصّ MTCNN أو YOLOv8 الوجه من الصورة، يُمرَّر هذا الوجه المقصوص إلى <strong>VGG-Face</strong>، وهو CNN مُدرَّب مسبقًا (pretrained) خصيصًا على الوجوه، لإنتاج <strong>embedding</strong>.</p>
+    <br/>
+    <p><strong>ما هو Embedding (بشكل مبسط)؟</strong></p>
+    <p style="font-size:14px">تخيّل أنك تصف وجه شخص لا بصورة، بل بقائمة طويلة جدًا من الأرقام — 2622 رقمًا — كل رقم يعبّر عن خاصية دقيقة في الوجه (مثل المسافة بين العينين، شكل الفكّين...). هذه القائمة من الأرقام تُسمى <strong>feature vector</strong> أو <strong>embedding</strong>.</p>
+    <p style="font-size:14px">الخاصية المهمة: لو أعطيت VGG-Face صورتين مختلفتين لنفس الشخص (إضاءة مختلفة، زاوية مختلفة)، سينتج متجهين (vectors) <strong>قريبين جدًا من بعضهما</strong>. لكن لو أعطيته صورة شخص آخر، سيكون المتجه <strong>بعيدًا</strong> عن الأول. أصبحت الهوية سؤال "كم المسافة بين هذين المتجهين؟" بدلاً من مقارنة البيكسلات مباشرة — وهذا ما يجعل النظام مقاومًا لاختلاف الإضاءة والزاوية والتعبير.</p>
+    <br/>
+    <p><strong>خطوات العمل:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>أخذ الوجه المقصوص من مرحلة الكشف (detection)</li>
+      <li>تحجيمه (resize) إلى <strong>224×224 بيكسل</strong> — المقاس الثابت الذي يتوقعه VGG-Face</li>
+      <li>تمريره خلال شبكة VGG-Face المدرَّبة مسبقًا</li>
+      <li>قراءة خرج الطبقة قبل الأخيرة — متجه من <strong>2622 رقمًا عشريًا</strong></li>
+      <li>هذا المتجه هو الهوية الرقمية للوجه — يُخزَّن أو يُقارَن بمتجهات أخرى محفوظة</li>
+    </ol>
+    <br/>
+    <p><strong>لماذا تُحذف طبقات التصنيف (classification layers)؟</strong></p>
+    <p style="font-size:14px">تم تدريب VGG-Face أصلًا لتصنيف قائمة ثابتة من هويات المشاهير (softmax layer). لكننا لا نريد التعرف فقط على هؤلاء المشاهير، بل نريد التمثيل (representation) العام الذي تعلّمته الشبكة عن "شكل الوجوه" بحيث يعمل مع <strong>أي شخص جديد لم تره الشبكة من قبل</strong>. بحذف طبقة softmax النهائية والاعتماد على الطبقة التي قبلها، نحصل على متجه 2622 بُعدًا عامًا وقابلًا للتعميم — وهذا تطبيق كلاسيكي لـ <strong>Transfer Learning</strong>: نعيد استخدام تمثيل model مُدرَّب مسبقًا لمهمة جديدة (استخراج الميزات) بدلاً من مهمته الأصلية (التصنيف).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Embedding / Feature Vector (المتجه التمثيلي)</strong> — تمثيل رقمي مضغوط للوجه</li>
+      <li><strong>Dense Vector Space (فضاء متجهي كثيف)</strong> — الفضاء الرياضي الذي تعيش فيه المتجهات</li>
+      <li><strong>Invariant (خاصية ثابتة/لا تتغير)</strong> — خاصية تبقى نفسها بالرغم من تغيّر الظروف</li>
+      <li><strong>Transfer Learning (التعلم بالنقل)</strong> — إعادة استخدام model مدرَّب لمهمة جديدة</li>
+      <li><strong>Generalizable (قابل للتعميم)</strong> — يعمل مع بيانات لم يرها النموذج من قبل</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy — Fingerprint Card</div>
+    <p>A classic fingerprint isn't "recognized" by comparing raw ink patterns pixel-by-pixel; it's reduced to a compact set of measured ridge features that are compared mathematically. VGG-Face does the same thing to a face: it reduces an entire 224×224 image (150,528 raw pixel values) down to just 2622 highly informative numbers that summarize everything needed for identity comparison.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>The 2622-D vector is <strong>not</strong> a compressed image and cannot be turned back into a picture of the face. It only encodes the abstract characteristics the network learned are useful for telling faces apart — not literally "eye spacing" as a labeled number, but statistically correlated patterns like that.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 VGG-Face input size: 224 × 224 (normalized)</li>
+      <li>📌 Output: 2622-dimensional feature vector / embedding</li>
+      <li>📌 Classification layers removed → keeps features generalizable to unseen identities</li>
+      <li>📌 This is transfer learning: reuse pretrained representation, drop the original task head</li>
+      <li>📌 Similar photos of the same person → close vectors; different people → distant vectors</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>VGG-Face takes a 224×224 cropped face and outputs a <strong>2622-D embedding</strong> capturing subtle facial invariants. Classification layers are removed (transfer learning) so the features generalize to any new identity, not just the training celebrities.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 7</span>
+    <h2>5. VGG-Face Architecture — Inside the Convolutional Stack</h2>
+  </div>
+  <p class="section-subtitle">16 Conv Layers + 5 Pooling Layers + 3 FC Layers, Truncated Before Softmax</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Deep Convolutional Stack:</strong> Utilizes 16 convolution layers, 5 pooling layers, and 3 fully-connected layers to construct a deep hierarchy of abstract facial features.</li>
+      <li><strong>Truncation Point:</strong> Truncated right before the final softmax classification layer to yield pure, unclassified embedding features.</li>
+      <li><strong>Feature Resolution:</strong> Translates complex spatial pixel relationships into a single 2622-dimensional floating-point vector.</li>
+      <li><strong>Transfer Learning:</strong> Leverages weights pre-trained on millions of faces, eliminating the need for vast datasets to train local models.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>VGG-Face follows the classic <span class="hl">VGG-16 architecture</span> — a deep stack of small convolution filters and pooling layers, topped with fully-connected layers — but used here for faces instead of general objects.</p>
+    <div class="layer-stack">
+      <div class="layer-row conv">Conv blocks 1–5 <span class="layer-count">16 conv layers total (3×3 filters)</span></div>
+      <div class="layer-row pool">Max-pooling after each conv block <span class="layer-count">5 pooling layers total</span></div>
+      <div class="layer-row fc">FC layer 1 (fc6) <span class="layer-count">fully-connected</span></div>
+      <div class="layer-row fc">FC layer 2 (fc7) <span class="layer-count">fully-connected → <strong>2622-D embedding read here</strong></span></div>
+      <div class="layer-row fc">FC layer 3 (fc8) <span class="layer-count">fully-connected</span></div>
+      <div class="layer-row trunc">Softmax classification layer <span class="layer-count">removed / truncated</span></div>
+    </div>
+    <p><strong>Reading the stack:</strong></p>
+    <ul class="e-list">
+      <li>🧱 <strong>16 convolution layers</strong>: stacked in blocks, each block followed by pooling. Early layers detect simple edges/textures; deeper layers detect increasingly abstract, face-specific patterns (eye shapes, nose bridges, full facial structure)</li>
+      <li>📉 <strong>5 pooling layers</strong>: downsample the spatial resolution after each conv block, progressively shrinking the image while keeping the most important activations, and controlling computation cost</li>
+      <li>🔗 <strong>3 fully-connected (FC) layers</strong>: at the top of the stack, they combine all the spatial features into a single flat vector. The <strong>2622-dimensional embedding is read from one of these FC layers</strong>, right before what would be the final softmax</li>
+      <li>✂️ <strong>Truncation point</strong>: the network is cut off right before the softmax classification layer — that final layer (which would output celebrity-class probabilities) is simply discarded at inference time, and we keep the 2622-D activations instead</li>
+    </ul>
+    <div class="def-box" style="margin-top:12px">
+      <div class="def-term">Transfer Learning — Why This Matters Practically</div>
+      <p style="font-size:13px;margin-top:6px">VGG-Face's weights were originally trained on a dataset of <strong>millions of face images</strong> spanning thousands of identities. Training a network like this from scratch requires enormous data and compute. By reusing these <strong>pretrained weights</strong> and only removing the final task-specific layer, any downstream application gets high-quality, ready-made facial features <strong>without collecting or training on millions of faces itself</strong> — exactly the transfer-learning pattern used earlier in the course whenever a large pretrained backbone (e.g., a CNN pretrained on ImageNet) is repurposed for a smaller, specific task.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>يتبع VGG-Face بنية <strong>VGG-16</strong> الكلاسيكية — تكديس عميق (deep stack) من فلاتر التفافية صغيرة (3×3) وطبقات تجميع (pooling)، تليها طبقات fully-connected — لكنه مُدرَّب على الوجوه بدلاً من الأجسام العامة.</p>
+    <br/>
+    <p><strong>مكوّنات البنية:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>16 طبقة التفافية (convolution layers)</strong> — الطبقات الأولى تكتشف حوافًا وملامس بسيطة، والطبقات العميقة تكتشف أنماطًا أكثر تجريدًا خاصة بالوجه (شكل العينين، جسر الأنف...)</li>
+      <li><strong>5 طبقات تجميع (pooling layers)</strong> — تُصغِّر الدقة المكانية بعد كل مجموعة من طبقات الالتفاف، مع الاحتفاظ بأهم القيم وتقليل تكلفة الحساب</li>
+      <li><strong>3 طبقات fully-connected</strong> — في أعلى الشبكة، تُدمج كل الميزات المكانية في متجه واحد مسطّح. <strong>الـ embedding بحجم 2622 يُقرأ من واحدة من هذه الطبقات</strong>، مباشرة قبل ما كان سيكون طبقة softmax النهائية</li>
+    </ul>
+    <br/>
+    <p><strong>نقطة القطع (Truncation Point):</strong></p>
+    <p style="font-size:14px">يتم قطع الشبكة مباشرة قبل طبقة softmax التصنيفية — تلك الطبقة (التي كانت ستُخرج احتمالات لكل مشهور في بيانات التدريب) تُتجاهل تمامًا وقت الاستدلال (inference)، ونحتفظ فقط بمتجه 2622.</p>
+    <br/>
+    <p><strong>Transfer Learning — لماذا هذا مهم عمليًا؟</strong></p>
+    <p style="font-size:14px">تم تدريب أوزان (weights) VGG-Face أصلًا على مجموعة بيانات ضخمة تحتوي ملايين صور الوجوه لآلاف الهويات. تدريب شبكة كهذه من الصفر يحتاج بيانات وحوسبة ضخمة. بإعادة استخدام هذه الأوزان المُدرَّبة مسبقًا وحذف الطبقة الأخيرة فقط، يحصل أي تطبيق جديد على ميزات وجه عالية الجودة <strong>بدون الحاجة لجمع أو تدريب على ملايين الصور بنفسه</strong> — نفس نمط Transfer Learning المستخدم سابقًا في المقرر عند إعادة استخدام backbone مُدرَّب مسبقًا (مثل CNN مُدرَّب على ImageNet) لمهمة أصغر ومحددة.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Convolution Layer (طبقة التفافية)</strong> — تستخرج أنماطًا محلية من الصورة</li>
+      <li><strong>Pooling Layer (طبقة تجميع)</strong> — تُصغِّر الدقة المكانية</li>
+      <li><strong>Fully-Connected Layer (طبقة متصلة بالكامل)</strong> — تدمج كل الميزات</li>
+      <li><strong>Truncation (القطع/البتر)</strong> — إزالة الطبقات النهائية من الشبكة</li>
+      <li><strong>Pretrained Weights (أوزان مُدرَّبة مسبقًا)</strong> — قيم الشبكة الناتجة من تدريب سابق</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Using VGG-Face Without Retraining</div>
+    <p>A startup building an office attendance app doesn't need to collect millions of employee face photos to train a recognizer from scratch. It simply downloads VGG-Face's pretrained weights, feeds each employee's enrollment photo through the truncated network to get one 2622-D vector per employee, and stores those vectors. No training required on their side — this is <strong>feature extraction via transfer learning</strong>, not model training.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Layer counts: 16 conv + 5 pool + 3 FC (VGG-16-style backbone)</li>
+      <li>📌 Truncation point: right before the final softmax classification layer</li>
+      <li>📌 The 2622-D embedding is read from an FC layer, not a conv layer</li>
+      <li>📌 Transfer learning = reusing pretrained weights trained on millions of faces, avoiding the need for a huge local dataset</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>VGG-Face = 16 conv layers + 5 pooling layers + 3 FC layers (VGG-16 style), truncated before the softmax layer to expose a pure 2622-D embedding. Pretrained on millions of faces — a textbook transfer-learning use case.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 9</span>
+    <h2>6. The Real-Time Processing Pipeline</h2>
+  </div>
+  <p class="section-subtitle">Frame Read → Detect &amp; Track → Vector Creation → Classification</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>1. Frame Read:</strong> Live video frames are read, duplicated for safe editing, and normalized.</li>
+      <li><strong>2. Detect &amp; Track:</strong> Faces are located using MTCNN or YOLOv8 and tracked across frames.</li>
+      <li><strong>3. Vector Creation:</strong> Detected face ROIs are cropped and encoded into VGG-Face embeddings.</li>
+      <li><strong>4. Classification:</strong> Cosine similarity matches the embedding to database entries.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This is where every concept from the earlier sections combines into a working <span class="hl-blue">live video loop</span> that runs continuously, frame after frame:</p>
+    <ol class="steps">
+      <li><strong>Frame Read</strong> — grab the next live video frame from the camera; make a duplicate copy so the original can be safely drawn on/edited without corrupting the frame used for analysis; normalize pixel values for consistent model input</li>
+      <li><strong>Detect &amp; Track</strong> — run MTCNN (accuracy) or YOLOv8 (speed) to locate face bounding boxes in this frame, and track each detected face's identity across consecutive frames so the system doesn't have to fully re-detect from scratch every single frame</li>
+      <li><strong>Vector Creation</strong> — crop each detected face Region of Interest (ROI) out of the frame and pass it through VGG-Face to encode it into its 2622-D embedding vector</li>
+      <li><strong>Classification</strong> — compute the <strong>cosine similarity</strong> between this live embedding and every stored embedding in the reference database; the closest match (if close enough) determines the person's identity</li>
+    </ol>
+    <div class="pipeline-diagram">
+      <div class="pipeline-stage">
+        <div class="stage-name">1. FRAME READ</div>
+        <div class="stage-desc">Grab frame · duplicate · normalize</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">2. DETECT &amp; TRACK</div>
+        <div class="stage-desc">MTCNN / YOLOv8 · track across frames</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">3. VECTOR CREATION</div>
+        <div class="stage-desc">Crop ROI · VGG-Face embedding</div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-stage">
+        <div class="stage-name">4. CLASSIFICATION</div>
+        <div class="stage-desc">Cosine similarity vs. database</div>
+      </div>
+    </div>
+    <p style="margin-top:12px">This four-step loop repeats for <strong>every incoming frame</strong>, which is why detector speed (Section 3) and embedding efficiency both directly determine whether the whole system can keep up with a live camera feed in real time.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هنا تتجمع كل المفاهيم السابقة في حلقة (loop) واحدة تعمل باستمرار على كل إطار (frame) من الفيديو المباشر:</p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>Frame Read (قراءة الإطار):</strong> يتم أخذ الإطار التالي من الكاميرا، وعمل نسخة منه (duplicate) لحمايته من التعديل المباشر، وتطبيع (normalize) قيم البيكسل لتناسب دخل النموذج</li>
+      <li><strong>Detect &amp; Track (الكشف والتتبع):</strong> تشغيل MTCNN (للدقة) أو YOLOv8 (للسرعة) لتحديد صناديق الوجوه، ثم تتبع (track) هوية كل وجه عبر الإطارات المتتالية بدلًا من إعادة الكشف من الصفر كل مرة</li>
+      <li><strong>Vector Creation (إنشاء المتجه):</strong> قص منطقة الوجه (ROI - Region of Interest) من الإطار وتمريرها خلال VGG-Face للحصول على متجه embedding بحجم 2622</li>
+      <li><strong>Classification (التصنيف):</strong> حساب <strong>cosine similarity</strong> بين هذا المتجه الجديد وكل المتجهات المخزّنة في قاعدة البيانات؛ أقرب تطابق (إذا كان قريبًا بما يكفي) يحدد هوية الشخص</li>
+    </ol>
+    <br/>
+    <p>هذه الحلقة المكوّنة من أربع خطوات تتكرر مع <strong>كل إطار جديد</strong>، وهذا يفسر لماذا سرعة الكاشف (Section 3) وكفاءة الـ embedding تحددان معًا إذا كان النظام قادرًا على العمل في الوقت الفعلي مع كاميرا مباشرة.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Normalize (التطبيع)</strong> — تحويل قيم البيانات لمقياس ثابت متوقع من النموذج</li>
+      <li><strong>Track (التتبع)</strong> — متابعة نفس الجسم/الوجه عبر إطارات متتالية</li>
+      <li><strong>ROI (منطقة الاهتمام)</strong> — الجزء المقصوص من الصورة الذي يحتوي على الوجه</li>
+      <li><strong>Classification (التصنيف)</strong> — هنا تعني تحديد هوية الشخص، لا تصنيف فئة عامة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Office Entry Camera at 30 fps</div>
+    <p>An office entry camera captures 30 frames every second. For each of those 30 frames: read + duplicate + normalize (Step 1), run YOLOv8 to locate any faces and keep tracking IDs stable as people walk (Step 2), crop and embed each face with VGG-Face (Step 3), and compute cosine similarity against the registered-employee database to display a name badge or deny access (Step 4) — all within roughly 33 milliseconds per frame to stay real-time.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Skipping normalization — feeding raw, un-normalized pixel values produces unreliable embeddings</li>
+      <li>❌ Re-running full detection on every single frame when tracking could reuse previous detections more cheaply</li>
+      <li>❌ Comparing cropped faces directly (pixel-to-pixel) instead of comparing their VGG-Face embeddings</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the 4 steps in order: Frame Read → Detect &amp; Track → Vector Creation → Classification</li>
+      <li>📌 Detection uses MTCNN or YOLOv8; embedding always uses VGG-Face; matching always uses cosine similarity</li>
+      <li>📌 "Tracking" in this pipeline maintains identity continuity across frames, distinct from per-frame detection</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>The live pipeline repeats 4 steps per frame: <strong>Frame Read</strong> (grab/duplicate/normalize) → <strong>Detect &amp; Track</strong> (MTCNN/YOLOv8) → <strong>Vector Creation</strong> (VGG-Face embedding) → <strong>Classification</strong> (cosine similarity vs. database).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>7. Similarity Distance Metrics — The 0.30 Cutoff</h2>
+  </div>
+  <p class="section-subtitle">Cosine Distance, the Verification Threshold, and a Worked Numeric Example</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>0.30</strong> — Cosine Distance Cutoff Limit — Inference Decisions</li>
+      <li>Cosine distance computes the angular difference between live embedding vectors and saved reference templates.</li>
+      <li>Values strictly below 0.30 signify a verified match.</li>
+      <li>Values exceeding 0.30 are designated as "Unknown".</li>
+      <li>Minimizes false-positives while adjusting for lighting and pose.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once we have two 2622-D embeddings — one from the live camera, one stored in the database — we need a single number that tells us <strong>how similar</strong> they are. That number comes from <span class="hl-purple">cosine similarity</span> and its counterpart, <span class="hl-purple">cosine distance</span>.</p>
+    <div class="def-box">
+      <div class="def-term">Intuition — Angle Between Two Vectors</div>
+      <p style="font-size:13px;margin-top:6px">Every embedding is a point (or arrow/vector) in a 2622-dimensional space. Cosine similarity ignores <em>how long</em> the vectors are and only measures the <strong>angle</strong> between them:</p>
+      <ul style="font-size:12px;padding-left:16px;margin-top:4px">
+        <li>Same direction (angle ≈ 0°) → cosine similarity ≈ 1 → cosine distance ≈ 0 → <strong>very similar faces</strong></li>
+        <li>Perpendicular (angle = 90°) → cosine similarity = 0 → cosine distance = 1 → <strong>unrelated faces</strong></li>
+        <li>Opposite direction (angle ≈ 180°) → cosine similarity ≈ -1 → cosine distance ≈ 2 → <strong>maximally dissimilar</strong> (rare in practice for face embeddings)</li>
+      </ul>
+    </div>
+    <div class="formula">cosine similarity = (A · B) / (‖A‖ × ‖B‖)</div>
+    <div class="formula">cosine distance = 1 − cosine similarity</div>
+    <p style="font-size:13px">where <code>A · B</code> is the dot product of the two embedding vectors, and <code>‖A‖</code>, <code>‖B‖</code> are their magnitudes (lengths).</p>
+    <div class="def-box" style="margin-top:12px">
+      <div class="def-term">The 0.30 Decision Rule</div>
+      <p style="font-size:13px;margin-top:6px">The system computes the cosine distance between the live face embedding and every stored template in the database:</p>
+      <ul style="font-size:12px;padding-left:16px;margin-top:4px">
+        <li><strong>distance &lt; 0.30</strong> → declared a <strong>verified match</strong> (same identity as the closest stored template)</li>
+        <li><strong>distance ≥ 0.30</strong> → declared <strong>"Unknown"</strong> (no confident match in the database)</li>
+      </ul>
+      <p style="font-size:13px;margin-top:6px">This threshold is a deliberate design choice: 0.30 is <strong>strict enough to minimize false positives</strong> (accidentally matching two different people) while still <strong>loose enough to tolerate</strong> natural variation from lighting changes, camera angle, or facial expression between the enrollment photo and the live frame.</p>
+    </div>
+    <div class="card-example" style="margin-top:14px">
+      <div class="card-title"><span class="icon">🔢</span> Worked Mini-Numeric Example</div>
+      <p style="font-size:13px">To keep the math visible, imagine tiny 3-dimensional "embeddings" instead of real 2622-dimensional ones (the same formula scales to any number of dimensions):</p>
+      <p style="font-size:13px;margin-top:8px"><strong>Case 1 — Likely Match:</strong></p>
+      <p style="font-size:13px">Live embedding A = (1.0, 2.0, 2.0) &nbsp;|&nbsp; Stored embedding B = (1.1, 1.9, 2.1)</p>
+      <pre><code>A · B      = (1.0×1.1)+(2.0×1.9)+(2.0×2.1) = 1.1+3.8+4.2 = 9.1
+‖A‖        = sqrt(1²+2²+2²)      = sqrt(9)    = 3.0
+‖B‖        = sqrt(1.1²+1.9²+2.1²)= sqrt(9.23) ≈ 3.038
+cos(sim)   = 9.1 / (3.0 × 3.038) ≈ 9.1 / 9.114 ≈ 0.9985
+cos(dist)  = 1 − 0.9985           ≈ 0.0015</code></pre>
+      <p style="font-size:13px">0.0015 &lt; 0.30 → <strong class="hl-green">Verified Match</strong> (the two vectors point in almost the same direction — very likely the same person, just slightly different lighting/pose)</p>
+      <p style="font-size:13px;margin-top:12px"><strong>Case 2 — Not a Match:</strong></p>
+      <p style="font-size:13px">Live embedding A = (1.0, 2.0, 2.0) &nbsp;|&nbsp; Stored embedding C = (2.0, -1.0, 0.5)</p>
+      <pre><code>A · C      = (1.0×2.0)+(2.0×-1.0)+(2.0×0.5) = 2.0-2.0+1.0 = 1.0
+‖A‖        = 3.0
+‖C‖        = sqrt(2²+1²+0.5²) = sqrt(5.25) ≈ 2.291
+cos(sim)   = 1.0 / (3.0 × 2.291) ≈ 1.0 / 6.874 ≈ 0.1454
+cos(dist)  = 1 − 0.1454           ≈ 0.8546</code></pre>
+      <p style="font-size:13px">0.8546 ≥ 0.30 → <strong class="hl">"Unknown"</strong> (the vectors point in very different directions — a different person, or no confident match)</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد الحصول على متجهين من 2622 بُعدًا — واحد من الكاميرا المباشرة وواحد محفوظ في قاعدة البيانات — نحتاج رقمًا واحدًا يخبرنا <strong>كم هما متشابهان</strong>. هذا الرقم يأتي من <strong>cosine similarity</strong> ونظيرتها <strong>cosine distance</strong>.</p>
+    <br/>
+    <p><strong>الفهم البديهي — الزاوية بين متجهين:</strong></p>
+    <p style="font-size:14px">كل embedding هو نقطة (أو سهم/متجه) في فضاء بـ 2622 بُعدًا. الـ cosine similarity تتجاهل <em>طول</em> المتجهات وتقيس فقط <strong>الزاوية</strong> بينهما:</p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>نفس الاتجاه تقريبًا (الزاوية ≈ 0°) → cosine similarity ≈ 1 → cosine distance ≈ 0 → <strong>وجوه متشابهة جدًا</strong></li>
+      <li>متعامدان (الزاوية = 90°) → cosine similarity = 0 → cosine distance = 1 → <strong>وجوه غير مرتبطة</strong></li>
+      <li>اتجاه معاكس (الزاوية ≈ 180°) → cosine distance ≈ 2 → <strong>اختلاف شديد جدًا</strong> (نادر عمليًا مع embeddings الوجوه)</li>
+    </ul>
+    <div class="formula" style="direction:ltr">cosine similarity = (A · B) / (‖A‖ × ‖B‖)</div>
+    <div class="formula" style="direction:ltr">cosine distance = 1 − cosine similarity</div>
+    <br/>
+    <p><strong>قاعدة القرار 0.30:</strong></p>
+    <p style="font-size:14px">يحسب النظام cosine distance بين embedding الوجه المباشر وكل قالب (template) محفوظ في قاعدة البيانات:</p>
+    <ul style="padding-right:18px;font-size:14px">
+      <li><strong>المسافة &lt; 0.30</strong> → <strong>تطابق مؤكد (verified match)</strong></li>
+      <li><strong>المسافة ≥ 0.30</strong> → <strong>"Unknown" (غير معروف)</strong></li>
+    </ul>
+    <p style="font-size:14px">القيمة 0.30 اختيار مقصود: صارمة بما يكفي لتقليل false positives (خلط شخص بآخر)، ومرنة بما يكفي لتحمّل التغيرات الطبيعية في الإضاءة والزاوية والتعبير بين صورة التسجيل والإطار المباشر.</p>
+    <br/>
+    <p><strong>مثال رقمي مبسّط:</strong></p>
+    <p style="font-size:14px">بمتجهين ثلاثيي الأبعاد بسيطين A=(1.0, 2.0, 2.0) و B=(1.1, 1.9, 2.1) قريبين من بعضهما، نحصل على cosine distance ≈ 0.0015 وهذا أقل من 0.30 → تطابق مؤكد. بينما مع متجه مختلف تمامًا C=(2.0, -1.0, 0.5)، نحصل على cosine distance ≈ 0.85 وهذا أكبر من 0.30 → "Unknown".</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Cosine Similarity (تشابه الجيب التمام)</strong> — مقياس تشابه بناءً على الزاوية بين متجهين</li>
+      <li><strong>Cosine Distance (مسافة الجيب التمام)</strong> — 1 ناقص التشابه</li>
+      <li><strong>Threshold / Cutoff (العتبة/حد القطع)</strong> — القيمة التي تُفصل بين القرارين</li>
+      <li><strong>False Positive (نتيجة إيجابية خاطئة)</strong> — الخلط بين شخصين مختلفين باعتبارهما نفس الشخص</li>
+      <li><strong>Dot Product (الضرب النقطي)</strong> — عملية رياضية بين متجهين</li>
+      <li><strong>Magnitude / Norm (المقدار/المعيار)</strong> — طول المتجه</li>
+    </ul>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Distance Direction</div>
+    <p><strong>"Low distance = Likable match; High distance = Halt, Unknown"</strong> — small cosine distance (close to 0) means the vectors point the same way (match); large cosine distance means they diverge (not a match). Below 0.30 = pass, at/above 0.30 = "Unknown".</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>Cosine similarity is <strong>not</strong> the same thing as Euclidean distance. Two vectors can point in the same direction (cosine similarity ≈ 1, i.e., cosine distance ≈ 0) even if one is much "longer" than the other numerically — cosine metrics only care about direction, which is exactly why they're robust to certain scale variations in embeddings.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Formula: cosine distance = 1 − cosine similarity; cosine similarity = (A·B) / (‖A‖‖B‖)</li>
+      <li>📌 Cutoff threshold = 0.30: below → verified match; at/above → "Unknown"</li>
+      <li>📌 Cosine distance measures angular difference, not raw magnitude difference</li>
+      <li>📌 Purpose of the threshold: balance false positives against tolerance for lighting/pose variation</li>
+      <li>📌 Be able to compute cosine similarity/distance by hand for small example vectors</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Cosine distance = 1 − cosine similarity, measuring the angle between two embeddings. Distance &lt; 0.30 → verified match; ≥ 0.30 → "Unknown". Balances minimizing false positives against tolerating lighting/pose variation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice, True/False, Fill-in-the-Blank, and Short Answer Questions</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Which MTCNN stage is responsible for generating the initial candidate face windows using an image pyramid?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'A')">A) P-Net</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) R-Net</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) O-Net</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) VGG-Face</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: A</strong> — P-Net (Proposal Network) is a fully convolutional network that scans an image pyramid to generate candidate windows and rough bounding box calibration.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. Which MTCNN stage outputs the five facial landmarks?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) P-Net</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) R-Net</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) O-Net</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) YOLOv8</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — O-Net (Output Network) performs the final box refinement and outputs the locations of five facial landmarks: eyes, nose, mouth corners.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. Which detector is described as speed-focused, single-pass, and ideal for CPU-bound edge devices?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) MTCNN</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) YOLOv8</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) VGG-Face</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) R-Net</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — YOLOv8 detects the face bounding box in a single pass, built for ultra-high framerates and hardware-constrained edge servers.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. What is the dimensionality of the feature vector produced by VGG-Face?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 128</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) 512</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) 2622</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 224</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — VGG-Face maps a 224×224 input face into a dense 2622-dimensional feature vector (embedding).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Why are VGG-Face's classification layers removed before use as an embedder?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) To make the model run faster on GPUs</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) To reduce the input image size</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) To keep the features generalizable to identities not in the original training set</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) To increase the vector dimensionality</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Removing the softmax classification head keeps the rich internal representation general-purpose (transfer learning) instead of tied to the original fixed celebrity label set.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. In the VGG-Face architecture, how many convolution layers and pooling layers are used?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 8 conv, 3 pool</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 16 conv, 5 pool</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 22 conv, 6 pool</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 3 conv, 3 pool</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — VGG-Face uses 16 convolution layers, 5 pooling layers, and 3 fully-connected layers.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. What is the cosine distance cutoff used to declare a verified face match?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 0.10</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 0.30</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 0.50</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 1.00</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Cosine distance values strictly below 0.30 signify a verified match; values at or exceeding 0.30 are designated "Unknown".</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. Step 3 of the Real-Time Processing Pipeline ("Vector Creation") is performed by which model?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) MTCNN</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) YOLOv8</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) VGG-Face</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Hungarian Algorithm</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Vector Creation crops detected face ROIs and encodes them into VGG-Face embeddings.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: MTCNN and YOLOv8 both directly determine a person's identity.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — MTCNN and YOLOv8 are only face detectors; they locate where a face is, but identity comes from VGG-Face embeddings compared via cosine similarity.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: A higher cosine distance between two face embeddings indicates a more likely match.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — A lower cosine distance (closer to 0) indicates greater similarity and a more likely match. Higher distance means the vectors point in more different directions.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: The image pyramid used by P-Net consists of the same image resized to multiple scales.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — An image pyramid stacks resized copies of the same image at different scales, enabling multi-scale detection with a fixed-size scanning window.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 4: VGG-Face requires its input face image to be normalized to 224×224 pixels.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — The VGG-Face model architecture processes normalized 224×224 images as its fixed input size.</div>
+  </div>
+
+  <!-- Fill in the blank -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--warn)"><span class="icon">📝</span> Fill in the Blank</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 1: R-Net rejects non-faces and refines bounding boxes using ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Cosine Similarity</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Non-Maximum Suppression (NMS)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Transfer Learning</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Image Pyramid</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: NMS</strong> — R-Net rejects non-face proposals and refines bounding boxes using Non-Maximum Suppression.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 2: Cosine distance is calculated as 1 minus ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Euclidean distance</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Cosine similarity</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Dot product</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Vector magnitude</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: Cosine similarity</strong> — cosine distance = 1 − cosine similarity.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Describe what happens at each of MTCNN's three stages. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> <strong>P-Net</strong> is a fully convolutional network that scans an image pyramid to generate many candidate face windows with rough bounding-box calibration. <strong>R-Net</strong> takes those proposals, rejects clearly non-face candidates, and refines the remaining boxes using Non-Maximum Suppression. <strong>O-Net</strong>, the most complex of the three, performs a final refinement of the bounding boxes and additionally outputs five facial landmark coordinates (both eyes, nose tip, both mouth corners).</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Compare MTCNN and YOLOv8 for face detection, and explain when you would choose each. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> MTCNN is a three-tier cascade that is accuracy-focused: it detects facial keypoints/landmarks alongside the bounding box and offers excellent alignment precision, at the cost of higher latency, especially under fast motion. YOLOv8 is a single-stage regression detector that predicts face bounding boxes in one forward pass, making it speed-focused and suitable for ultra-high framerates on CPU-bound or edge hardware. Choose MTCNN for one-time, high-quality enrollment captures where accuracy and alignment matter most; choose YOLOv8 for continuous live verification on resource-constrained devices where framerate matters most.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: What is a face embedding, and why does VGG-Face remove its classification layers before being used for recognition? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A face embedding is a dense numerical feature vector (2622-dimensional for VGG-Face) that represents a face's identity-relevant characteristics, such that two photos of the same person produce vectors that are close together, while photos of different people produce vectors that are far apart. VGG-Face's original softmax classification layer only recognizes the fixed set of identities it was trained on; removing it and reading the layer just before it exposes the network's general-purpose learned facial representation, allowing it to generalize to any new, unseen person — a classic transfer-learning approach (feature extraction instead of classification).</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Explain the cosine distance formula and how the 0.30 threshold is used to make a match decision. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Cosine similarity is computed as the dot product of two embedding vectors divided by the product of their magnitudes: (A·B)/(‖A‖‖B‖), which measures the angle between the vectors regardless of their length. Cosine distance is then 1 minus cosine similarity, so identical-direction vectors have distance near 0 and very different-direction vectors have distance approaching 1 (or more). The system compares a live face embedding's cosine distance to every stored template; if the smallest distance found is strictly below 0.30, the system declares a verified match; if it is 0.30 or higher, the system labels the person "Unknown." This threshold balances minimizing false positives against tolerating natural variation from lighting and pose.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 10 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Real-Time Face Recognition &amp; Detection" / Dr. Ahmed Yousry — ✅ Hero section + Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Transition/agenda slide (no extractable body text) — ✅ Referenced in Section 1's framing of the three-model integration</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Transition/agenda slide (no extractable body text) — ✅ Referenced in Section 1's framing of the three-model integration</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — MTCNN Architecture (P-Net, R-Net, O-Net, image pyramid, NMS, 5 landmarks) — ✅ Section 2, fully covered</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Comparison of Detection Methods (MTCNN accuracy-focused vs. YOLOv8 speed-focused) — ✅ Section 3, fully covered</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Deep VGG-Face Embeddings (2622-D feature vectors, 224×224 input, generalizable features) — ✅ Section 4, fully covered</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — VGG-Face Architecture (16 conv + 5 pool + 3 FC, truncation point, transfer learning) — ✅ Section 5, fully covered</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — Transition/agenda slide (no extractable body text) — ✅ Bridges Sections 5 and 6 (architecture → live pipeline)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Real-Time Processing Pipeline (Frame Read, Detect &amp; Track, Vector Creation, Classification) — ✅ Section 6, fully covered</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Similarity Distance Metrics (cosine distance, 0.30 cutoff, verified match vs. Unknown) — ✅ Section 7, fully covered</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 10/10 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All models, algorithms, formulas, thresholds, and pipeline steps have been explained in both English and Arabic with additional examples, worked numeric calculations, memory tricks, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Detection:</strong> <span class="tag tag-blue">MTCNN (P-Net → R-Net → O-Net, image pyramid, NMS, 5 landmarks)</span> vs <span class="tag tag-green">YOLOv8 (single-pass, ultra-fast)</span></p>
+      <p><strong>Embedding:</strong> <span class="tag tag-purple">VGG-Face (224×224 input → 2622-D vector)</span> — <span class="tag tag-purple">16 conv + 5 pool + 3 FC, truncated before softmax</span></p>
+      <p><strong>Why it generalizes:</strong> <span class="tag tag-orange">Transfer Learning — classification layers removed</span></p>
+      <p><strong>Live Pipeline:</strong> <span class="tag tag-blue">Frame Read</span> → <span class="tag tag-green">Detect &amp; Track</span> → <span class="tag tag-purple">Vector Creation</span> → <span class="tag tag-orange">Classification</span></p>
+      <p><strong>Matching:</strong> <span class="tag tag-blue">Cosine Distance = 1 − Cosine Similarity</span> | <span class="tag tag-green">Cutoff = 0.30</span> | <span class="tag tag-purple">&lt;0.30 = Match, ≥0.30 = Unknown</span></p>
+      <p><strong>Design Trade-off:</strong> <span class="tag tag-orange">Accuracy (MTCNN, enrollment) vs. Speed (YOLOv8, live/edge)</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>

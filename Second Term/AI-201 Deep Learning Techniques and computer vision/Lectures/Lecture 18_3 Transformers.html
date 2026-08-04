@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 18 — Transformers Part 1: From RNNs to Self-Attention | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .rnn-diagram{flex-wrap:wrap}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* RNN UNROLLED DIAGRAM (additive, same visual language) */
+.rnn-diagram{
+  display:flex;align-items:center;gap:6px;
+  overflow-x:auto;
+  padding:20px 8px;
+  margin:14px 0;
+}
+.rnn-io{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:11px;color:var(--muted);
+  min-width:56px;
+}
+.rnn-cell{
+  background:var(--bg3);
+  border:1px solid var(--accent);
+  border-radius:10px;
+  padding:14px 14px;
+  text-align:center;
+  min-width:64px;
+  position:relative;
+}
+.rnn-cell .lbl{font-family:var(--font-mono);font-size:11px;color:var(--accent);font-weight:700}
+.rnn-arrow{color:var(--muted);font-size:16px;flex-shrink:0}
+.rnn-x{color:var(--accent4);font-weight:700}
+.rnn-y{color:var(--accent3);font-weight:700}
+.rnn-h{color:var(--accent2);font-weight:700;font-size:10px}
+/* MATRIX MINI GRID */
+.mat-box{
+  display:inline-block;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 12px;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:4px;
+  text-align:center;
+  vertical-align:middle;
+}
+.mat-dim{font-size:10px;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 Transformers Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — Why We Need Attention</div>
+    <a href="#s1" onclick="setActive(this)">1. Sequence-to-Sequence Framing</a>
+    <a href="#s2" onclick="setActive(this)">2. RNN Recap</a>
+    <a href="#s3" onclick="setActive(this)">3. RNN Problems</a>
+    <a href="#s4" onclick="setActive(this)">4. "Attention Is All You Need" — Motivation</a>
+    <div class="nav-section">Part II — Math Foundations</div>
+    <a href="#s5" onclick="setActive(this)">5. Representing Data as Vectors</a>
+    <a href="#s6" onclick="setActive(this)">6. Matrix Operations Refresher</a>
+    <div class="nav-section">Part III — From Text to Numbers</div>
+    <a href="#s7" onclick="setActive(this)">7. Tokenization</a>
+    <a href="#s8" onclick="setActive(this)">8. From Text to Embeddings</a>
+    <div class="nav-section">Part IV — Self-Attention</div>
+    <a href="#s9" onclick="setActive(this)">9. Self-Attention Mechanics (Q, K, V)</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 18 — TRANSFORMERS PART 1: FROM RNNS TO SELF-ATTENTION</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 18</div>
+  <h1>Transformers Part 1: From RNNs to Self-Attention</h1>
+  <p>Why "Attention Is All You Need" — Motivation, Vectors, Matrices, Tokenization, Embeddings, and the Birth of Q/K/V</p>
+  <p class="author">Abu Bakr Soliman &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">22</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">9</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">3</span><span class="lbl">Q/K/V Matrices</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Seq2Seq</span>
+    <span class="tag tag-green">RNN</span>
+    <span class="tag tag-orange">Vanishing Gradients</span>
+    <span class="tag tag-purple">Vectors</span>
+    <span class="tag tag-blue">Matrix Multiplication</span>
+    <span class="tag tag-green">Tokenizer</span>
+    <span class="tag tag-orange">Embeddings</span>
+    <span class="tag tag-purple">Positional Encoding</span>
+    <span class="tag tag-blue">Self-Attention</span>
+    <span class="tag tag-green">Q/K/V</span>
+    <span class="tag tag-orange">Multi-Head Attention</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 1–2</span>
+    <h2>1. Sequence-to-Sequence (Seq2Seq) Framing</h2>
+  </div>
+  <p class="section-subtitle">The Generic Problem That Transformers Were Built to Solve</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 1 — Title:</strong> "Transformers" — Abu Bakr Soliman.</p>
+    <br/>
+    <p><strong>Slide 2 — Sequence to Sequence (Seq2Seq):</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>Input: x1, x2, .. xn</li>
+      <li>Output: y1, y2, .. yn</li>
+      <li>A generic box/model transforms one sequence into another sequence.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Sequence-to-Sequence (Seq2Seq)</span> is the general name for any machine learning task where the model reads in an <strong>ordered sequence of inputs</strong> (x1, x2, ..., xn) and produces an <strong>ordered sequence of outputs</strong> (y1, y2, ..., yn). The lengths of the input and output sequences don't have to match — that's exactly the point.</p>
+    <br/>
+    <p>This is a deliberately abstract framing. It does not say <em>how</em> the transformation happens — only that "a sequence goes in, a sequence comes out." Every model we study in this lecture (RNN, and later the Transformer) is really just a different way of implementing this same Seq2Seq box.</p>
+    <div class="formula">Model( x₁, x₂, ..., xₙ ) → y₁, y₂, ..., yₘ</div>
+    <p><strong>Classic Seq2Seq tasks:</strong></p>
+    <ul class="e-list">
+      <li>🌍 <strong>Machine Translation</strong>: English sentence in → Arabic sentence out (different lengths, different vocabularies)</li>
+      <li>📝 <strong>Summarization</strong>: A long article in → a short summary out (n words in, m words out, m &lt; n)</li>
+      <li>🗣️ <strong>Speech Recognition</strong>: audio waveform sequence in → text transcript sequence out</li>
+      <li>💬 <strong>Chatbots / Question Answering</strong>: a question sequence in → an answer sequence out</li>
+    </ul>
+    <br/>
+    <p>Why does this framing matter for Transformers? Because everything that follows in this lecture — RNNs, embeddings, self-attention — exists purely to answer one engineering question: <strong>"What is the best way to build the box in the middle of this diagram?"</strong></p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>تحويل التسلسل إلى تسلسل (Sequence-to-Sequence / Seq2Seq)</strong> هو الاسم العام لأي مهمة تعلم آلي يقرأ فيها الـ model سلسلة مُرتّبة من المدخلات (x1, x2, ..., xn) ويُخرج سلسلة مُرتّبة من المخرجات (y1, y2, ..., yn). طول سلسلة الدخل ليس بالضرورة نفس طول سلسلة الخرج — وهذا بالضبط سبب أهمية الفكرة.</p>
+    <br/>
+    <p>هذا التوصيف مقصود أن يكون عامًا جدًا: لا يحدد <em>كيف</em> يحدث التحويل، بل فقط يقول "sequence تدخل، sequence تخرج". كل الـ models التي سندرسها (RNN، ثم Transformer) هي في الحقيقة طرق مختلفة لتنفيذ هذا الصندوق نفسه.</p>
+    <br/>
+    <p><strong>أمثلة كلاسيكية على مهام Seq2Seq:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>🌍 <strong>الترجمة الآلية (Machine Translation)</strong>: جملة إنجليزية → جملة عربية (بأطوال مختلفة)</li>
+      <li>📝 <strong>التلخيص (Summarization)</strong>: مقال طويل → ملخص قصير</li>
+      <li>🗣️ <strong>التعرف على الكلام (Speech Recognition)</strong>: موجة صوتية → نص مكتوب</li>
+      <li>💬 <strong>الشات بوت وأنظمة الأسئلة والأجوبة</strong>: سؤال → إجابة</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Sequence (تسلسل)</strong> — قائمة عناصر مُرتّبة بترتيب مهم (كلمات، حروف، أرقام)</li>
+      <li><strong>Input (مُدخل)</strong> — السلسلة التي تدخل إلى الـ model</li>
+      <li><strong>Output (مُخرج)</strong> — السلسلة التي يُنتجها الـ model</li>
+      <li><strong>Model</strong> — النظام/الخوارزمية التي تُحوّل الدخل إلى خرج</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — Translation as Seq2Seq</div>
+    <p>Input sequence (English, n=4 tokens): <code>I can go alone</code></p>
+    <p style="margin-top:6px">Output sequence (Arabic, m=4 tokens): <code>أستطيع الذهاب وحيدا</code></p>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Notice the input and output sequences use completely different vocabularies and word orders, yet the Seq2Seq model must line up meaning between them. This exact sentence ("I can go alone") will be our running example for the rest of this lecture.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Seq2Seq is a <em>problem framing</em>, not a specific algorithm — RNNs and Transformers are both ways to solve it</li>
+      <li>📌 Input length n and output length m do not need to be equal</li>
+      <li>📌 Be ready to name 3+ real Seq2Seq tasks: translation, summarization, speech-to-text, chatbots</li>
+      <li>📌 The running example "I can go alone" (4 tokens) will reappear throughout embeddings and self-attention</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Seq2Seq</strong>: a model that maps an ordered input sequence (x1..xn) to an ordered output sequence (y1..ym), lengths may differ. Covers translation, summarization, speech recognition, chatbots. Everything in this lecture is about how to build the "box" that performs this mapping well.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 3</span>
+    <h2>2. Recurrent Neural Networks (RNN) — Recap</h2>
+  </div>
+  <p class="section-subtitle">The First Popular Answer to "How Do We Build the Seq2Seq Box?"</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Diagram: State 0 → RNN → RNN → ... → RNN (one RNN cell per time-step)</li>
+      <li>Inputs x1, x2, .. xn fed one at a time, in order (Time-Step axis)</li>
+      <li>Outputs y1, y2, .. yn produced alongside each time-step</li>
+      <li>Each RNN cell passes a "state" forward to the next time-step</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl">Recurrent Neural Network (RNN)</span> is one of the earliest and most natural ways to build a Seq2Seq box. Instead of looking at the whole input sequence at once, an RNN reads it <strong>one element at a time, in strict order</strong>, and carries forward a running memory called the <strong>hidden state</strong>.</p>
+    <br/>
+    <p><strong>How it works step by step:</strong></p>
+    <ol class="steps">
+      <li>Start with an initial hidden state, <strong>State 0</strong> (usually all zeros)</li>
+      <li>At time-step 1: feed x1 and State 0 into the RNN cell → it produces output y1 and a new hidden state, State 1</li>
+      <li>At time-step 2: feed x2 and State 1 into the (same) RNN cell → produces y2 and State 2</li>
+      <li>Repeat for every time-step until xn is processed, carrying the hidden state forward each time</li>
+    </ol>
+    <br/>
+    <p>The crucial idea: it is the <strong>exact same RNN cell (same weights)</strong> reused at every time-step — only the hidden state changes. That hidden state is the RNN's only way of "remembering" everything it has seen so far in the sequence.</p>
+    <div class="rnn-diagram">
+      <div class="rnn-io"><span class="rnn-h">State 0</span></div>
+      <div class="rnn-arrow">→</div>
+      <div class="rnn-cell"><div class="lbl">RNN</div><div style="font-size:10px;margin-top:4px;color:var(--muted)">t=1</div></div>
+      <div class="rnn-arrow">→</div>
+      <div class="rnn-cell"><div class="lbl">RNN</div><div style="font-size:10px;margin-top:4px;color:var(--muted)">t=2</div></div>
+      <div class="rnn-arrow">→</div>
+      <div class="rnn-cell"><div class="lbl">RNN</div><div style="font-size:10px;margin-top:4px;color:var(--muted)">t=3</div></div>
+      <div class="rnn-arrow">→</div>
+      <div class="rnn-cell"><div class="lbl">RNN</div><div style="font-size:10px;margin-top:4px;color:var(--muted)">t=n</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted)">Each cell above takes (previous hidden state + current xᵢ) as input, and produces (yᵢ + next hidden state). This is called "unrolling" the RNN across time-steps.</p>
+    <br/>
+    <p><strong>Why RNNs made sense for language:</strong> language is inherently sequential — word order changes meaning ("dog bites man" ≠ "man bites dog"). Processing tokens one-by-one, carrying context forward, mirrors how we read a sentence left to right.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>الشبكة العصبية التكرارية (Recurrent Neural Network - RNN)</strong> هي واحدة من أقدم الطرق وأكثرها منطقية لبناء صندوق Seq2Seq. بدلاً من النظر إلى كل الـ input sequence دفعة واحدة، تقرأ RNN عنصرًا واحدًا في كل مرة، بترتيب صارم، وتحمل معها ذاكرة مستمرة تُسمى <strong>الحالة الخفية (hidden state)</strong>.</p>
+    <br/>
+    <p><strong>كيف تعمل خطوة بخطوة:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>نبدأ بحالة أولية <strong>State 0</strong> (عادة كل قيمها أصفار)</li>
+      <li>في الخطوة الزمنية الأولى: نُدخل x1 مع State 0 إلى خلية RNN → تُخرج y1 وحالة جديدة State 1</li>
+      <li>في الخطوة الثانية: نُدخل x2 مع State 1 → تُخرج y2 وState 2</li>
+      <li>نُكرر هذا لكل خطوة زمنية حتى نهاية الـ sequence، مع تمرير الحالة الخفية في كل مرة</li>
+    </ol>
+    <br/>
+    <p>الفكرة الأهم: نفس خلية RNN (نفس الـ weights) تُستخدم في كل خطوة زمنية — فقط الحالة الخفية تتغير. هذه الحالة هي الطريقة الوحيدة التي تتذكر بها الشبكة كل ما رأته من قبل في الـ sequence.</p>
+    <br/>
+    <p><strong>لماذا كانت RNN منطقية للغة؟</strong> اللغة تسلسلية بطبيعتها — ترتيب الكلمات يُغيّر المعنى. معالجة الرموز واحدًا تلو الآخر، مع تمرير السياق، تُحاكي طريقة قراءتنا للجملة من اليسار لليمين.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Recurrent Neural Network (شبكة عصبية تكرارية)</strong> — model يعالج sequence خطوة بخطوة</li>
+      <li><strong>Hidden State (الحالة الخفية)</strong> — الذاكرة التي تُمرَّر بين الخطوات الزمنية</li>
+      <li><strong>Time-Step (الخطوة الزمنية)</strong> — لحظة معالجة عنصر واحد من الـ sequence</li>
+      <li><strong>Unrolling (فَك الطي)</strong> — رسم نفس الخلية مُكررة عبر الزمن لتوضيح تسلسل العمليات</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Reading "I can go alone" word by word</div>
+    <ol class="steps">
+      <li>State0=[0,0,0] , x1="I" → RNN → y1, State1</li>
+      <li>State1 , x2="can" → RNN → y2, State2 (State2 now "remembers" that "I" came before "can")</li>
+      <li>State2 , x3="go" → RNN → y3, State3</li>
+      <li>State3 , x4="alone" → RNN → y4, State4 (final state theoretically summarizes the whole sentence)</li>
+    </ol>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — RNN in One Line</div>
+    <p><strong>"Same cell, moving memory."</strong></p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">One set of weights reused at every time-step; the hidden state is the only thing that carries information from the past into the future.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 RNN processes sequences one token at a time, in order — this is called <em>sequential</em> computation</li>
+      <li>📌 The hidden state is passed from one time-step to the next and is the network's only memory of the past</li>
+      <li>📌 The same weights (same RNN cell) are reused at every time-step — this is what "recurrent" means</li>
+      <li>📌 Know how to draw the unrolled diagram: State0 → RNN(x1) → RNN(x2) → ... → RNN(xn)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>An RNN solves Seq2Seq by processing tokens one at a time, carrying a <strong>hidden state</strong> forward across <strong>time-steps</strong>. The same cell (weights) is reused every step. This sequential design is elegant, but — as the next section shows — it creates serious problems at scale.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 4</span>
+    <h2>3. RNN Problems — Why We Needed Something Better</h2>
+  </div>
+  <p class="section-subtitle">The Three Cracks in the RNN Foundation That "Attention Is All You Need" Was Written to Fix</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li>Long Sequences = Slow Computations</li>
+      <li>Vanishing and Exploding Gradients</li>
+      <li>Vanished Memory</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The unrolled, step-by-step nature of RNNs — the very thing that made them intuitive — turned out to be their biggest weakness. Three concrete problems motivated researchers to look for an alternative:</p>
+    <br/>
+
+    <div class="def-box">
+      <div class="def-term">1. Long Sequences = Slow Computations</div>
+      <p style="margin-top:6px;font-size:13px">Because each time-step depends on the output of the <em>previous</em> time-step, an RNN <strong>cannot be parallelized across the sequence</strong>. To process token 500 in a 500-word document, you must first finish processing tokens 1 through 499, one after another. On modern GPUs — which are built to do thousands of computations simultaneously — this sequential bottleneck wastes almost all of the available parallel compute power. Longer sequences simply take proportionally longer to process, with no way to speed that up through parallel hardware.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2. Vanishing and Exploding Gradients</div>
+      <p style="margin-top:6px;font-size:13px">During training, backpropagation must flow the error signal <strong>backwards through every single time-step</strong>, all the way from the last token back to the first. Each backward step multiplies the gradient by a small factor. Multiply a number slightly less than 1 by itself hundreds of times → it <strong>vanishes</strong> toward 0 (the network stops learning about early tokens). Multiply a number slightly greater than 1 hundreds of times → it <strong>explodes</strong> toward infinity (the weights become unstable, NaN values appear). Either way, training long sequences reliably becomes very difficult.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3. Vanished Memory (Long-Range Dependencies)</div>
+      <p style="margin-top:6px;font-size:13px">Even when training succeeds, the hidden state is a <strong>fixed-size vector</strong> that must summarize everything seen so far. As the sequence grows, information about early tokens gets diluted and overwritten by newer information — practically "forgotten." A model that read a 200-word paragraph may have almost no usable memory of word #3 by the time it reaches word #200. This means RNNs struggle badly with <strong>long-range dependencies</strong> — connections between words that are far apart in the sequence.</p>
+    </div>
+
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> The Bridge to Attention</div>
+      <p>All three problems share one root cause: RNNs are forced to process information <strong>sequentially, one step at a time</strong>, through a single bottleneck (the hidden state). The paper <em>"Attention Is All You Need"</em> (Vaswani et al., 2017) solved all three at once with a radical idea: let the model look at <strong>every position in the sequence simultaneously</strong>, with no sequential dependency and no single fixed-size memory bottleneck.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>طبيعة RNN التسلسلية خطوة بخطوة — وهي ما جعلها سهلة الفهم — تحوّلت إلى أكبر نقطة ضعف فيها. ثلاث مشاكل حقيقية دفعت الباحثين للبحث عن بديل:</p>
+    <br/>
+    <p><strong>١. الـ sequences الطويلة = حسابات بطيئة (Slow Computations):</strong></p>
+    <p style="font-size:14px">لأن كل time-step يعتمد على مُخرج الخطوة السابقة، لا يمكن معالجة RNN بالتوازي (parallelize) عبر الـ sequence. لمعالجة الكلمة رقم 500، يجب أولاً الانتهاء من معالجة الكلمات من 1 إلى 499 بالترتيب. هذا يهدر قدرة GPU الهائلة على التوازي.</p>
+    <br/>
+    <p><strong>٢. تلاشي وانفجار الـ Gradients (Vanishing/Exploding Gradients):</strong></p>
+    <p style="font-size:14px">أثناء التدريب، يجب أن يتدفق الـ backpropagation عكسيًا عبر كل خطوة زمنية. ضرب عدد أصغر من 1 في نفسه مئات المرات → يتلاشى الـ gradient نحو الصفر (الشبكة تتوقف عن التعلم من الكلمات الأولى). ضرب عدد أكبر من 1 مئات المرات → ينفجر نحو ما لا نهاية (تصبح الأوزان غير مستقرة).</p>
+    <br/>
+    <p><strong>٣. الذاكرة المتلاشية (Vanished Memory):</strong></p>
+    <p style="font-size:14px">حتى لو نجح التدريب، الحالة الخفية (hidden state) هي متجه بحجم ثابت يجب أن يُلخّص كل ما رآه الـ model حتى الآن. مع تزايد طول الـ sequence، تُطمس معلومات الكلمات الأولى بمعلومات أحدث — وكأنها "نُسيت" فعليًا. هذا يجعل RNN ضعيفة جدًا في التعامل مع <strong>الاعتماديات طويلة المدى (long-range dependencies)</strong>.</p>
+    <br/>
+    <p><strong>الجسر إلى Attention:</strong> كل هذه المشاكل سببها واحد: RNN مُضطرة لمعالجة المعلومات بشكل تسلسلي عبر عنق زجاجة واحد (الحالة الخفية). ورقة <em>"Attention Is All You Need"</em> حلّت الثلاثة معًا بفكرة جذرية: اجعل الـ model يرى كل المواضع في الـ sequence في نفس الوقت، بدون اعتمادية تسلسلية وبدون عنق زجاجة ذاكرة واحد.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Vanishing Gradient (تلاشي الـ gradient)</strong> — الـ gradient يقترب من الصفر فيتوقف التعلم</li>
+      <li><strong>Exploding Gradient (انفجار الـ gradient)</strong> — الـ gradient يتضخم لدرجة عدم الاستقرار</li>
+      <li><strong>Long-Range Dependency (اعتمادية طويلة المدى)</strong> — علاقة بين كلمات بعيدة عن بعضها في الجملة</li>
+      <li><strong>Parallelization (التوازي)</strong> — تنفيذ عمليات متعددة في نفس الوقت</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Vanished Memory in Action</div>
+    <p>Sentence: <em>"The trophy that the young athlete, who trained for six years despite countless setbacks and injuries, finally lifted above her head, was gold."</em></p>
+    <p style="margin-top:8px">By the time an RNN reaches "was gold" it must still remember that "the trophy" (word #2) is the subject — but everything in between has been overwriting the hidden state. This long-range dependency (trophy ↔ was gold) is exactly the kind of connection RNNs lose.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Misconceptions</div>
+    <ul class="e-list">
+      <li>❌ Thinking RNN problems are only about speed — vanishing gradients and lost memory are equally serious, independent of hardware</li>
+      <li>❌ Thinking a bigger hidden state fully fixes vanished memory — it delays the problem but does not remove the sequential bottleneck</li>
+      <li>❌ Confusing vanishing gradients (a training-time problem) with vanished memory (an inference-time information bottleneck) — they are related but distinct</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Name all three RNN problems: slow sequential computation, vanishing/exploding gradients, vanished long-range memory</li>
+      <li>📌 All three trace back to one root cause: sequential, one-step-at-a-time processing through a fixed-size hidden state</li>
+      <li>📌 This is the direct motivation for "Attention Is All You Need" (2017)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>RNNs suffer from: (1) <strong>slow sequential computation</strong> on long sequences, (2) <strong>vanishing/exploding gradients</strong> during backpropagation, and (3) <strong>vanished long-range memory</strong> in the fixed-size hidden state. These three problems are why researchers proposed replacing recurrence with attention.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 5, 9, 12, 15, 18</span>
+    <h2>4. "Attention Is All You Need" — Motivation</h2>
+  </div>
+  <p class="section-subtitle">The Recurring Banner Slide That Frames the Rest of This Lecture</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p>The deck repeats a single title banner — <strong>"Attention is All You Need"</strong> — as a section divider between each building-block topic (Vectors, Matrix Operations, Tokenizer, Embeddings, Self-Attention). It is used to keep reminding the audience that every topic covered is a stepping stone toward understanding this one paper.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><strong>"Attention Is All You Need"</strong> is the title of the famous 2017 paper by Vaswani et al. that introduced the <span class="hl">Transformer</span> architecture. Its core idea directly answers the three RNN problems from the previous section:</p>
+    <br/>
+    <ul class="e-list">
+      <li>⚡ Instead of processing tokens one-by-one, <strong>attention lets the model look at all positions in the sequence at the same time</strong> — enabling massive parallelization on GPUs</li>
+      <li>🧮 Instead of squeezing all history into one fixed-size hidden state, <strong>every token can directly "attend to" (reference) every other token</strong>, no matter how far apart they are — solving the long-range dependency / vanished memory problem</li>
+      <li>📉 Because there's no long chain of sequential recurrent steps to backpropagate through, <strong>gradients flow much more directly</strong>, greatly reducing vanishing/exploding gradient issues</li>
+    </ul>
+    <br/>
+    <p>The rest of this lecture builds up, piece by piece, exactly what is needed to understand how attention works mathematically:</p>
+    <ol class="steps">
+      <li><strong>Vectors</strong> — how any piece of data (including words) becomes a list of numbers</li>
+      <li><strong>Matrix Operations</strong> — the math that all attention computations are built from</li>
+      <li><strong>Tokenization</strong> — turning raw text into discrete units the model can index</li>
+      <li><strong>Embeddings + Positional Encoding</strong> — turning tokens into meaningful, order-aware vectors</li>
+      <li><strong>Self-Attention (Q, K, V)</strong> — the actual attention computation itself</li>
+    </ol>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Each repeated "Attention Is All You Need" banner slide in the original deck marks the transition to the next building block below.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>"Attention Is All You Need"</strong> هو عنوان الورقة البحثية الشهيرة لعام 2017 (Vaswani وآخرون) التي قدّمت بنية <span class="hl-purple">Transformer</span>. فكرتها الأساسية تُجيب مباشرة على مشاكل RNN الثلاثة السابقة:</p>
+    <br/>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>⚡ بدلًا من معالجة الرموز واحدًا تلو الآخر، تسمح الـ attention للـ model برؤية كل المواضع في الـ sequence في نفس الوقت — مما يُمكّن التوازي الكامل على GPU</li>
+      <li>🧮 بدلًا من ضغط كل التاريخ في حالة خفية واحدة ثابتة الحجم، كل token يمكنه الإشارة مباشرة (attend) إلى أي token آخر بغض النظر عن المسافة بينهما — يحل مشكلة الذاكرة المتلاشية</li>
+      <li>📉 لعدم وجود سلسلة طويلة من الخطوات التكرارية المتتالية، تتدفق الـ gradients بشكل مباشر أكثر، مما يُقلل مشاكل التلاشي والانفجار</li>
+    </ul>
+    <br/>
+    <p>باقي هذه المحاضرة يبني، قطعة بقطعة، بالضبط ما نحتاجه لفهم كيف تعمل الـ attention رياضيًا: <strong>Vectors</strong> ← <strong>Matrix Operations</strong> ← <strong>Tokenization</strong> ← <strong>Embeddings + Positional Encoding</strong> ← <strong>Self-Attention (Q, K, V)</strong>.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Transformer</strong> — البنية المعمارية التي قدمتها هذه الورقة، تعتمد بالكامل على الـ attention</li>
+      <li><strong>Attention (الانتباه)</strong> — آلية تُمكّن الـ model من "التركيز" على أجزاء معينة من الـ input</li>
+      <li><strong>Parallelization (التوازي)</strong> — معالجة كل الرموز في وقت واحد بدل التسلسل</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — A Study Group vs. a Relay Race</div>
+    <p>An RNN is like a <strong>relay race</strong>: each runner (time-step) must wait for the baton (hidden state) from the previous runner before starting, and if the baton gets a little "worn out" it may lose important information by the final runner.</p>
+    <p style="margin-top:8px">Self-attention is like a <strong>study group</strong>: everyone reads the material at the same time, and any student can directly ask any other student a question, regardless of where they're sitting — no need to pass anything down a chain.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 "Attention Is All You Need" (Vaswani et al., 2017) introduced the Transformer architecture</li>
+      <li>📌 Attention solves parallelization, long-range dependency, and gradient flow problems simultaneously</li>
+      <li>📌 Know the 5 building blocks covered in this lecture, in order: Vectors → Matrix Operations → Tokenization → Embeddings/Positional Encoding → Self-Attention</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>"Attention Is All You Need" replaces RNN recurrence with a mechanism that lets every token look at every other token directly and in parallel — solving speed, gradient, and long-range memory problems at once. The rest of the lecture builds the math needed to understand this mechanism.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 6–7</span>
+    <h2>5. Representing Data as Vectors</h2>
+  </div>
+  <p class="section-subtitle">The Foundation of All Deep Learning Math — Turning "Things" into Numbers</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 6-7 — Vectors (Patient ID example):</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Patient ID</th><th>Height (CM)</th><th>Weight (KG)</th><th>Systolic (mmHg)</th><th>Diastolic (mmHg)</th></tr>
+        <tr><td>10200</td><td>165</td><td>71</td><td>120</td><td>80</td></tr>
+        <tr><td>3600</td><td>180</td><td>92</td><td>110</td><td>85</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Before any deep learning model — RNN, CNN, or Transformer — can do a single computation, the input has to become <span class="hl">numbers</span>. A <strong>vector</strong> is simply an ordered list of numbers, and it is the universal way to represent "a thing" so that matrix math can be applied to it.</p>
+    <br/>
+    <p>The slide's toy example uses patient medical records. Instead of a patient being a vague concept, each patient becomes a row of numeric features:</p>
+    <div class="def-box">
+      <div class="def-term">Patient 10200 → Vector</div>
+      <div class="formula">[ 165, 71, 120, 80 ]</div>
+      <p style="font-size:13px">Height=165cm, Weight=71kg, Systolic=120mmHg, Diastolic=80mmHg — four numbers, four dimensions.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Patient 3600 → Vector</div>
+      <div class="formula">[ 180, 92, 110, 85 ]</div>
+    </div>
+    <br/>
+    <p>Once patients are vectors, we can do things that would be impossible with raw human-readable records: compute distances between patients, average groups of patients, feed them into a neural network layer, or compare similarity mathematically.</p>
+    <p style="margin-top:10px"><strong>Why this matters for Transformers:</strong> exactly the same idea applies to words. A word like <em>"go"</em> means nothing to a matrix multiplication — but once it becomes a vector of numbers (its <strong>embedding</strong>, covered later in this lecture), it can be multiplied, compared, and combined mathematically just like the patient vectors above. This is the single most important mental bridge in the whole lecture: <strong>anything — patients, pixels, or words — becomes math the moment it becomes a vector.</strong></p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>قبل أن يستطيع أي deep learning model — RNN أو CNN أو Transformer — تنفيذ عملية حسابية واحدة، يجب أن يتحول الـ input إلى أرقام. <strong>المتجه (Vector)</strong> هو ببساطة قائمة مُرتّبة من الأرقام، وهو الطريقة العامة لتمثيل "أي شيء" حتى تنطبق عليه رياضيات المصفوفات (matrix math).</p>
+    <br/>
+    <p>مثال الشريحة يستخدم سجلات طبية للمرضى. بدلًا من أن يكون المريض مفهومًا عامًا، يتحول كل مريض إلى صف من الميزات (features) الرقمية:</p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>Patient 10200 → [165, 71, 120, 80] (الطول، الوزن، الضغط الانقباضي، الضغط الانبساطي)</li>
+      <li>Patient 3600 → [180, 92, 110, 85]</li>
+    </ul>
+    <br/>
+    <p>بمجرد أن يصبح المرضى vectors، يمكننا فعل أشياء مستحيلة مع السجلات النصية الخام: حساب المسافة بين مريضين، حساب متوسط مجموعة من المرضى، تمريرها إلى طبقة neural network، أو مقارنة التشابه رياضيًا.</p>
+    <br/>
+    <p><strong>لماذا هذا مهم للـ Transformers؟</strong> الفكرة نفسها تنطبق على الكلمات. كلمة مثل "go" لا تعني شيئًا لعملية ضرب مصفوفات — لكن بمجرد أن تصبح vector من الأرقام (يُسمى embedding، سنغطيه بعد قليل)، يمكن ضربها ومقارنتها ودمجها رياضيًا تمامًا كما فعلنا مع vectors المرضى أعلاه. هذا هو الجسر الفكري الأهم في هذه المحاضرة كاملة: <strong>أي شيء — مرضى، بيكسلات، أو كلمات — يتحول إلى رياضيات بمجرد أن يصبح vector.</strong></p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Vector (متجه)</strong> — قائمة مُرتّبة من الأرقام</li>
+      <li><strong>Feature (ميزة)</strong> — كل رقم في الـ vector يمثل خاصية معينة (الطول، الوزن...)</li>
+      <li><strong>Dimension (بُعد)</strong> — عدد الأرقام في الـ vector</li>
+      <li><strong>Embedding (تضمين)</strong> — vector يمثل معنى كلمة (سنغطيه لاحقًا)</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Comparing Two Patients Mathematically</div>
+    <p>Once represented as vectors, we can measure how "similar" two patients are just by comparing numbers:</p>
+    <pre><code>Patient A = [165, 71, 120, 80]
+Patient B = [180, 92, 110, 85]
+Difference = [15, 21, -10, 5]  → larger numbers = bigger difference on that feature</code></pre>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">This is exactly the same style of computation used later to compare word vectors for similarity in embedding space.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Vectors</div>
+    <p><strong>"If it can be measured, it can be a vector."</strong></p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Height, weight, blood pressure, pixel brightness, word meaning — all become lists of numbers before a model can touch them.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 A vector is an ordered list of numbers representing some entity's features</li>
+      <li>📌 Know the patient example: 4 medical measurements → a 4-dimensional vector</li>
+      <li>📌 This concept generalizes directly to words: word → embedding vector (covered in Section 8)</li>
+      <li>📌 All neural network math (matrix multiplication, attention) operates on vectors, never on raw text or raw records</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Any real-world entity (a patient, a pixel, a word) can be represented as a <strong>vector</strong> — an ordered list of numbers. This is the foundational trick that lets deep learning models apply matrix math to anything, including language.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 8</span>
+    <h2>6. Matrix Operations Refresher</h2>
+  </div>
+  <p class="section-subtitle">The Only Math Operation Attention Actually Uses: Matrix Multiplication</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 8 — Matrices Operations:</strong> A weight-like matrix [w1 w2 w3 w4] (shape 4×5) multiplied by an input-like matrix [d1 d2 d3 d4 d5] (shape 5×4) produces an output matrix [z1 z2 z3 z4] (shape 4×4).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Once data is represented as vectors, those vectors get stacked into <span class="hl">matrices</span> (grids of numbers), and almost everything a neural network does — including every step of self-attention — boils down to <strong>matrix multiplication</strong>.</p>
+    <br/>
+    <p><strong>The rule for matrix multiplication:</strong> to multiply matrix A (shape <em>m × k</em>) by matrix B (shape <em>k × n</em>), the "inner" dimensions <strong>must match</strong> (both are <em>k</em>). The result is a new matrix of shape <em>m × n</em>. Each output value is computed as the <strong>dot product</strong> of a row from A with a column from B (multiply corresponding elements, then sum them).</p>
+    <div class="formula">A (m × k) &nbsp;·&nbsp; B (k × n) &nbsp;=&nbsp; C (m × n)</div>
+    <br/>
+    <p>The slide's generic example uses a 4×5 matrix multiplied by a 5×4 matrix, producing a 4×4 result:</p>
+    <div style="text-align:center;margin:14px 0">
+      <span class="mat-box">W<div class="mat-dim">4 × 5</div></span>
+      <span style="font-size:18px;color:var(--muted)">×</span>
+      <span class="mat-box">D<div class="mat-dim">5 × 4</div></span>
+      <span style="font-size:18px;color:var(--muted)">=</span>
+      <span class="mat-box">Z<div class="mat-dim">4 × 4</div></span>
+    </div>
+    <p style="font-size:13px">Notice the matching inner dimension (both are 5) cancels out, leaving the outer dimensions (4 and 4) as the shape of the result — this "inner dimensions must match, outer dimensions survive" rule is the single most useful thing to memorize about matrix multiplication for this course.</p>
+    <br/>
+    <p><strong>Why this matters for attention:</strong> every operation you'll see in self-attention — computing Q, K, V from the input, computing Q·Kᵀ, multiplying attention weights by V — is exactly this same operation: take two matrices whose inner dimensions match, multiply them, get a new matrix. There is no new or exotic math in attention; it is entirely built from the matrix multiplication you just reviewed.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بمجرد أن تصبح البيانات vectors، تُجمَّع هذه الـ vectors في <strong>matrices (مصفوفات)</strong> — شبكات من الأرقام — وتقريبًا كل ما تفعله الشبكة العصبية، بما فيها كل خطوة في self-attention، يعتمد على <strong>ضرب المصفوفات (matrix multiplication)</strong>.</p>
+    <br/>
+    <p><strong>قاعدة ضرب المصفوفات:</strong> لضرب مصفوفة A بحجم (m × k) في مصفوفة B بحجم (k × n)، يجب أن يتطابق البُعد "الداخلي" (k في الحالتين). النتيجة تكون مصفوفة جديدة بحجم (m × n). كل قيمة في النتيجة تُحسب كـ dot product (حاصل الضرب النقطي) لصف من A مع عمود من B.</p>
+    <br/>
+    <p>مثال الشريحة يستخدم مصفوفة بحجم 4×5 مضروبة في مصفوفة بحجم 5×4، فتُعطي نتيجة بحجم 4×4. لاحظ أن البُعد المشترك (5) يُحذف، ويبقى البُعدان الخارجيان (4 و4) كحجم للنتيجة. هذه القاعدة — "الأبعاد الداخلية يجب أن تتطابق، والأبعاد الخارجية هي التي تبقى" — هي أهم شيء يجب حفظه عن ضرب المصفوفات في هذا المقرر.</p>
+    <br/>
+    <p><strong>لماذا هذا مهم للـ attention؟</strong> كل عملية ستراها في self-attention — حساب Q و K و V من الـ input، حساب Q·Kᵀ، ضرب أوزان الـ attention في V — هي بالضبط نفس هذه العملية: أخذ مصفوفتين أبعادهما الداخلية متطابقة، وضربهما للحصول على مصفوفة جديدة. لا توجد رياضيات جديدة أو غريبة في الـ attention؛ كلها مبنية على ضرب المصفوفات الذي راجعناه.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Matrix (مصفوفة)</strong> — شبكة مستطيلة من الأرقام (صفوف × أعمدة)</li>
+      <li><strong>Matrix Multiplication (ضرب المصفوفات)</strong> — العملية الأساسية التي تبني كل شبكات التعلم العميق</li>
+      <li><strong>Dot Product (الضرب النقطي)</strong> — ضرب عناصر متقابلة ثم جمعها</li>
+      <li><strong>Shape / Dimension (الشكل/البُعد)</strong> — عدد الصفوف والأعمدة في المصفوفة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Mini-Example — 2×2</div>
+    <p>To build intuition with small numbers before scaling up to 4×512 attention matrices:</p>
+    <pre><code>A (2x2) = [[1, 2],      B (2x2) = [[5, 6],
+           [3, 4]]                  [7, 8]]
+
+A · B = [[1*5+2*7, 1*6+2*8],   =  [[19, 22],
+         [3*5+4*7, 3*6+4*8]]       [43, 50]]</code></pre>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">Each output cell = dot product of a row from A and a column from B. Scale this idea up to 4×512 and 512×4 and you have exactly the Q·Kᵀ computation coming up in Section 9.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Matrix multiplication rule: (m×k) · (k×n) = (m×n) — inner dimensions must match</li>
+      <li>📌 Each output element is a dot product of a row and a column</li>
+      <li>📌 Every self-attention computation (Q, K, V projections, QKᵀ, weighted sum with V) is matrix multiplication — nothing more exotic</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Matrix multiplication: (m×k)·(k×n)=(m×n), inner dimensions must match. The slide's 4×5 · 5×4 = 4×4 example is a rehearsal for the exact shapes used in self-attention later in this lecture.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>7. Tokenization</h2>
+  </div>
+  <p class="section-subtitle">Turning Raw Text into Discrete, Indexable Units</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 10 — Tokenizer:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Token</th><th>ID</th></tr>
+        <tr><td>Hello</td><td>1</td></tr>
+        <tr><td>Go</td><td>2</td></tr>
+        <tr><td>ed</td><td>3</td></tr>
+        <tr><td>..</td><td>..</td></tr>
+        <tr><td>red</td><td>32000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl">Tokenizer</span> is the very first step of turning text into something a model can compute with. It breaks raw text into small chunks called <strong>tokens</strong>, and maps every possible token to a unique whole number called a <strong>Token ID</strong>, using a fixed lookup table called the <strong>vocabulary</strong>.</p>
+    <br/>
+    <p><strong>Why not just use whole words?</strong> Using entire words as tokens would require a vocabulary large enough to contain every word in every form (walk, walks, walked, walking...) which is huge and can't handle new/unseen words. Modern tokenizers instead use <strong>subword tokenization</strong>: common whole words get their own token ("Hello", "Go"), while rarer or longer words get split into smaller reusable pieces (like the suffix "ed", as in the slide's example). This way a fixed vocabulary of about <strong>32,000 tokens</strong> (the size shown in the slide) can represent effectively unlimited text, including words the tokenizer has never seen as whole units — by reassembling them from familiar pieces.</p>
+    <div class="def-box">
+      <div class="def-term">Mini Vocabulary Example (from the slide)</div>
+      <div class="table-wrap">
+        <table>
+          <tr><th>Token</th><th>Token ID</th></tr>
+          <tr><td><code>Hello</code></td><td>1</td></tr>
+          <tr><td><code>Go</code></td><td>2</td></tr>
+          <tr><td><code>ed</code></td><td>3</td></tr>
+          <tr><td>...</td><td>...</td></tr>
+          <tr><td><code>red</code></td><td>32000</td></tr>
+        </table>
+      </div>
+      <p style="font-size:13px;margin-top:6px">Note "Go" and "ed" are separate tokens — a word like "Go" + "ed" could combine subword pieces to represent "Goed"-style constructions, illustrating the subword idea (in real tokenizers, the actual past tense of "go" is irregular ("went"), but this simplified slide example is meant purely to demonstrate the mechanism).</p>
+    </div>
+    <br/>
+    <p><strong>The result of tokenization</strong> is that a sentence like "I can go alone" becomes a list of Token IDs — plain integers — which is the first concrete numeric representation of the sentence, ready to be looked up in an embedding table (next section).</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>المُرمِّز (Tokenizer)</strong> هو أول خطوة فعلية لتحويل النص إلى شيء يمكن للـ model حسابه. يُقسّم النص الخام إلى قطع صغيرة تُسمى <strong>tokens</strong>، ويُطابق كل token ممكن مع رقم صحيح فريد يُسمى <strong>Token ID</strong>، باستخدام جدول ثابت يُسمى <strong>vocabulary (المفردات)</strong>.</p>
+    <br/>
+    <p><strong>لماذا لا نستخدم الكلمات الكاملة فقط؟</strong> استخدام الكلمات الكاملة كـ tokens يتطلب vocabulary ضخم يحتوي كل كلمة بكل صيغها (walk, walks, walked, walking...) وهذا كبير جدًا ولا يستطيع التعامل مع كلمات جديدة لم يرها من قبل. المُرمِّزات الحديثة تستخدم بدلًا من ذلك <strong>subword tokenization (ترميز الكلمات الجزئية)</strong>: الكلمات الشائعة تحصل على token خاص بها ("Hello"، "Go")، بينما الكلمات الأطول أو النادرة تُقسَّم إلى قطع أصغر قابلة لإعادة الاستخدام (مثل اللاحقة "ed" في مثال الشريحة). بهذه الطريقة يمكن لـ vocabulary ثابت من حوالي <strong>32000 token</strong> (الحجم المذكور في الشريحة) أن يُمثّل نصًا غير محدود عمليًا، حتى الكلمات التي لم يرها الـ tokenizer كوحدة كاملة — عن طريق إعادة تجميعها من قطع مألوفة.</p>
+    <br/>
+    <p><strong>نتيجة الترميز:</strong> جملة مثل "I can go alone" تتحول إلى قائمة من Token IDs — أعداد صحيحة بسيطة — وهذا أول تمثيل رقمي فعلي للجملة، جاهز للبحث عنه في جدول embedding (القسم التالي).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Tokenizer (المُرمِّز)</strong> — يُقسّم النص إلى tokens</li>
+      <li><strong>Token</strong> — أصغر وحدة نصية يتعامل معها الـ model (كلمة، جزء كلمة، أو حرف)</li>
+      <li><strong>Token ID</strong> — الرقم الصحيح الفريد المُخصص لكل token</li>
+      <li><strong>Vocabulary (المفردات)</strong> — القائمة الكاملة لكل الـ tokens الممكنة والـ IDs المرتبطة بها</li>
+      <li><strong>Subword Tokenization (ترميز الكلمة الجزئية)</strong> — تقسيم الكلمات النادرة إلى قطع أصغر مألوفة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Tokenizing "I can go alone"</div>
+    <pre><code>Raw Text:     "I can go alone"
+Tokens:       ["I", "can", "go", "alone"]
+Token IDs:    [105, 255, 1001, 600]</code></pre>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">These exact IDs are used consistently as the running example throughout the rest of this lecture (embeddings, positional encoding, self-attention).</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Tokenization</div>
+    <p><strong>"Text → Pieces → Numbers."</strong></p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">A tokenizer never invents new numbers on the fly — it always looks a piece of text up in a fixed vocabulary table to find its ID.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Tokenizer maps text → tokens → Token IDs using a fixed vocabulary</li>
+      <li>📌 Subword tokenization allows a fixed vocabulary (~32,000 tokens in the example) to represent unlimited text, including unseen words</li>
+      <li>📌 Token IDs are just integers — they carry no meaning by themselves until turned into embeddings</li>
+      <li>📌 Know the running example: "I can go alone" → [105, 255, 1001, 600]</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Tokenization breaks text into <strong>tokens</strong> (often subwords) and maps each to a <strong>Token ID</strong> using a fixed <strong>vocabulary</strong> (~32,000 entries). This produces the first numeric representation of text, ready for embedding lookup.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 11, 13–14</span>
+    <h2>8. From Text to Embeddings — The Full Input Pipeline</h2>
+  </div>
+  <p class="section-subtitle">Text → Tokens → Input IDs → Embeddings → + Positional Embeddings → Encoder Input</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 11:</strong> Input "I can go alone" → Input Tokens → Input IDs [105, 255, 1001, 600] → Embeddings (each a 512-dimensional vector of decimal numbers, d_model=512).</p>
+    <p style="margin-top:8px"><strong>Slides 13–14:</strong> Embeddings + Positional Embeddings (element-wise addition) = Encoder Input. Same Input Tokens/IDs repeated to emphasize the pipeline flow.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This section chains together everything learned so far — vectors, matrices, and tokenization — into the complete pipeline that turns raw text into the actual numeric input a Transformer's encoder receives.</p>
+    <br/>
+    <p><strong>The full pipeline, step by step:</strong></p>
+    <ol class="steps">
+      <li><strong>Raw text</strong>: "I can go alone"</li>
+      <li><strong>Tokenization</strong>: split into tokens ["I", "can", "go", "alone"]</li>
+      <li><strong>Input IDs</strong>: look up each token in the vocabulary → [105, 255, 1001, 600]</li>
+      <li><strong>Embedding lookup</strong>: use each Input ID to look up a row in a learned <strong>embedding table</strong> (a big matrix with one row per vocabulary entry). Each row is a dense vector of size <strong>d_model = 512</strong> (the dimensionality used in the original Transformer paper) — so "I" might become a 512-number vector like [103.65, 636.22, 639.22, ..., 152.06]</li>
+      <li><strong>Add Positional Embeddings</strong>: a second 512-dimensional vector, one per position (1st, 2nd, 3rd, 4th word), added element-wise to the token embedding</li>
+      <li><strong>Encoder Input</strong>: the final 4×512 matrix (4 tokens, 512 dimensions each) that actually enters the Transformer's encoder</li>
+    </ol>
+    <div class="formula">Encoder Input = Token Embedding + Positional Embedding &nbsp;(element-wise, same shape)</div>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Embedding — what it actually is</div>
+      <p style="font-size:13px;margin-top:6px">An embedding is a <strong>dense vector representation of a token's meaning</strong>, learned during training. Words with similar meanings end up with similar vectors (close together in the 512-dimensional space). This is the same "represent anything as a vector" idea from Section 5 (patients → vectors), just applied to word tokens instead of patients.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Why we need Positional Embeddings — the key insight</div>
+      <p style="font-size:13px;margin-top:6px">An RNN naturally knows word order, because it reads tokens one at a time, in sequence (Section 2). But <strong>self-attention has no such built-in sense of order</strong> — mathematically, it treats the input as a <em>set</em> of tokens rather than an ordered sequence; swapping two input positions would otherwise produce the exact same attention computation. To give the model a way to distinguish "I can go alone" from "alone go can I", the Transformer adds a distinct <strong>positional embedding vector</strong> to each token embedding — one vector for "1st position", a different one for "2nd position", and so on. This injects order information directly into the numbers the model computes with, without needing any recurrence.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذا القسم يربط كل ما تعلمناه — vectors، matrices، وtokenization — في خط أنابيب (pipeline) كامل يُحوّل النص الخام إلى المُدخل الرقمي الفعلي الذي يستقبله الـ encoder في الـ Transformer.</p>
+    <br/>
+    <p><strong>خط الأنابيب الكامل خطوة بخطوة:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>النص الخام</strong>: "I can go alone"</li>
+      <li><strong>الترميز (Tokenization)</strong>: تقسيم إلى tokens ["I", "can", "go", "alone"]</li>
+      <li><strong>Input IDs</strong>: البحث عن كل token في الـ vocabulary → [105, 255, 1001, 600]</li>
+      <li><strong>البحث عن Embedding</strong>: استخدام كل Input ID للبحث عن صف في <strong>جدول embedding</strong> مُتعلَّم (مصفوفة كبيرة صف لكل عنصر في الـ vocabulary). كل صف هو vector كثيف بحجم <strong>d_model = 512</strong> (البُعد المستخدم في ورقة Transformer الأصلية)</li>
+      <li><strong>إضافة Positional Embeddings</strong>: vector ثانٍ بحجم 512، واحد لكل موضع (الأول، الثاني، الثالث، الرابع)، يُضاف عنصر-بعنصر إلى embedding التوكن</li>
+      <li><strong>Encoder Input</strong>: المصفوفة النهائية بحجم 4×512 (4 tokens، 512 بُعد لكل واحد) التي تدخل فعليًا إلى الـ encoder</li>
+    </ol>
+    <br/>
+    <p><strong>الـ Embedding — ما هو فعليًا؟</strong> هو تمثيل vector كثيف لمعنى الـ token، يتم تعلمه أثناء التدريب. الكلمات المتشابهة في المعنى تنتهي بـ vectors متشابهة (قريبة من بعضها في الفضاء 512-بُعدي). هذه نفس فكرة "تمثيل أي شيء كـ vector" من القسم الخامس (المرضى → vectors)، مُطبَّقة هنا على tokens الكلمات بدلًا من المرضى.</p>
+    <br/>
+    <p><strong>لماذا نحتاج Positional Embeddings — الفكرة الجوهرية:</strong> RNN تعرف ترتيب الكلمات بشكل طبيعي، لأنها تقرأ الرموز واحدًا تلو الآخر بالترتيب (القسم الثاني). لكن <strong>self-attention لا تملك أي إحساس مدمج بالترتيب</strong> — رياضيًا، تُعامل الـ input كـ "مجموعة" (set) من الـ tokens بدلاً من sequence مُرتّبة؛ لو بدّلنا موضعين في الـ input، كانت ستُعطي نفس حساب الـ attention تمامًا. لإعطاء الـ model طريقة للتمييز بين "I can go alone" و"alone go can I"، يضيف الـ Transformer <strong>positional embedding vector</strong> مميز لكل embedding توكن — vector واحد "للموضع الأول"، وآخر مختلف "للموضع الثاني"، وهكذا. هذا يُدخل معلومة الترتيب مباشرة في الأرقام التي يحسب بها الـ model، بدون الحاجة لأي تكرار (recurrence).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Embedding (تضمين)</strong> — vector كثيف يمثل معنى token</li>
+      <li><strong>Embedding Table (جدول التضمين)</strong> — مصفوفة تحتوي vector واحد لكل عنصر في الـ vocabulary</li>
+      <li><strong>d_model</strong> — عدد أبعاد الـ embedding (512 في الورقة الأصلية)</li>
+      <li><strong>Positional Embedding (تضمين الموضع)</strong> — vector يُضاف لإعطاء معلومة الترتيب</li>
+      <li><strong>Encoder Input (مُدخل الـ encoder)</strong> — النتيجة النهائية بعد الجمع، الجاهزة لدخول الـ Transformer</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — The Full Pipeline for "I can go alone"</div>
+    <pre><code>Raw Text        : "I can go alone"
+Input Tokens    : [ I, can, go, alone ]
+Input IDs       : [ 105, 255, 1001, 600 ]
+
+Token Embeddings (4 x 512, showing 1st & last dims only):
+  I     -> [103.65, ..., 152.06]
+  can   -> [636.22, ..., 636.28]
+  go    -> [639.22, ..., 96.35]
+  alone -> [986.22, ..., 12.78]
+
+            +  (element-wise)
+
+Positional Embeddings (4 x 512, one fixed vector per position):
+  pos 1 -> [ ... ]
+  pos 2 -> [ ... ]
+  pos 3 -> [ ... ]
+  pos 4 -> [ ... ]
+
+            =
+
+Encoder Input (4 x 512) --> ready for Self-Attention</code></pre>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>Positional embeddings are <strong>added</strong> to token embeddings (element-wise sum), not concatenated. Both vectors are the same size (512), so the addition keeps the final Encoder Input matrix the same shape (4×512) — it does not grow to 4×1024.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the full 6-step pipeline: text → tokens → Input IDs → embedding lookup → + positional embedding → Encoder Input</li>
+      <li>📌 d_model = 512 in the original "Attention Is All You Need" paper</li>
+      <li>📌 Positional embeddings solve the order-blindness of self-attention (RNNs don't need this because they process sequentially)</li>
+      <li>📌 Token embedding + positional embedding are added element-wise, same dimensionality</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pipeline: <strong>text → tokens → Input IDs → embeddings (d_model=512) → + positional embeddings → Encoder Input</strong>. Embeddings capture meaning; positional embeddings inject order, since self-attention has no built-in sense of sequence.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 16–17, 19–22</span>
+    <h2>9. Self-Attention Mechanics — Q, K, V and Scaled Dot-Product Attention</h2>
+  </div>
+  <p class="section-subtitle">The Heart of the Transformer — Fully Explained (Continues in Lecture 19)</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 16 — Self-Attention:</strong> d_k = d_model = 512, seq = 4. Compute Q · Kᵀ over "I can go alone" (4×512 times 512×4 = 4×4), then softmax(·/√512), producing a 4×4 attention weight matrix (e.g., row "I" = [0.7, 0.2, 0.1, 0.1]).</p>
+    <p style="margin-top:8px"><strong>Slide 17:</strong> Multiply the 4×4 attention weight matrix by V (4×512) → final output (4×512).</p>
+    <p style="margin-top:8px"><strong>Slides 19–20 — Multi-Head Attention:</strong> Input × W^Q, W^K, W^V (each d_model×d_model) → Q', K', V' split into h=4 heads, each with d_k=d_v=d_model/h; per-head self-attention → concatenate heads → multiply by W^O → MultiHead output.</p>
+    <p style="margin-top:8px"><strong>Slides 21–22 — Query, Key & Value analogy:</strong> Key/Value pairs (Food→Rice, Computers→Keyboard, Cleaning→Soap, Office→Papers), Query = "Pasta".</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Self-attention is the mechanism that finally answers the question raised back in Section 4: <strong>how can every token look at every other token directly, in parallel, without recurrence?</strong> The answer is built from exactly the vectors, matrices, and embeddings covered in the previous sections.</p>
+    <br/>
+
+    <div class="def-box">
+      <div class="def-term">Step 1 — Three learned projections: Query (Q), Key (K), Value (V)</div>
+      <p style="font-size:13px;margin-top:6px">Starting from the Encoder Input (the 4×512 matrix from Section 8), the model creates <strong>three different views</strong> of the same input by multiplying it by three separate learned weight matrices:</p>
+      <div class="formula">Q = Input · W<sup>Q</sup> &nbsp;&nbsp; K = Input · W<sup>K</sup> &nbsp;&nbsp; V = Input · W<sup>V</sup></div>
+      <p style="font-size:13px">In the original Transformer, d_k = d_model = 512, and the sequence length here is 4 ("I can go alone"), so Q and K are each 4×512 matrices.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">What Q, K, and V intuitively represent</div>
+      <ul class="e-list" style="margin-top:6px">
+        <li>🔍 <strong>Query (Q)</strong> — "What am I looking for?" A representation of the current token's question to the rest of the sequence</li>
+        <li>🔑 <strong>Key (K)</strong> — "What do I contain?" A representation of what each token in the sequence has to offer, used to be matched against queries</li>
+        <li>📦 <strong>Value (V)</strong> — "What do I actually give you once matched?" The actual content/information that gets passed forward once a query finds a relevant key</li>
+      </ul>
+      <p style="font-size:13px;margin-top:8px">The slide's pantry analogy makes this concrete: imagine a set of Key → Value pairs — <em>Food → Rice, Computers → Keyboard, Cleaning → Soap, Office → Papers</em>. If your <strong>Query</strong> is "Pasta", it should match most strongly with the <strong>Key</strong> "Food" (since pasta is a food item), and so you'd retrieve the associated <strong>Value</strong>, "Rice" (something also filed under Food). Self-attention does exactly this kind of matching — but instead of exact string matches, it uses the dot product between Q and K vectors as a continuous, learnable notion of "how well does this query match this key."</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Step 2 — Scaled Dot-Product Attention (the full formula)</div>
+      <p style="font-size:13px;margin-top:6px">For every token's Query, we compare it against every token's Key using a dot product (Q·Kᵀ), scale the result down, turn it into probabilities with softmax, and use those probabilities to take a weighted average of the Value vectors:</p>
+      <div class="formula">Attention(Q, K, V) = softmax( Q·K<sup>T</sup> / √d<sub>k</sub> ) · V</div>
+      <p style="font-size:13px"><strong>Shapes for our example</strong> (seq=4, d_k=d_model=512):</p>
+      <div style="text-align:center;margin:10px 0">
+        <span class="mat-box">Q<div class="mat-dim">4 × 512</div></span>
+        <span style="color:var(--muted)">·</span>
+        <span class="mat-box">K<sup>T</sup><div class="mat-dim">512 × 4</div></span>
+        <span style="color:var(--muted)">=</span>
+        <span class="mat-box">scores<div class="mat-dim">4 × 4</div></span>
+      </div>
+      <p style="font-size:13px">This 4×4 "scores" matrix answers: for each of the 4 words, how much should it attend to each of the other 4 words (including itself)? After scaling by √d_k and applying softmax row-wise, each row sums to 1.0 and represents a probability distribution — the attention weights.</p>
+      <pre><code>Attention weights (after softmax, one row per query word):
+        I     can    go     alone
+I     [0.7,  0.2,   0.1,   0.1 ]
+can   [0.3,  0.5,   0.1,   0.1 ]
+go    [0.1,  0.3,   0.4,   0.2 ]
+alone [0.05, 0.05,  0.1,   0.8 ]</code></pre>
+      <p style="font-size:13px">Reading row "I": when computing the new representation for the word "I", the model pays 70% attention to "I" itself, 20% to "can", 10% to "go", and 10% to "alone".</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Step 3 — Why divide by √d_k? (the scaling factor)</div>
+      <p style="font-size:13px;margin-top:6px">As d_k (the embedding dimension, 512 here) grows, the raw dot products Q·Kᵀ tend to grow very large in magnitude, simply because they are sums of 512 multiplied terms. Feeding very large numbers into softmax makes it extremely "peaked" — one value gets a probability near 1 and all others collapse toward 0, which produces near-zero gradients and makes learning unstable. Dividing by √d_k rescales the dot products back down to a range where softmax behaves smoothly and gradients keep flowing normally. This single division is what makes the formula <strong>"scaled"</strong> dot-product attention.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Step 4 — Multiplying attention weights by V</div>
+      <p style="font-size:13px;margin-top:6px">The final step multiplies the 4×4 attention-weight matrix by the Value matrix V (4×512), producing the self-attention output (4×512) — the same shape as the input, but now every token's vector is a weighted blend of the Value vectors of every token it attends to.</p>
+      <div style="text-align:center;margin:10px 0">
+        <span class="mat-box">weights<div class="mat-dim">4 × 4</div></span>
+        <span style="color:var(--muted)">·</span>
+        <span class="mat-box">V<div class="mat-dim">4 × 512</div></span>
+        <span style="color:var(--muted)">=</span>
+        <span class="mat-box">output<div class="mat-dim">4 × 512</div></span>
+      </div>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Step 5 — Multi-Head Attention (the natural extension)</div>
+      <p style="font-size:13px;margin-top:6px">Instead of computing self-attention just once, the Transformer runs it <strong>h times in parallel</strong> ("heads"), each with its own separately learned W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup> projection matrices, and each working in a smaller dimension d_k = d_v = d_model / h. In the original paper, h = 8 heads. Each head can learn to focus on a different kind of relationship (e.g., one head might specialize in subject-verb relationships, another in nearby-word patterns). The h outputs (each seq × d_v) are concatenated back together and passed through one more learned matrix W<sup>O</sup> to produce the final MultiHead attention output, the same overall shape as a single-head output would have been.</p>
+      <div class="formula">MultiHead(Q,K,V) = Concat(head₁, head₂, ..., head<sub>h</sub>) · W<sup>O</sup></div>
+      <p style="font-size:13px">Intuition: rather than one attention mechanism trying to capture every kind of relationship at once, multiple smaller attention mechanisms each specialize, and their combined output is richer than any single head alone.</p>
+    </div>
+
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> What's Next — Lecture 19</div>
+      <p>This lecture (Part 1) covers the foundational self-attention mechanism up through multi-head attention. <strong>Lecture 19 (Part 2) continues this topic</strong> with the remaining Transformer pieces: masked (causal) self-attention for decoders, the full Encoder-Decoder architecture, and how the model is trained and used at inference time to generate output sequences token by token.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Self-Attention</strong> هي الآلية التي تُجيب أخيرًا على السؤال الذي طرحناه في القسم الرابع: <strong>كيف يمكن لكل token أن يرى كل token آخر مباشرة، بالتوازي، بدون recurrence؟</strong> الإجابة مبنية بالضبط على الـ vectors والـ matrices والـ embeddings التي غطيناها في الأقسام السابقة.</p>
+    <br/>
+    <p><strong>الخطوة ١ — ثلاثة تمثيلات مُتعلَّمة: Query (Q)، Key (K)، Value (V):</strong></p>
+    <p style="font-size:14px">بدءًا من Encoder Input (المصفوفة 4×512 من القسم الثامن)، يُنشئ الـ model ثلاث "وجهات نظر" مختلفة للـ input نفسه بضربه في ثلاث مصفوفات أوزان مُتعلَّمة منفصلة: Q = Input·W^Q ، K = Input·W^K ، V = Input·W^V. في الـ Transformer الأصلي، d_k = d_model = 512، وطول الـ sequence هنا 4 ("I can go alone")، فتكون Q وK كل واحدة منهما بحجم 4×512.</p>
+    <br/>
+    <p><strong>ماذا تمثل Q، K، وV بشكل بديهي؟</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>🔍 <strong>Query (الاستعلام)</strong> — "ماذا أبحث عنه؟" تمثيل لسؤال الـ token الحالي لباقي الـ sequence</li>
+      <li>🔑 <strong>Key (المفتاح)</strong> — "ماذا أحتوي؟" تمثيل لما يُقدّمه كل token في الـ sequence، يُستخدم للمطابقة مع الاستعلامات</li>
+      <li>📦 <strong>Value (القيمة)</strong> — "ماذا أُعطيك فعليًا بعد المطابقة؟" المحتوى الفعلي الذي يُمرَّر بعد أن يجد الاستعلام مفتاحًا مناسبًا</li>
+    </ul>
+    <p style="font-size:14px;margin-top:8px">مثال المخزن في الشريحة يُوضّح الفكرة: لدينا زوج Key→Value مثل <em>Food→Rice، Computers→Keyboard، Cleaning→Soap، Office→Papers</em>. إذا كان الاستعلام (Query) هو "Pasta"، فيجب أن يتطابق بأقوى شكل مع المفتاح (Key) "Food" (لأن المعكرونة نوع طعام)، فنسترجع القيمة (Value) المرتبطة "Rice". Self-attention تفعل نفس نوع المطابقة، لكن بدلًا من التطابق الحرفي، تستخدم الضرب النقطي بين متجهات Q وK كمقياس مستمر ومُتعلَّم لـ "مدى تطابق هذا الاستعلام مع هذا المفتاح".</p>
+    <br/>
+    <p><strong>الخطوة ٢ — Scaled Dot-Product Attention (المعادلة الكاملة):</strong></p>
+    <p style="font-size:14px">لكل Query لكل token، نُقارنه بكل Key لكل token باستخدام الضرب النقطي (Q·Kᵀ)، نُصغّر النتيجة (scaling)، نُحوّلها لاحتمالات باستخدام softmax، ثم نستخدم هذه الاحتمالات لأخذ متوسط مُوزَّن (weighted average) لمتجهات V:</p>
+    <div class="formula" style="direction:ltr">Attention(Q, K, V) = softmax( Q·K<sup>T</sup> / √d<sub>k</sub> ) · V</div>
+    <p style="font-size:14px">مصفوفة النتائج (scores) بحجم 4×4 تُجيب: لكل كلمة من الأربعة، كم يجب أن تُركّز (attend) على كل كلمة أخرى (بما فيها نفسها)؟ بعد التصغير بـ√d_k وتطبيق softmax على كل صف، يصبح مجموع كل صف = 1.0 ويمثل توزيعًا احتماليًا — أوزان الـ attention.</p>
+    <br/>
+    <p><strong>الخطوة ٣ — لماذا نقسم على √d_k؟</strong></p>
+    <p style="font-size:14px">مع زيادة d_k (بُعد الـ embedding، 512 هنا)، تميل نتائج الضرب النقطي Q·Kᵀ للنمو بشكل كبير جدًا، لأنها مجموع 512 حاصل ضرب. تغذية softmax بأرقام كبيرة جدًا تجعلها "حادة" للغاية — قيمة واحدة تحصل على احتمال قريب من 1 وكل القيم الأخرى تنهار قريبًا من 0، وهذا يُنتج gradients قريبة من الصفر ويجعل التعلم غير مستقر. القسمة على √d_k تُعيد تحجيم النتائج إلى مدى تعمل فيه softmax بسلاسة وتستمر الـ gradients بالتدفق بشكل طبيعي. هذه القسمة هي ما يجعل المعادلة "scaled" dot-product attention.</p>
+    <br/>
+    <p><strong>الخطوة ٤ — ضرب أوزان الـ attention في V:</strong></p>
+    <p style="font-size:14px">الخطوة الأخيرة تضرب مصفوفة أوزان الـ attention (4×4) في مصفوفة القيم V (4×512)، فتُنتج مُخرج self-attention (4×512) — نفس حجم الـ input، لكن الآن كل متجه token هو خليط مُوزَّن من متجهات Value لكل الـ tokens التي يُركّز عليها.</p>
+    <br/>
+    <p><strong>الخطوة ٥ — Multi-Head Attention (الامتداد الطبيعي):</strong></p>
+    <p style="font-size:14px">بدلًا من حساب self-attention مرة واحدة فقط، يُشغّل الـ Transformer العملية <strong>h مرة بالتوازي</strong> ("رؤوس" heads)، كل رأس له مصفوفات W^Q و W^K و W^V مُتعلَّمة بشكل منفصل، ويعمل في بُعد أصغر d_k = d_v = d_model/h. في الورقة الأصلية، h=8 رؤوس. كل رأس يمكنه التخصص في نوع مختلف من العلاقات. مخرجات الرؤوس الـ h تُدمج معًا (concatenate) وتُمرَّر عبر مصفوفة أخرى مُتعلَّمة W^O لإنتاج مُخرج Multi-Head النهائي.</p>
+    <br/>
+    <p><strong>ماذا بعد — المحاضرة 19:</strong> هذه المحاضرة (الجزء الأول) تُغطي آلية self-attention الأساسية حتى multi-head attention. <strong>المحاضرة 19 (الجزء الثاني) تُكمل هذا الموضوع</strong> بالأجزاء المتبقية من الـ Transformer: masked (causal) self-attention للـ decoder، بنية الـ Encoder-Decoder الكاملة، وكيف يُدرَّب الـ model ويُستخدم في inference لتوليد الـ output sequence رمزًا برمز.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:20px;font-size:13px">
+      <li><strong>Query (استعلام)</strong> — ما يبحث عنه التوكن الحالي</li>
+      <li><strong>Key (مفتاح)</strong> — ما يُقدّمه كل توكن للمطابقة</li>
+      <li><strong>Value (قيمة)</strong> — المحتوى الفعلي المُسترجَع بعد المطابقة</li>
+      <li><strong>Scaled Dot-Product Attention</strong> — المعادلة الكاملة للـ attention</li>
+      <li><strong>Softmax</strong> — دالة تُحوّل الأرقام إلى توزيع احتمالي يجمع إلى 1</li>
+      <li><strong>Multi-Head Attention</strong> — تشغيل عدة رؤوس attention بالتوازي</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Full Worked Example — "I can go alone"</div>
+    <p><strong>1. Inputs</strong> (from Section 8): Encoder Input matrix, shape 4×512 (rows: I, can, go, alone)</p>
+    <p style="margin-top:6px"><strong>2. Project to Q, K, V</strong> using learned W<sup>Q</sup>, W<sup>K</sup>, W<sup>V</sup> (each 512×512) → Q, K, V each 4×512</p>
+    <p style="margin-top:6px"><strong>3. Compute scores</strong> = Q·Kᵀ / √512 → 4×4 matrix</p>
+    <p style="margin-top:6px"><strong>4. Softmax each row</strong> → attention weights (rows sum to 1):</p>
+    <pre><code>       I     can   go    alone
+I    [0.7,  0.2,  0.1,  0.1 ]
+can  [0.3,  0.5,  0.1,  0.1 ]
+go   [0.1,  0.3,  0.4,  0.2 ]
+alone[0.05, 0.05, 0.1,  0.8 ]</code></pre>
+    <p style="margin-top:6px"><strong>5. Multiply weights · V</strong> (4×4 · 4×512) → final self-attention output, 4×512</p>
+    <p style="margin-top:8px;font-size:13px;color:var(--muted)">Notice "alone" attends 80% to itself and little to the others — plausible, since "alone" doesn't depend heavily on the earlier words to be understood, while "can" splits attention fairly evenly between "I" and "can" itself, reflecting the subject-verb relationship.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — Q, K, V</div>
+    <p><strong>"Query asks, Key advertises, Value delivers."</strong></p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Query = what I'm looking for. Key = what I'm offering to be matched against. Value = what I actually hand over once matched.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Thinking Q, K, V are three separate inputs — in self-attention they are all computed FROM the same input matrix, just via three different learned projections</li>
+      <li>❌ Forgetting the √d_k scaling — without it, softmax becomes too peaked and gradients vanish</li>
+      <li>❌ Confusing multi-head attention with running the whole model multiple times — only the attention sub-step is split into heads; heads share the surrounding architecture</li>
+      <li>❌ Assuming attention weights are symmetric — the weight from "I" to "can" is not necessarily the same as from "can" to "I", since Q and K come from different projections</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the full formula: Attention(Q,K,V) = softmax(QKᵀ/√d_k)·V</li>
+      <li>📌 Q, K, V are all linear projections of the same input via separate learned weight matrices W^Q, W^K, W^V</li>
+      <li>📌 Know why we scale by √d_k: prevents overly peaked softmax outputs and vanishing gradients as d_k grows</li>
+      <li>📌 Multi-head attention: h parallel attention computations with d_k=d_v=d_model/h, concatenated and projected by W^O</li>
+      <li>📌 In the original paper: d_model=512, h=8 heads, d_k=d_v=64</li>
+      <li>📌 Self-attention has no inherent notion of token order — that's why positional embeddings (Section 8) are required</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Self-attention projects the input into <strong>Query, Key, Value</strong> matrices, computes similarity scores via <strong>Q·Kᵀ</strong>, scales by <strong>√d_k</strong> to stabilize softmax, converts to probabilities with softmax, and takes a weighted sum of <strong>V</strong>. <strong>Multi-head attention</strong> runs several of these in parallel with smaller dimensions and concatenates the results. Lecture 19 continues with masked attention and the full Encoder-Decoder architecture.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice, True/False, Fill-in-the-Blank, and Short Answer Questions</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. In Seq2Seq framing, which statement is true?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Input and output sequences must always be the same length</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Input and output sequences can have different lengths</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Seq2Seq only applies to image data</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Seq2Seq requires an RNN specifically</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Seq2Seq is a general framing (x1..xn → y1..ym) where n and m need not match, as in translation or summarization.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. What does an RNN pass forward from one time-step to the next?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The raw input token</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The hidden state</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The attention weights</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The positional embedding</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — The hidden state is the RNN's running memory, updated and passed forward at every time-step.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. Which of these is NOT one of the three RNN problems discussed?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Slow computation on long sequences</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Vanishing/exploding gradients</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Vanished long-range memory</li>
+      <li onclick="mcqAnswer(this, true, 'D')">D) Inability to process numeric data</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: D</strong> — The three real problems are slow sequential computation, vanishing/exploding gradients, and vanished memory. RNNs process numeric data fine — that's not a limitation.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Why can't self-attention be computed sequentially the way RNNs require?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It can only be computed sequentially — that's a myth</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Every token's attention score can be computed independently and in parallel using matrix multiplication</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Self-attention doesn't use matrices at all</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Self-attention requires a GPU with no other software running</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Because Q·Kᵀ is a single matrix multiplication covering all token pairs at once, there is no step-by-step dependency, allowing full parallelization.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Multiplying a matrix of shape (4×5) by a matrix of shape (5×4) produces a matrix of shape:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 5×5</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 4×4</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 4×5</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 20×20</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — (m×k)·(k×n) = (m×n). Here m=4, k=5, n=4, so the result is 4×4. The inner dimensions (5) must match and cancel out.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. What does a tokenizer's "vocabulary" contain?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) A list of grammar rules</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) A fixed mapping of every possible token to a unique Token ID</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The trained model's weights</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The positional embeddings</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — The vocabulary is a fixed lookup table mapping tokens (words/subwords) to integer Token IDs (e.g. ~32,000 entries in the slide example).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. Why are positional embeddings added to token embeddings in a Transformer?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) To reduce the vocabulary size</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Because self-attention has no built-in notion of token order</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) To speed up tokenization</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) To replace the need for an embedding table</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Unlike RNNs, self-attention treats input as an unordered set unless positional information is explicitly injected via positional embeddings.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. In scaled dot-product attention, what is the purpose of dividing by √d_k?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) To make the matrix square</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) To prevent overly large dot products from making softmax too peaked, which would hurt gradient flow</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) To convert Q into K</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) To increase the vocabulary size</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Without scaling, large-magnitude dot products (which grow with d_k) push softmax toward near-one-hot outputs, causing vanishing gradients.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: The same RNN cell (same weights) is reused at every time-step.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — "Recurrent" means the exact same weighted cell is applied repeatedly; only the hidden state changes between steps.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: Query, Key, and Value are three completely separate input sequences fed into the model.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — In self-attention, Q, K, and V are all derived from the same input via three different learned projection matrices (W^Q, W^K, W^V).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: Token embeddings and positional embeddings are concatenated, doubling the dimensionality of the Encoder Input.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — They are added element-wise (same shape, e.g. both 512-dimensional), so the Encoder Input stays 512-dimensional, not 1024.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 4: Vanishing gradients make it hard for RNNs to learn dependencies between tokens that are far apart in a sequence.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — Gradients shrink as they are backpropagated through many time-steps, so error signals from later tokens barely reach the weights responsible for much earlier tokens.</div>
+  </div>
+
+  <!-- Fill in the blank -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--warn)"><span class="icon">📝</span> Fill in the Blank</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 1: In the original Transformer paper, d_model = ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 128</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) 256</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) 512</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 32000</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: 512</strong> — d_model=512 is the embedding dimension used throughout the original Transformer, and d_k = d_model when using a single attention head.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 2: The function used to turn raw attention scores into a probability distribution that sums to 1 is ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) ReLU</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Softmax</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Sigmoid</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Tanh</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: Softmax</strong> — Softmax converts the row of scaled Q·Kᵀ scores into attention weights that sum to 1 across each row.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Name the three RNN problems that motivated "Attention Is All You Need." <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> (1) <strong>Long sequences = slow computation</strong> — RNNs cannot be parallelized across time-steps since each step depends on the previous one. (2) <strong>Vanishing/exploding gradients</strong> — backpropagating through many sequential steps causes gradients to shrink toward zero or grow toward infinity. (3) <strong>Vanished memory</strong> — the fixed-size hidden state gradually loses information about early tokens as the sequence grows, hurting long-range dependencies.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Explain the intuitive roles of Query, Key, and Value in self-attention. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> <strong>Query</strong> represents what the current token is "looking for" in the rest of the sequence. <strong>Key</strong> represents what each token in the sequence has to "offer," used for matching against queries via a dot product. <strong>Value</strong> is the actual content/information that gets retrieved and passed forward once a query matches strongly with a key. The pantry analogy: Query="Pasta" matches Key="Food" most strongly, so the corresponding Value ("Rice") is what's retrieved.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Why is scaling by √d_k necessary in the attention formula, and what would go wrong without it? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> The raw dot product Q·Kᵀ is a sum of d_k multiplied terms, so its magnitude grows roughly with d_k. Without scaling, as d_k gets large (e.g. 512), the scores fed into softmax can become very large, which makes softmax extremely "peaked" — one position gets probability near 1 and the rest collapse near 0. This causes vanishing gradients through the softmax and destabilizes training. Dividing by √d_k rescales the scores to a range where softmax stays smooth and gradients continue to flow.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why does the Transformer need positional embeddings when RNNs don't? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> RNNs process tokens one at a time, in strict sequential order, so the order of the sequence is naturally encoded in the very structure of the computation (token 1 is processed before token 2, etc.). Self-attention, by contrast, computes relationships between all token pairs simultaneously via matrix multiplication — mathematically, swapping two positions in the input would produce the same set of pairwise computations, so the model has no inherent way to know which token came first. Positional embeddings solve this by adding a distinct, position-specific vector to each token's embedding, injecting order information directly into the numbers the model works with.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all slides in the extracted deck (Part 1 of the Transformers series)</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Transformers" / Abu Bakr Soliman — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Sequence to Sequence (Seq2Seq): Input x1..xn / Output y1..yn — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Recurrent Neural Network (RNN): State0 → RNN → RNN..., time-step diagram — ✅ Section 2 with unrolled diagram</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — RNN Problems: slow computation, vanishing/exploding gradients, vanished memory — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — "Attention Is All You Need" banner — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slides 6–7</strong> — Vectors: Patient ID / Height / Weight / Systolic / Diastolic table — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — Matrices Operations: 4×5 · 5×4 = 4×4 example — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — "Attention Is All You Need" banner (2nd occurrence) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Tokenizer: Hello→1, Go→2, ed→3, ..., red→32000 — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Input "I can go alone" → Tokens → Input IDs → Embeddings — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — "Attention Is All You Need" banner (3rd occurrence) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Embeddings + Positional Embeddings = Encoder Input — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Input Tokens / Input IDs recap (pipeline transition) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — "Attention Is All You Need" banner (4th occurrence) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 16</strong> — Self-Attention: Q·Kᵀ / √d_k, d_k=d_model=512, seq=4, softmax scores — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 17</strong> — Self-Attention: attention weights · V → output — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 18</strong> — "Attention Is All You Need" banner (5th occurrence) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slides 19–20</strong> — Multi-Head Attention: W^Q/W^K/W^V, h heads, concat, W^O — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slides 21–22</strong> — Query, Key & Value pantry analogy (Food→Rice, Query="Pasta") — ✅ Section 9</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 22/22 SLIDES (Part 1 scope) — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, diagrams, formulas, and worked examples up through Multi-Head Attention have been explained in both English and Arabic with additional examples, memory tricks, and exam notes. Slides 23 onward (Masked Attention, Training, Inference, Encoder-Decoder architecture — the remainder of the extracted deck) belong to <strong>Lecture 19: Transformers Part 2</strong> and are intentionally deferred there, as noted throughout Section 9.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>The Problem:</strong> <span class="tag tag-blue">Seq2Seq (x1..xn → y1..ym)</span></p>
+      <p><strong>First Attempt:</strong> <span class="tag tag-green">RNN (State + Time-Steps)</span> → <span class="tag tag-orange">Slow / Vanishing Gradients / Vanished Memory</span></p>
+      <p><strong>The Fix:</strong> <span class="tag tag-purple">Attention Is All You Need (2017)</span></p>
+      <p><strong>Math Foundations:</strong> <span class="tag tag-blue">Vectors (anything → numbers)</span> → <span class="tag tag-green">Matrix Multiplication ((m×k)·(k×n)=(m×n))</span></p>
+      <p><strong>Text Pipeline:</strong> <span class="tag tag-orange">Tokenizer (text→ID)</span> → <span class="tag tag-purple">Embeddings (d_model=512)</span> → <span class="tag tag-blue">+ Positional Embeddings</span> → <span class="tag tag-green">Encoder Input</span></p>
+      <p><strong>Self-Attention:</strong> <span class="tag tag-orange">Q, K, V projections</span> → <span class="tag tag-purple">softmax(QKᵀ/√d_k)·V</span> → <span class="tag tag-blue">Multi-Head Attention (h heads, concat, W^O)</span></p>
+      <p><strong>Coming Next:</strong> <span class="tag tag-green">Lecture 19 — Masked Attention, Encoder-Decoder, Training & Inference</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

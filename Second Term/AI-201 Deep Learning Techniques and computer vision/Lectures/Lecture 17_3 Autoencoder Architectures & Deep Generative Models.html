@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 17 — Autoencoder Architectures & Deep Generative Models | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .bn-diagram{flex-direction:column}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* BOTTLENECK / HOURGLASS DIAGRAM (additive, follows same visual language) */
+.bn-diagram{
+  display:flex;align-items:center;justify-content:center;
+  gap:6px;margin:20px 0;flex-wrap:wrap;
+  padding:20px;background:var(--bg3);border-radius:12px;border:1px solid var(--border);
+}
+.bn-layer{display:flex;flex-direction:column;align-items:center;gap:5px}
+.bn-units{display:flex;flex-direction:column;gap:4px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid var(--border)}
+.bn-row{display:flex;gap:4px;justify-content:center}
+.bn-unit{width:12px;height:12px;border-radius:50%}
+.bn-unit-in{background:var(--accent)}
+.bn-unit-code{background:var(--accent4)}
+.bn-unit-out{background:var(--accent3)}
+.bn-arrow{color:var(--muted);font-size:20px;font-family:var(--font-mono);padding:0 4px}
+.bn-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:6px;text-align:center;letter-spacing:0.5px;text-transform:uppercase}
+.bn-sub{font-size:11px;color:var(--muted);margin-top:2px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 AE Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — Core Autoencoder</div>
+    <a href="#s1" onclick="setActive(this)">1. Anatomy & Information Bottleneck</a>
+    <a href="#s2" onclick="setActive(this)">2. Reconstruction Optimization</a>
+    <div class="nav-section">Part II — Robust & Deep Variants</div>
+    <a href="#s3" onclick="setActive(this)">3. Denoising Autoencoders (DAE)</a>
+    <a href="#s4" onclick="setActive(this)">4. Stacked AE & Greedy Pretraining</a>
+    <a href="#s5" onclick="setActive(this)">5. Supervised Fine-Tuning</a>
+    <div class="nav-section">Part III — Specialized Architectures</div>
+    <a href="#s6" onclick="setActive(this)">6. Convolutional Autoencoders (CAE)</a>
+    <a href="#s7" onclick="setActive(this)">7. Variational Autoencoders (VAE)</a>
+    <div class="nav-section">Part IV — Synthesis</div>
+    <a href="#s8" onclick="setActive(this)">8. Architecture Comparison</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 17 — AUTOENCODER ARCHITECTURES & DEEP GENERATIVE MODELS</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 17</div>
+  <h1>Autoencoder Architectures & Deep Generative Models</h1>
+  <p>Feature Extraction, Denoising, and Variational Synthesis</p>
+  <p class="author">Dr. Ahmed Yousry &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">15</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">8</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">4</span><span class="lbl">Architectures</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Autoencoder</span>
+    <span class="tag tag-green">Bottleneck</span>
+    <span class="tag tag-purple">Denoising</span>
+    <span class="tag tag-orange">Stacked AE</span>
+    <span class="tag tag-blue">Convolutional AE</span>
+    <span class="tag tag-green">VAE</span>
+    <span class="tag tag-purple">Latent Space</span>
+    <span class="tag tag-orange">Generative Models</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 2–3</span>
+    <h2>1. Anatomy of an Autoencoder — The Information Bottleneck</h2>
+  </div>
+  <p class="section-subtitle">Compression then Reconstruction — Learning What Actually Matters</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 2 — Anatomy of an Autoencoder / The Information Bottleneck:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>Autoencoders are multi-layer neural networks designed to reconstruct their own input through a compressed representation.</li>
+      <li><strong>Layer L1 (Input):</strong> High-dimensional data features.</li>
+      <li><strong>Layer L2 (Code):</strong> The bottleneck layer with reduced units, forcing the capture of "essential structure".</li>
+      <li><strong>Layer L3 (Output):</strong> Reconstruction of L1, aiming for the closest possible match.</li>
+    </ul>
+    <br/>
+    <p style="font-size:13px;color:var(--muted)"><strong>Slide 3</strong> was a diagram-only slide (no extractable text) — it visually illustrated the encoder → bottleneck → decoder shape shown below; its concept is fully integrated into this section.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>An <span class="hl-blue">Autoencoder (AE)</span> is a neural network trained to do something that sounds pointless at first: <strong>copy its own input to its output</strong>. The trick is that it isn't allowed to just pass data straight through — it must first squeeze the data through a narrow "bottleneck" layer that has far fewer units than the input.</p>
+    <br/>
+    <p>The network is made of two halves joined at that bottleneck:</p>
+    <ul class="e-list" style="margin-top:8px">
+      <li>🔵 <strong>Encoder</strong> — compresses the input down to the bottleneck (Layer L1 → Layer L2)</li>
+      <li>🟠 <strong>Code / Latent Space (Layer L2)</strong> — the bottleneck itself: a small vector that must summarize the essential structure of the input</li>
+      <li>🟢 <strong>Decoder</strong> — expands the bottleneck back out and tries to rebuild the original input (Layer L2 → Layer L3)</li>
+    </ul>
+    <br/>
+    <p><strong>The Three Layers, precisely:</strong></p>
+    <div class="def-box">
+      <div class="def-term">Layer L1 — Input</div>
+      <p style="margin-top:6px;font-size:13px">The raw, high-dimensional data features — for example, a 28×28 pixel image flattened into a 784-number vector.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Layer L2 — Code (the Bottleneck)</div>
+      <p style="margin-top:6px;font-size:13px">A layer with far <strong>fewer units</strong> than L1 (e.g. 784 → 32). Because there is not enough room to store every pixel, the network is forced to discover and keep only the "essential structure" — the underlying patterns that let it reconstruct the input well.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Layer L3 — Output (Reconstruction)</div>
+      <p style="margin-top:6px;font-size:13px">Has the <strong>same dimensionality as L1</strong>. It is the network's best attempt at reconstructing the original input purely from the compressed code in L2.</p>
+    </div>
+
+    <br/>
+    <p><strong>The Bottleneck Diagram — Wide → Narrow → Wide:</strong></p>
+    <div class="bn-diagram">
+      <div class="bn-layer">
+        <div class="bn-units">
+          <div class="bn-row"><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div></div>
+          <div class="bn-row"><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div></div>
+          <div class="bn-row"><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div><div class="bn-unit bn-unit-in"></div></div>
+        </div>
+        <div class="bn-label">L1 — Input</div>
+        <div class="bn-sub">high-dimensional</div>
+      </div>
+      <div class="bn-arrow">→</div>
+      <div class="bn-layer">
+        <div class="bn-units">
+          <div class="bn-row"><div class="bn-unit bn-unit-code"></div></div>
+          <div class="bn-row"><div class="bn-unit bn-unit-code"></div></div>
+        </div>
+        <div class="bn-label" style="color:var(--accent4)">L2 — Code</div>
+        <div class="bn-sub">bottleneck</div>
+      </div>
+      <div class="bn-arrow">→</div>
+      <div class="bn-layer">
+        <div class="bn-units">
+          <div class="bn-row"><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div></div>
+          <div class="bn-row"><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div></div>
+          <div class="bn-row"><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div><div class="bn-unit bn-unit-out"></div></div>
+        </div>
+        <div class="bn-label">L3 — Output</div>
+        <div class="bn-sub">reconstruction of L1</div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);text-align:center">The classic "hourglass" shape — wide, then narrow, then wide again — is the visual signature of every autoencoder family in this lecture.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>الـ Autoencoder (المُشفِّر الذاتي)</strong> هو شبكة عصبية تُدرَّب على مهمة تبدو غريبة: أن تُعيد إنتاج نفس الـ input الذي دخل إليها كـ output. لكن المُخادعة هنا أنها ممنوعة من نقل البيانات مباشرة — يجب أن تُمرّرها أولًا عبر طبقة ضيقة جدًا تُسمى "bottleneck" (عنق الزجاجة) تحتوي على عدد أقل بكثير من الوحدات مقارنة بالـ input.</p>
+    <br/>
+    <p><strong>الشبكة مكوّنة من نصفين يلتقيان عند الـ bottleneck:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>🔵 <strong>Encoder (المُرمِّز)</strong> — يضغط الـ input حتى يصل إلى الـ bottleneck</li>
+      <li>🟠 <strong>Code / Latent Space (الكود / الفراغ الكامن)</strong> — الـ bottleneck نفسه: متجه صغير يجب أن يلخّص البنية الأساسية للبيانات</li>
+      <li>🟢 <strong>Decoder (المُفكِّك)</strong> — يوسّع الكود مرة أخرى ويحاول إعادة بناء الـ input الأصلي</li>
+    </ul>
+    <br/>
+    <p><strong>الطبقات الثلاثة:</strong></p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>L1 (Input)</strong> — بيانات عالية الأبعاد (مثل صورة 784 بيكسل)</li>
+      <li><strong>L2 (Code / Bottleneck)</strong> — طبقة بها وحدات أقل بكثير (مثلًا 32 فقط)، فتضطر الشبكة لتعلّم "البنية الأساسية" فقط بدل حفظ كل بيكسل</li>
+      <li><strong>L3 (Output)</strong> — نفس أبعاد L1، وهو أفضل محاولة لإعادة بناء الصورة الأصلية من الكود المضغوط</li>
+    </ul>
+    <br/>
+    <p><strong>أهم النقاط:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>✅ الشكل العام يشبه "الساعة الرملية" (hourglass): عريض ← ضيق ← عريض</li>
+      <li>✅ الضيق في L2 هو ما يجبر الـ model على تعلّم الأنماط المهمة فقط</li>
+      <li>✅ نفس البنية الأساسية تتكرر في كل أنواع الـ autoencoders في هذا الدرس</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — The One-Page Book Summary Analogy</div>
+    <p>Imagine a 300-page novel (the input, L1). You are asked to summarize it into a <strong>one-page abstract</strong> (the code, L2) — you can only keep the essential plot points, not every sentence. Later, someone else must read <em>only</em> your one-page abstract and try to <strong>rewrite the entire 300-page novel</strong> from it (the reconstruction, L3). They won't get every exact sentence back, but if your abstract captured the real structure of the story, the rewritten novel will be recognizably close to the original. That compression-then-expansion process is exactly what an autoencoder learns to do with data instead of text.</p>
+  </div>
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Dataset Compression</div>
+    <ul class="e-list">
+      <li>🖼️ <strong>Image compression</strong>: a 784-pixel handwritten digit compressed into a 32-number code, then reconstructed</li>
+      <li>📊 <strong>Dimensionality reduction</strong>: replacing PCA in some pipelines when relationships in the dataset are non-linear</li>
+      <li>🔍 <strong>Anomaly detection</strong>: an autoencoder trained on "normal" data reconstructs normal inputs well but poorly reconstructs unusual/anomalous inputs — the reconstruction error itself becomes a signal</li>
+    </ul>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — The Three Layers</div>
+    <p><strong>"In, Code, Out" — L1 → L2 → L3</strong></p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Wide, narrow, wide again — like an hourglass. The narrow middle is where the "essential structure" is forced to live.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Be able to draw the encoder → bottleneck → decoder hourglass and label L1, L2, L3</li>
+      <li>📌 Know that L2 (the code) has <em>fewer units</em> than L1 and L3 — that is what makes it a "bottleneck"</li>
+      <li>📌 Common exam Q: "Why can't the autoencoder just copy input to output directly?" → Because the bottleneck forces compression, preventing the identity mapping and forcing the model to learn structure</li>
+      <li>📌 L1 and L3 always share the same dimensionality (input size = output size)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>An autoencoder reconstructs its own input through a <strong>compressed bottleneck</strong>. L1 (input, high-dimensional) → L2 (code, few units — forces "essential structure") → L3 (output, reconstruction of L1). The hourglass shape is the signature of every AE variant.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 4</span>
+    <h2>2. Reconstruction Optimization</h2>
+  </div>
+  <p class="section-subtitle">The Standard Mathematical Formulation — Encoder, Decoder, and Loss</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Reconstruction Optimization / Function Definitions:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>The network systematically maps data back and forth using activation functions (e.g. Sigmoid or Tanh).</li>
+      <li><strong>Encoder Activation</strong> and <strong>Decoder Reconstruction</strong> functions are defined (equations were shown as images on the slide, not extracted as text).</li>
+      <li><strong>Objective Function:</strong> training minimizes the difference between input and output, often using Squared Error.</li>
+      <li>Gradient descent is performed on this loss to learn weight parameters and biases.</li>
+    </ul>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Note: the exact equations on this slide were rendered as images and could not be extracted as text. The formulas below are the standard, textbook-accurate mathematical formulation used to train any autoencoder — presented here to fill that gap precisely.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Every autoencoder — no matter how fancy — is trained using the same three ingredients: an <strong>encoder function</strong>, a <strong>decoder function</strong>, and a <strong>loss function</strong> that measures how well the reconstruction matches the original.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">1. Encoder Activation</div>
+      <p style="margin-top:6px;font-size:13px">Maps the input <code>x</code> to the hidden code <code>h</code> using a weight matrix, a bias, and a non-linear activation function (Sigmoid or Tanh are classic choices):</p>
+      <div class="formula">h = f(W·x + b)</div>
+      <p style="font-size:13px"><code>W</code> = encoder weights, <code>b</code> = encoder bias, <code>f</code> = activation function (e.g. Sigmoid, Tanh)</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2. Decoder Reconstruction</div>
+      <p style="margin-top:6px;font-size:13px">Maps the code <code>h</code> back to a reconstruction <code>x'</code> in the original input space, using its own weights and bias:</p>
+      <div class="formula">x' = g(W'·h + b')</div>
+      <p style="font-size:13px"><code>W'</code> = decoder weights, <code>b'</code> = decoder bias, <code>g</code> = decoder activation function</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3. Objective Function (Squared-Error Loss)</div>
+      <p style="margin-top:6px;font-size:13px">Training compares the reconstruction <code>x'</code> to the original input <code>x</code> and penalizes the squared distance between them:</p>
+      <div class="formula">L = ‖x − x'‖²</div>
+      <p style="font-size:13px">The smaller this loss, the closer the reconstruction is to the original input.</p>
+    </div>
+    <br/>
+    <p><strong>How training actually happens:</strong></p>
+    <ol class="steps">
+      <li>Feed input x through the encoder to get code h = f(Wx+b)</li>
+      <li>Feed h through the decoder to get reconstruction x' = g(W'h+b')</li>
+      <li>Compute the loss L = ‖x − x'‖² between x and x'</li>
+      <li>Run backpropagation to compute how each weight (W, W', b, b') contributed to the loss</li>
+      <li>Update all weights with <strong>gradient descent</strong>: nudge them slightly in the direction that reduces L</li>
+      <li>Repeat over many batches/epochs until reconstructions look close to the originals</li>
+    </ol>
+    <p style="margin-top:10px">This is exactly the same training loop used everywhere else in deep learning — the only special thing about an autoencoder is that its "label" for every training example is <em>the input itself</em>, so training needs no external labels (it is self-supervised).</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>كل autoencoder — بأي شكل كان — يُدرَّب باستخدام ثلاثة مكوّنات أساسية: دالة <strong>Encoder</strong>، دالة <strong>Decoder</strong>، ودالة <strong>Loss</strong> تقيس مدى تطابق إعادة البناء مع الأصل.</p>
+    <br/>
+    <p><strong>١. Encoder Activation:</strong></p>
+    <p style="font-size:14px">يحوّل الـ input <span class="term-ar">x</span> إلى الكود المخفي <span class="term-ar">h</span> عن طريق مصفوفة أوزان وbias ودالة تفعيل غير خطية (مثل Sigmoid أو Tanh): <span class="term-ar">h = f(Wx+b)</span></p>
+    <br/>
+    <p><strong>٢. Decoder Reconstruction:</strong></p>
+    <p style="font-size:14px">يحوّل الكود <span class="term-ar">h</span> مرة أخرى إلى محاولة إعادة بناء <span class="term-ar">x'</span> في نفس فضاء الـ input الأصلي: <span class="term-ar">x' = g(W'h+b')</span></p>
+    <br/>
+    <p><strong>٣. Objective Function (دالة الهدف):</strong></p>
+    <p style="font-size:14px">يقارن التدريب بين <span class="term-ar">x'</span> و <span class="term-ar">x</span> باستخدام Squared Error: <span class="term-ar">L = ‖x − x'‖²</span>. كل ما كانت القيمة أصغر، كان إعادة البناء أقرب للأصل.</p>
+    <br/>
+    <p><strong>كيف يحدث التدريب فعليًا؟</strong> يتم حساب الـ loss، ثم استخدام <strong>Backpropagation</strong> لمعرفة مساهمة كل weight في الخطأ، ثم تحديث الأوزان باستخدام <strong>Gradient Descent</strong> لتقليل الـ loss تدريجيًا عبر epochs متعددة.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Encoder / Decoder (المُرمِّز / المُفكِّك)</strong></li>
+      <li><strong>Loss Function (دالة الخسارة)</strong> — تقيس حجم الخطأ</li>
+      <li><strong>Squared Error (الخطأ التربيعي)</strong></li>
+      <li><strong>Gradient Descent (الانحدار التدريجي)</strong> — خوارزمية تحديث الأوزان</li>
+      <li><strong>Self-Supervised (تعلّم ذاتي الإشراف)</strong> — لا يحتاج labels خارجية لأن الـ label هو نفس الـ input</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — One Training Step</div>
+    <pre><code>x  = [0.9, 0.1, 0.8, 0.2]              <span class="code-cm"># original input vector</span>
+h  = f(W·x + b)      = [0.6, 0.4]      <span class="code-cm"># compressed code (bottleneck)</span>
+x' = g(W'·h + b')     = [0.85, 0.15, 0.75, 0.22]  <span class="code-cm"># reconstruction</span>
+L  = ||x - x'||^2     = (0.05)^2+(0.05)^2+(0.05)^2+(0.02)^2 = 0.0079
+<span class="code-cm"># gradient descent nudges W, b, W', b' to shrink L further next step</span></code></pre>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the three formulas: h = f(Wx+b), x' = g(W'h+b'), L = ‖x−x'‖²</li>
+      <li>📌 Autoencoders are <em>self-supervised</em> — the target label is the input itself, no manual labeling needed</li>
+      <li>📌 Training uses standard backpropagation + gradient descent, exactly like any other neural network</li>
+      <li>📌 Sigmoid/Tanh are classic activation choices; the choice depends on whether output values need to be bounded (e.g. pixel intensities in [0,1])</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Encoder:</strong> h = f(Wx+b). <strong>Decoder:</strong> x' = g(W'h+b'). <strong>Loss:</strong> L = ‖x−x'‖², minimized via gradient descent/backpropagation. Self-supervised — the input is its own label.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 6</span>
+    <h2>3. Denoising Autoencoders (DAE)</h2>
+  </div>
+  <p class="section-subtitle">Robust Feature Learning — Reconstructing Clean Data from Corrupted Input</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Robust Feature Learning / Denoising (DAE) Architecture:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>A DAE is trained to reconstruct the original clean input from a stochastically corrupted version.</li>
+      <li><strong>Noise Injection:</strong> Input is corrupted via a function.</li>
+      <li><strong>Latent Capture:</strong> Forces the model to learn stable dependencies and "un-corrupt" the data.</li>
+      <li><strong>Reconstruction:</strong> Loss is calculated between the predicted output and the original clean input.</li>
+    </ul>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Note: Slide 5 was a diagram-only transition slide with no extractable text; its concept is integrated into this section.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A plain autoencoder can cheat: if the bottleneck is not narrow enough, it might learn to almost memorize the input instead of learning generally useful structure. A <span class="hl">Denoising Autoencoder (DAE)</span> closes this loophole with a clever trick: it <strong>deliberately damages the input before feeding it in</strong>, but still requires the network to output the <em>clean, undamaged</em> version.</p>
+    <br/>
+    <p>Critically: <strong>the loss is computed against the original clean input — never against the noisy one.</strong> The network never gets to see the clean version until the loss is calculated, so it cannot cheat by just copying the noisy input back out.</p>
+    <br/>
+    <ol class="steps">
+      <li><strong>Noise Injection</strong> — take the clean input x and corrupt it with a noise/corruption function to get x̃ (e.g. randomly zero-out some pixels, or add Gaussian noise)</li>
+      <li><strong>Encode + Decode the noisy version</strong> — feed x̃ (not x!) through the encoder and decoder to produce a reconstruction x'</li>
+      <li><strong>Latent Capture</strong> — because the noise pattern is random and different every time, the only way to reliably reconstruct the clean version is to learn the input's <em>stable, underlying structure</em> rather than memorizing exact pixel values</li>
+      <li><strong>Loss against the clean input</strong> — compute L = ‖x − x'‖² comparing the reconstruction to the <em>original clean x</em>, not to x̃</li>
+    </ol>
+    <br/>
+    <p><strong>Why this matters:</strong> a DAE is forced to learn more <em>robust</em>, generalizable features than a plain AE, because memorizing noise doesn't help it minimize the loss — only understanding real structure does.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>الـ autoencoder العادي يمكن أن "يغش": لو الـ bottleneck ليس ضيقًا كافيًا، قد يتعلم حفظ الـ input تقريبًا بدل تعلّم بنية مفيدة عامة. <strong>Denoising Autoencoder (DAE)</strong> يغلق هذه الثغرة بحيلة ذكية: يُفسد الـ input عمدًا قبل تمريره للشبكة، لكنه يطلب من الشبكة أن تُخرج النسخة <strong>النظيفة الأصلية</strong>.</p>
+    <br/>
+    <p><strong>مهم جدًا:</strong> الـ loss يُحسب مقارنةً بالـ input النظيف الأصلي — <strong>وليس</strong> مقارنةً بالنسخة المُشوَّشة. الشبكة لا يمكنها "الغش" بإعادة النسخة المشوشة كما هي.</p>
+    <br/>
+    <p><strong>الخطوات:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Noise Injection (حقن الضوضاء)</strong> — نأخذ الـ input النظيف x ونُفسده بدالة إفساد لنحصل على x̃ (مثلًا: تصفير بعض البيكسلات عشوائيًا، أو إضافة ضوضاء غاوسية)</li>
+      <li><strong>تمرير النسخة المشوشة</strong> — تُمرَّر x̃ (وليس x) عبر الـ encoder والـ decoder لإنتاج x'</li>
+      <li><strong>Latent Capture</strong> — بسبب أن نمط الضوضاء عشوائي ومختلف كل مرة، الطريقة الوحيدة لإعادة البناء الصحيحة هي تعلّم البنية المستقرة الأساسية للبيانات لا حفظ قيم البيكسل بالضبط</li>
+      <li><strong>حساب الـ Loss مقابل النسخة النظيفة</strong> — L = ‖x − x'‖² بين x' والأصل النظيف x</li>
+    </ul>
+    <br/>
+    <p><strong>لماذا هذا مهم؟</strong> الـ DAE يتعلم ميزات أكثر <strong>متانة (robust)</strong> وقابلة للتعميم من الـ AE العادي، لأن حفظ الضوضاء لا يساعد على تقليل الـ loss — فقط فهم البنية الحقيقية يساعد.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Denoising Autoencoder / DAE (المُشفِّر الذاتي المُزيل للضوضاء)</strong></li>
+      <li><strong>Corruption Function (دالة الإفساد)</strong> — تُضيف ضوضاء عشوائية</li>
+      <li><strong>Stable Dependencies (الروابط المستقرة)</strong> — البنية الحقيقية للبيانات غير المتأثرة بالضوضاء</li>
+      <li><strong>Robust Features (ميزات متينة)</strong></li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — Cleaning a Noisy Digit Image</div>
+    <pre><code>Clean input x        (a handwritten "7"):
+█████████
+    █
+   █
+  █
+ █
+█
+
+Noise-injected x̃      (random pixels flipped/corrupted):
+█.█.█████
+  ..█ .
+ █ █
+  █.  .
+ █  .
+█.   .
+
+Network sees ONLY x̃  →  produces reconstruction x'
+Loss compares x'  against the ORIGINAL CLEAN "7" (x), never against x̃</code></pre>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">After training, feeding the DAE a noisy or blurry digit at inference time makes it output a clean-looking digit — this is exactly how denoising filters in photo-restoration tools work.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Exam Trap — DAE vs Standard AE</div>
+    <p>The single most tested distinction: a <strong>standard AE</strong> receives clean input and reconstructs that same clean input (loss compares clean-vs-reconstructed-clean). A <strong>DAE</strong> receives <em>corrupted</em> input but its loss still compares against the <em>clean, uncorrupted</em> original — never against the noisy version it saw. Mixing this up is the most common mistake on this topic.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 DAE input ≠ DAE loss target: input is noisy x̃, loss target is clean x</li>
+      <li>📌 Purpose: force the network to learn robust, generalizable structure instead of memorizing pixels</li>
+      <li>📌 Common noise types: Gaussian noise, random pixel dropout/masking, salt-and-pepper noise</li>
+      <li>📌 DAEs are a classic technique behind modern image-denoising and restoration pipelines</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>DAE = feed the network a <strong>corrupted</strong> input x̃, but compute the loss against the <strong>original clean</strong> input x. Forces the model to learn stable, robust structure rather than memorizing noise. Used for denoising and robust feature extraction.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 7</span>
+    <h2>4. Stacked Autoencoders (SAE) & Greedy Layer-wise Pretraining</h2>
+  </div>
+  <p class="section-subtitle">Building Deep Networks One Honest Layer at a Time</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Stacked Autoencoders (SAE) / The Greedy Training Strategy:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>SAEs form a deep hierarchy where each layer receives input from the latent code of the layer below.</li>
+      <li><strong>Layer-wise Pre-training:</strong> Each level is trained independently in an unsupervised fashion.</li>
+      <li><strong>Latent Transfer:</strong> Once Layer 1 is trained, its encoder serves as input for Layer 2.</li>
+      <li><strong>Weight Initialization:</strong> This provides a superior starting point for deep networks.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl">Stacked Autoencoder (SAE)</span> is a deep network built by chaining several autoencoders on top of each other — the latent code produced by one autoencoder becomes the raw "input" for the next one. This raises a training problem: training a very deep network from scratch, all at once, can be unstable (vanishing gradients, poor initial weights). The <strong>Greedy Layer-wise Training Strategy</strong> solves this by training the network one honest layer at a time.</p>
+    <br/>
+    <p><strong>Why "Greedy"?</strong> Because each layer is optimized independently and locally — the algorithm never looks ahead to how later layers will perform; it just greedily gets each layer as good as it can be, one at a time.</p>
+    <ol class="steps">
+      <li><strong>Layer-wise Pre-training</strong> — train a small autoencoder (Layer 1) on the raw input data, completely unsupervised (no labels needed)</li>
+      <li><strong>Latent Transfer</strong> — once Layer 1's encoder is trained, freeze it and use its <em>code/latent output</em> as the input to a brand-new autoencoder (Layer 2)</li>
+      <li><strong>Repeat</strong> — train Layer 2 unsupervised on Layer 1's code, then use Layer 2's code as input to Layer 3, and so on, stacking as many layers as needed</li>
+      <li><strong>Weight Initialization</strong> — once every layer has been pre-trained this way, their combined encoder weights become the <em>starting point</em> for the full deep network, instead of starting from random weights</li>
+    </ol>
+    <br/>
+    <p><strong>Why this helps:</strong> training deep networks from purely random initial weights can get stuck in poor local minima or suffer from vanishing gradients as error signals travel back through many layers. Because each layer has already learned something meaningful about the data structure before the full network is ever assembled, greedy layer-wise pretraining gives the deep network a much better starting point — a form of "self-supervised warm start" for the whole model.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Stacked Autoencoder (SAE)</strong> هو شبكة عميقة تُبنى بربط عدة autoencoders فوق بعضها — الكود الكامن الناتج من autoencoder واحد يصبح هو "الـ input" الخام للـ autoencoder التالي. المشكلة: تدريب شبكة عميقة جدًا من الصفر دفعة واحدة قد يكون غير مستقر (vanishing gradients، أوزان بداية سيئة). <strong>استراتيجية Greedy Layer-wise Training</strong> تحل هذه المشكلة بتدريب الشبكة طبقة تلو الأخرى.</p>
+    <br/>
+    <p><strong>لماذا "Greedy" (جشعة)؟</strong> لأن كل طبقة تُحسَّن بشكل مستقل وموضعي — الخوارزمية لا تنظر مسبقًا لكيفية أداء الطبقات اللاحقة، بل تجعل كل طبقة أفضل ما يمكن، واحدة تلو الأخرى.</p>
+    <br/>
+    <p><strong>الخطوات:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Layer-wise Pre-training</strong> — تدريب autoencoder صغير (الطبقة الأولى) على البيانات الخام، بدون أي labels (unsupervised)</li>
+      <li><strong>Latent Transfer</strong> — بعد تدريب الطبقة الأولى، نُجمّد الـ encoder ونستخدم مخرجاته (الكود الكامن) كـ input لـ autoencoder جديد (الطبقة الثانية)</li>
+      <li><strong>التكرار</strong> — نُدرِّب الطبقة الثانية بنفس الطريقة، ثم نستخدم كودها كـ input للطبقة الثالثة، وهكذا</li>
+      <li><strong>Weight Initialization</strong> — بعد تدريب كل الطبقات، تُصبح أوزان الـ encoders المجمّعة نقطة انطلاق للشبكة العميقة الكاملة بدل الأوزان العشوائية</li>
+    </ul>
+    <br/>
+    <p><strong>لماذا هذا مفيد؟</strong> التدريب من أوزان عشوائية بالكامل قد يعلق في حلول محلية سيئة أو يعاني من vanishing gradients عندما يمر الخطأ عبر طبقات كثيرة رجوعًا. لأن كل طبقة تعلّمت شيئًا مفيدًا عن بنية البيانات مسبقًا، يمنح الـ pretraining الشبكة العميقة نقطة انطلاق أفضل بكثير.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Stacked Autoencoder / SAE (المُشفِّر الذاتي المُكدَّس)</strong></li>
+      <li><strong>Greedy Layer-wise Pre-training (التدريب الجشع طبقة بطبقة)</strong></li>
+      <li><strong>Latent Transfer (انتقال الكامن)</strong> — تمرير مخرجات طبقة لطبقة أخرى</li>
+      <li><strong>Weight Initialization (تهيئة الأوزان)</strong> — نقطة انطلاق أفضل للتدريب</li>
+      <li><strong>Vanishing Gradients (تلاشي التدرجات)</strong> — مشكلة كلاسيكية في الشبكات العميقة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Example — Building a 3-Layer Stack</div>
+    <ol class="steps">
+      <li>Train AE-1 on raw 784-pixel images → get 256-unit code (unsupervised)</li>
+      <li>Freeze AE-1's encoder. Train AE-2 on that 256-unit code as its "input" → get 64-unit code</li>
+      <li>Freeze AE-2's encoder. Train AE-3 on the 64-unit code → get 16-unit code</li>
+      <li>Stack the three trained encoders: 784 → 256 → 64 → 16. This becomes the initialized deep network, ready for further use (e.g. fine-tuning, described in the next section)</li>
+    </ol>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 "Greedy" means each layer is trained independently/locally, not jointly with the whole stack</li>
+      <li>📌 Layer-wise pretraining is entirely unsupervised — no labels required at this stage</li>
+      <li>📌 The main benefit is <em>better weight initialization</em> for deep networks, mitigating vanishing gradients</li>
+      <li>📌 Latent Transfer: Layer N's code becomes Layer N+1's input</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Stacked AEs chain multiple autoencoders, each layer's code feeding the next. <strong>Greedy layer-wise pretraining</strong> trains each layer independently/unsupervised, giving deep networks a strong weight initialization instead of starting from random weights.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 9</span>
+    <h2>5. Supervised Fine-Tuning</h2>
+  </div>
+  <p class="section-subtitle">From Unsupervised Pretraining to a Fully Supervised Classifier</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Supervised Fine-Tuning:</strong></p>
+    <p style="margin-top:8px;font-size:14px">This hybrid approach leverages unsupervised data structure to boost supervised accuracy.</p>
+    <ol style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li><strong>1. Stack Encoders</strong> — Compose the pre-trained encoders into a single multi-layer stack, discarding decoder weights.</li>
+      <li><strong>2. Add Classifier</strong> — Append a target output layer (e.g. Softmax) on top of the final encoder representation.</li>
+      <li><strong>3. Global Tuning</strong> — Optimize the entire system using backpropagation to minimize supervised classification cost.</li>
+    </ol>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Note: Slide 8 was a diagram-only transition slide with no extractable text; its concept is integrated into this section.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The greedy layer-wise pretraining from the previous section produces a stack of well-initialized encoders — but on its own it cannot classify anything, because it was never trained with labels. <span class="hl">Supervised Fine-Tuning</span> is the final step that turns this unsupervised structure into a working, label-aware classifier. It is a three-step recipe:</p>
+    <ol class="steps">
+      <li><strong>Stack the pretrained encoders</strong> — take only the encoder half of each previously trained autoencoder (discard every decoder — they are no longer needed, since we are not reconstructing anything anymore) and compose them into a single deep stack</li>
+      <li><strong>Add a classifier layer</strong> — attach a fresh output layer, typically a <strong>Softmax</strong> layer, on top of the final encoder's representation. This layer maps the deepest latent code to class probabilities</li>
+      <li><strong>Global fine-tuning</strong> — now train the <em>entire</em> stack (all the pretrained encoder layers plus the new classifier layer) end-to-end using backpropagation, minimizing a supervised classification loss (e.g. cross-entropy) on labeled data</li>
+    </ol>
+    <br/>
+    <p><strong>Why do it this way instead of training a classifier from scratch?</strong> The pretrained encoder weights already encode useful structure about the data distribution, learned entirely unsupervised from potentially huge amounts of unlabeled data. Fine-tuning only needs to gently adjust these weights and teach the new classifier layer how to use that structure for the specific labeled task — this typically needs far less labeled data and converges faster/more reliably than training everything from random weights.</p>
+    <br/>
+    <p><strong>Conceptual link to Transfer Learning:</strong> This "unsupervised pretraining, then supervised fine-tuning" pattern is a direct historical precursor to modern <strong>transfer learning</strong> (covered in earlier lectures), where a model pretrained on one large dataset/task is fine-tuned on a smaller, task-specific labeled dataset. The autoencoder stack here plays exactly the role that a pretrained backbone (like ImageNet-pretrained CNNs) plays in modern transfer learning pipelines.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>الـ pretraining الجشع طبقة بطبقة من القسم السابق يُنتج مجموعة من الـ encoders المُهيأة جيدًا — لكنها بمفردها لا تستطيع التصنيف لأنها لم تُدرَّب بـ labels قط. <strong>Supervised Fine-Tuning</strong> هي الخطوة الأخيرة التي تحوّل هذه البنية غير المُراقَبة إلى مُصنِّف عملي يعرف الـ labels. وهي وصفة من ثلاث خطوات:</p>
+    <ol style="padding-right:20px;font-size:14px;margin-top:8px">
+      <li><strong>Stack Encoders</strong> — أخذ نصف الـ encoder فقط من كل autoencoder سابق (والتخلص من كل الـ decoders لأننا لا نحتاج لإعادة بناء أي شيء الآن) وتجميعهم في كومة عميقة واحدة</li>
+      <li><strong>Add Classifier</strong> — إضافة طبقة output جديدة، غالبًا طبقة <strong>Softmax</strong>، فوق تمثيل آخر encoder، لتحويل الكود الكامن إلى احتمالات تصنيف</li>
+      <li><strong>Global Tuning</strong> — تدريب الكومة الكاملة (كل الـ encoders المُدرَّبة مسبقًا + طبقة التصنيف الجديدة) معًا باستخدام backpropagation لتقليل loss تصنيف مُراقَب (مثل cross-entropy) على بيانات ذات labels</li>
+    </ol>
+    <br/>
+    <p><strong>لماذا هذه الطريقة أفضل من تدريب مُصنِّف من الصفر؟</strong> أوزان الـ encoders المُدرَّبة مسبقًا تحتوي بالفعل على بنية مفيدة عن توزيع البيانات، تعلّمتها بشكل غير مُراقَب من كمية ضخمة من بيانات بلا labels. الـ fine-tuning يحتاج فقط لتعديل هذه الأوزان بلطف وتعليم طبقة التصنيف الجديدة كيف تستخدم هذه البنية — وهذا يحتاج بيانات مُصنَّفة أقل بكثير ويتقارب أسرع وأكثر استقرارًا من التدريب بأوزان عشوائية بالكامل.</p>
+    <br/>
+    <p><strong>الرابط بمفهوم Transfer Learning:</strong> نمط "pretraining غير مُراقَب ثم fine-tuning مُراقَب" هذا هو سلف تاريخي مباشر لمفهوم <strong>Transfer Learning</strong> الحديث (الذي غُطي في محاضرات سابقة)، حيث يُدرَّب نموذج على dataset/مهمة كبيرة ثم يُضبط بدقة على dataset أصغر وأكثر تخصصًا. كومة الـ autoencoders هنا تلعب نفس دور الـ backbone المُدرَّب مسبقًا (مثل CNN مُدرَّب على ImageNet) في pipelines الـ transfer learning الحديثة.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Supervised Fine-Tuning (الضبط الدقيق المُراقَب)</strong></li>
+      <li><strong>Softmax</strong> — طبقة تحوّل المخرجات إلى احتمالات تصنيف</li>
+      <li><strong>Cross-Entropy Loss (خسارة الإنتروبيا المتقاطعة)</strong> — دالة خسارة تصنيف شائعة</li>
+      <li><strong>Transfer Learning (التعلم بالنقل)</strong></li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Digit Classifier from Pretrained Stack</div>
+    <ol class="steps">
+      <li>Greedily pretrain a 3-layer stack of encoders (784→256→64→16) unsupervised on millions of unlabeled digit images</li>
+      <li>Discard all three decoders</li>
+      <li>Add a Softmax layer on top of the 16-unit code, mapping to 10 classes (digits 0–9)</li>
+      <li>Fine-tune the whole 784→256→64→16→Softmax network end-to-end on a much smaller labeled dataset (e.g. only 5,000 labeled digits)</li>
+      <li>Result: strong accuracy despite very little labeled data, because the encoder weights already understood digit structure</li>
+    </ol>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the 3 steps in order: Stack Encoders (discard decoders) → Add Classifier (Softmax) → Global Fine-Tuning (backprop on supervised loss)</li>
+      <li>📌 Decoder weights are discarded — they served their purpose during pretraining only</li>
+      <li>📌 This is "unsupervised pretraining + supervised fine-tuning" — a precursor to modern transfer learning</li>
+      <li>📌 Benefit: less labeled data needed, faster/more stable convergence than training from random weights</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Three steps: (1) Stack pretrained encoders, discard decoders. (2) Add a Softmax classifier on top. (3) Fine-tune the whole stack end-to-end via backpropagation on labeled data. Conceptually a precursor to modern transfer learning.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 11</span>
+    <h2>6. Convolutional Autoencoders (CAE)</h2>
+  </div>
+  <p class="section-subtitle">Spatial Encoding for Image Data — Convolution, Pooling, and Unpooling</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Spatial Encoding via CAEs / Convolutional Autoencoders:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>Specifically designed for image data, replacing fully connected layers with convolution and pooling operators.</li>
+      <li><strong>Projection Operation</strong> (referenced in slide).</li>
+      <li><strong>Unpooling:</strong> Inverting pooling by distributing values back across spatial locations.</li>
+      <li><strong>Weights:</strong> Filter weights are learned to extract visual patterns.</li>
+    </ul>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Note: Slide 10 was a diagram-only transition slide with no extractable text; its concept is integrated into this section.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A plain (fully-connected) autoencoder flattens an image into one long vector, throwing away all information about which pixels are spatially near each other. A <span class="hl">Convolutional Autoencoder (CAE)</span> fixes this by replacing the fully-connected layers with the same building blocks used in CNNs — <strong>convolution</strong> and <strong>pooling</strong> — so the network respects the 2D spatial structure of images throughout.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Encoder side — Convolution + Pooling</div>
+      <p style="margin-top:6px;font-size:13px">Convolutional filters slide across the image, learning weights that extract visual patterns (edges, textures, shapes) — exactly like a normal CNN. Pooling layers (e.g. max-pooling) then shrink the spatial resolution, progressively compressing the image down toward the bottleneck.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Decoder side — Unpooling / Upsampling</div>
+      <p style="margin-top:6px;font-size:13px"><strong>Unpooling</strong> reverses pooling: it takes the small, compressed spatial grid and distributes its values back out across a larger grid of spatial locations, expanding resolution layer by layer back toward the original image size. In practice, two common ways to implement this "spatial expansion" in the decoder are:</p>
+      <ul style="font-size:13px;padding-left:16px;margin-top:6px">
+        <li><strong>Conv2DTranspose</strong> (transposed/"deconvolution" layers) — a learnable upsampling operation with its own trainable filter weights</li>
+        <li><strong>Nearest-neighbor / bilinear upsampling</strong> followed by a normal convolution — a simpler, non-learned resizing step followed by a learned refinement</li>
+      </ul>
+      <p style="font-size:13px;margin-top:6px">These are the same two decoder upsampling mechanics used in segmentation architectures like U-Net — the encoder/bottleneck/decoder "hourglass" idea from Section 1 is exactly the skeleton U-Net is built on, just adapted here for pure image reconstruction instead of pixel-wise segmentation.</p>
+    </div>
+    <br/>
+    <p><strong>Why use CAEs instead of plain AEs for images?</strong></p>
+    <ul class="e-list">
+      <li>🧩 <strong>Preserves spatial structure</strong> — nearby pixels stay meaningfully related throughout the network instead of being scrambled into a flat vector</li>
+      <li>📉 <strong>Far fewer parameters</strong> — convolution filters are shared across the whole image, unlike fully-connected layers which need one weight per input-output pair</li>
+      <li>🖼️ <strong>Better reconstruction quality</strong> for images — captures textures and edges much more naturally than a flattened fully-connected approach</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>الـ autoencoder العادي (fully-connected) يُحوّل الصورة إلى متجه طويل واحد، فيخسر كل المعلومات عن أي البيكسلات متجاورة مكانيًا. <strong>Convolutional Autoencoder (CAE)</strong> يحل هذه المشكلة باستبدال الطبقات المتصلة بالكامل بنفس مكونات الـ CNN: <strong>Convolution</strong> و <strong>Pooling</strong>، فتحترم الشبكة البنية المكانية ثنائية الأبعاد للصورة طوال الوقت.</p>
+    <br/>
+    <p><strong>جانب الـ Encoder — Convolution + Pooling:</strong></p>
+    <p style="font-size:14px">فلاتر الـ convolution تنزلق على الصورة وتتعلّم أوزانًا تستخرج أنماطًا بصرية (حواف، ملمس، أشكال) تمامًا مثل أي CNN عادي. طبقات الـ pooling (مثل max-pooling) تُصغِّر الدقة المكانية تدريجيًا وتضغط الصورة نحو الـ bottleneck.</p>
+    <br/>
+    <p><strong>جانب الـ Decoder — Unpooling / Upsampling:</strong></p>
+    <p style="font-size:14px"><strong>Unpooling</strong> يعكس عملية الـ pooling: يأخذ الشبكة المكانية الصغيرة المضغوطة ويُوزّع قيمها مرة أخرى على شبكة أكبر من المواقع المكانية، فيوسّع الدقة طبقة بعد طبقة رجوعًا لحجم الصورة الأصلي. طريقتان شائعتان لتنفيذ هذا التوسيع في الـ decoder:</p>
+    <ul style="padding-right:20px;font-size:13px;margin-top:6px">
+      <li><strong>Conv2DTranspose</strong> — طبقة "تفكيك التوافق" القابلة للتعلّم بأوزان فلاتر خاصة بها</li>
+      <li><strong>Nearest-neighbor / bilinear upsampling</strong> ثم convolution عادي — خطوة تكبير بسيطة غير متعلّمة تليها خطوة تحسين متعلّمة</li>
+    </ul>
+    <p style="font-size:14px;margin-top:6px">هاتان الآليتان نفسهما تُستخدمان في طبقات الـ decoder لبنى التجزئة مثل U-Net — فكرة encoder/bottleneck/decoder من القسم الأول هي نفس الهيكل الذي بُني عليه U-Net، فقط هنا لإعادة بناء الصورة كاملةً لا لتجزئتها بيكسل بيكسل.</p>
+    <br/>
+    <p><strong>لماذا نستخدم CAE بدل AE العادي للصور؟</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li>🧩 يحافظ على البنية المكانية طوال الشبكة</li>
+      <li>📉 عدد Parameters أقل بكثير (الفلاتر مُشتركة عبر الصورة كاملة)</li>
+      <li>🖼️ جودة إعادة بناء أفضل للصور — يلتقط الملمس والحواف بشكل طبيعي أكثر</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Convolutional Autoencoder / CAE</strong></li>
+      <li><strong>Pooling / Unpooling (التجميع / إلغاء التجميع)</strong></li>
+      <li><strong>Conv2DTranspose (التفكيك التوافقي)</strong></li>
+      <li><strong>Upsampling (رفع الدقة)</strong></li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Image Reconstruction Pipeline</div>
+    <ol class="steps">
+      <li>Input: 128×128 RGB image</li>
+      <li>Encoder: Conv → MaxPool → Conv → MaxPool (down to a small 8×8 feature map = the bottleneck)</li>
+      <li>Decoder: Unpool/Upsample → Conv → Unpool/Upsample → Conv (back up to 128×128)</li>
+      <li>Loss: pixel-wise squared error between original and reconstructed 128×128 image</li>
+    </ol>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 CAEs replace fully-connected layers with Conv + Pooling (encoder) and Unpooling/Upsampling + Conv (decoder)</li>
+      <li>📌 Unpooling reverses pooling by distributing values back across spatial locations — it is not the same operation run backward mathematically, just an inverse-shaped operation</li>
+      <li>📌 Two common decoder upsampling choices: Conv2DTranspose (learned) vs. nearest-neighbor/bilinear upsampling + Conv (simpler)</li>
+      <li>📌 CAEs are the natural choice whenever the data is image-like and spatial structure matters</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>CAEs use Convolution + Pooling for the encoder and Unpooling/Upsampling (Conv2DTranspose or nearest-neighbor + Conv) for the decoder, preserving spatial structure. Designed specifically for image data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 12</span>
+    <h2>7. Variational Autoencoders (VAE)</h2>
+  </div>
+  <p class="section-subtitle">Probabilistic Latent Spaces — From Reconstruction to True Generation</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Probabilistic Synthesis: VAE / Stochastic Latent Variables:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>Unlike deterministic AEs, VAEs learn a probability distribution.</li>
+      <li><strong>Encoder Outputs:</strong> Predicts both Mean (μ) and Standard Deviation (σ).</li>
+      <li><strong>Sampling:</strong> A latent vector z is sampled to feed the decoder.</li>
+      <li><strong>Generative Power:</strong> Sampling from the latent space creates new, synthetic examples.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Every autoencoder so far encodes an input into a single, fixed <strong>point</strong> in the latent space — deterministic. A <span class="hl">Variational Autoencoder (VAE)</span> changes this fundamentally: instead of outputting one exact code, the encoder outputs the <strong>parameters of a probability distribution</strong> — and the actual latent vector is then <em>sampled</em> from that distribution.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Encoder Outputs: Mean (μ) and Standard Deviation (σ)</div>
+      <p style="margin-top:6px;font-size:13px">Instead of one code vector, the VAE encoder produces two vectors: a <strong>mean μ</strong> (the center of the distribution) and a <strong>standard deviation σ</strong> (how spread out it is). Together they describe a Gaussian distribution over possible latent codes for this input, rather than one single deterministic code.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Sampling & the Reparameterization Trick</div>
+      <p style="margin-top:6px;font-size:13px">A latent vector <code>z</code> is then <strong>sampled</strong> from that distribution. Sampling directly is not differentiable, which would break backpropagation — so VAEs use the classic <strong>reparameterization trick</strong>: draw random noise ε from a standard normal distribution, then compute z deterministically from μ, σ, and ε:</p>
+      <div class="formula">z = μ + σ · ε ,&nbsp;&nbsp; where ε ~ N(0, 1)</div>
+      <p style="font-size:13px">This keeps the randomness (ε) separate from the learnable parameters (μ, σ), so gradients can still flow back through μ and σ during training even though z itself involved a random draw.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">Decoder</div>
+      <p style="margin-top:6px;font-size:13px">The sampled z is fed into the decoder exactly like a normal autoencoder's code, producing a reconstruction of the input.</p>
+    </div>
+    <br/>
+    <p><strong>Why does this make VAEs generative?</strong> Because the encoder was trained to keep the latent space smooth and organized as a continuous probability distribution (not scattered arbitrary points), you can <strong>skip the encoder entirely at generation time</strong> and simply sample a fresh random z from the learned latent space distribution, then run it through the decoder alone. Every different sampled z produces a plausible, <em>new, synthetic</em> example that the network never saw during training — this is true data generation, not just reconstruction.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>كل الـ autoencoders التي رأيناها حتى الآن تُرمِّز الـ input إلى نقطة واحدة ثابتة في الفراغ الكامن — deterministic. <strong>Variational Autoencoder (VAE)</strong> يُغيّر هذا جذريًا: بدل إخراج كود واحد دقيق، يُخرج الـ encoder <strong>معاملات توزيع احتمالي</strong> — ثم يُسحب (sample) المتجه الكامن الفعلي من هذا التوزيع.</p>
+    <br/>
+    <p><strong>مخرجات الـ Encoder: Mean (μ) و Standard Deviation (σ):</strong></p>
+    <p style="font-size:14px">بدل كود واحد، يُنتج encoder الـ VAE متجهين: <strong>μ (المتوسط)</strong> — مركز التوزيع، و <strong>σ (الانحراف المعياري)</strong> — مدى انتشاره. معًا يُمثّلان توزيعًا غاوسيًا فوق الأكواد الكامنة المحتملة لهذا الـ input، بدل كود واحد ثابت.</p>
+    <br/>
+    <p><strong>السحب (Sampling) وحيلة Reparameterization:</strong></p>
+    <p style="font-size:14px">يُسحب متجه كامن <span class="term-ar">z</span> من هذا التوزيع. السحب المباشر غير قابل للتفاضل، وهذا يُعطّل backpropagation — فيستخدم VAE حيلة <strong>Reparameterization</strong>: نسحب ضوضاء عشوائية ε من توزيع طبيعي معياري، ثم نحسب z بشكل حتمي من μ و σ و ε:</p>
+    <div class="formula" style="direction:ltr;font-family:var(--font-mono)">z = μ + σ · ε ,&nbsp;&nbsp; حيث ε ~ N(0, 1)</div>
+    <p style="font-size:14px">هذا يفصل العشوائية (ε) عن المعاملات القابلة للتعلّم (μ, σ)، فتستمر التدرجات في التدفق عبر μ و σ خلال التدريب حتى مع وجود سحب عشوائي في z.</p>
+    <br/>
+    <p><strong>لماذا هذا يجعل VAE نموذجًا توليديًا (generative)؟</strong> لأن الـ encoder دُرِّب على جعل الفراغ الكامن سلسًا ومنظمًا كتوزيع احتمالي مستمر (وليس نقاطًا متناثرة عشوائيًا)، يمكن <strong>تجاوز الـ encoder بالكامل وقت التوليد</strong> وسحب z جديد عشوائي من التوزيع المُتعلَّم، ثم تمريره عبر الـ decoder فقط. كل z مختلف يُنتج مثالًا جديدًا مُقنعًا لم تره الشبكة أثناء التدريب — هذا توليد بيانات حقيقي، لا إعادة بناء فقط.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Variational Autoencoder / VAE</strong></li>
+      <li><strong>Mean (μ) / Standard Deviation (σ)</strong></li>
+      <li><strong>Latent Space (الفراغ الكامن)</strong></li>
+      <li><strong>Reparameterization Trick (حيلة إعادة المعامَلة)</strong></li>
+      <li><strong>Generative Model (نموذج توليدي)</strong></li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Example — Generating a New Digit</div>
+    <pre><code>Training:  encoder(x) → μ=[0.2, -0.5],  σ=[0.1, 0.3]
+           ε ~ N(0,1)  =  [0.8, -1.2]
+           z = μ + σ·ε =  [0.28, -0.86]
+           decoder(z) → reconstruction of x
+
+Generation (no encoder needed!):
+           z_new ~ N(0,1) sampled freely from the learned latent space
+           decoder(z_new) → a brand-new, synthetic digit image
+           never seen during training</code></pre>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Exam Trap — AE vs VAE: Why Standard AEs Can't Generate</div>
+    <p>A standard AE's latent space is not constrained to be smooth or continuous — it may contain gaps, holes, and disconnected clusters shaped only by whatever inputs it happened to see. Sampling a random point in that space and decoding it can produce garbage, because the decoder was never trained on codes from those regions. A <strong>VAE</strong>, by contrast, explicitly forces the latent space toward a smooth, known distribution (typically standard normal) during training, so <em>any</em> sampled point decodes into something plausible. This is exactly why VAEs are true generative models and plain AEs are not — this distinction is one of the most commonly tested ideas in this lecture.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 VAE encoder outputs μ and σ (distribution parameters), not a single deterministic code</li>
+      <li>📌 Memorize the reparameterization trick: z = μ + σ·ε, ε ~ N(0,1)</li>
+      <li>📌 Generation happens by sampling z directly from the latent distribution and skipping the encoder</li>
+      <li>📌 Key exam distinction: standard AEs cannot reliably generate new data; VAEs can, because of the smooth, regularized latent space</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>VAE encoder outputs μ and σ describing a distribution, not a fixed point. z = μ + σ·ε (reparameterization trick) is sampled and decoded. Because the latent space is smooth/continuous, sampling new z values generates new synthetic examples — true generative power that standard AEs lack.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 14</span>
+    <h2>8. Full Architecture Comparison</h2>
+  </div>
+  <p class="section-subtitle">Standard AE vs DAE vs CAE vs VAE — Choosing the Right Tool</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Architecture Comparison:</strong></p>
+    <p style="margin-top:8px;font-size:14px">Type | Primary Objective | Key Mechanism</p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>Standard AE | Dimensionality Reduction | Information Bottleneck</li>
+      <li>Denoising (DAE) | Robust Feature Extraction | Reconstruction from Noise</li>
+      <li>Convolutional (CAE) | Spatial Image Analysis | Conv/Pooling Layers</li>
+      <li>Variational (VAE) | Synthetic Data Generation | Probabilistic Sampling</li>
+    </ul>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Note: Slide 13 was a diagram-only transition slide with no extractable text; its concept (the overview leading into this comparison) is integrated into this section.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Every architecture in this lecture shares the same encoder-bottleneck-decoder skeleton from Section 1 — what changes between them is the <strong>objective</strong> they're optimized for and the <strong>mechanism</strong> that achieves it:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Primary Objective</th><th>Key Mechanism</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Standard AE</strong></td><td>Dimensionality Reduction</td><td>Information Bottleneck</td></tr>
+          <tr><td><strong>Denoising (DAE)</strong></td><td>Robust Feature Extraction</td><td>Reconstruction from Noise</td></tr>
+          <tr><td><strong>Convolutional (CAE)</strong></td><td>Spatial Image Analysis</td><td>Conv/Pooling Layers</td></tr>
+          <tr><td><strong>Variational (VAE)</strong></td><td>Synthetic Data Generation</td><td>Probabilistic Sampling</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <br/>
+    <p><strong>When would you actually pick each one?</strong></p>
+    <div class="def-box">
+      <div class="def-term">Standard AE → when you just need compression</div>
+      <p style="margin-top:6px;font-size:13px">Use for dimensionality reduction, anomaly detection via reconstruction error, or as a simple building block for a Stacked AE — when the data isn't especially noisy and you don't need to generate new samples.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">DAE → when your data is noisy or you need robust features</div>
+      <p style="margin-top:6px;font-size:13px">Use when input data is expected to be corrupted, incomplete, or noisy at inference time (sensor noise, scanned documents, missing values) and you need features that generalize past exact training examples.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">CAE → whenever the data is image-like</div>
+      <p style="margin-top:6px;font-size:13px">Use for any 2D/3D spatial data (images, video frames, spectrograms) where preserving spatial relationships between neighboring pixels matters — almost always preferred over a flat fully-connected AE for image tasks.</p>
+    </div>
+    <div class="def-box" style="margin-top:8px">
+      <div class="def-term">VAE → when you need to generate new, plausible data</div>
+      <p style="margin-top:6px;font-size:13px">Use when the goal is synthesis: generating new faces, new molecules, new handwriting samples, or exploring/interpolating smoothly through a latent space of variations — anything a plain reconstruction-only AE cannot do.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>كل البنى في هذا الدرس تشترك في نفس هيكل encoder-bottleneck-decoder من القسم الأول — ما يختلف بينها هو <strong>الهدف</strong> الذي تُحسَّن من أجله و<strong>الآلية</strong> التي تحققه:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>النوع</th><th>الهدف الأساسي</th><th>الآلية الرئيسية</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Standard AE</strong></td><td>تقليل الأبعاد (Dimensionality Reduction)</td><td>Information Bottleneck</td></tr>
+          <tr><td><strong>Denoising (DAE)</strong></td><td>استخراج ميزات متينة (Robust Feature Extraction)</td><td>إعادة البناء من الضوضاء</td></tr>
+          <tr><td><strong>Convolutional (CAE)</strong></td><td>تحليل الصور المكاني (Spatial Image Analysis)</td><td>طبقات Conv/Pooling</td></tr>
+          <tr><td><strong>Variational (VAE)</strong></td><td>توليد بيانات تركيبية (Synthetic Data Generation)</td><td>سحب احتمالي (Probabilistic Sampling)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <br/>
+    <p><strong>متى نختار كل نوع عمليًا؟</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Standard AE</strong> — عندما نحتاج فقط ضغط البيانات أو كشف الشذوذ (anomaly detection) عبر خطأ إعادة البناء</li>
+      <li><strong>DAE</strong> — عندما تكون البيانات متوقع أن تكون مشوشة أو ناقصة عند الاستخدام الفعلي (ضوضاء حساسات، مستندات مُمسوحة)</li>
+      <li><strong>CAE</strong> — دائمًا تقريبًا مع بيانات على شكل صور، لأنه يحافظ على العلاقات المكانية بين البيكسلات</li>
+      <li><strong>VAE</strong> — عندما يكون الهدف التوليد: وجوه جديدة، عيّنات كتابة يدوية جديدة، أو استكشاف الفراغ الكامن بسلاسة</li>
+    </ul>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Dimensionality Reduction (تقليل الأبعاد)</strong></li>
+      <li><strong>Robust Feature Extraction (استخراج ميزات متينة)</strong></li>
+      <li><strong>Spatial Image Analysis (تحليل مكاني للصور)</strong></li>
+      <li><strong>Synthetic Data Generation (توليد بيانات تركيبية)</strong></li>
+    </ul>
+  </div>
+
+  <div class="cmp-grid">
+    <div class="cmp-col">
+      <h4 style="color:var(--accent)">Deterministic Family</h4>
+      <ul>
+        <li>Standard AE — plain bottleneck compression</li>
+        <li>DAE — bottleneck + noise robustness</li>
+        <li>CAE — bottleneck + spatial (conv/pool) structure</li>
+        <li>All three: one fixed latent code per input, cannot generate new data reliably</li>
+      </ul>
+    </div>
+    <div class="cmp-col">
+      <h4 style="color:var(--accent2)">Probabilistic Family</h4>
+      <ul>
+        <li>VAE — bottleneck replaced by a learned distribution (μ, σ)</li>
+        <li>Latent code is sampled, not fixed</li>
+        <li>Latent space is smooth/continuous by design</li>
+        <li>Only member of this lecture's models that can generate new, synthetic data</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the 4-row comparison table exactly: AE→Bottleneck, DAE→Noise, CAE→Conv/Pooling, VAE→Probabilistic Sampling</li>
+      <li>📌 Only VAE is a true generative model among these four — this is the single most important comparison takeaway</li>
+      <li>📌 CAE is about architecture (spatial layers); DAE is about training procedure (noise injection); VAE is about the nature of the latent space (probabilistic vs deterministic)</li>
+      <li>📌 These are not mutually exclusive in practice — e.g. a Convolutional VAE combines conv/pooling layers with a probabilistic latent space</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Standard AE = dimensionality reduction via bottleneck. DAE = robust features via noise-then-clean reconstruction. CAE = spatial image analysis via conv/pooling. VAE = synthetic data generation via probabilistic sampling. Only VAE truly generates new data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice, True/False, Fill-in-the-Blank, and Short Answer Questions</p>
+
+  <!-- MCQ -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. What is the purpose of the "bottleneck" layer (Layer L2) in a standard autoencoder?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) To increase the number of parameters for better accuracy</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) To force the network to compress data into essential structure by using fewer units than the input</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) To add labels to unsupervised data</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) To speed up the decoder only</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — The bottleneck (Layer L2) has fewer units than L1/L3, forcing the network to keep only essential structure instead of memorizing every value.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. In the standard autoencoder loss function L = ‖x − x'‖², what does x' represent?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The original raw input</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The decoder's reconstruction of the input</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The bottleneck code vector</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A randomly sampled noise vector</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — x' = g(W'h+b') is the decoder's reconstruction, compared against the original x via squared error.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What is the KEY difference between a standard Autoencoder (AE) and a Denoising Autoencoder (DAE)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) DAE has no bottleneck layer at all</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) DAE only works on image data</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) DAE is fed a corrupted input but its loss is computed against the original clean input</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) DAE does not use gradient descent for training</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — DAE receives noisy input x̃ but the loss always compares the reconstruction to the original clean x, forcing robust feature learning.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Which of these is the defining difference between a standard Autoencoder and a Variational Autoencoder (VAE)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) VAEs don't use an encoder at all</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) VAEs encode inputs into a probability distribution (μ, σ) and sample a latent vector, rather than producing one fixed deterministic code</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) VAEs only work with convolutional layers</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) VAEs cannot be trained with backpropagation</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Standard AEs output one fixed code; VAEs output distribution parameters (μ, σ) and sample z = μ + σ·ε from them.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Why can Variational Autoencoders (VAEs) generate new, synthetic data while standard Autoencoders generally cannot?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) VAEs have more layers than standard AEs</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) VAEs are trained on larger datasets by definition</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) VAEs regularize the latent space to be smooth and continuous, so any sampled point decodes into something plausible; standard AE latent spaces have no such guarantee</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) VAEs use pooling layers and standard AEs do not</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — A standard AE's latent space may have gaps/holes; a VAE's is explicitly regularized toward a smooth known distribution, making arbitrary sampled points decodable.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. In Greedy Layer-wise Pretraining of a Stacked Autoencoder, what becomes the input to Layer 2's autoencoder?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The original raw input data, again</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The latent code output by Layer 1's trained encoder</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Random noise</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The output of Layer 1's decoder</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — This is "Latent Transfer": once Layer 1's encoder is trained, its code becomes the input for Layer 2's autoencoder.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. In the Supervised Fine-Tuning process for a Stacked Autoencoder, what happens to the decoder weights from pretraining?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) They are used to initialize the classifier layer</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) They are discarded</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) They are frozen and never updated again</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) They become the new encoder</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Step 1 explicitly discards decoder weights, keeping only the pretrained encoders to stack, since reconstruction is no longer the goal.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. What operation in a Convolutional Autoencoder's decoder reverses pooling by distributing values back across spatial locations?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Backpropagation</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Batch normalization</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Unpooling</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Dropout</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Unpooling inverts pooling, expanding the compressed spatial grid back out, often implemented via Conv2DTranspose or nearest-neighbor/bilinear upsampling + convolution.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: In a Denoising Autoencoder, the loss is calculated between the reconstruction and the noisy (corrupted) input.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — The loss is always calculated against the ORIGINAL CLEAN input, never against the noisy version fed into the network.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: Greedy layer-wise pretraining trains all layers of a stacked autoencoder jointly, end-to-end, from the very first step.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — "Greedy" means each layer is trained independently, one at a time, before any joint/global fine-tuning happens.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: The reparameterization trick z = μ + σ·ε allows gradients to flow through μ and σ during VAE training despite the random sampling step.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — By isolating randomness into ε ~ N(0,1), z becomes a differentiable function of μ and σ, so backpropagation can still update them.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 4: A Convolutional Autoencoder uses fully-connected layers exclusively, with no convolution or pooling operations.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — A CAE specifically REPLACES fully-connected layers with convolution and pooling operators for the encoder, and unpooling/upsampling + convolution for the decoder.</div>
+  </div>
+
+  <!-- Fill in the blank -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--warn)"><span class="icon">📝</span> Fill in the Blank</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 1: The three-step supervised fine-tuning process is: Stack Encoders → Add Classifier → ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Discard the classifier</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Global Fine-Tuning (backpropagation on supervised loss)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Re-run layer-wise pretraining</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Add another decoder</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: Global Fine-Tuning</strong> — The full stack (encoders + classifier) is optimized end-to-end via backpropagation to minimize supervised classification cost.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 2: The standard reconstruction loss function used to train autoencoders is L = ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) x + x'</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) ‖x − x'‖²</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) W · x</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) σ / μ</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: ‖x − x'‖²</strong> — The squared-error objective function, minimized via gradient descent.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Explain the key difference between a standard Autoencoder (AE) and a Denoising Autoencoder (DAE). <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A standard AE receives clean input x, encodes and decodes it, and computes loss between x and its reconstruction x'. A DAE deliberately corrupts the input into a noisy version x̃ via a corruption function, feeds x̃ (not x) through the encoder/decoder, but still computes the loss between the reconstruction and the ORIGINAL CLEAN x — never against x̃. This forces the DAE to learn robust, generalizable structure rather than memorizing exact input values, since the random noise pattern differs every time and cannot itself be memorized usefully.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Explain the key difference between a standard Autoencoder (AE) and a Variational Autoencoder (VAE), and why this matters for generation. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A standard AE's encoder outputs one fixed, deterministic latent code for each input. A VAE's encoder instead outputs the parameters of a probability distribution — a mean μ and standard deviation σ — and the actual latent vector z is sampled from that distribution using the reparameterization trick z = μ + σ·ε (ε ~ N(0,1)). Because the VAE explicitly regularizes its latent space to be smooth and continuous, any randomly sampled z (even without ever running the encoder) decodes into a plausible, synthetic example. A standard AE's latent space has no such guarantee — it can have gaps or discontinuities — so sampling random points and decoding them often produces meaningless output. This is why VAEs are considered generative models and standard AEs generally are not.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Describe the Greedy Layer-wise Pretraining strategy for Stacked Autoencoders and explain why it helps deep network training. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Greedy layer-wise pretraining trains a deep stacked autoencoder one layer at a time rather than all at once. First, an autoencoder is trained unsupervised on the raw input (Layer 1). Once trained, its encoder's latent output ("latent transfer") becomes the input for a second autoencoder (Layer 2), which is trained independently the same way, and so on for as many layers as needed. Because training a very deep network entirely from random initial weights can be unstable (vanishing gradients, poor local minima), using the weights learned during this unsupervised layer-wise process as the deep network's starting point gives it a far better initialization, making subsequent training (e.g. supervised fine-tuning) faster and more reliable.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why are Convolutional Autoencoders (CAEs) preferred over standard fully-connected Autoencoders for image data? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A standard fully-connected autoencoder flattens an image into a single long vector, destroying information about which pixels are spatially adjacent. A Convolutional Autoencoder instead replaces fully-connected layers with convolution and pooling operations (encoder) and unpooling/upsampling operations such as Conv2DTranspose or nearest-neighbor upsampling followed by convolution (decoder). This preserves the 2D spatial structure of the image throughout the network, uses far fewer parameters because filter weights are shared across spatial locations, and produces higher-quality reconstructions that respect textures and edges — making CAEs the natural choice whenever the input data is image-like.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 15 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Autoencoder Architectures & Generative Models" / Dr. Ahmed Yousry — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Anatomy of an Autoencoder / The Information Bottleneck (L1, L2, L3 layers) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Diagram-only slide, no extractable text — ✅ Concept (encoder/bottleneck/decoder shape) integrated into Section 1's hourglass diagram</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — Reconstruction Optimization: Encoder Activation, Decoder Reconstruction, Objective/Squared-Error Function, Gradient Descent — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Diagram-only slide, no extractable text — ✅ Concept (transition into robustness/noise topic) integrated into Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Robust Feature Learning / DAE Architecture (Noise Injection, Latent Capture, Reconstruction against clean input) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — Stacked Autoencoders (SAE) / Greedy Training Strategy (Layer-wise Pre-training, Latent Transfer, Weight Initialization) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — Diagram-only slide, no extractable text — ✅ Concept (transition into fine-tuning topic) integrated into Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Supervised Fine-Tuning (Stack Encoders, Add Classifier, Global Tuning) — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Diagram-only slide, no extractable text — ✅ Concept (transition into spatial/CAE topic) integrated into Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Spatial Encoding via CAEs / Convolutional Autoencoders (Projection Operation, Unpooling, learned filter weights) — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Probabilistic Synthesis: VAE / Stochastic Latent Variables (Encoder Outputs μ/σ, Sampling, Generative Power) — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Diagram-only slide, no extractable text — ✅ Concept (transition into final comparison overview) integrated into Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Architecture Comparison table (Standard AE, DAE, CAE, VAE — Primary Objective & Key Mechanism) — ✅ Section 8 with full HTML table</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Closing slide: "Questions?" / Deep Learning Series: Autoencoders & Latent Spaces / Dr. Ahmed Yousry — ✅ Acknowledged (closing/questions slide)</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 15/15 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, formulas, algorithms, tables, and application examples have been explained in both English and Arabic with additional worked examples, memory tricks, and exam notes. Slides with blank/image-only content (3, 5, 8, 10, 13) were diagrams whose underlying concepts are fully integrated into the surrounding sections as noted above.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Core Skeleton:</strong> <span class="tag tag-blue">Input (L1)</span> → <span class="tag tag-orange">Bottleneck / Code (L2)</span> → <span class="tag tag-blue">Reconstruction (L3)</span></p>
+      <p><strong>Training:</strong> <span class="tag tag-purple">h=f(Wx+b)</span> → <span class="tag tag-purple">x'=g(W'h+b')</span> → <span class="tag tag-purple">L=‖x−x'‖²</span> → <span class="tag tag-purple">Gradient Descent</span></p>
+      <p><strong>Robustness:</strong> <span class="tag tag-green">DAE = Noisy Input x̃ → Loss vs Clean x</span></p>
+      <p><strong>Going Deep:</strong> <span class="tag tag-orange">SAE = Greedy Layer-wise Pretraining → Latent Transfer → Weight Init</span></p>
+      <p><strong>Becoming Supervised:</strong> <span class="tag tag-blue">Stack Encoders → Add Softmax → Global Fine-Tuning</span></p>
+      <p><strong>For Images:</strong> <span class="tag tag-purple">CAE = Conv/Pooling → Unpooling/Upsampling</span></p>
+      <p><strong>Going Generative:</strong> <span class="tag tag-green">VAE = μ, σ → z=μ+σ·ε → Decoder → New Synthetic Data</span></p>
+      <p><strong>Comparison:</strong> <span class="tag tag-orange">AE=Bottleneck</span> | <span class="tag tag-blue">DAE=Noise Robustness</span> | <span class="tag tag-purple">CAE=Spatial</span> | <span class="tag tag-green">VAE=Probabilistic Generation</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

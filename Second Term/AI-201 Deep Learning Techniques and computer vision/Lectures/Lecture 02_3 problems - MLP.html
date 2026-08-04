@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 02 — MLP Backpropagation: Worked Practice Problems | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* NETWORK DIAGRAM (additive, same visual language) */
+.net-diagram{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+  margin:14px 0;
+  overflow-x:auto;
+}
+.net-diagram svg{display:block;min-width:600px;width:100%;height:auto}
+.weights-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;
+}
+.weight-chip{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 10px;
+  font-family:var(--font-mono);
+  font-size:12px;
+  text-align:center;
+}
+.weight-chip .wname{color:var(--accent4);display:block;font-size:11px;margin-bottom:2px}
+.weight-chip .wval{color:var(--text);font-weight:700}
+@media(max-width:600px){.weights-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 DL Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Lecture Introduction</a>
+    <div class="nav-section">Part I — Algorithm & Theory</div>
+    <a href="#s1" onclick="setActive(this)">1. The Backprop Algorithm — Big Picture</a>
+    <a href="#s2" onclick="setActive(this)">2. The Core Formulas</a>
+    <div class="nav-section">Part II — Worked Example</div>
+    <a href="#s3" onclick="setActive(this)">3. Network Setup for This Example</a>
+    <a href="#s4" onclick="setActive(this)">4. Pattern 1 — Fully Worked</a>
+    <a href="#s5" onclick="setActive(this)">5. Pattern 2 — Solved Answer Key</a>
+    <a href="#s6" onclick="setActive(this)">6. Pattern 3 — Solved Answer Key</a>
+    <a href="#s7" onclick="setActive(this)">7. Pattern 4 — Solved Answer Key</a>
+    <div class="nav-section">Part III — Wrap-Up</div>
+    <a href="#s8" onclick="setActive(this)">8. End of Epoch 1 — Total Error</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 02 — MLP BACKPROPAGATION: WORKED PRACTICE PROBLEMS</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 02</div>
+  <h1>MLP Backpropagation: Worked Practice Problems</h1>
+  <p>From the General Algorithm to a Fully-Solved Numeric Example — Epoch 1, All 4 Patterns</p>
+  <p class="author">Deep Learning & Computer Vision Diploma &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">1</span><span class="lbl">Network</span></div>
+    <div class="stat-chip"><span class="num">4</span><span class="lbl">Patterns</span></div>
+    <div class="stat-chip"><span class="num">1</span><span class="lbl">Epoch</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">MLP</span>
+    <span class="tag tag-green">Backpropagation</span>
+    <span class="tag tag-purple">Forward Pass</span>
+    <span class="tag tag-orange">Delta Rule</span>
+    <span class="tag tag-blue">Gradient Descent</span>
+    <span class="tag tag-green">Sigmoid Activation</span>
+    <span class="tag tag-purple">Epoch</span>
+    <span class="tag tag-orange">Weight Update</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 2–3</span>
+    <h2>1. The Backpropagation Algorithm — Big Picture</h2>
+  </div>
+  <p class="section-subtitle">The Per-Epoch Loop: Forward Prop → Error → Back Prop → Update, Repeated for Every Pattern</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Training a Multi-Layer Perceptron (MLP) with backpropagation is an <span class="hl-blue">iterative loop</span> repeated many times. One full pass through <strong>all</strong> training patterns is called an <strong>epoch</strong>. Inside a single epoch, the network processes each pattern one at a time, doing two things for each pattern: a <strong>Forward Prop</strong> step (compute outputs, measure error) and a <strong>Back Prop</strong> step (figure out who's to blame, nudge the weights).</p>
+    <br/>
+    <p><strong>Steps of a single epoch (for each pattern):</strong></p>
+    <ol class="steps">
+      <li><strong>Forward Prop</strong> — calculate <code>net</code> and <code>o</code> for every neuron except the input layer and bias neurons (input neurons just hold the raw feature values; bias neurons always output 1)</li>
+      <li><strong>Forward Prop</strong> — calculate the <strong>specific error</strong> for this single pattern (how wrong the network's output was for this one example)</li>
+      <li><strong>Back Prop</strong> — calculate <code>delta (δ)</code> for every neuron except the input layer and bias neurons — this is the "blame" signal</li>
+      <li><strong>Back Prop</strong> — calculate <code>Δw</code> (the weight change) for every variable weight, <em>including</em> the bias weights</li>
+      <li><strong>Back Prop</strong> — update every weight: <code>w := w + Δw</code></li>
+    </ol>
+    <br/>
+    <p><strong>After the end of the epoch</strong> (once every pattern has been processed once):</p>
+    <ol class="steps">
+      <li>Calculate the <strong>total error</strong> = the sum of all the specific errors collected from every pattern in this epoch</li>
+      <li>Check the <strong>stopping condition</strong> (e.g. is the total error small enough? Have we hit the maximum number of epochs?)</li>
+      <li>If the stopping condition is <strong>False</strong> (we're not done yet), run <strong>another epoch</strong>, starting from the weights we just ended up with</li>
+    </ol>
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> Don't Confuse These Two "Errors"</div>
+      <p>The <strong>specific error</strong> (<code>Err_p</code>) belongs to a <em>single pattern</em> — it's recomputed fresh for every pattern during forward prop. The <strong>total error</strong> belongs to the <em>whole epoch</em> — it's the sum of all the specific errors, computed only once, after all patterns have been processed.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>تدريب شبكة <strong>Multi-Layer Perceptron (MLP)</strong> بخوارزمية <strong>Backpropagation</strong> هو حلقة متكررة. الدورة الكاملة على <strong>جميع</strong> أمثلة التدريب تُسمى <strong>Epoch</strong>. داخل كل Epoch، تعالج الشبكة كل نمط (Pattern) على حدة، وتقوم بخطوتين لكل نمط: <strong>Forward Prop</strong> (حساب المخرجات وقياس الخطأ) ثم <strong>Back Prop</strong> (معرفة من المتسبب في الخطأ، وتعديل الأوزان بقدر صغير).</p>
+    <br/>
+    <p><strong>خطوات الـ Epoch الواحد (لكل نمط على حدة):</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>Forward Prop</strong> — نحسب <code>net</code> و <code>o</code> لكل خلية عصبية باستثناء طبقة الإدخال وخلايا الـ bias (خلية الإدخال تحمل فقط قيمة الميزة الخام، وخلية الـ bias تُخرج دائمًا 1)</li>
+      <li><strong>Forward Prop</strong> — نحسب <strong>الخطأ الخاص بهذا النمط فقط</strong> (Err_p) — أي مقدار خطأ الشبكة في هذا المثال بالتحديد</li>
+      <li><strong>Back Prop</strong> — نحسب <code>delta (δ)</code> لكل خلية (باستثناء الإدخال والـ bias) — وهذا هو "توقيع اللوم" الذي يحدد مسؤولية كل خلية عن الخطأ</li>
+      <li><strong>Back Prop</strong> — نحسب <code>Δw</code> (مقدار التغيير) لكل وزن متغير، بما في ذلك أوزان الـ bias</li>
+      <li><strong>Back Prop</strong> — نُحدّث كل وزن: <code>w := w + Δw</code></li>
+    </ol>
+    <br/>
+    <p><strong>بعد انتهاء الـ Epoch</strong> (أي بعد معالجة كل الأنماط مرة واحدة):</p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>نحسب <strong>الخطأ الكلي (Total Error)</strong> = مجموع كل الأخطاء الخاصة (Err_p) لكل الأنماط في هذا الـ Epoch</li>
+      <li>نتحقق من <strong>شرط التوقف</strong> (مثلًا: هل الخطأ الكلي أصبح صغيرًا كافيًا؟ هل بلغنا أقصى عدد من الـ Epochs؟)</li>
+      <li>إذا كان شرط التوقف <strong>خاطئًا</strong> (لم ننته بعد)، نُشغّل <strong>Epoch آخر</strong> بدايةً من الأوزان الجديدة التي وصلنا إليها</li>
+    </ol>
+    <p style="margin-top:10px;font-size:13px">النقطة المهمة التي يجب عدم الخلط فيها: <strong>الخطأ الخاص (Err_p)</strong> يخص نمطًا واحدًا فقط ويُعاد حسابه لكل نمط، أما <strong>الخطأ الكلي (Total Error)</strong> يخص الـ Epoch بالكامل ويُحسب مرة واحدة فقط بعد انتهاء جميع الأنماط.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Practicing a Skill</div>
+    <p>Think of learning to shoot a basketball free throw. Each attempt (a <strong>pattern</strong>) is: you <strong>try</strong> (forward prop), you <strong>see how far off</strong> you were from the hoop (specific error), you <strong>figure out what to adjust</strong> — elbow angle, wrist flick, knee bend (back prop / delta), and you <strong>slightly change your form</strong> (weight update). After a full practice session of many shots (an <strong>epoch</strong>), you tally up how bad your overall shooting was (total error) and decide whether you're good enough to stop practicing, or need another session (another epoch).</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — The Backprop Cycle</div>
+    <p><strong>"Fire, Feel, Fault, Fix"</strong></p>
+    <p><strong>F</strong>orward pass → <strong>F</strong>eel the error → <strong>F</strong>ault via delta (blame assignment) → <strong>F</strong>ix the weights</p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Repeat this 4-step cycle for every pattern, every epoch, until the stopping condition is met.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 One epoch = one full pass through ALL training patterns</li>
+      <li>📌 Forward prop computes net & o (and error); back prop computes delta & Δw (and updates weights)</li>
+      <li>📌 Weights update <em>after every single pattern</em> in this scheme (this is "online"/per-pattern update, not batch)</li>
+      <li>📌 Bias neurons are never assigned a delta from "upstream" — but bias <em>weights</em> are still updated, using o_i = 1</li>
+      <li>📌 Common exam Q: "What's the difference between specific error and total error?" → specific = per pattern, total = sum over the whole epoch</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>For each pattern: <strong>Forward Prop</strong> (compute net, o, specific error) then <strong>Back Prop</strong> (compute delta, Δw, update weights). After all patterns: <strong>total error</strong> = sum of specific errors, check the <strong>stopping condition</strong>, and repeat with another epoch if not yet satisfied.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 4–5</span>
+    <h2>2. The Core Formulas</h2>
+  </div>
+  <p class="section-subtitle">net, o, delta (hidden vs. output), and the weight-update rule — the mathematical engine behind the loop</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Assume layer <strong>K</strong> is right before layer <strong>H</strong>, and either layer <strong>L</strong> is right after layer <strong>H</strong>, or <strong>H</strong> is itself the output layer. Every formula below is written from the point of view of a neuron <strong>h</strong> sitting in layer H.</p>
+
+    <div class="def-box">
+      <div class="def-term">1. Weighted Sum — net_h</div>
+      <div class="formula">net<sub>h</sub> = Σ<sub>k∈K</sub> w<sub>k,h</sub> · o<sub>k</sub></div>
+      <p style="font-size:13px">Every neuron feeding into h (every neuron k in the layer before h) sends its own output <code>o_k</code>, multiplied by the connecting weight <code>w_k,h</code>. Sum them all up — that raw, un-squashed total is <code>net_h</code>.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2. Activation — o_h</div>
+      <div class="formula">o<sub>h</sub> = f<sub>act</sub>(net<sub>h</sub>) &nbsp;&nbsp;|&nbsp;&nbsp; Default (sigmoid): o<sub>h</sub> = 1 / (1 + e<sup>−net<sub>h</sub></sup>)</div>
+      <p style="font-size:13px">The activation function squashes <code>net_h</code> into the neuron's actual output <code>o_h</code>. Unless told otherwise, we default to the <strong>sigmoid</strong> function, which squashes any real number into the range (0, 1).</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3. Delta for a HIDDEN Neuron</div>
+      <div class="formula">δ<sub>h</sub> = f′<sub>act</sub>(net<sub>h</sub>) · Σ<sub>l∈L</sub> δ<sub>l</sub> · w<sub>h,l</sub></div>
+      <div class="formula">Default (sigmoid): δ<sub>h</sub> = o<sub>h</sub>(1 − o<sub>h</sub>) · Σ<sub>l∈L</sub> δ<sub>l</sub> · w<sub>h,l</sub></div>
+      <p style="font-size:13px">If h is a <strong>hidden</strong> neuron, its delta depends entirely on the deltas of the neurons <em>after</em> it (layer L) — each weighted by the connection strength <code>w_h,l</code> — multiplied by the derivative of the activation function at h's own net. This is "blame flowing backward."</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">4. Delta for an OUTPUT Neuron</div>
+      <div class="formula">δ<sub>h</sub> = f′<sub>act</sub>(net<sub>h</sub>) · (−∂Err<sub>p</sub>/∂y<sub>h</sub>)</div>
+      <div class="formula">Default (sigmoid, with Err<sub>p</sub> = ½ Σ<sub>h∈H</sub>(t<sub>h</sub> − y<sub>h</sub>)²): &nbsp; δ<sub>h</sub> = y<sub>h</sub>(1 − y<sub>h</sub>)(t<sub>h</sub> − y<sub>h</sub>)</div>
+      <p style="font-size:13px">If h is an <strong>output</strong> neuron, there's no "layer after it" — instead its delta comes directly from how wrong its own prediction <code>y_h</code> was compared to the target <code>t_h</code>, again scaled by the activation derivative.</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">5. Weight Update Rule</div>
+      <div class="formula">Δw<sub>i,j</sub> = η · o<sub>i</sub> · δ<sub>j</sub> &nbsp;&nbsp;→&nbsp;&nbsp; w<sub>i,j</sub> := w<sub>i,j</sub> + η · o<sub>i</sub> · δ<sub>j</sub></div>
+      <p style="font-size:13px">For every weight connecting neuron i to neuron j: the weight change is the <strong>learning rate η</strong> (how big a step we take) times <strong>o_i</strong> (what neuron i actually sent forward) times <strong>δ_j</strong> (how much neuron j is "to blame"). Special cases for o_i: if <strong>i is an input neuron</strong>, o_i = x_i (the raw feature value); if <strong>i is a bias neuron</strong>, o_i = 1 (bias neurons always output 1).</p>
+    </div>
+
+    <p style="margin-top:12px"><strong>Symbol Glossary:</strong></p>
+    <ul class="e-list">
+      <li>🔹 <code>net</code> — the raw weighted sum entering a neuron, before activation</li>
+      <li>🔹 <code>o</code> — the neuron's actual output after activation (o_i for a source neuron sending a signal forward)</li>
+      <li>🔹 <code>w</code> — the weight (connection strength) between two neurons</li>
+      <li>🔹 <code>δ (delta)</code> — the "blame signal" for a neuron: how much it contributed to the error, and in which direction to adjust</li>
+      <li>🔹 <code>η (eta)</code> — the learning rate: a small constant controlling how big each weight update step is</li>
+      <li>🔹 <code>t</code> — the target (desired/true) output for a training pattern</li>
+      <li>🔹 <code>y</code> — the network's actual predicted output (same as "o" but specifically for an output neuron)</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>لنفترض أن الطبقة <strong>K</strong> تسبق مباشرة الطبقة <strong>H</strong>، وأن الطبقة <strong>L</strong> تأتي بعد H مباشرة، أو أن H نفسها هي طبقة الإخراج. كل الصيغ التالية مكتوبة من منظور خلية عصبية واحدة اسمها <strong>h</strong> في الطبقة H.</p>
+    <br/>
+    <p><strong>١. المجموع الموزون net_h:</strong></p>
+    <p style="font-size:14px">كل خلية k في الطبقة السابقة تُرسل مخرجها <code>o_k</code> مضروبًا في وزن الوصلة <code>w_k,h</code>. نجمع كل هذه القيم فنحصل على <code>net_h</code> — وهو المجموع الخام قبل أي تفعيل.</p>
+    <br/>
+    <p><strong>٢. التفعيل o_h:</strong></p>
+    <p style="font-size:14px">نُمرر net_h على دالة التفعيل لنحصل على المخرج الفعلي o_h. الافتراضي هو دالة <strong>Sigmoid</strong>: <code>o_h = 1/(1+e^-net_h)</code> والتي تضغط أي رقم ليصبح بين 0 و 1.</p>
+    <br/>
+    <p><strong>٣. delta للخلية المخفية (Hidden):</strong></p>
+    <p style="font-size:14px">إذا كانت h خلية مخفية، فإن قيمة δ_h تعتمد على "اللوم" القادم من الخلايا التالية لها (الطبقة L)، كل واحدة منها مضروبة في وزن الوصلة معها، ثم كل هذا مضروب في مشتقة دالة التفعيل. الصيغة الافتراضية لـ Sigmoid: <code>δ_h = o_h(1-o_h) · Σ δ_l·w_h,l</code>.</p>
+    <br/>
+    <p><strong>٤. delta لخلية الإخراج (Output):</strong></p>
+    <p style="font-size:14px">إذا كانت h خلية إخراج، فلا توجد طبقة بعدها — بدلًا من ذلك تعتمد δ_h مباشرة على مقدار خطأ تنبؤها y_h مقارنة بالهدف t_h. الصيغة الافتراضية (مع دالة الخطأ Err_p = ½Σ(t_h-y_h)²): <code>δ_h = y_h(1-y_h)(t_h-y_h)</code>.</p>
+    <br/>
+    <p><strong>٥. قاعدة تحديث الأوزان:</strong></p>
+    <p style="font-size:14px"><code>Δw_i,j = η·o_i·δ_j</code> ثم <code>w_i,j := w_i,j + Δw_i,j</code>. أي أن التغيير في الوزن بين خلية i وخلية j = معدل التعلم η × ما أرسلته الخلية i فعليًا × مقدار "لوم" الخلية j. ملاحظة مهمة: إذا كانت i خلية إدخال، فإن o_i = x_i (قيمة الميزة الخام)؛ وإذا كانت i خلية bias، فإن o_i = 1 دائمًا.</p>
+    <br/>
+    <p><strong>قاموس الرموز:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>net</strong> — المجموع الموزون الخام قبل التفعيل</li>
+      <li><strong>o</strong> — مخرج الخلية الفعلي بعد التفعيل</li>
+      <li><strong>w (weight)</strong> — قوة الوصلة بين خليتين</li>
+      <li><strong>δ (delta)</strong> — "توقيع اللوم"، مقدار مساهمة الخلية في الخطأ واتجاه التصحيح</li>
+      <li><strong>η (eta)</strong> — معدل التعلم، رقم صغير يتحكم في حجم كل خطوة تحديث</li>
+      <li><strong>t (target)</strong> — القيمة الصحيحة/المرغوبة للناتج</li>
+      <li><strong>y</strong> — التنبؤ الفعلي لخلية الإخراج</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Blame Assignment</div>
+    <p>Backpropagation is fundamentally a <strong>"blame assignment"</strong> algorithm. When the final answer is wrong, delta at the output neuron measures directly how wrong it was. Then, working backward layer by layer, each hidden neuron asks: "of all the neurons I feed into, how much did MY signal contribute to their mistakes?" — and gets assigned a proportional share of the blame (weighted by the connection strength). Once every neuron knows its share of the blame, every weight gets nudged a tiny bit in the direction that would have reduced that blame.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Warning from the Source Material</div>
+    <p>These clean formulas — <code>o_h(1-o_h)·Σδ_l·w_h,l</code> for hidden deltas and <code>y_h(1-y_h)(t_h-y_h)</code> for output deltas — are only valid because we assumed the <strong>sigmoid</strong> activation function AND the <strong>½Σ(t-y)²</strong> (sum-of-squared-errors) error function.</p>
+    <p style="margin-top:8px"><strong>If you use a different activation function or a different error function, you must re-derive the derivatives yourself:</strong> specifically, you must recompute <code>f′_act(net_h) · (−∂Err_p/∂y_h)</code> from scratch for the new functions. The general delta formulas (with the derivative terms left symbolic) always hold — only the "default" plugged-in simplifications change.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know which delta formula applies where: hidden neuron delta looks <em>forward</em> to layer L; output neuron delta looks at the <em>error function</em> directly</li>
+      <li>📌 The sigmoid derivative is famously simple: f′(net) = o(1-o) — memorize this</li>
+      <li>📌 Δw always has the same shape: η · (sender's output) · (receiver's delta)</li>
+      <li>📌 If activation ≠ sigmoid or error ≠ sum-of-squares, the "default" simplified deltas do NOT apply — you must re-derive</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><code>net_h = Σw·o</code>, <code>o_h = sigmoid(net_h)</code>. Hidden delta looks forward: <code>o_h(1-o_h)·Σδ_l·w_h,l</code>. Output delta compares to target: <code>y_h(1-y_h)(t_h-y_h)</code>. Weight update: <code>Δw = η·o_i·δ_j</code>. Different activation/error function → re-derive the deltas.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 6–7</span>
+    <h2>3. The Network Setup for This Example</h2>
+  </div>
+  <p class="section-subtitle">A Tiny 2→2→1 MLP Learning an XOR-Like Truth Table</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The worked example uses the smallest possible MLP that can demonstrate the full algorithm: <strong>2 input neurons</strong> (x1, x2), <strong>2 hidden neurons</strong> (numbered <strong>3</strong> and <strong>4</strong>), and <strong>1 output neuron</strong> (numbered <strong>5</strong>). The network is <strong>fully connected</strong> — every input connects to every hidden neuron, and every hidden neuron connects to the output neuron. Each non-input neuron (3, 4, and 5) also receives a connection from a <strong>bias neuron</strong> that always outputs 1.</p>
+
+    <div class="net-diagram">
+      <svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg">
+        <!-- edges to hidden layer -->
+        <g stroke="var(--border)" stroke-width="1.5">
+          <line x1="90" y1="45" x2="330" y2="45"></line>
+          <line x1="90" y1="45" x2="330" y2="155"></line>
+          <line x1="90" y1="150" x2="330" y2="45"></line>
+          <line x1="90" y1="150" x2="330" y2="155"></line>
+          <line x1="90" y1="255" x2="330" y2="45"></line>
+          <line x1="90" y1="255" x2="330" y2="155"></line>
+          <line x1="360" y1="45" x2="620" y2="150"></line>
+          <line x1="360" y1="155" x2="620" y2="150"></line>
+          <line x1="360" y1="260" x2="620" y2="150"></line>
+        </g>
+        <!-- weight labels -->
+        <g font-family="Space Mono, monospace" font-size="12" fill="var(--accent4)">
+          <text x="160" y="35">w13</text>
+          <text x="230" y="115">w14</text>
+          <text x="230" y="80">w23</text>
+          <text x="170" y="165">w24</text>
+          <text x="150" y="205">wb3</text>
+          <text x="200" y="230">wb4</text>
+          <text x="440" y="80">w35</text>
+          <text x="440" y="165">w45</text>
+          <text x="440" y="235">wb5</text>
+        </g>
+        <!-- nodes: inputs -->
+        <circle cx="60" cy="45" r="28" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"></circle>
+        <text x="60" y="50" font-family="Space Mono, monospace" font-size="14" fill="var(--accent)" text-anchor="middle">x1</text>
+        <circle cx="60" cy="150" r="28" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"></circle>
+        <text x="60" y="155" font-family="Space Mono, monospace" font-size="14" fill="var(--accent)" text-anchor="middle">x2</text>
+        <circle cx="60" cy="255" r="24" fill="var(--surface)" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3,2"></circle>
+        <text x="60" y="259" font-family="Space Mono, monospace" font-size="12" fill="var(--muted)" text-anchor="middle">+1</text>
+        <!-- nodes: hidden -->
+        <circle cx="360" cy="45" r="28" fill="var(--surface)" stroke="var(--accent2)" stroke-width="2"></circle>
+        <text x="360" y="50" font-family="Space Mono, monospace" font-size="14" fill="var(--accent2)" text-anchor="middle">3</text>
+        <circle cx="360" cy="155" r="28" fill="var(--surface)" stroke="var(--accent2)" stroke-width="2"></circle>
+        <text x="360" y="160" font-family="Space Mono, monospace" font-size="14" fill="var(--accent2)" text-anchor="middle">4</text>
+        <circle cx="360" cy="260" r="24" fill="var(--surface)" stroke="var(--muted)" stroke-width="2" stroke-dasharray="3,2"></circle>
+        <text x="360" y="264" font-family="Space Mono, monospace" font-size="12" fill="var(--muted)" text-anchor="middle">+1</text>
+        <!-- node: output -->
+        <circle cx="620" cy="150" r="28" fill="var(--surface)" stroke="var(--accent3)" stroke-width="2"></circle>
+        <text x="620" y="155" font-family="Space Mono, monospace" font-size="14" fill="var(--accent3)" text-anchor="middle">5</text>
+        <!-- layer labels -->
+        <text x="60" y="305" font-family="DM Sans, sans-serif" font-size="12" fill="var(--muted)" text-anchor="middle">Input Layer</text>
+        <text x="360" y="305" font-family="DM Sans, sans-serif" font-size="12" fill="var(--muted)" text-anchor="middle">Hidden Layer</text>
+        <text x="620" y="305" font-family="DM Sans, sans-serif" font-size="12" fill="var(--muted)" text-anchor="middle">Output Layer</text>
+      </svg>
+    </div>
+
+    <p><strong>The training data — an XOR-like truth table:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>x1</th><th>x2</th><th>t (target)</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td>0</td><td>1</td><td>1</td></tr>
+          <tr><td>1</td><td>0</td><td>1</td></tr>
+          <tr><td>1</td><td>1</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--muted)">This is exactly the XOR logic function — a classic example precisely because it is <strong>not linearly separable</strong>, which is why a single-layer perceptron cannot learn it but a hidden layer can.</p>
+
+    <p style="margin-top:14px"><strong>Initial weights and learning rate:</strong></p>
+    <div class="weights-grid">
+      <div class="weight-chip"><span class="wname">w13</span><span class="wval">0.3</span></div>
+      <div class="weight-chip"><span class="wname">w23</span><span class="wval">-0.1</span></div>
+      <div class="weight-chip"><span class="wname">wb3</span><span class="wval">0.2</span></div>
+      <div class="weight-chip"><span class="wname">w14</span><span class="wval">-0.2</span></div>
+      <div class="weight-chip"><span class="wname">w24</span><span class="wval">0.2</span></div>
+      <div class="weight-chip"><span class="wname">wb4</span><span class="wval">-0.3</span></div>
+      <div class="weight-chip"><span class="wname">w35</span><span class="wval">0.4</span></div>
+      <div class="weight-chip"><span class="wname">w45</span><span class="wval">-0.2</span></div>
+      <div class="weight-chip"><span class="wname">wb5</span><span class="wval">0.4</span></div>
+    </div>
+    <div class="formula">Learning rate η = 0.3</div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>يستخدم المثال المحلول أصغر شبكة MLP ممكنة تُظهر الخوارزمية كاملة: <strong>خليتا إدخال</strong> (x1, x2)، <strong>خليتان مخفيتان</strong> (رقم <strong>3</strong> ورقم <strong>4</strong>)، و<strong>خلية إخراج واحدة</strong> (رقم <strong>5</strong>). الشبكة <strong>متصلة بالكامل (fully connected)</strong> — كل خلية إدخال متصلة بكل خلية مخفية، وكل خلية مخفية متصلة بخلية الإخراج. كل خلية غير إدخال (3، 4، 5) تستقبل أيضًا وصلة من خلية <strong>bias</strong> تُخرج دائمًا القيمة 1.</p>
+    <br/>
+    <p><strong>بيانات التدريب — جدول شبيه بـ XOR:</strong></p>
+    <p style="font-size:14px">النمط (0,0)→0، النمط (0,1)→1، النمط (1,0)→1، النمط (1,1)→0. هذا هو تمامًا منطق XOR — وهو مثال كلاسيكي لأنه <strong>غير قابل للفصل خطيًا (not linearly separable)</strong>، ولهذا السبب لا تستطيع شبكة بدون طبقة مخفية تعلّمه، بينما شبكة بطبقة مخفية تستطيع.</p>
+    <br/>
+    <p><strong>الأوزان الابتدائية ومعدل التعلم:</strong></p>
+    <p style="font-size:14px">w13=0.3, w23=-0.1, wb3=0.2 (توصل الطبقة إلى الخلية 3) — w14=-0.2, w24=0.2, wb4=-0.3 (توصل إلى الخلية 4) — w35=0.4, w45=-0.2, wb5=0.4 (توصل الطبقة المخفية إلى الخلية 5). ومعدل التعلم <strong>η = 0.3</strong>.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Why a Hidden Layer Is Necessary Here</div>
+    <p>XOR cannot be separated by a single straight line — plot the 4 points (0,0), (0,1), (1,0), (1,1) with their labels and you'll see the "1" points and "0" points sit diagonally opposite each other. A single-layer perceptron can only draw one straight decision boundary, so it fails on XOR. The hidden layer (neurons 3 and 4) lets the network combine two different linear boundaries into a non-linear one that can correctly separate the classes.</p>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>2 inputs → 2 hidden neurons (3, 4) → 1 output neuron (5), fully connected, with a bias unit (output = 1) feeding every non-input neuron. Task: learn the XOR truth table. Initial weights given; η = 0.3.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 7–8</span>
+    <h2>4. Pattern 1 Fully Worked (Epoch 1)</h2>
+  </div>
+  <p class="section-subtitle">x1 = 0, x2 = 0, t = 0 — The Source Worksheet's Own Fully-Solved Example</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>This is the pattern the original worksheet solves completely — the arithmetic below reproduces it exactly.</p>
+    <p style="margin-top:8px"><strong>Forward Prop</strong></p>
+    <ol class="steps">
+      <li>net3 = w13·x1 + w23·x2 + wb3 = 0.3·0 − 0.1·0 + 0.2 = <strong>0.2000</strong></li>
+      <li>o3 = 1/(1+e<sup>−net3</sup>) = 1/(1+e<sup>−0.2</sup>) = <strong>0.5498</strong></li>
+      <li>net4 = w14·x1 + w24·x2 + wb4 = −0.2·0 + 0.2·0 − 0.3 = <strong>−0.3000</strong></li>
+      <li>o4 = 1/(1+e<sup>−net4</sup>) = 1/(1+e<sup>0.3</sup>) = <strong>0.4256</strong></li>
+      <li>net5 = w35·o3 + w45·o4 + wb5 = 0.4·0.5498 − 0.2·0.4256 + 0.4 = <strong>0.5348</strong></li>
+      <li>y = 1/(1+e<sup>−net5</sup>) = 1/(1+e<sup>−0.5348</sup>) = <strong>0.6306</strong></li>
+      <li>Err_p1 = 0.5·(t − y)² = 0.5·(0 − 0.6306)² = <strong>0.1988</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — Step 1: Finding Delta</strong></p>
+    <ol class="steps">
+      <li>δ5 = y(1−y)(t−y) = 0.6306·(1−0.6306)·(0−0.6306) = <strong>−0.1469</strong></li>
+      <li>δ3 = o3(1−o3)·δ5·w35 = 0.5498·(1−0.5498)·(−0.1469)·0.4 = <strong>−0.0145</strong></li>
+      <li>δ4 = o4(1−o4)·δ5·w45 = 0.4256·(1−0.4256)·(−0.1469)·(−0.2) = <strong>0.0072</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — Step 2: Finding New Weights</strong> (η = 0.3)</p>
+    <ol class="steps">
+      <li>w35 := w35 + η·o3·δ5 = 0.4 + 0.3·0.5498·(−0.1469) = <strong>0.3758</strong></li>
+      <li>w45 := w45 + η·o4·δ5 = −0.2 + 0.3·0.4256·(−0.1469) = <strong>−0.2188</strong></li>
+      <li>wb5 := wb5 + η·1·δ5 = 0.4 + 0.3·1·(−0.1469) = <strong>0.3559</strong></li>
+      <li>w14 := w14 + η·x1·δ4 = −0.2 + 0.3·0·0.0072 = <strong>−0.2000</strong></li>
+      <li>w24 := w24 + η·x2·δ4 = 0.2 + 0.3·0·0.0072 = <strong>0.2000</strong></li>
+      <li>wb4 := wb4 + η·1·δ4 = −0.3 + 0.3·1·0.0072 = <strong>−0.2978</strong></li>
+      <li>w13 := w13 + η·x1·δ3 = 0.3 + 0.3·0·(−0.0145) = <strong>0.3000</strong></li>
+      <li>w23 := w23 + η·x2·δ3 = −0.1 + 0.3·0·(−0.0145) = <strong>−0.1000</strong></li>
+      <li>wb3 := wb3 + η·1·δ3 = 0.2 + 0.3·1·(−0.0145) = <strong>0.1956</strong></li>
+    </ol>
+    <p style="margin-top:10px;font-size:13px;color:var(--muted)">Notice that w13, w23, w14, w24 didn't move at all — because x1 = 0 and x2 = 0 for this pattern, so the input-side weight updates are multiplied by zero. Only the bias weights (wb3, wb4) and the hidden-to-output weights (w35, w45, wb5) changed.</p>
+    <p style="margin-top:10px"><strong>Weights carried forward into Pattern 2:</strong></p>
+    <div class="weights-grid">
+      <div class="weight-chip"><span class="wname">w13</span><span class="wval">0.3000</span></div>
+      <div class="weight-chip"><span class="wname">w23</span><span class="wval">-0.1000</span></div>
+      <div class="weight-chip"><span class="wname">wb3</span><span class="wval">0.1956</span></div>
+      <div class="weight-chip"><span class="wname">w14</span><span class="wval">-0.2000</span></div>
+      <div class="weight-chip"><span class="wname">w24</span><span class="wval">0.2000</span></div>
+      <div class="weight-chip"><span class="wname">wb4</span><span class="wval">-0.2978</span></div>
+      <div class="weight-chip"><span class="wname">w35</span><span class="wval">0.3758</span></div>
+      <div class="weight-chip"><span class="wname">w45</span><span class="wval">-0.2188</span></div>
+      <div class="weight-chip"><span class="wname">wb5</span><span class="wval">0.3559</span></div>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذا هو النمط الذي حلّته ورقة العمل الأصلية بالكامل — والأرقام أدناه هي نفس الأرقام تمامًا، مع شرح ما يحدث في كل خطوة.</p>
+    <br/>
+    <p><strong>Forward Prop (التغذية الأمامية):</strong></p>
+    <p style="font-size:14px">بما أن x1=0 و x2=0، فإن net3 يعتمد فقط على الـ bias: <code>net3 = 0.3×0 - 0.1×0 + 0.2 = 0.2</code>. نُمرر هذه القيمة على دالة Sigmoid فنحصل على <code>o3 = 0.5498</code>. بالمثل <code>net4 = -0.2×0 + 0.2×0 - 0.3 = -0.3</code> ثم <code>o4 = 0.4256</code>. الآن خلية الإخراج تجمع مخرجي 3 و4: <code>net5 = 0.4×0.5498 - 0.2×0.4256 + 0.4 = 0.5348</code> ثم <code>y = sigmoid(0.5348) = 0.6306</code>. أخيرًا نحسب خطأ هذا النمط: <code>Err_p1 = 0.5×(0-0.6306)² = 0.1988</code> — الشبكة توقعت 0.63 بينما الهدف كان 0، فالخطأ كبير نسبيًا.</p>
+    <br/>
+    <p><strong>Back Prop — حساب الـ delta:</strong></p>
+    <p style="font-size:14px">نبدأ من الإخراج: <code>δ5 = y(1-y)(t-y) = 0.6306×0.3694×(-0.6306) = -0.1469</code>. القيمة سالبة لأن التنبؤ كان أعلى من المطلوب. ثم نُرجع اللوم للخلايا المخفية: <code>δ3 = o3(1-o3)×δ5×w35 = 0.5498×0.4502×(-0.1469)×0.4 = -0.0145</code>، و<code>δ4 = o4(1-o4)×δ5×w45 = 0.4256×0.5744×(-0.1469)×(-0.2) = 0.0072</code> (لاحظ أنها إيجابية بسبب الوزن السالب w45).</p>
+    <br/>
+    <p><strong>Back Prop — تحديث الأوزان (η=0.3):</strong></p>
+    <p style="font-size:14px">أوزان طبقة الإخراج تتغير بوضوح: <code>w35 = 0.4 + 0.3×0.5498×(-0.1469) = 0.3758</code>، <code>w45 = -0.2 + 0.3×0.4256×(-0.1469) = -0.2188</code>، <code>wb5 = 0.4 + 0.3×1×(-0.1469) = 0.3559</code>. أما أوزان طبقة الإدخال (w13, w23, w14, w24) فتبقى <strong>بدون تغيير</strong> لأن x1=0 و x2=0 يُصفّران حاصل الضرب. فقط أوزان الـ bias للطبقة المخفية تتغير قليلًا: <code>wb3 = 0.2 + 0.3×(-0.0145) = 0.1956</code>، <code>wb4 = -0.3 + 0.3×0.0072 = -0.2978</code>.</p>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pattern 1 (0,0→0): net3=0.2, o3=0.5498, net4=-0.3, o4=0.4256, net5=0.5348, y=0.6306, Err_p1=0.1988. δ5=-0.1469, δ3=-0.0145, δ4=0.0072. Since x1=x2=0, only bias and output-side weights change: w35=0.3758, w45=-0.2188, wb5=0.3559, wb3=0.1956, wb4=-0.2978.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 9–10</span>
+    <h2>5. Pattern 2 — Solved Answer Key</h2>
+  </div>
+  <p class="section-subtitle">x1 = 0, x2 = 1, t = 1 — Complete this yourself first, then check your work here</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION — MODEL SOLUTION</div>
+    <p>The original worksheet leaves this pattern as an exercise (marked "…"). Below is the complete, verified solution, continuing from the weights left over after Pattern 1.</p>
+    <p style="margin-top:8px"><strong>Weights entering this pattern (from end of Pattern 1):</strong></p>
+    <div class="formula">w13=0.3000, w23=-0.1000, wb3=0.1956 &nbsp;|&nbsp; w14=-0.2000, w24=0.2000, wb4=-0.2978 &nbsp;|&nbsp; w35=0.3758, w45=-0.2188, wb5=0.3559</div>
+    <p style="margin-top:8px"><strong>Forward Prop</strong></p>
+    <ol class="steps">
+      <li>net3 = w13·x1 + w23·x2 + wb3 = 0.3·0 − 0.1·1 + 0.1956 = <strong>0.0956</strong></li>
+      <li>o3 = 1/(1+e<sup>−0.0956</sup>) = <strong>0.5239</strong></li>
+      <li>net4 = w14·x1 + w24·x2 + wb4 = −0.2·0 + 0.2·1 − 0.2978 = <strong>−0.0978</strong></li>
+      <li>o4 = 1/(1+e<sup>0.0978</sup>) = <strong>0.4756</strong></li>
+      <li>net5 = w35·o3 + w45·o4 + wb5 = 0.3758·0.5239 − 0.2188·0.4756 + 0.3559 = <strong>0.4488</strong></li>
+      <li>y = 1/(1+e<sup>−0.4488</sup>) = <strong>0.6103</strong></li>
+      <li>Err_p2 = 0.5·(t−y)² = 0.5·(1−0.6103)² = <strong>0.0759</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — Delta</strong></p>
+    <ol class="steps">
+      <li>δ5 = y(1−y)(t−y) = 0.6103·(1−0.6103)·(1−0.6103) = <strong>0.0927</strong></li>
+      <li>δ3 = o3(1−o3)·δ5·w35 = 0.5239·(1−0.5239)·0.0927·0.3758 = <strong>0.0087</strong></li>
+      <li>δ4 = o4(1−o4)·δ5·w45 = 0.4756·(1−0.4756)·0.0927·(−0.2188) = <strong>−0.0051</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — New Weights</strong> (η = 0.3)</p>
+    <ol class="steps">
+      <li>w35 := 0.3758 + 0.3·0.5239·0.0927 = <strong>0.3903</strong></li>
+      <li>w45 := −0.2188 + 0.3·0.4756·0.0927 = <strong>−0.2055</strong></li>
+      <li>wb5 := 0.3559 + 0.3·1·0.0927 = <strong>0.3837</strong></li>
+      <li>w14 := −0.2000 + 0.3·x1(=0)·(−0.0051) = <strong>−0.2000</strong></li>
+      <li>w24 := 0.2000 + 0.3·x2(=1)·(−0.0051) = <strong>0.1985</strong></li>
+      <li>wb4 := −0.2978 + 0.3·1·(−0.0051) = <strong>−0.2994</strong></li>
+      <li>w13 := 0.3000 + 0.3·x1(=0)·0.0087 = <strong>0.3000</strong></li>
+      <li>w23 := −0.1000 + 0.3·x2(=1)·0.0087 = <strong>−0.0974</strong></li>
+      <li>wb3 := 0.1956 + 0.3·1·0.0087 = <strong>0.1982</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Weights carried forward into Pattern 3:</strong></p>
+    <div class="weights-grid">
+      <div class="weight-chip"><span class="wname">w13</span><span class="wval">0.3000</span></div>
+      <div class="weight-chip"><span class="wname">w23</span><span class="wval">-0.0974</span></div>
+      <div class="weight-chip"><span class="wname">wb3</span><span class="wval">0.1982</span></div>
+      <div class="weight-chip"><span class="wname">w14</span><span class="wval">-0.2000</span></div>
+      <div class="weight-chip"><span class="wname">w24</span><span class="wval">0.1985</span></div>
+      <div class="weight-chip"><span class="wname">wb4</span><span class="wval">-0.2994</span></div>
+      <div class="weight-chip"><span class="wname">w35</span><span class="wval">0.3903</span></div>
+      <div class="weight-chip"><span class="wname">w45</span><span class="wval">-0.2055</span></div>
+      <div class="weight-chip"><span class="wname">wb5</span><span class="wval">0.3837</span></div>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">حل نموذجي</div>
+    <p>ورقة العمل الأصلية تترك هذا النمط كتمرين ("…") — إليك الحل الكامل والمُتحقَّق منه، بدءًا من الأوزان المتبقية من النمط الأول.</p>
+    <br/>
+    <p><strong>Forward Prop:</strong> الآن x2=1 وليس صفرًا، فأوزان x2 (w23, w24) تدخل الحساب فعليًا. <code>net3 = 0.3×0 - 0.1×1 + 0.1956 = 0.0956</code> ثم <code>o3 = 0.5239</code>. و<code>net4 = -0.2×0 + 0.2×1 - 0.2978 = -0.0978</code> ثم <code>o4 = 0.4756</code>. في خلية الإخراج: <code>net5 = 0.3758×0.5239 - 0.2188×0.4756 + 0.3559 = 0.4488</code> ثم <code>y = 0.6103</code>. بما أن الهدف هذه المرة t=1، فالخطأ: <code>Err_p2 = 0.5×(1-0.6103)² = 0.0759</code> — أصغر من خطأ النمط الأول، لأن الشبكة اقتربت أكثر من الهدف.</p>
+    <br/>
+    <p><strong>Back Prop:</strong> <code>δ5 = 0.6103×0.3897×0.3897 = 0.0927</code> — إيجابية هذه المرة لأن التنبؤ أقل من الهدف (نحتاج رفع y). ثم <code>δ3 = 0.5239×0.4761×0.0927×0.3758 = 0.0087</code> و<code>δ4 = 0.4756×0.5244×0.0927×(-0.2188) = -0.0051</code>.</p>
+    <br/>
+    <p><strong>تحديث الأوزان:</strong> أوزان الإخراج ترتفع لأن δ5 موجبة: <code>w35 = 0.3903</code>، <code>w45 = -0.2055</code>، <code>wb5 = 0.3837</code>. وبما أن x2=1 الآن، فوزنا w24 و w23 يتحركان فعليًا (بعكس النمط الأول): <code>w24 = 0.2000 + 0.3×1×(-0.0051) = 0.1985</code>، <code>w23 = -0.1000 + 0.3×1×0.0087 = -0.0974</code>. أما w13 وw14 يبقيان ثابتين لأن x1=0 هنا.</p>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pattern 2 (0,1→1): net3=0.0956, o3=0.5239, net4=-0.0978, o4=0.4756, net5=0.4488, y=0.6103, Err_p2=0.0759. δ5=0.0927, δ3=0.0087, δ4=-0.0051. New weights: w13=0.3000, w23=-0.0974, wb3=0.1982, w14=-0.2000, w24=0.1985, wb4=-0.2994, w35=0.3903, w45=-0.2055, wb5=0.3837.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 11–12</span>
+    <h2>6. Pattern 3 — Solved Answer Key</h2>
+  </div>
+  <p class="section-subtitle">x1 = 1, x2 = 0, t = 1 — Complete this yourself first, then check your work here</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION — MODEL SOLUTION</div>
+    <p>The source worksheet marks the weights entering this pattern with "?" — they are simply the weights left over from the end of Pattern 2.</p>
+    <p style="margin-top:8px"><strong>Weights entering this pattern (from end of Pattern 2):</strong></p>
+    <div class="formula">w13=0.3000, w23=-0.0974, wb3=0.1982 &nbsp;|&nbsp; w14=-0.2000, w24=0.1985, wb4=-0.2994 &nbsp;|&nbsp; w35=0.3903, w45=-0.2055, wb5=0.3837</div>
+    <p style="margin-top:8px"><strong>Forward Prop</strong></p>
+    <ol class="steps">
+      <li>net3 = w13·x1 + w23·x2 + wb3 = 0.3·1 − 0.0974·0 + 0.1982 = <strong>0.4982</strong></li>
+      <li>o3 = 1/(1+e<sup>−0.4982</sup>) = <strong>0.6220</strong></li>
+      <li>net4 = w14·x1 + w24·x2 + wb4 = −0.2·1 + 0.1985·0 − 0.2994 = <strong>−0.4994</strong></li>
+      <li>o4 = 1/(1+e<sup>0.4994</sup>) = <strong>0.3777</strong></li>
+      <li>net5 = w35·o3 + w45·o4 + wb5 = 0.3903·0.6220 − 0.2055·0.3777 + 0.3837 = <strong>0.5489</strong></li>
+      <li>y = 1/(1+e<sup>−0.5489</sup>) = <strong>0.6339</strong></li>
+      <li>Err_p3 = 0.5·(1−0.6339)² = <strong>0.0670</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — Delta</strong></p>
+    <ol class="steps">
+      <li>δ5 = y(1−y)(t−y) = 0.6339·0.3661·0.3661 = <strong>0.0850</strong></li>
+      <li>δ3 = o3(1−o3)·δ5·w35 = 0.6220·0.3780·0.0850·0.3903 = <strong>0.0078</strong></li>
+      <li>δ4 = o4(1−o4)·δ5·w45 = 0.3777·0.6223·0.0850·(−0.2055) = <strong>−0.0041</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — New Weights</strong> (η = 0.3)</p>
+    <ol class="steps">
+      <li>w35 := 0.3903 + 0.3·0.6220·0.0850 = <strong>0.4062</strong></li>
+      <li>w45 := −0.2055 + 0.3·0.3777·0.0850 = <strong>−0.1959</strong></li>
+      <li>wb5 := 0.3837 + 0.3·1·0.0850 = <strong>0.4092</strong></li>
+      <li>w14 := −0.2000 + 0.3·x1(=1)·(−0.0041) = <strong>−0.2012</strong></li>
+      <li>w24 := 0.1985 + 0.3·x2(=0)·(−0.0041) = <strong>0.1985</strong></li>
+      <li>wb4 := −0.2994 + 0.3·1·(−0.0041) = <strong>−0.3006</strong></li>
+      <li>w13 := 0.3000 + 0.3·x1(=1)·0.0078 = <strong>0.3023</strong></li>
+      <li>w23 := −0.0974 + 0.3·x2(=0)·0.0078 = <strong>−0.0974</strong></li>
+      <li>wb3 := 0.1982 + 0.3·1·0.0078 = <strong>0.2006</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Weights carried forward into Pattern 4:</strong></p>
+    <div class="weights-grid">
+      <div class="weight-chip"><span class="wname">w13</span><span class="wval">0.3023</span></div>
+      <div class="weight-chip"><span class="wname">w23</span><span class="wval">-0.0974</span></div>
+      <div class="weight-chip"><span class="wname">wb3</span><span class="wval">0.2006</span></div>
+      <div class="weight-chip"><span class="wname">w14</span><span class="wval">-0.2012</span></div>
+      <div class="weight-chip"><span class="wname">w24</span><span class="wval">0.1985</span></div>
+      <div class="weight-chip"><span class="wname">wb4</span><span class="wval">-0.3006</span></div>
+      <div class="weight-chip"><span class="wname">w35</span><span class="wval">0.4062</span></div>
+      <div class="weight-chip"><span class="wname">w45</span><span class="wval">-0.1959</span></div>
+      <div class="weight-chip"><span class="wname">wb5</span><span class="wval">0.4092</span></div>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">حل نموذجي</div>
+    <p>ورقة العمل تضع علامة "؟" أمام الأوزان الداخلة لهذا النمط — وهي في الحقيقة الأوزان الناتجة من نهاية النمط الثاني.</p>
+    <br/>
+    <p><strong>Forward Prop:</strong> الآن x1=1 وx2=0، فالوضع معكوس عن النمط الثاني. <code>net3 = 0.3×1 - 0.0974×0 + 0.1982 = 0.4982</code> ثم <code>o3 = 0.6220</code>. و<code>net4 = -0.2×1 + 0.1985×0 - 0.2994 = -0.4994</code> ثم <code>o4 = 0.3777</code>. في الإخراج: <code>net5 = 0.3903×0.6220 - 0.2055×0.3777 + 0.3837 = 0.5489</code> ثم <code>y = 0.6339</code>. الهدف t=1 مرة أخرى، فالخطأ: <code>Err_p3 = 0.5×(1-0.6339)² = 0.0670</code>.</p>
+    <br/>
+    <p><strong>Back Prop:</strong> <code>δ5 = 0.6339×0.3661×0.3661 = 0.0850</code> (موجبة، نحتاج رفع y نحو 1). ثم <code>δ3 = 0.6220×0.3780×0.0850×0.3903 = 0.0078</code> و<code>δ4 = 0.3777×0.6223×0.0850×(-0.2055) = -0.0041</code>.</p>
+    <br/>
+    <p><strong>تحديث الأوزان:</strong> بما أن x1=1 الآن، فـ w13 و w14 يتحركان فعليًا: <code>w13 = 0.3000 + 0.3×1×0.0078 = 0.3023</code>، <code>w14 = -0.2000 + 0.3×1×(-0.0041) = -0.2012</code>. بينما w23 و w24 يبقيان بدون تغيير فعلي لأن x2=0. أوزان الإخراج ترتفع كما في النمط السابق: <code>w35=0.4062</code>، <code>w45=-0.1959</code>، <code>wb5=0.4092</code>.</p>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pattern 3 (1,0→1): net3=0.4982, o3=0.6220, net4=-0.4994, o4=0.3777, net5=0.5489, y=0.6339, Err_p3=0.0670. δ5=0.0850, δ3=0.0078, δ4=-0.0041. New weights: w13=0.3023, w23=-0.0974, wb3=0.2006, w14=-0.2012, w24=0.1985, wb4=-0.3006, w35=0.4062, w45=-0.1959, wb5=0.4092.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGES 13–14</span>
+    <h2>7. Pattern 4 — Solved Answer Key</h2>
+  </div>
+  <p class="section-subtitle">x1 = 1, x2 = 1, t = 0 — Complete this yourself first, then check your work here</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION — MODEL SOLUTION</div>
+    <p>The last pattern of Epoch 1. Weights entering this pattern come from the end of Pattern 3.</p>
+    <p style="margin-top:8px"><strong>Weights entering this pattern (from end of Pattern 3):</strong></p>
+    <div class="formula">w13=0.3023, w23=-0.0974, wb3=0.2006 &nbsp;|&nbsp; w14=-0.2012, w24=0.1985, wb4=-0.3006 &nbsp;|&nbsp; w35=0.4062, w45=-0.1959, wb5=0.4092</div>
+    <p style="margin-top:8px"><strong>Forward Prop</strong></p>
+    <ol class="steps">
+      <li>net3 = w13·x1 + w23·x2 + wb3 = 0.3023·1 − 0.0974·1 + 0.2006 = <strong>0.4055</strong></li>
+      <li>o3 = 1/(1+e<sup>−0.4055</sup>) = <strong>0.6000</strong></li>
+      <li>net4 = w14·x1 + w24·x2 + wb4 = −0.2012·1 + 0.1985·1 − 0.3006 = <strong>−0.3033</strong></li>
+      <li>o4 = 1/(1+e<sup>0.3033</sup>) = <strong>0.4247</strong></li>
+      <li>net5 = w35·o3 + w45·o4 + wb5 = 0.4062·0.6000 − 0.1959·0.4247 + 0.4092 = <strong>0.5697</strong></li>
+      <li>y = 1/(1+e<sup>−0.5697</sup>) = <strong>0.6387</strong></li>
+      <li>Err_p4 = 0.5·(0−0.6387)² = <strong>0.2040</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — Delta</strong></p>
+    <ol class="steps">
+      <li>δ5 = y(1−y)(t−y) = 0.6387·0.3613·(−0.6387) = <strong>−0.1474</strong></li>
+      <li>δ3 = o3(1−o3)·δ5·w35 = 0.6000·0.4000·(−0.1474)·0.4062 = <strong>−0.0144</strong></li>
+      <li>δ4 = o4(1−o4)·δ5·w45 = 0.4247·0.5753·(−0.1474)·(−0.1959) = <strong>0.0071</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Back Prop — New Weights</strong> (η = 0.3) — these are the final weights after Epoch 1</p>
+    <ol class="steps">
+      <li>w35 := 0.4062 + 0.3·0.6000·(−0.1474) = <strong>0.3797</strong></li>
+      <li>w45 := −0.1959 + 0.3·0.4247·(−0.1474) = <strong>−0.2147</strong></li>
+      <li>wb5 := 0.4092 + 0.3·1·(−0.1474) = <strong>0.3650</strong></li>
+      <li>w14 := −0.2012 + 0.3·x1(=1)·0.0071 = <strong>−0.1991</strong></li>
+      <li>w24 := 0.1985 + 0.3·x2(=1)·0.0071 = <strong>0.2006</strong></li>
+      <li>wb4 := −0.3006 + 0.3·1·0.0071 = <strong>−0.2985</strong></li>
+      <li>w13 := 0.3023 + 0.3·x1(=1)·(−0.0144) = <strong>0.2980</strong></li>
+      <li>w23 := −0.0974 + 0.3·x2(=1)·(−0.0144) = <strong>−0.1017</strong></li>
+      <li>wb3 := 0.2006 + 0.3·1·(−0.0144) = <strong>0.1963</strong></li>
+    </ol>
+    <p style="margin-top:10px"><strong>Final weights after Epoch 1 (all 4 patterns processed):</strong></p>
+    <div class="weights-grid">
+      <div class="weight-chip"><span class="wname">w13</span><span class="wval">0.2980</span></div>
+      <div class="weight-chip"><span class="wname">w23</span><span class="wval">-0.1017</span></div>
+      <div class="weight-chip"><span class="wname">wb3</span><span class="wval">0.1963</span></div>
+      <div class="weight-chip"><span class="wname">w14</span><span class="wval">-0.1991</span></div>
+      <div class="weight-chip"><span class="wname">w24</span><span class="wval">0.2006</span></div>
+      <div class="weight-chip"><span class="wname">wb4</span><span class="wval">-0.2985</span></div>
+      <div class="weight-chip"><span class="wname">w35</span><span class="wval">0.3797</span></div>
+      <div class="weight-chip"><span class="wname">w45</span><span class="wval">-0.2147</span></div>
+      <div class="weight-chip"><span class="wname">wb5</span><span class="wval">0.3650</span></div>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">حل نموذجي</div>
+    <p>هذا هو النمط الأخير في الـ Epoch الأول. الأوزان الداخلة هي نفسها الأوزان الناتجة من نهاية النمط الثالث.</p>
+    <br/>
+    <p><strong>Forward Prop:</strong> الآن x1=1 وx2=1 معًا، فكلا الوزنين w13,w23 وw14,w24 يدخلان الحساب. <code>net3 = 0.3023×1 - 0.0974×1 + 0.2006 = 0.4055</code> ثم <code>o3 = 0.6000</code>. و<code>net4 = -0.2012×1 + 0.1985×1 - 0.3006 = -0.3033</code> ثم <code>o4 = 0.4247</code>. في الإخراج: <code>net5 = 0.4062×0.6000 - 0.1959×0.4247 + 0.4092 = 0.5697</code> ثم <code>y = 0.6387</code>. الهدف هذه المرة t=0 (كما في النمط الأول)، والشبكة تنبأت بـ 0.64 وهو بعيد عن الصفر، فالخطأ كبير: <code>Err_p4 = 0.5×(0-0.6387)² = 0.2040</code>.</p>
+    <br/>
+    <p><strong>Back Prop:</strong> <code>δ5 = 0.6387×0.3613×(-0.6387) = -0.1474</code> — سالبة لأن التنبؤ أعلى من الهدف. ثم <code>δ3 = 0.6000×0.4000×(-0.1474)×0.4062 = -0.0144</code> و<code>δ4 = 0.4247×0.5753×(-0.1474)×(-0.1959) = 0.0071</code>.</p>
+    <br/>
+    <p><strong>تحديث الأوزان النهائي:</strong> بما أن x1=x2=1، فكل أوزان الطبقة المخفية تتحرك: <code>w13=0.2980</code>، <code>w23=-0.1017</code>، <code>w14=-0.1991</code>، <code>w24=0.2006</code>. وأوزان الإخراج: <code>w35=0.3797</code>، <code>w45=-0.2147</code>، <code>wb5=0.3650</code>. هذه هي <strong>الأوزان النهائية بعد انتهاء الـ Epoch الأول بالكامل</strong> — أي بعد معالجة الأنماط الأربعة جميعًا.</p>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pattern 4 (1,1→0): net3=0.4055, o3=0.6000, net4=-0.3033, o4=0.4247, net5=0.5697, y=0.6387, Err_p4=0.2040. δ5=-0.1474, δ3=-0.0144, δ4=0.0071. Final weights after Epoch 1: w13=0.2980, w23=-0.1017, wb3=0.1963, w14=-0.1991, w24=0.2006, wb4=-0.2985, w35=0.3797, w45=-0.2147, wb5=0.3650.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SOURCE PAGE 15</span>
+    <h2>8. End of Epoch 1 — Total Error & Next Steps</h2>
+  </div>
+  <p class="section-subtitle">Summing the Specific Errors, Checking the Stopping Condition, and What Epoch 2 Would Look Like</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Now that all 4 patterns have been processed once, Epoch 1 is complete. We sum up the specific errors collected along the way:</p>
+    <div class="formula">Total Error = Err_p1 + Err_p2 + Err_p3 + Err_p4 = 0.1988 + 0.0759 + 0.0670 + 0.2040 = <strong>0.5457</strong></div>
+    <p><strong>Checking the stopping condition:</strong></p>
+    <ol class="steps">
+      <li>If a <strong>tolerance</strong> was given (e.g. "stop when total error ≤ 0.01"): compare 0.5457 against it. Since 0.5457 is still large, training would <strong>not</strong> stop yet.</li>
+      <li>If a <strong>maximum number of epochs</strong> was given (e.g. "stop after 500 epochs"): compare the current epoch count (1) against it. We're nowhere close, so training would <strong>not</strong> stop yet.</li>
+      <li>If neither stopping condition is satisfied, we run <strong>another epoch</strong> — Epoch 2 — starting from the final weights left over from Epoch 1: w13=0.2980, w23=-0.1017, wb3=0.1963, w14=-0.1991, w24=0.2006, wb4=-0.2985, w35=0.3797, w45=-0.2147, wb5=0.3650.</li>
+    </ol>
+    <div class="card-example" style="margin-top:14px">
+      <div class="card-title"><span class="icon">💡</span> What Would Epoch 2 Look Like?</div>
+      <p>Epoch 2 repeats the <em>exact same</em> 4-pattern loop (Pattern 1 → 2 → 3 → 4, forward prop then back prop for each), but starting from the weights above instead of the original initial weights. Because the weights have already moved slightly toward reducing error, the specific errors in Epoch 2 should generally be a bit smaller than in Epoch 1 — though not necessarily every single pattern improves monotonically on every single epoch. This repeats epoch after epoch until the total error drops below the tolerance (or the epoch limit is reached).</p>
+      <p style="margin-top:8px;font-size:13px;color:var(--muted)">This is left as a natural extension exercise: take the final Epoch-1 weights above and re-run all 4 patterns through the same forward-prop → back-prop cycle to produce Epoch 2's total error.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>بعد معالجة الأنماط الأربعة جميعًا مرة واحدة، يكون الـ Epoch الأول قد اكتمل. نجمع الآن كل الأخطاء الخاصة (Err_p) التي جمعناها في الطريق:</p>
+    <p style="font-size:14px"><code>Total Error = Err_p1 + Err_p2 + Err_p3 + Err_p4 = 0.1988 + 0.0759 + 0.0670 + 0.2040 = 0.5457</code></p>
+    <br/>
+    <p><strong>التحقق من شرط التوقف:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>إذا كان هناك <strong>عتبة تسامح (tolerance)</strong> معطاة (مثلًا "توقف عندما يصبح الخطأ الكلي ≤ 0.01")، نقارن 0.5457 بها. بما أن 0.5457 لا يزال كبيرًا، فلن يتوقف التدريب بعد.</li>
+      <li>إذا كان هناك <strong>حد أقصى لعدد الـ Epochs</strong> (مثلًا 500)، نقارن عدد الـ Epochs الحالي (1) به. لسنا قريبين من الحد، فلن يتوقف التدريب بعد.</li>
+      <li>بما أن شرط التوقف لم يتحقق، نُشغّل <strong>Epoch آخر (الثاني)</strong> بدءًا من الأوزان النهائية للـ Epoch الأول: w13=0.2980, w23=-0.1017, wb3=0.1963, w14=-0.1991, w24=0.2006, wb4=-0.2985, w35=0.3797, w45=-0.2147, wb5=0.3650.</li>
+    </ol>
+    <p style="margin-top:10px;font-size:14px"><strong>كيف سيبدو الـ Epoch الثاني؟</strong> نُكرر تمامًا نفس حلقة الأنماط الأربعة (النمط 1 ثم 2 ثم 3 ثم 4، مع forward prop ثم back prop لكل منها)، ولكن بدايةً من الأوزان الجديدة أعلاه بدلًا من الأوزان الابتدائية الأصلية. ولأن الأوزان تحركت قليلًا في اتجاه تقليل الخطأ، من المتوقع أن يكون الخطأ الكلي في الـ Epoch الثاني أصغر عمومًا من الأول — لكن ليس بالضرورة أن يتحسن كل نمط بشكل رتيب في كل Epoch. تتكرر هذه العملية Epoch بعد Epoch حتى ينخفض الخطأ الكلي تحت عتبة التسامح، أو يصل عدد الـ Epochs للحد الأقصى.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> A Natural Extension Exercise</div>
+    <p>Try running Epoch 2 yourself: take the final weights listed above, and re-apply the exact same forward-prop/back-prop procedure used for Patterns 1–4 in this guide, pattern by pattern, to compute Epoch 2's total error. This is the best way to confirm you've internalized the algorithm — not just read the arithmetic.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Total error is a simple sum (not an average) of the specific errors in this formulation</li>
+      <li>📌 Stopping conditions are typically: error tolerance OR max epoch count (whichever triggers first)</li>
+      <li>📌 The next epoch always starts from the weights left over at the end of the previous epoch — never resets to the original initial weights</li>
+      <li>📌 A single epoch of 4 patterns on a 2-2-1 network is nowhere near enough to converge on XOR in practice; many epochs are typically needed</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Total Error (Epoch 1) = 0.1988+0.0759+0.0670+0.2040 = <strong>0.5457</strong>. Compare against tolerance and/or max-epochs. Not yet stopped → run Epoch 2 starting from the final Epoch-1 weights, repeating the same 4-pattern forward/backward loop.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice and Short Answer Questions on MLP Backpropagation</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Within a single epoch, what is the correct order of operations for one pattern?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Back prop, then forward prop</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Forward prop (net, o, specific error), then back prop (delta, Δw, update)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Update weights, then compute error</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Compute total error, then forward prop</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Forward prop must happen first to produce the outputs and the specific error; back prop then uses those values to compute delta and update weights.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. Which formula correctly computes delta for a HIDDEN neuron h under the sigmoid default?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) δ_h = y_h(1-y_h)(t_h-y_h)</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) δ_h = o_h(1-o_h)·Σ δ_l · w_h,l</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) δ_h = η · o_h · δ_l</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) δ_h = net_h · o_h</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Hidden neuron delta sums the "blame" flowing back from all neurons in the next layer L, weighted by the connecting weights, times the sigmoid derivative o_h(1-o_h). Option A is the OUTPUT neuron formula.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. Which formula correctly computes delta for an OUTPUT neuron h under the sigmoid + sum-of-squares default?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) δ_h = o_h(1-o_h)·Σ δ_l · w_h,l</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) δ_h = y_h(1-y_h)(t_h-y_h)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) δ_h = w_h,l · net_h</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) δ_h = Err_p / η</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Output neuron delta compares the prediction y_h directly to the target t_h, scaled by the sigmoid derivative y_h(1-y_h). Option A is the HIDDEN neuron formula (a very common exam trick).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. In the weight update rule Δw_i,j = η·o_i·δ_j, what is o_i if neuron i is a bias neuron?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) o_i = x_i</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) o_i = 1</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) o_i = 0</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) o_i = δ_j</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — A bias neuron always outputs 1. If i were an input neuron instead, o_i = x_i (the raw feature value).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. In the worked Pattern 1 (x1=0, x2=0, t=0), why did w13, w23, w14, and w24 NOT change after the update?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Because delta was zero for all hidden neurons</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Because x1 = 0 and x2 = 0, so Δw = η·x·δ = 0 for those input-connected weights</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Because the learning rate was zero</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Because those weights are frozen by design</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Δw_i,j = η·o_i·δ_j, and for input neurons o_i = x_i. Since x1=x2=0, any weight connected directly to x1 or x2 gets multiplied by zero, leaving it unchanged — even though delta itself was non-zero.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. What is the "total error" at the end of an epoch?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The error of the last pattern processed</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The sum of the specific errors (Err_p) from every pattern processed in that epoch</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The average of all delta values</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The learning rate times the number of patterns</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Total error = Err_p1 + Err_p2 + ... + Err_pN, summed across all N patterns in the epoch. For this example: 0.1988+0.0759+0.0670+0.2040 = 0.5457.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. If a different (non-sigmoid) activation function is used, what must be re-derived?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The learning rate η</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) The truth table</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) The derivative term f′_act(net_h)·(−∂Err_p/∂y_h), and hence the delta formulas</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Nothing — the formulas are universal</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — The "default" simplified deltas (o(1-o)·... and y(1-y)(t-y)) only hold for sigmoid + sum-of-squares error. Any other activation or error function requires recomputing the derivative terms from scratch.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. Why is XOR a good demonstration problem for a hidden-layer MLP?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It has the largest possible dataset</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It is not linearly separable, so it requires a hidden layer to solve</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It only has one input</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It requires no bias neurons</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — XOR's positive and negative examples cannot be separated by a single straight line, so a single-layer perceptron fails; the hidden layer lets the network form a non-linear decision boundary.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: How do you decide whether to use the hidden-neuron delta formula or the output-neuron delta formula for a given neuron? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Check whether the neuron has a layer <em>after</em> it in the network. If it does (i.e. it's a hidden neuron feeding into further neurons), use δ_h = o_h(1-o_h)·Σδ_l·w_h,l, summing the blame coming back from every neuron l it feeds into. If the neuron IS the final output layer (nothing comes after it), use δ_h = y_h(1-y_h)(t_h-y_h), which compares its own output directly to the target.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: In Pattern 4 (x1=1, x2=1, t=0), δ5 came out negative (-0.1474). What does the sign of δ5 tell you? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> δ5 = y(1-y)(t-y). The sign of δ5 is entirely determined by (t-y), since y(1-y) is always positive (for 0&lt;y&lt;1). Here t=0 and y=0.6387, so (t-y) = -0.6387 is negative, making δ5 negative. A negative delta means the output was too HIGH relative to the target, so the weight update η·o_i·δ_j will push the incoming weights DOWN (assuming positive o_i), reducing y toward t on the next pass.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Spot the arithmetic step — in Pattern 2's weight update, why did w13 and w14 NOT change even though δ3 and δ4 were non-zero? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> For Pattern 2, x1=0 and x2=1. The update rule for w13 is Δw13 = η·x1·δ3; since x1=0, this product is zero regardless of δ3's value, so w13 stays at 0.3000. Likewise Δw14 = η·x1·δ4 = 0. Meanwhile w23 = η·x2·δ3 and w24 = η·x2·δ4 DO change, because x2=1 this time. This is a common "trick" spot-check: a weight only updates on a pattern if the sending neuron's output (here, the raw input value) was non-zero.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why does the total error at the end of Epoch 1 (0.5457) not necessarily mean the network has learned nothing useful yet? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A single epoch only nudges each weight by one small η-scaled step per pattern; with η=0.3 and only 4 patterns seen once, the weights have barely moved away from their random-ish initial values. Backpropagation is a gradient-descent process that requires many repeated epochs to converge — the total error is expected to be large early on and should decrease (not necessarily monotonically every single epoch) as more epochs run, until it drops below the stopping tolerance.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 15 source pages, plus a full worked answer key beyond what the worksheet left blank</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 1</strong> — Title: "Multi-layer perceptron / Back Propagation" — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 2</strong> — Steps of a single epoch (Forward Prop, Back Prop) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 3</strong> — After end of epoch (total error, stopping condition) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 4</strong> — Notes: net_h, o_h (sigmoid), delta for hidden and output neurons, warning about re-deriving derivatives — ✅ Section 2, including the exact warning reproduced in a card-warn</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 5</strong> — Notes: Δw_i,j = η·o_i·δ_j, o_i for input/bias neurons — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 6</strong> — Example: XOR-like truth table, learning rate = 0.3 — ✅ Section 3, table + network diagram</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 7</strong> — Epoch 1, Pattern 1: initial weights + forward prop (net3, o3, net4, o4, net5, y, Err_p1) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 8</strong> — Epoch 1, Pattern 1: back prop (delta5, delta3, delta4, all 9 new weights) — ✅ Section 4, fully reproduced</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 9</strong> — Epoch 1, Pattern 2: weights + forward prop (left blank as "…" in source) — ✅ Section 5, solved as complete answer key</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 10</strong> — Epoch 1, Pattern 2: back prop (left blank as "…" in source) — ✅ Section 5, solved as complete answer key</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 11</strong> — Epoch 1, Pattern 3: weights (left as "?" in source) + forward prop ("…") — ✅ Section 6, solved as complete answer key</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 12</strong> — Epoch 1, Pattern 3: back prop ("…") — ✅ Section 6, solved as complete answer key</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 13</strong> — Epoch 1, Pattern 4: weights ("?") + forward prop ("…") — ✅ Section 7, solved as complete answer key</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 14</strong> — Epoch 1, Pattern 4: back prop ("…") — ✅ Section 7, solved as complete answer key</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Page 15</strong> — End of Epoch 1: total error sum, stopping condition check, "run another epoch" — ✅ Section 8</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 15/15 SOURCE PAGES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">Every page of the original practice-problems worksheet is represented. Crucially, <strong>Patterns 2, 3, and 4</strong> — which the source worksheet left as blank exercises marked "…" and "w=?" — have been fully solved here as a verified answer key, going beyond what the source material itself provided, so a student can check their own hand-worked solutions against a complete, correct reference.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Epoch loop:</strong> <span class="tag tag-blue">Forward Prop (net, o, Err_p)</span> → <span class="tag tag-green">Back Prop (δ, Δw, update)</span> → repeat per pattern → <span class="tag tag-purple">Total Error = ΣErr_p</span> → <span class="tag tag-orange">Stopping Condition</span></p>
+      <p><strong>Core formulas:</strong> <span class="tag tag-blue">net_h = Σw·o</span> · <span class="tag tag-green">o_h = sigmoid(net_h)</span> · <span class="tag tag-purple">δ_hidden = o(1-o)Σδw</span> · <span class="tag tag-orange">δ_output = y(1-y)(t-y)</span> · <span class="tag tag-blue">Δw = η·o_i·δ_j</span></p>
+      <p><strong>Network:</strong> <span class="tag tag-green">2 inputs → 2 hidden (3,4) → 1 output (5)</span> · <span class="tag tag-purple">Bias units (o=1)</span> · <span class="tag tag-orange">η=0.3</span> · <span class="tag tag-blue">XOR truth table</span></p>
+      <p><strong>Epoch 1 results:</strong> <span class="tag tag-blue">Err_p1=0.1988</span> <span class="tag tag-green">Err_p2=0.0759</span> <span class="tag tag-purple">Err_p3=0.0670</span> <span class="tag tag-orange">Err_p4=0.2040</span> → <span class="tag tag-blue">Total = 0.5457</span></p>
+      <p><strong>Final weights after Epoch 1:</strong> <span class="tag tag-green">w13=0.2980 w23=-0.1017 wb3=0.1963</span> <span class="tag tag-purple">w14=-0.1991 w24=0.2006 wb4=-0.2985</span> <span class="tag tag-orange">w35=0.3797 w45=-0.2147 wb5=0.3650</span></p>
+      <p><strong>Beyond the source:</strong> <span class="tag tag-blue">Pattern 2, 3, 4 fully solved as verified answer keys</span> — <span class="tag tag-green">Epoch 2 posed as extension exercise</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

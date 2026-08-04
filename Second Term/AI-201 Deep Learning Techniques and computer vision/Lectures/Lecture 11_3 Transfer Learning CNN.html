@@ -1,0 +1,2103 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 11 — CNN Regularization, Callbacks & Transfer Learning Architectures | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 DL Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Lecture Introduction</a>
+    <div class="nav-section">Part I — Training Stability</div>
+    <a href="#s1" onclick="setActive(this)">1. Weight Initialization</a>
+    <a href="#s2" onclick="setActive(this)">2. L1 / L2 Regularization</a>
+    <a href="#s3" onclick="setActive(this)">3. Batch Normalization</a>
+    <div class="nav-section">Part II — Keras Callbacks</div>
+    <a href="#s4" onclick="setActive(this)">4. EarlyStopping & ReduceLROnPlateau</a>
+    <a href="#s5" onclick="setActive(this)">5. ModelCheckpoint & CSVLogger</a>
+    <a href="#s6" onclick="setActive(this)">6. Wiring Callbacks into model.fit</a>
+    <div class="nav-section">Part III — Functional API</div>
+    <a href="#s7" onclick="setActive(this)">7. Lambda Layers</a>
+    <a href="#s8" onclick="setActive(this)">8. Concatenate & the Wide-and-Deep Model</a>
+    <div class="nav-section">Part IV — Classic CNN Architectures</div>
+    <a href="#s9" onclick="setActive(this)">9. VGG19, ResNet50 & MobileNet</a>
+    <a href="#s10" onclick="setActive(this)">10. Depthwise Separable Convolution</a>
+    <a href="#s11" onclick="setActive(this)">11. Computational Savings — Worked Example</a>
+    <a href="#s12" onclick="setActive(this)">12. InceptionV3</a>
+    <div class="nav-section">Part V — Transfer Learning</div>
+    <a href="#s13" onclick="setActive(this)">13. Calling Transfer Learning in Keras</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 11 — CNN REGULARIZATION, CALLBACKS & TRANSFER LEARNING ARCHITECTURES</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 11</div>
+  <h1>CNN Regularization, Callbacks & Transfer Learning Architectures</h1>
+  <p>From Stabilizing Training (Initialization, L1/L2, BatchNorm) to Automating It (Callbacks) to Reusing Giant Pretrained Networks (VGG19, ResNet50, MobileNet, InceptionV3)</p>
+  <p class="author">Data Science Diploma — Deep Learning & Computer Vision &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">31</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">13</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">4</span><span class="lbl">Classic Architectures</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Weight Initialization</span>
+    <span class="tag tag-green">L1/L2 Regularization</span>
+    <span class="tag tag-purple">Batch Normalization</span>
+    <span class="tag tag-orange">Keras Callbacks</span>
+    <span class="tag tag-blue">Lambda Layers</span>
+    <span class="tag tag-green">Wide & Deep Model</span>
+    <span class="tag tag-purple">Depthwise Separable Conv</span>
+    <span class="tag tag-orange">MobileNet</span>
+    <span class="tag tag-blue">InceptionV3</span>
+    <span class="tag tag-green">Transfer Learning</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 1</span>
+    <h2>1. Weight Initialization & Kernel Initializers</h2>
+  </div>
+  <p class="section-subtitle">Why the starting point of the weights decides whether training even begins properly</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 1 — Initialization Weights And Kernel:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>It helps in achieving faster convergence, avoiding issues like vanishing/exploding gradients, and generally improving the performance of your model.</li>
+      <li>Named initializer highlighted on the slide: <code>"he_normal"</code></li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Every layer in a neural network starts with random <span class="hl-blue">weights</span> before training begins. <strong>Weight initialization</strong> is the strategy used to pick those starting random values. It sounds like a small detail, but a bad choice can make a deep network fail to train at all.</p>
+    <br/>
+    <p>If weights start <strong>too large</strong>, activations and gradients grow layer after layer until they <span class="hl">explode</span> (NaN losses). If weights start <strong>too small</strong>, signals shrink layer after layer until they <span class="hl">vanish</span> (gradients ≈ 0, no learning happens). Good initialization keeps the variance of activations roughly constant as they flow through the network.</p>
+    <div class="def-box">
+      <div class="def-term">he_normal (He Initialization)</div>
+      <p style="margin-top:6px;font-size:13px">Draws initial weights from a normal (Gaussian) distribution with mean 0 and a variance scaled by the number of input units to that layer:</p>
+      <div class="formula">W ~ Normal(0, variance = 2 / n_in)</div>
+      <p style="font-size:13px">Designed specifically for layers that use <strong>ReLU</strong> (or its variants) as the activation function, because ReLU zeroes out half the inputs on average, so the variance needs to be doubled to compensate. This is why <code>he_normal</code> is the default recommendation for CNN and dense layers with ReLU activations.</p>
+    </div>
+    <p style="margin-top:10px"><strong>Why it matters for CNNs specifically:</strong> convolutional layers can be dozens of layers deep (VGG19 has 19 weight layers, ResNet50 has 50). Without a principled initializer like <code>he_normal</code>, gradients would vanish or explode long before reaching the earliest layers during backpropagation.</p>
+    <pre><code><span class="code-kw">from</span> tensorflow <span class="code-kw">import</span> keras
+layer = keras.layers.<span class="code-fn">Dense</span>(<span class="code-nb">64</span>, activation=<span class="code-str">'relu'</span>,
+                          kernel_initializer=<span class="code-str">'he_normal'</span>)</code></pre>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>كل layer في الشبكة العصبية تبدأ بـ weights عشوائية قبل أي تدريب. <strong>Weight Initialization</strong> هي الطريقة التي نختار بها هذه القيم العشوائية الأولى. رغم أنها تبدو تفصيلة صغيرة، لكن اختيار خاطئ يمكن أن يجعل الـ model كله يفشل في التدريب من البداية.</p>
+    <br/>
+    <p>لو بدأت الـ weights <strong>كبيرة جدًا</strong>، فإن القيم تتضخم مع كل layer حتى تنفجر (exploding gradients، والـ loss يصبح NaN). ولو بدأت <strong>صغيرة جدًا</strong>، فإن القيم تتقلص مع كل layer حتى تختفي (vanishing gradients، ولا يحدث تعلم حقيقي).</p>
+    <br/>
+    <p><strong>he_normal</strong> هو initializer مصمم خصيصًا لـ layers التي تستخدم <strong>ReLU</strong> كـ activation function. يسحب القيم من توزيع طبيعي (Normal Distribution) بمتوسط صفر وتباين (variance) يساوي 2 مقسومة على عدد الـ inputs لهذه الـ layer. السبب في مضاعفة التباين هو أن ReLU تصفّر نصف المدخلات تقريبًا، فنحتاج تعويض ذلك.</p>
+    <br/>
+    <p><strong>أهم النقاط:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>✅ Initialization جيد = تدريب أسرع (faster convergence)</li>
+      <li>✅ يمنع مشاكل vanishing/exploding gradients</li>
+      <li>✅ he_normal مناسب لـ ReLU وهو الافتراضي الشائع في CNNs</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy</div>
+    <p>Imagine passing a whisper down a long line of 50 people (like ResNet50's 50 layers). If each person exaggerates the whisper slightly, by person 50 it's a scream (exploding gradients). If each person mumbles it slightly quieter, by person 50 it's silence (vanishing gradients). Good initialization is like telling everyone: "repeat it at exactly the same volume you heard it" — that's what he_normal tries to guarantee mathematically.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Using the default initializer (glorot_uniform) with deep ReLU networks — works but converges slower than he_normal</li>
+      <li>❌ Initializing all weights to zero — every neuron in a layer would compute identical gradients (symmetry problem), so nothing would ever differentiate</li>
+      <li>❌ Forgetting that biases usually stay initialized at zero — only the weight matrix needs a special initializer</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 he_normal → designed for ReLU layers, variance = 2/n_in</li>
+      <li>📌 glorot/xavier initialization → designed for tanh/sigmoid layers, variance = 1/n_in (or 2/(n_in+n_out))</li>
+      <li>📌 Know why zero-initialization breaks symmetry-breaking in neurons</li>
+      <li>📌 Be ready to link initialization to vanishing/exploding gradients as a root cause, not just a symptom</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Weight initialization sets the random starting values of a layer's weights. Poor choices cause <strong>vanishing/exploding gradients</strong>; good choices give <strong>faster convergence</strong>. <code>he_normal</code> scales variance as 2/n_in and is the standard choice for ReLU-activated layers, which dominate modern CNNs.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 2</span>
+    <h2>2. L1 and L2 Regularization</h2>
+  </div>
+  <p class="section-subtitle">Penalizing large weights to fight overfitting</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 2 — ℓ1 and ℓ2 Regularization:</strong> Regularisation is a process of introducing additional information in order to prevent overfitting.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Regularization</span> adds an extra penalty term to the loss function that discourages the model's weights from becoming too large. Large weights usually mean the model is memorizing training data (fitting noise) instead of learning general patterns — this is <span class="hl">overfitting</span>.</p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">L1 Regularization (Lasso)</h4>
+        <ul>
+          <li>Penalty = λ · Σ|w|</li>
+          <li>Pushes many weights exactly to <strong>zero</strong></li>
+          <li>Produces sparse models (implicit feature selection)</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">L2 Regularization (Ridge)</h4>
+        <ul>
+          <li>Penalty = λ · Σw²</li>
+          <li>Shrinks weights <strong>towards</strong> zero, rarely exactly zero</li>
+          <li>Smoother, more common default in deep learning ("weight decay")</li>
+        </ul>
+      </div>
+    </div>
+    <div class="formula">Total Loss = Original Loss (e.g. cross-entropy) + λ · Regularization Term</div>
+    <p><strong>λ (lambda)</strong> is a hyperparameter controlling how strongly weights are penalized. λ = 0 means no regularization; a very large λ can underfit by forcing weights too close to zero.</p>
+    <pre><code><span class="code-kw">from</span> tensorflow <span class="code-kw">import</span> keras
+<span class="code-kw">from</span> tensorflow.keras <span class="code-kw">import</span> regularizers
+
+layer = keras.layers.<span class="code-fn">Dense</span>(<span class="code-nb">64</span>, activation=<span class="code-str">'relu'</span>,
+    kernel_regularizer=regularizers.<span class="code-fn">l2</span>(<span class="code-nb">0.01</span>))   <span class="code-cm"># L2 / Ridge</span>
+
+layer2 = keras.layers.<span class="code-fn">Dense</span>(<span class="code-nb">64</span>, activation=<span class="code-str">'relu'</span>,
+    kernel_regularizer=regularizers.<span class="code-fn">l1</span>(<span class="code-nb">0.01</span>))  <span class="code-cm"># L1 / Lasso</span></code></pre>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Regularization</strong> هي إضافة معلومة/عقوبة إضافية إلى دالة الخسارة (loss function) لمنع الـ model من الاعتماد على weights كبيرة جدًا. الـ weights الكبيرة عادةً تعني أن الـ model بدأ يحفظ (memorize) بيانات التدريب بالتفصيل — بما فيها الضوضاء (noise) — وهذا هو <strong>Overfitting</strong>.</p>
+    <br/>
+    <p><strong>الفرق بين L1 و L2:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>L1 (Lasso)</strong>: العقوبة = مجموع القيم المطلقة للـ weights. تجعل كثير من الـ weights تساوي صفر تمامًا → نوع من اختيار الـ features تلقائيًا (sparse model).</li>
+      <li><strong>L2 (Ridge)</strong>: العقوبة = مجموع مربعات الـ weights. تُقلّص الـ weights تجاه الصفر بدون أن تجعلها صفرًا تمامًا في العادة، وهي الأكثر استخدامًا في Deep Learning تحت اسم "weight decay".</li>
+    </ul>
+    <br/>
+    <p><strong>λ (lambda)</strong> هي hyperparameter تتحكم في قوة العقوبة. لو λ = صفر فلا يوجد regularization، ولو كانت كبيرة جدًا فقد يحدث underfitting لأن الـ weights تُدفع بقوة نحو الصفر.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>Imagine fitting a curve through noisy exam-score data points. Without regularization, the model draws a wild, wiggly curve that passes through every single point exactly — including the noisy outliers. With L2 regularization, the model prefers a smoother curve that generally follows the trend, sacrificing a perfect fit on training data for better generalization to new students' scores.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Misconception</div>
+    <p>Regularization is <em>not</em> the same as Dropout or Batch Normalization — those are separate anti-overfitting techniques. L1/L2 specifically add a penalty term computed directly from the weight values themselves, added to the loss during backpropagation.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 L1 → sparse weights (feature selection); L2 → small but non-zero weights (weight decay)</li>
+      <li>📌 Regularization term is added to the loss, not to the accuracy metric</li>
+      <li>📌 Interview trick question: "Why would you pick L1 over L2?" → when you suspect many input features are irrelevant and want automatic feature selection</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Regularization adds a penalty term (λ·Σ|w| for L1, λ·Σw² for L2) to the loss to discourage large weights and reduce overfitting. L1 drives weights to exact zero (sparsity); L2 shrinks weights smoothly (weight decay).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 3–5</span>
+    <h2>3. Batch Normalization</h2>
+  </div>
+  <p class="section-subtitle">Normalizing activations layer by layer to stabilize and speed up training</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slides 3–5 — Batch Normalization:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>The BatchNormalization layer normalizes the activations by adjusting the mean and variance.</li>
+      <li>Used to avoid overfitting.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Batch Normalization (BatchNorm)</span> is a layer inserted between other layers that <strong>normalizes its inputs</strong> — it rescales the activations coming out of the previous layer so they have mean ≈ 0 and variance ≈ 1, computed over the current mini-batch.</p>
+    <div class="formula">x̂ = (x − μ_batch) / √(σ²_batch + ε) &nbsp;→&nbsp; y = γ·x̂ + β</div>
+    <p style="font-size:13px">where γ (scale) and β (shift) are <strong>learnable parameters</strong> that let the network undo the normalization if that turns out to be better for a specific layer.</p>
+    <p><strong>Why it helps:</strong></p>
+    <ul class="e-list">
+      <li>⚡ <strong>Faster training</strong> — allows higher learning rates without divergence</li>
+      <li>📉 <strong>Reduces internal covariate shift</strong> — keeps the distribution of layer inputs stable as earlier layers' weights change during training</li>
+      <li>🛡️ <strong>Mild regularization effect</strong> — the batch statistics add a small amount of noise, similar in spirit to Dropout, which helps reduce overfitting</li>
+      <li>🎯 <strong>Less sensitive to initialization</strong> — reduces (though does not eliminate) the importance of picking the perfect weight initializer</li>
+    </ul>
+    <pre><code>model = keras.Sequential([
+    keras.layers.<span class="code-fn">Conv2D</span>(<span class="code-nb">32</span>, (<span class="code-nb">3</span>,<span class="code-nb">3</span>), activation=<span class="code-str">'relu'</span>),
+    keras.layers.<span class="code-fn">BatchNormalization</span>(),
+    keras.layers.<span class="code-fn">MaxPooling2D</span>(),
+    keras.layers.<span class="code-fn">Conv2D</span>(<span class="code-nb">64</span>, (<span class="code-nb">3</span>,<span class="code-nb">3</span>), activation=<span class="code-str">'relu'</span>),
+    keras.layers.<span class="code-fn">BatchNormalization</span>(),
+])</code></pre>
+    <p style="font-size:13px">Note: at <strong>training time</strong> BatchNorm uses the current mini-batch mean/variance; at <strong>inference time</strong> it uses a running average of mean/variance collected during training, so results stay consistent for single-sample predictions.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Batch Normalization</strong> هي layer توضع بين طبقات الشبكة، وتقوم بـ <strong>تسوية (normalize)</strong> القيم الخارجة من الطبقة السابقة، بحيث يكون متوسطها (mean) قريب من صفر وتباينها (variance) قريب من واحد، محسوبة على الـ mini-batch الحالي.</p>
+    <br/>
+    <p>بعد التسوية، تضيف الطبقة معاملين قابلين للتعلم: <strong>γ (scale)</strong> و <strong>β (shift)</strong>، بحيث يمكن للشبكة أن "تتراجع" عن التسوية لو كان ذلك أفضل لطبقة معينة.</p>
+    <br/>
+    <p><strong>لماذا نستخدمها؟</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>✅ تسريع التدريب، وتسمح باستخدام learning rate أعلى</li>
+      <li>✅ تقلل من ظاهرة "Internal Covariate Shift" — تغيّر توزيع مدخلات كل layer باستمرار مع تغيّر أوزان الطبقات السابقة</li>
+      <li>✅ لها تأثير خفيف كـ regularization يساعد على تقليل overfitting</li>
+      <li>✅ تقلل من حساسية الشبكة لاختيار weight initializer معين</li>
+    </ul>
+    <br/>
+    <p><strong>تنبيه مهم:</strong> في وقت التدريب (training)، تستخدم BatchNorm متوسط وتباين الـ mini-batch الحالي. في وقت الاستدلال (inference)، تستخدم متوسطًا متحركًا (running average) تم جمعه خلال التدريب.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy</div>
+    <p>Imagine a relay race where each runner receives the baton at wildly different speeds depending on how fast the previous runner was sprinting. BatchNorm is like a checkpoint between each runner that resets the baton's speed to a standard pace before handing it off — so each runner always starts from a predictable, consistent state, regardless of what happened earlier in the race.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — BatchNorm</div>
+    <p><strong>"Normalize, then Scale-and-Shift"</strong></p>
+    <p>Step 1: force mean≈0, variance≈1 using batch statistics. Step 2: let the network learn its own γ (scale) and β (shift) to adjust if needed.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Using a very small batch size with BatchNorm — batch statistics become noisy/unreliable with tiny batches</li>
+      <li>❌ Forgetting that BatchNorm behaves differently in training vs. inference mode (Keras handles this automatically via <code>training=True/False</code>)</li>
+      <li>❌ Thinking BatchNorm replaces the need for Dropout entirely — many architectures still combine both</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 BatchNorm normalizes activations using mini-batch mean/variance, then applies learnable γ, β</li>
+      <li>📌 Main benefits: faster convergence, higher usable learning rates, mild regularization</li>
+      <li>📌 Training vs inference statistics differ — this is a classic interview question</li>
+      <li>📌 Typically placed after Conv2D/Dense and before (or after) the activation function, depending on architecture convention</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>BatchNormalization normalizes each layer's activations to mean≈0/variance≈1 using batch statistics, then rescales with learnable γ and β. Benefits: faster training, higher learning rates, reduced internal covariate shift, and a mild regularization effect against overfitting.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 6–7</span>
+    <h2>4. Callbacks — EarlyStopping & ReduceLROnPlateau</h2>
+  </div>
+  <p class="section-subtitle">Letting Keras monitor training and react automatically</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 6 — EarlyStopping:</strong> Used to stop training once the model performance stops improving on a monitored metric (like validation loss or accuracy). It prevents overfitting and saves time by stopping training when further epochs would not yield better results.</p>
+    <br/>
+    <p><strong>Slide 7 — ReduceLROnPlateau:</strong> Used to automatically reduce the learning rate when a monitored metric has stopped improving. Reducing the learning rate can help the model converge more smoothly and prevent it from overshooting minima in the loss landscape.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl-blue">Callback</span> is an object that Keras calls automatically at specific points during training (end of batch, end of epoch, etc.) so you can inject custom behavior without rewriting your training loop.</p>
+    <div class="def-box">
+      <div class="def-term">EarlyStopping</div>
+      <p style="margin-top:6px;font-size:13px">Watches a metric (usually <code>val_loss</code>). If it doesn't improve for <code>patience</code> consecutive epochs, training halts automatically. Prevents wasting time/compute training past the point of diminishing returns, and prevents <span class="hl">overfitting</span> by not letting the model keep memorizing the training set after validation performance plateaus.</p>
+      <pre><code>keras.callbacks.<span class="code-fn">EarlyStopping</span>(
+    monitor=<span class="code-str">'val_loss'</span>, patience=<span class="code-nb">5</span>,
+    restore_best_weights=<span class="code-kw">True</span>)</code></pre>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">ReduceLROnPlateau</div>
+      <p style="margin-top:6px;font-size:13px">Watches a metric; if it "plateaus" (stops improving) for <code>patience</code> epochs, the learning rate is multiplied by a <code>factor</code> (e.g. 0.5 → halved). A smaller learning rate lets the optimizer take finer steps near a minimum instead of bouncing around or overshooting it.</p>
+      <pre><code>keras.callbacks.<span class="code-fn">ReduceLROnPlateau</span>(
+    monitor=<span class="code-str">'val_loss'</span>, factor=<span class="code-nb">0.5</span>,
+    patience=<span class="code-nb">3</span>, min_lr=<span class="code-nb">1e-6</span>)</code></pre>
+    </div>
+    <p style="margin-top:10px"><strong>They're complementary:</strong> ReduceLROnPlateau tries to rescue a stalled training run by taking smaller steps first; EarlyStopping is the final safety net that stops training altogether if nothing works after that.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Callback</strong> هو كائن (object) تستدعيه Keras تلقائيًا في لحظات معينة أثناء التدريب (نهاية كل epoch مثلًا)، بحيث يمكنك إضافة سلوك مخصص بدون إعادة كتابة حلقة التدريب من الصفر.</p>
+    <br/>
+    <p><strong>EarlyStopping:</strong> يراقب مقياسًا معينًا (عادةً <code>val_loss</code>). لو لم يتحسن هذا المقياس لعدد معين من الـ epochs (يُسمى <code>patience</code>)، يوقف التدريب تلقائيًا. هذا يمنع إهدار الوقت والموارد في تدريب لا يفيد، ويمنع أيضًا الـ Overfitting.</p>
+    <br/>
+    <p><strong>ReduceLROnPlateau:</strong> يراقب مقياسًا معينًا، ولو "توقف عن التحسن" (plateau) لعدد من الـ epochs، فإنه يُخفّض learning rate (يضربه في <code>factor</code> مثل 0.5). الـ learning rate الأصغر يسمح للـ optimizer أن يتحرك بخطوات أدق قرب الحل الأمثل بدلًا من القفز فوقه (overshooting).</p>
+    <br/>
+    <p><strong>العلاقة بينهما:</strong> ReduceLROnPlateau يحاول "إنقاذ" التدريب المتوقف بخطوات أصغر أولًا، وEarlyStopping هو خط الدفاع الأخير الذي يوقف التدريب تمامًا لو لم ينجح ذلك.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>You're training for 100 epochs. By epoch 20, validation loss stops improving. ReduceLROnPlateau notices this at epoch 23 (after patience=3) and halves the learning rate, letting the model fine-tune more precisely — validation loss improves slightly again. But by epoch 30 it plateaus again with no further gains. EarlyStopping (patience=5) then stops training at epoch 35, restoring the best weights seen at epoch 27 — saving 65 epochs of wasted compute.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Setting <code>patience</code> too low — training stops before the model has a real chance to improve</li>
+      <li>❌ Forgetting <code>restore_best_weights=True</code> in EarlyStopping — you keep the weights from the last (possibly worse) epoch instead of the best one</li>
+      <li>❌ Monitoring <code>loss</code> (training loss) instead of <code>val_loss</code> — training loss almost always keeps improving even when the model is overfitting</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 EarlyStopping stops training; ReduceLROnPlateau adjusts the learning rate — different actions, same trigger concept ("plateau")</li>
+      <li>📌 Both require a <code>monitor</code> metric and a <code>patience</code> value</li>
+      <li>📌 <code>restore_best_weights=True</code> is the detail interviewers love to ask about</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EarlyStopping</strong> halts training when a monitored metric (e.g. val_loss) stops improving for <code>patience</code> epochs, preventing overfitting and wasted compute. <strong>ReduceLROnPlateau</strong> instead shrinks the learning rate by <code>factor</code> on a plateau, allowing finer convergence before giving up.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 8–9</span>
+    <h2>5. Callbacks — ModelCheckpoint & CSVLogger</h2>
+  </div>
+  <p class="section-subtitle">Saving the best model and logging every epoch to disk automatically</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 8 — ModelCheckpoint:</strong> Used to save the model during training at specific points, such as after each epoch or only when the model's performance on a validation set improves. This helps in keeping the best version of the model during training, especially when training for many epochs.</p>
+    <br/>
+    <p><strong>Slide 9 — CSVLogger:</strong> Used to automatically save the training progress (metrics and loss) of each epoch into a CSV file while the model trains.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <div class="def-box">
+      <div class="def-term">ModelCheckpoint</div>
+      <p style="margin-top:6px;font-size:13px">Saves the model's weights (or full model) to a file, either after <strong>every epoch</strong> or only when a monitored metric <strong>improves</strong> (<code>save_best_only=True</code>). This is essential insurance: if training crashes at epoch 80 out of 100, or if the model starts overfitting after epoch 50, you still have the best checkpoint saved to disk.</p>
+      <pre><code>keras.callbacks.<span class="code-fn">ModelCheckpoint</span>(
+    filepath=<span class="code-str">'best_model.h5'</span>,
+    monitor=<span class="code-str">'val_accuracy'</span>,
+    save_best_only=<span class="code-kw">True</span>)</code></pre>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">CSVLogger</div>
+      <p style="margin-top:6px;font-size:13px">Streams every epoch's metrics (loss, val_loss, accuracy, val_accuracy, learning rate, etc.) as a new row into a plain CSV file. Useful for later plotting learning curves, comparing multiple training runs, or auditing exactly what happened during a long training job.</p>
+      <pre><code>keras.callbacks.<span class="code-fn">CSVLogger</span>(<span class="code-str">'training_log.csv'</span>)</code></pre>
+    </div>
+    <p style="margin-top:10px">Both callbacks are about <strong>persistence and observability</strong>: ModelCheckpoint persists the model itself, CSVLogger persists the training history.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>ModelCheckpoint:</strong> يحفظ weights الـ model (أو الـ model كاملًا) في ملف، إما بعد كل epoch أو فقط عندما يتحسن مقياس معين على بيانات الـ validation (<code>save_best_only=True</code>). هذا مهم جدًا كنوع من التأمين: لو انقطع التدريب فجأة، أو لو بدأ الـ model في الـ overfitting بعد epoch معينة، تظل أفضل نسخة محفوظة على القرص.</p>
+    <br/>
+    <p><strong>CSVLogger:</strong> يسجّل قيم كل epoch (loss، val_loss، accuracy، val_accuracy...) كصف جديد في ملف CSV بسيط. مفيد جدًا لرسم منحنيات التعلم (learning curves) لاحقًا، أو لمقارنة عدة تجارب تدريب مع بعضها.</p>
+    <br/>
+    <p><strong>الفرق الجوهري:</strong> ModelCheckpoint يحفظ الـ model نفسه، بينما CSVLogger يحفظ سجل الأرقام (تاريخ التدريب) فقط.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>Training a model for 3 days on a cloud GPU that could be preempted at any moment. Using <code>ModelCheckpoint(save_best_only=True)</code> means that even if the machine dies at hour 60, you still have the best weights up to that point saved as a file — no need to restart from scratch. Meanwhile CSVLogger's file lets you later plot "epoch vs val_loss" in a spreadsheet to visually confirm when overfitting started.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Not setting <code>save_best_only=True</code> — every epoch overwrites the file, so you may end up saving an overfit final-epoch model instead of the best one</li>
+      <li>❌ Forgetting to also pass <code>save_weights_only</code> correctly depending on whether you need the full model or just weights</li>
+      <li>❌ Losing the CSV log because the filepath wasn't writable or got overwritten between separate training runs</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 ModelCheckpoint = saves the model artifact; CSVLogger = saves the metrics history</li>
+      <li>📌 <code>save_best_only=True</code> + a monitored metric is the standard production pattern</li>
+      <li>📌 Four callbacks covered so far: EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, CSVLogger — know all four by name and purpose</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>ModelCheckpoint</strong> saves the model to disk during training, optionally only when it improves (<code>save_best_only=True</code>). <strong>CSVLogger</strong> writes every epoch's metrics as a row in a CSV file for later analysis and plotting.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>6. Wiring Callbacks into model.fit</h2>
+  </div>
+  <p class="section-subtitle">Putting all four callbacks together in a real training call</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 10 — Callbacks: How add in Training Model.</strong> The slide demonstrates how the previously introduced callbacks are combined and passed into the training call.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>All Keras callbacks are activated the same way: build each callback object, put them in a Python list, and pass that list to the <code>callbacks=</code> argument of <code>model.fit()</code>. Keras then calls the right hook on each callback automatically at the right moment (start/end of training, start/end of each epoch, start/end of each batch).</p>
+    <pre><code>early_stop = keras.callbacks.<span class="code-fn">EarlyStopping</span>(
+    monitor=<span class="code-str">'val_loss'</span>, patience=<span class="code-nb">5</span>, restore_best_weights=<span class="code-kw">True</span>)
+
+reduce_lr = keras.callbacks.<span class="code-fn">ReduceLROnPlateau</span>(
+    monitor=<span class="code-str">'val_loss'</span>, factor=<span class="code-nb">0.5</span>, patience=<span class="code-nb">3</span>)
+
+checkpoint = keras.callbacks.<span class="code-fn">ModelCheckpoint</span>(
+    filepath=<span class="code-str">'best_model.h5'</span>, monitor=<span class="code-str">'val_accuracy'</span>, save_best_only=<span class="code-kw">True</span>)
+
+csv_logger = keras.callbacks.<span class="code-fn">CSVLogger</span>(<span class="code-str">'training_log.csv'</span>)
+
+history = model.<span class="code-fn">fit</span>(
+    X_train, y_train,
+    validation_data=(X_val, y_val),
+    epochs=<span class="code-nb">100</span>,
+    callbacks=[early_stop, reduce_lr, checkpoint, csv_logger]
+)</code></pre>
+    <p><strong>Line-by-line:</strong> each callback is instantiated separately with its own <code>monitor</code> and configuration, then all four are collected into a single list and handed to <code>fit()</code>. Keras runs them in the order supplied, checking each one's condition after every epoch.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>جميع الـ callbacks في Keras تُستخدم بالطريقة نفسها: تُنشئ كل callback كـ object منفصل، وتضعهم جميعًا داخل قائمة (list) بايثون، ثم تمرر هذه القائمة إلى معطى <code>callbacks=</code> في دالة <code>model.fit()</code>. بعد ذلك تستدعي Keras كل callback تلقائيًا في اللحظة المناسبة (بداية/نهاية كل epoch مثلًا).</p>
+    <br/>
+    <p>في الكود بالأعلى: نُنشئ أربع callbacks (EarlyStopping، ReduceLROnPlateau، ModelCheckpoint، CSVLogger) كل واحدة بإعداداتها الخاصة، ثم نجمعهم في list واحدة اسمها <code>callbacks</code> ونمررها لـ <code>model.fit</code>. تُنفَّذ جميعها تلقائيًا في كل epoch بدون أي كود إضافي منك.</p>
+    <br/>
+    <p><strong>الفائدة العملية:</strong> بهذه الطريقة، تدريب واحد لـ 100 epoch يصبح "ذكيًا": يوقف نفسه تلقائيًا عند التوقف عن التحسن، يقلل learning rate عند الحاجة، يحفظ أفضل نسخة، ويسجّل كل رقم في ملف CSV — كل هذا بدون تدخل يدوي.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Real World</div>
+    <p>This exact pattern (all four callbacks stacked together) is the standard production recipe used across most real Keras training scripts — from Kaggle competition notebooks to industrial ML pipelines — because it turns a "fire and forget" 100-epoch run into a self-monitoring, self-correcting, fully logged process.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 <code>callbacks=</code> in <code>model.fit()</code> always takes a <strong>list</strong>, even for a single callback</li>
+      <li>📌 Order in the list does not change what each callback monitors, but Keras executes hooks in list order</li>
+      <li>📌 Be able to write this exact combined snippet from memory — a very common practical exam task</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Pass a Python list of callback objects to <code>model.fit(..., callbacks=[...])</code>. Keras invokes each one automatically at the right training event, combining EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, and CSVLogger into one self-managing training run.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 11</span>
+    <h2>7. Lambda Layers</h2>
+  </div>
+  <p class="section-subtitle">Injecting custom, stateless math into a Keras model without writing a full layer class</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 11 — Lambda Function:</strong> Lambda layers let you apply custom math or transformations without writing a full custom layer class.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl-blue">Lambda layer</span> wraps an arbitrary function (usually a simple one-liner) as a layer inside the model, without the overhead of subclassing <code>keras.layers.Layer</code>. It's perfect for quick, <strong>stateless</strong> transformations — operations that don't need trainable weights.</p>
+    <pre><code>keras.layers.<span class="code-fn">Lambda</span>(<span class="code-kw">lambda</span> x: x * <span class="code-nb">2</span>)         <span class="code-cm"># scale activations</span>
+keras.layers.<span class="code-fn">Lambda</span>(<span class="code-kw">lambda</span> x: tf.square(x))   <span class="code-cm"># squaring operation</span>
+keras.layers.<span class="code-fn">Lambda</span>(<span class="code-kw">lambda</span> x: x[:, :, :<span class="code-nb">3</span>])   <span class="code-cm"># slicing a tensor</span></code></pre>
+    <p><strong>When to use it:</strong> quick custom math (scaling, clipping, slicing, simple reshaping) inside the Functional API graph. <strong>When NOT to use it:</strong> if the transformation needs its own trainable weights, you should write a proper custom <code>Layer</code> subclass instead — Lambda layers cannot hold trainable parameters.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Lambda layer</strong> تسمح لك بلفّ دالة رياضية بسيطة (عادةً سطر واحد) وتحويلها إلى layer داخل الـ model، بدون الحاجة لكتابة class كامل يرث من <code>keras.layers.Layer</code>. هي مناسبة جدًا للعمليات <strong>البسيطة وغير القابلة للتعلم (stateless)</strong> — أي عمليات لا تحتاج weights قابلة للتدريب.</p>
+    <br/>
+    <p><strong>أمثلة استخدام:</strong> ضرب القيم في ثابت، تربيع القيم، أو تقطيع (slicing) tensor معين للحصول على جزء منه فقط.</p>
+    <br/>
+    <p><strong>تنبيه مهم:</strong> لو احتجت أن تكون العملية نفسها قابلة للتعلم (لها weights خاصة بها)، فلا تستخدم Lambda — استخدم عندها custom Layer class حقيقي، لأن Lambda layer لا يمكنها الاحتفاظ بمعاملات قابلة للتدريب.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>Suppose you want to normalize pixel values from the 0–255 range to 0–1 right inside the model graph (instead of preprocessing outside it), so the same saved model always applies the same normalization automatically at inference. You'd write: <code>keras.layers.Lambda(lambda x: x / 255.0)</code> as the very first layer after the Input layer.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Lambda layers = stateless custom operations, no trainable weights</li>
+      <li>📌 For trainable custom behavior, subclass <code>keras.layers.Layer</code> instead</li>
+      <li>📌 Common interview question: "Why can't you put a Dense-like learnable operation inside a Lambda layer?" → because Lambda has no mechanism to register/train weights</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>A Lambda layer wraps a simple, stateless function as a Keras layer — useful for quick math like scaling or slicing without writing a full custom Layer class. It cannot hold trainable weights.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 12–14</span>
+    <h2>8. Concatenate Layer & the Wide-and-Deep Model</h2>
+  </div>
+  <p class="section-subtitle">Merging multiple tensors — and building a model that has both a "wide" and a "deep" path</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 12 — Concatenate Layer:</strong> A concatenate layer in neural networks is used to combine multiple input tensors along a specified dimension.</p>
+    <pre style="margin-top:10px"><code>concat = keras.layers.concatenate([ __ ,…, __ ], axis= 0 or 1 )</code></pre>
+    <p><strong>Slide 13 — Concatenate Layer (examples):</strong></p>
+    <pre><code>concat = keras.layers.concatenate([input_A, input_B], axis=0)
+concat = keras.layers.concatenate([input_A, hidden2], axis=1)</code></pre>
+    <p><strong>Slide 14 — Concatenate Layer (full Wide & Deep model):</strong></p>
+    <pre><code>input_A = tf.keras.layers.Input(shape=[5], name="wide_input")
+input_B = tf.keras.layers.Input(shape=[6], name="deep_input")
+hidden1 = tf.keras.layers.Dense(30, activation="relu")(input_B)
+hidden2 = tf.keras.layers.Dense(30, activation="relu")(hidden1)
+concat = tf.keras.layers.concatenate([input_A, hidden2], axis=-1)
+Aux_output = tf.keras.layers.Dense(1, name="output")(hidden2)
+output = tf.keras.layers.Dense(1, name="output")(concat)
+model = tf.keras.Model(inputs=[input_A, input_B], outputs=[output, Aux_output])</code></pre>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The <span class="hl-blue">Concatenate</span> layer joins two or more tensors together along a chosen <code>axis</code>, without any math operation — it simply stacks their values side by side. This is only possible when the tensors being concatenated <strong>match on every dimension except the concatenation axis</strong>.</p>
+    <div class="formula">concat([A(shape=[n,5]), B(shape=[n,30])], axis=-1) → shape=[n,35]</div>
+    <p>This is the core building block of the <strong>Wide & Deep</strong> architecture (originally from a well-known Google paper), which mixes two separate paths for the same problem:</p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Wide Path (input_A)</h4>
+        <p style="font-size:12px">The raw input features go directly into the concatenation, skipping the hidden layers. Captures simple, direct, memorizable feature relationships.</p>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Deep Path (input_B → hidden1 → hidden2)</h4>
+        <p style="font-size:12px">A separate input goes through several Dense layers, learning complex, non-linear, generalizable feature interactions.</p>
+      </div>
+    </div>
+    <p>Walking through the reference code from the slides step by step:</p>
+    <ol class="steps">
+      <li><code>input_A</code> (5 features) and <code>input_B</code> (6 features) are two separate Input layers — the model accepts two different feature sets simultaneously.</li>
+      <li><code>input_B</code> flows through <code>hidden1</code> then <code>hidden2</code>, both 30-unit ReLU Dense layers — this is the "deep" path learning complex representations.</li>
+      <li><code>concat</code> joins <code>input_A</code> (the untouched wide features) with <code>hidden2</code> (the deep path's learned representation) along the last axis.</li>
+      <li><code>Aux_output</code> is a secondary ("auxiliary") output taken directly from <code>hidden2</code>, before concatenation — often used to force the deep path alone to also produce a sensible prediction (helps regularize training).</li>
+      <li><code>output</code> is the main prediction, computed from the merged wide+deep representation.</li>
+      <li>The final <code>Model</code> is built with <strong>two inputs</strong> and <strong>two outputs</strong> using the Keras Functional API — something the simpler Sequential API cannot express.</li>
+    </ol>
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> Note on the Slide's Code</div>
+      <p>The original slide code reuses the name <code>"output"</code> for both Dense layers (naming collision) — in real code each output layer needs a <strong>unique</strong> name, e.g. <code>name="main_output"</code> and <code>name="aux_output"</code>, so Keras can tell them apart when compiling and training with multiple losses.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Concatenate layer</strong> تدمج tensors متعددة معًا على طول محور (axis) محدد، بدون أي عملية حسابية — فقط تضع القيم بجانب بعضها. هذا ممكن فقط لو كانت الـ tensors متطابقة في جميع الأبعاد إلا محور الدمج نفسه.</p>
+    <br/>
+    <p>هذا هو حجر الأساس في معمارية <strong>Wide & Deep</strong> (من ورقة بحثية مشهورة من Google)، التي تدمج مسارين مختلفين لحل المشكلة نفسها:</p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>المسار العريض (Wide) — input_A</strong>: الـ features الخام تدخل مباشرة في الدمج، بدون المرور بأي hidden layer. يلتقط علاقات مباشرة وبسيطة يمكن "حفظها".</li>
+      <li><strong>المسار العميق (Deep) — input_B → hidden1 → hidden2</strong>: مدخل آخر يمر عبر عدة Dense layers، فيتعلم علاقات معقدة وغير خطية قابلة للتعميم.</li>
+    </ul>
+    <br/>
+    <p><strong>شرح الكود سطرًا بسطر:</strong> input_A و input_B هما مدخلان مختلفان لنموذج واحد. input_B يمر عبر hidden1 ثم hidden2 (المسار العميق). بعدها concat يجمع input_A الخام مع hidden2 (نتيجة المسار العميق). Aux_output هو مخرج إضافي مأخوذ مباشرة من hidden2 قبل الدمج (يساعد على تنظيم التدريب). أما output فهو التنبؤ الرئيسي المحسوب من الدمج الكامل. وأخيرًا model يُبنى بمدخلين ومخرجين معًا باستخدام Keras Functional API.</p>
+    <br/>
+    <p><strong>ملاحظة على كود السلايد:</strong> السلايد الأصلي استخدم الاسم "output" لطبقتين مختلفتين بالخطأ — في الكود الفعلي يجب أن يكون لكل مخرج اسم فريد (مثل main_output و aux_output) حتى تستطيع Keras تمييزهما عند التدريب بعدة دوال خسارة.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Real World</div>
+    <p>Predicting house prices: the "wide" input could be simple categorical/one-hot features (zip code, number of bedrooms) that directly correlate with price, while the "deep" input could be a longer feature vector (square footage, age, amenities, nearby school ratings) that benefits from being processed through several non-linear Dense layers to discover interactions. Concatenating both paths lets the final Dense output layer use both simple memorized rules and learned complex patterns simultaneously.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Concatenate merges tensors along an axis — shapes must match on all other dimensions</li>
+      <li>📌 Wide & Deep = multi-input, multi-output model only expressible with the Functional API (not Sequential)</li>
+      <li>📌 Auxiliary outputs are a common regularization/multi-task trick — expect a question on why a model would have two outputs</li>
+      <li>📌 Be able to spot/fix the duplicate-name bug in the slide's original code</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><code>keras.layers.concatenate([...], axis=...)</code> merges tensors side by side. The Wide & Deep model uses this to combine a raw "wide" input with a "deep" path processed through several Dense layers, built with the Functional API and supporting multiple inputs/outputs (including auxiliary outputs).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 15–17</span>
+    <h2>9. Classic CNN Architectures: VGG19, ResNet50 & MobileNet</h2>
+  </div>
+  <p class="section-subtitle">Three landmark architectures that shaped modern computer vision, and the design problem each one solved</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 15 — VGG19</strong> · <strong>Slide 16 — ResNet50</strong> · <strong>Slide 17 — MobileNet</strong> (architecture name/diagram slides, introducing three classic pretrained CNN backbones referenced later for transfer learning).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>These three architectures are famous, pretrained CNN backbones available directly in <code>keras.applications</code>, each solving a different bottleneck in scaling up deep CNNs:</p>
+    <div class="def-box">
+      <div class="def-term">VGG19</div>
+      <p style="margin-top:6px;font-size:13px">19 weight layers, built from a very simple, uniform pattern: stacks of <span class="hl">3×3 convolutions</span> + ReLU, followed by 2×2 max pooling, repeated block after block, ending in large Dense layers. Simple to understand but has <strong>~144 million parameters</strong> — heavy and slow, mostly because of its huge fully-connected layers.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">ResNet50</div>
+      <p style="margin-top:6px;font-size:13px">50 weight layers using <span class="hl-green">residual ("skip") connections</span>: the input of a block is added directly to its output, <code>output = F(x) + x</code>. This solved the <strong>vanishing gradient problem</strong> in very deep networks — gradients can flow backward through the skip connection even if the learned function F(x) contributes almost nothing, allowing networks to go far deeper than VGG (50, 101, even 152 layers) while still training successfully.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">MobileNet</div>
+      <p style="margin-top:6px;font-size:13px">Designed for <span class="hl-purple">mobile and embedded devices</span> with limited compute/memory. Its key innovation is replacing standard convolutions with <strong>Depthwise Separable Convolutions</strong> (covered in detail in the next section), cutting parameters and computation dramatically while keeping accuracy competitive.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Architecture</th><th>Depth</th><th>Key Idea</th><th>Best For</th></tr>
+        <tr><td>VGG19</td><td>19 layers</td><td>Simple stacked 3×3 convs</td><td>Simplicity, transfer learning baseline</td></tr>
+        <tr><td>ResNet50</td><td>50 layers</td><td>Residual / skip connections</td><td>Very deep networks, high accuracy</td></tr>
+        <tr><td>MobileNet</td><td>Configurable</td><td>Depthwise separable convolutions</td><td>Mobile / edge deployment</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذه الثلاث معماريات هي من أشهر CNN backbones المدربة مسبقًا (pretrained) والمتوفرة مباشرة في <code>keras.applications</code>، وكل واحدة حلّت مشكلة مختلفة في توسيع الشبكات العميقة:</p>
+    <br/>
+    <p><strong>VGG19:</strong> 19 طبقة بها weights، مبنية من نمط بسيط ومتكرر: مجموعات من convolutions بحجم 3×3 + ReLU، ثم max pooling بحجم 2×2، تتكرر عدة مرات، وتنتهي بطبقات Dense كبيرة جدًا. سهلة الفهم لكنها تحتوي على حوالي 144 مليون parameter — ثقيلة وبطيئة، أغلب السبب هو الطبقات الكاملة (Dense) الضخمة في النهاية.</p>
+    <br/>
+    <p><strong>ResNet50:</strong> 50 طبقة تستخدم <strong>skip connections (residual connections)</strong>: مدخل الـ block يُضاف مباشرة إلى مخرجه: output = F(x) + x. هذا حلّ مشكلة vanishing gradient في الشبكات العميقة جدًا — الـ gradient يمكنه أن يتدفق عبر الـ skip connection حتى لو كانت الدالة المتعلمة F(x) لا تُضيف شيئًا تقريبًا، وهذا سمح ببناء شبكات أعمق بكثير من VGG (50، 101، وحتى 152 طبقة) مع بقاء التدريب ناجحًا.</p>
+    <br/>
+    <p><strong>MobileNet:</strong> مصمم خصيصًا للأجهزة المحمولة (mobile) والأجهزة المدمجة (embedded) ذات الموارد المحدودة. الابتكار الأساسي هو استخدام <strong>Depthwise Separable Convolution</strong> بدلًا من الـ convolution العادي، مما يقلل عدد الـ parameters وكمية الحسابات بشكل كبير مع الحفاظ على دقة تنافسية.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Real World</div>
+    <ul class="e-list">
+      <li>🖼️ <strong>VGG19</strong>: still widely used as a feature extractor for style-transfer and perceptual loss functions in image generation research</li>
+      <li>🏥 <strong>ResNet50</strong>: default backbone in countless medical imaging and general classification transfer-learning pipelines</li>
+      <li>📱 <strong>MobileNet</strong>: powers on-device features like real-time face detection filters and offline object recognition in phone apps</li>
+    </ul>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick</div>
+    <p><strong>"Very Grand, Really Skips, Mobile Saves"</strong> — VGG is grand (huge/deep but simple), ResNet really skips (residual connections), MobileNet saves (compute/battery on mobile).</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 VGG19 → simple, deep, huge parameter count due to Dense layers</li>
+      <li>📌 ResNet50 → residual/skip connections solve vanishing gradients in very deep nets</li>
+      <li>📌 MobileNet → depthwise separable convolutions for mobile efficiency</li>
+      <li>📌 All three are commonly used as pretrained backbones for transfer learning (see Section 13)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>VGG19</strong>: simple deep stack of 3×3 convs, heavy due to Dense layers. <strong>ResNet50</strong>: uses residual/skip connections to train very deep (50-layer) networks without vanishing gradients. <strong>MobileNet</strong>: uses depthwise separable convolutions to run efficiently on mobile/embedded hardware.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 10 ===================== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 18–20</span>
+    <h2>10. Depthwise Separable Convolution</h2>
+  </div>
+  <p class="section-subtitle">Splitting one expensive convolution into two cheap ones — the trick behind MobileNet</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 18 — Depthwise Separable Convolution Idea:</strong> Instead of applying one convolution across all channels, we split the operation into two smaller steps: (1) Depthwise Convolution, (2) Pointwise Convolution. This dramatically reduces computations.</p>
+    <br/>
+    <p><strong>Slide 19 — Depthwise Convolution:</strong> Unlike standard convolution that looks at all channels at once, Depthwise treats every channel (Red, Green, Blue) as a separate entity. Filter Size: K×K×1 (depth is always 1). Filter Count: must equal the number of input channels. Extremely computationally efficient — the foundation of mobile-friendly models like MobileNet.</p>
+    <br/>
+    <p><strong>Slide 20 — Pointwise Convolution:</strong> Uses 1×1 filters. Combines information from all channels. Filter size = 1×1×D_in. Number of filters = desired output channels. This step mixes the features extracted from the depthwise step.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl-blue">standard convolution</span> applies a K×K×C_in filter that looks at <strong>all input channels simultaneously</strong> to produce each output channel — this is powerful but computationally expensive, especially when C_in and C_out are large (as in deep CNNs). <span class="hl-green">Depthwise Separable Convolution</span> factorizes this single expensive step into two cheaper, sequential steps:</p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Step 1 — Depthwise Convolution</h4>
+        <ul>
+          <li>Filter size: K×K×1 (depth always 1)</li>
+          <li>One filter per input channel — treats R, G, B (or any channel) completely independently</li>
+          <li>Filter count = number of input channels</li>
+          <li>Captures <strong>spatial</strong> patterns per channel, but does NOT mix channels together</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Step 2 — Pointwise Convolution</h4>
+        <ul>
+          <li>Filter size: 1×1×D_in (a "point", no spatial extent)</li>
+          <li>Filter count = desired number of output channels</li>
+          <li>Combines/mixes information <strong>across all channels</strong> produced by the depthwise step</li>
+          <li>Captures <strong>cross-channel</strong> relationships</li>
+        </ul>
+      </div>
+    </div>
+    <p>Together: depthwise handles the <em>spatial</em> filtering, pointwise handles the <em>channel-mixing</em> — splitting what a standard convolution does in one expensive combined step into two much lighter sequential steps.</p>
+    <pre><code>tf.keras.layers.<span class="code-fn">SeparableConv2D</span>(
+    filters=<span class="code-nb">64</span>, kernel_size=<span class="code-nb">3</span>,
+    padding=<span class="code-str">'same'</span>, input_shape=(<span class="code-nb">224</span>, <span class="code-nb">224</span>, <span class="code-nb">32</span>))</code></pre>
+    <p style="font-size:13px">Keras's <code>SeparableConv2D</code> layer implements both steps (depthwise, then pointwise) internally as a single layer — you don't need to build them by hand.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>الـ <strong>standard convolution</strong> العادي يطبّق filter بحجم K×K×C_in ينظر إلى <strong>جميع قنوات الإدخال في نفس الوقت</strong> لإنتاج كل قناة إخراج — وهذا قوي لكنه مكلف حسابيًا جدًا، خاصة مع أعداد كبيرة من القنوات كما في CNNs العميقة. الـ <strong>Depthwise Separable Convolution</strong> يقسّم هذه الخطوة المكلفة إلى خطوتين أرخص متتاليتين:</p>
+    <br/>
+    <p><strong>الخطوة ١ — Depthwise Convolution:</strong> حجم الفلتر K×K×1 (العمق دائمًا 1). فلتر واحد لكل قناة إدخال — يعامل كل قناة (أحمر، أخضر، أزرق مثلًا) بشكل مستقل تمامًا. عدد الفلاتر = عدد قنوات الإدخال. يلتقط الأنماط المكانية (spatial) لكل قناة على حدة، ولا يدمج القنوات مع بعضها.</p>
+    <br/>
+    <p><strong>الخطوة ٢ — Pointwise Convolution:</strong> يستخدم فلاتر 1×1 (بدون امتداد مكاني). حجم الفلتر = 1×1×D_in. عدد الفلاتر = عدد قنوات الإخراج المطلوبة. هذه الخطوة تدمج المعلومات القادمة من جميع القنوات بعد خطوة depthwise.</p>
+    <br/>
+    <p><strong>الخلاصة:</strong> depthwise يتولى الفلترة المكانية (spatial)، وpointwise يتولى دمج القنوات (channel mixing) — بدلًا من عملية واحدة مكلفة، نحصل على خطوتين أخف بكثير حسابيًا. طبقة <code>SeparableConv2D</code> في Keras تنفذ الخطوتين تلقائيًا كطبقة واحدة.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy</div>
+    <p>Think of painting a multi-layered mural. A standard convolution is like one artist mixing all colors together and painting the whole scene in one messy, expensive pass. Depthwise separable convolution is like having each color painted separately first by a specialist (depthwise — spatial patterns per channel), then a second specialist blends the separate color layers together at the end (pointwise — 1×1 mixing across channels). Splitting the job this way is much faster overall.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Thinking depthwise convolution mixes channels — it explicitly does NOT; that's the pointwise step's job</li>
+      <li>❌ Forgetting the depthwise filter's "depth" dimension is always exactly 1</li>
+      <li>❌ Assuming <code>SeparableConv2D</code> and <code>Conv2D</code> always produce identical results — they approximate similar representational power at much lower cost, but are not mathematically identical</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Depthwise: K×K×1 filters, one per input channel, spatial-only, no channel mixing</li>
+      <li>📌 Pointwise: 1×1×D_in filters, count = desired output channels, does the channel mixing</li>
+      <li>📌 Together they replace one standard K×K×C_in×C_out convolution — memorize both filter shapes precisely, a favorite exam question</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Depthwise Separable Convolution = <strong>Depthwise</strong> (K×K×1 filter per channel, spatial filtering only) followed by <strong>Pointwise</strong> (1×1×D_in filters, mixes channels into the desired output depth). This factorization is dramatically cheaper than a standard convolution and is the core idea behind MobileNet.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 11 ===================== -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 21–28</span>
+    <h2>11. Computational Savings — Worked Numeric Example</h2>
+  </div>
+  <p class="section-subtitle">Quantifying exactly how much cheaper depthwise separable convolution is versus standard convolution</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slides 21–27 — "Computations" / "Example" (×5):</strong> These slides in the source deck consisted mainly of tables/figures with minimal extracted text, walking through a numeric worked example comparing the cost of standard convolution versus depthwise separable convolution.</p>
+    <p style="margin-top:8px"><strong>Slide 28 — Cont…:</strong> <code>tf.keras.layers.SeparableConv2D(filters=64, kernel_size=3, padding='same', input_shape=(224, 224, 32))</code></p>
+    <div class="card-warn" style="margin-top:10px">
+      <p><em>Note: because the original slides were largely tables/images, the numeric example below has been reconstructed using standard, widely-known depthwise-separable-convolution cost formulas, matching the exact layer configuration given on Slide 28 (input 224×224×32, 3×3 kernel, 64 output filters), so the numbers are fully consistent with the lecture's own code example.</em></p>
+    </div>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Let's compute the number of multiply-accumulate (MAC) operations for a convolutional layer with the exact configuration from Slide 28: input <strong>(224, 224, 32)</strong>, kernel size <strong>K = 3</strong>, output channels <strong>C_out = 64</strong>, "same" padding (so output spatial size stays 224×224).</p>
+    <div class="formula">Standard Conv Cost ≈ K² · C_in · C_out · H_out · W_out</div>
+    <p style="font-size:13px">= 3² × 32 × 64 × 224 × 224 = 9 × 32 × 64 × 50,176 = <strong>≈ 925,022,208 MACs (~925 million)</strong></p>
+    <div class="formula">Depthwise-Separable Cost ≈ (K² · C_in · H_out · W_out) + (C_in · C_out · H_out · W_out)</div>
+    <p style="font-size:13px">Depthwise part = 3² × 32 × 224 × 224 = 9 × 32 × 50,176 = 14,450,688<br/>
+    Pointwise part = 32 × 64 × 224 × 224 = 2,048 × 50,176 = 102,760,448<br/>
+    Total = 14,450,688 + 102,760,448 = <strong>≈ 117,211,136 MACs (~117.2 million)</strong></p>
+    <div class="formula">Reduction Factor = Standard / Separable ≈ 925.0M / 117.2M ≈ 7.9× fewer computations</div>
+    <p>This matches the well-known general rule of thumb for depthwise separable convolutions:</p>
+    <div class="formula">Reduction Factor⁻¹ ≈ 1/C_out + 1/K² = 1/64 + 1/9 ≈ 0.0156 + 0.1111 ≈ 0.1267 → ≈ 7.9× fewer computations</div>
+    <p>In other words, for this exact layer configuration, using <code>SeparableConv2D</code> instead of a standard <code>Conv2D</code> gives roughly the <strong>same output shape</strong> while requiring <strong>about 1/8th of the computation</strong> — this is exactly why MobileNet-style networks can run in real time on phones.</p>
+    <pre><code><span class="code-cm"># The exact layer from Slide 28, now fully quantified above</span>
+tf.keras.layers.<span class="code-fn">SeparableConv2D</span>(
+    filters=<span class="code-nb">64</span>, kernel_size=<span class="code-nb">3</span>,
+    padding=<span class="code-str">'same'</span>, input_shape=(<span class="code-nb">224</span>, <span class="code-nb">224</span>, <span class="code-nb">32</span>))</code></pre>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>لنحسب عدد عمليات الضرب والجمع (MAC operations) لطبقة convolution بنفس إعدادات السلايد 28 تمامًا: إدخال بحجم <strong>(224, 224, 32)</strong>، حجم الفلتر <strong>K = 3</strong>، عدد قنوات الإخراج <strong>C_out = 64</strong>، مع "same" padding (فيبقى حجم الإخراج المكاني 224×224).</p>
+    <br/>
+    <p><strong>تكلفة Standard Convolution</strong> ≈ K² × C_in × C_out × H_out × W_out = 9 × 32 × 64 × 224 × 224 ≈ <strong>925 مليون عملية</strong>.</p>
+    <br/>
+    <p><strong>تكلفة Depthwise Separable Convolution</strong> = (تكلفة depthwise) + (تكلفة pointwise):</p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>Depthwise = 9 × 32 × 224 × 224 ≈ 14.45 مليون عملية</li>
+      <li>Pointwise = 32 × 64 × 224 × 224 ≈ 102.76 مليون عملية</li>
+      <li>الإجمالي ≈ <strong>117.2 مليون عملية</strong></li>
+    </ul>
+    <br/>
+    <p><strong>نسبة التوفير:</strong> 925 مليون ÷ 117.2 مليون ≈ <strong>7.9 مرة أقل حسابًا</strong>. وهذا يطابق القاعدة العامة المعروفة: نسبة التوفير التقريبية = 1/C_out + 1/K² = 1/64 + 1/9 ≈ 0.127 → أي حوالي 7.9 مرة أقل.</p>
+    <br/>
+    <p>هذا يعني أن استخدام <code>SeparableConv2D</code> بدلًا من <code>Conv2D</code> العادي في هذا المثال يعطي تقريبًا نفس شكل الإخراج، لكن بحوالي <strong>ثُمن الحسابات فقط</strong> — وهذا هو السبب الدقيق الذي يجعل شبكات مثل MobileNet تعمل في الوقت الحقيقي على الهواتف المحمولة.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Illustrative Worked Example — Summary Table</div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Configuration</th><th>Formula</th><th>Result</th></tr>
+        <tr><td>Standard Conv2D</td><td>K²·C_in·C_out·H·W</td><td>≈ 925.0M MACs</td></tr>
+        <tr><td>Depthwise step</td><td>K²·C_in·H·W</td><td>≈ 14.5M MACs</td></tr>
+        <tr><td>Pointwise step</td><td>C_in·C_out·H·W</td><td>≈ 102.8M MACs</td></tr>
+        <tr><td>Total Separable</td><td>Depthwise + Pointwise</td><td>≈ 117.2M MACs</td></tr>
+        <tr><td>Savings</td><td>Standard ÷ Separable</td><td><strong>≈ 7.9× fewer ops</strong></td></tr>
+      </table>
+    </div>
+    <p style="font-size:13px;margin-top:10px">Input (224,224,32), kernel K=3, C_out=64 — the exact configuration referenced in Slide 28's <code>SeparableConv2D</code> call.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize both cost formulas: standard = K²·C_in·C_out·H·W; separable = K²·C_in·H·W + C_in·C_out·H·W</li>
+      <li>📌 Savings ratio approximation: 1/C_out + 1/K² — larger C_out or larger K generally means bigger savings</li>
+      <li>📌 Be ready to plug in numbers for a given (H,W,C_in), K, and C_out on an exam — this is a very common calculation question</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>For input (224,224,32), K=3, C_out=64: standard convolution costs ≈925M MACs while depthwise separable convolution costs ≈117.2M MACs — roughly a <strong>7.9× reduction</strong>, matching the general rule 1/C_out + 1/K².</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 12 ===================== -->
+<div class="section" id="s12">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 29</span>
+    <h2>12. InceptionV3</h2>
+  </div>
+  <p class="section-subtitle">Looking at the same input with multiple filter sizes at once, then merging the results</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 29 — InceptionV3</strong> (architecture name/diagram slide, introduced as one of the classic pretrained CNN architectures alongside VGG19, ResNet50, and MobileNet).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">InceptionV3</span> (from Google) tackles a different question than ResNet or MobileNet: <em>"what's the best filter size to use at each layer?"</em> Instead of picking one kernel size and stacking it repeatedly, an <strong>Inception module</strong> runs several different operations <strong>in parallel on the same input</strong> — typically 1×1, 3×3, and 5×5 convolutions, plus a pooling branch — then <strong>concatenates</strong> all of their outputs together along the channel axis.</p>
+    <ul class="e-list">
+      <li>🔍 <strong>1×1 convolutions</strong> — used both as a standalone branch and as a "bottleneck" before the 3×3/5×5 branches, reducing the number of channels first so the more expensive larger convolutions run on fewer channels (this is a major computational saving trick)</li>
+      <li>🧩 <strong>Multi-scale feature extraction</strong> — because different objects/textures are best captured at different receptive field sizes, running multiple kernel sizes in parallel lets the network pick up both fine detail (small kernels) and broader context (larger kernels) at the same layer</li>
+      <li>🔗 <strong>Concatenation</strong> — exactly the same Concatenate operation covered in Section 8, but here used to merge parallel convolutional branches instead of merging a wide/deep pair of inputs</li>
+    </ul>
+    <p>InceptionV3 stacks many of these Inception modules to reach high accuracy while staying more parameter-efficient than a naive VGG-style network of similar depth.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>InceptionV3</strong> (من Google) يعالج سؤالًا مختلفًا عن ResNet أو MobileNet: "ما هو حجم الفلتر الأفضل في كل layer؟" بدلًا من اختيار حجم واحد للفلتر وتكراره، تقوم <strong>Inception module</strong> بتشغيل عدة عمليات <strong>بالتوازي على نفس المدخل</strong> — عادةً فلاتر 1×1، 3×3، و5×5، بالإضافة إلى فرع pooling — ثم تدمج (concatenate) جميع النتائج معًا على محور القنوات.</p>
+    <br/>
+    <p><strong>فلاتر 1×1</strong>: تُستخدم كفرع مستقل وأيضًا كـ "bottleneck" قبل فروع 3×3 و5×5، حيث تُقلل عدد القنوات أولًا حتى تعمل الفلاتر الأكبر والأكثر تكلفة على عدد أقل من القنوات — وهذه حيلة توفير حسابي مهمة جدًا.</p>
+    <br/>
+    <p><strong>استخراج ميزات متعددة المقاييس (Multi-scale)</strong>: بما أن الأجسام والأنماط المختلفة يتم رصدها بشكل أفضل بأحجام مختلفة من مجال الرؤية (receptive field)، فتشغيل عدة أحجام فلاتر بالتوازي يسمح للشبكة برصد التفاصيل الدقيقة (فلاتر صغيرة) والسياق الأوسع (فلاتر أكبر) في الـ layer نفسها.</p>
+    <br/>
+    <p><strong>الدمج (Concatenation)</strong>: هي نفس عملية Concatenate التي تعلمناها في القسم الثامن، لكنها هنا تُستخدم لدمج فروع convolution متوازية بدلًا من دمج مدخلين (wide/deep).</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy</div>
+    <p>Imagine examining a photo with three experts at once: one using a magnifying glass (small kernel, fine detail), one standing at a normal distance (medium kernel), and one stepping back to see the whole scene (larger kernel). Instead of picking only one expert's opinion, Inception listens to all three simultaneously and combines their notes into one richer report.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Inception modules run multiple filter sizes in parallel, then concatenate outputs — different from ResNet's sequential skip connections</li>
+      <li>📌 1×1 convolutions as bottlenecks reduce computation before expensive larger convolutions</li>
+      <li>📌 Know that Concatenate is the shared mechanism linking Inception's parallel branches to the Wide & Deep model from Section 8</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>InceptionV3 runs 1×1, 3×3, 5×5 convolutions and pooling in parallel on the same input inside each Inception module, using 1×1 bottlenecks to cut cost, then concatenates all branch outputs — capturing multi-scale features efficiently.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 13 ===================== -->
+<div class="section" id="s13">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 30–31</span>
+    <h2>13. Calling Transfer Learning in Keras & Freezing Layers</h2>
+  </div>
+  <p class="section-subtitle">Reusing a pretrained network's learned features instead of training from scratch</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 30 — How Call Transfer Learning?</strong></p>
+    <pre><code>import tensorflow as tf
+from tensorflow import keras
+model = keras.applications.vgg16.VGG16(weights='imagenet',
+                                        include_top=False,
+                                        input_shape=(224,224,3))</code></pre>
+    <p style="font-size:13px">weights: one of None (random initialization) or 'imagenet' (pre-training on ImageNet). include_top: whether to include the top layers of the network or not (False, True).</p>
+    <p style="margin-top:10px"><strong>Slide 31 — Feature Extraction Mechanism:</strong></p>
+    <pre><code>import tensorflow as tf
+from tensorflow import keras
+model = keras.applications.vgg16.VGG16(weights='imagenet', include_top=False, input_shape=(224,224,3))
+for layer in model.layers[:-1]:
+    layer.trainable = False
+model.trainable = False
+model.layers[0].trainable = False
+model.get_layer('conv2d_1').trainable = False</code></pre>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Transfer Learning</span> means taking a network already trained on a huge dataset (like <strong>ImageNet</strong>, 1.2 million images, 1000 classes) and reusing its learned filters for a new, usually much smaller, task — instead of training a CNN completely from scratch, which needs vast amounts of data and compute.</p>
+    <div class="def-box">
+      <div class="def-term">Loading a Pretrained Backbone</div>
+      <pre><code>model = keras.applications.vgg16.<span class="code-fn">VGG16</span>(
+    weights=<span class="code-str">'imagenet'</span>,       <span class="code-cm"># load ImageNet-pretrained weights</span>
+    include_top=<span class="code-kw">False</span>,        <span class="code-cm"># drop the original 1000-class classifier head</span>
+    input_shape=(<span class="code-nb">224</span>,<span class="code-nb">224</span>,<span class="code-nb">3</span>))</code></pre>
+      <ul style="padding-left:20px;font-size:13px;margin-top:8px">
+        <li><code>weights</code>: <code>'imagenet'</code> loads pretrained weights; <code>None</code> gives fresh random initialization (no transfer learning benefit)</li>
+        <li><code>include_top</code>: <code>False</code> removes the original Dense classification head (which was trained for exactly ImageNet's 1000 classes) — you attach your own new head sized for your own number of classes; <code>True</code> keeps the original head as-is</li>
+        <li><code>input_shape</code>: must match the expected input size of the chosen architecture (VGG16 typically expects 224×224×3)</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Freezing Layers (Feature Extraction Mode)</div>
+      <p style="margin-top:6px;font-size:13px">Setting <code>layer.trainable = False</code> stops that layer's weights from being updated during backpropagation — it becomes a fixed <strong>feature extractor</strong>, keeping the powerful, general-purpose filters it already learned from ImageNet, while only the newly added layers on top are trained (usually much faster, and requires far less data).</p>
+      <pre><code><span class="code-kw">for</span> layer <span class="code-kw">in</span> model.layers[:-<span class="code-nb">1</span>]:
+    layer.trainable = <span class="code-kw">False</span>          <span class="code-cm"># freeze all but the last layer</span>
+
+model.trainable = <span class="code-kw">False</span>                <span class="code-cm"># freeze the entire model at once</span>
+model.layers[<span class="code-nb">0</span>].trainable = <span class="code-kw">False</span>       <span class="code-cm"># freeze a specific layer by index</span>
+model.get_layer(<span class="code-str">'conv2d_1'</span>).trainable = <span class="code-kw">False</span>  <span class="code-cm"># freeze a specific layer by name</span></code></pre>
+      <p style="font-size:13px">These four lines demonstrate the different ways Keras lets you freeze layers: as a loop over a slice of layers, on the whole model at once, by numeric index, or by layer name — useful because you often want fine-grained control over exactly which layers stay frozen versus which get <strong>fine-tuned</strong> (unfrozen and retrained on your new data).</p>
+    </div>
+    <p style="margin-top:10px"><strong>Two common transfer learning strategies:</strong></p>
+    <ol class="steps">
+      <li><strong>Feature extraction</strong>: freeze the entire pretrained backbone, only train a new classifier head on top — fast, needs little data</li>
+      <li><strong>Fine-tuning</strong>: freeze most early layers (generic features like edges/textures) but unfreeze the later layers (task-specific features) and train them with a small learning rate — slower, but can reach higher accuracy on the new task</li>
+    </ol>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>Transfer Learning</strong> يعني أخذ شبكة مدرَّبة مسبقًا على dataset ضخم (مثل <strong>ImageNet</strong> — 1.2 مليون صورة و1000 فئة) وإعادة استخدام الفلاتر التي تعلمتها لمهمة جديدة، عادةً أصغر بكثير — بدلًا من تدريب CNN من الصفر، الذي يحتاج بيانات وموارد حسابية هائلة.</p>
+    <br/>
+    <p><strong>تحميل شبكة مدربة مسبقًا:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><code>weights='imagenet'</code>: يحمّل الأوزان المدرَّبة مسبقًا على ImageNet. لو كانت <code>None</code> فستكون البداية عشوائية بدون أي فائدة من Transfer Learning.</li>
+      <li><code>include_top=False</code>: يحذف رأس التصنيف الأصلي (Dense layers المصممة لـ 1000 فئة بالضبط في ImageNet) لتضيف رأسك الخاص المناسب لعدد الفئات في مشروعك.</li>
+      <li><code>input_shape</code>: يجب أن يطابق الحجم المتوقع للمعمارية المختارة (VGG16 عادةً تتوقع 224×224×3).</li>
+    </ul>
+    <br/>
+    <p><strong>تجميد الطبقات (Freezing) — وضع استخراج الميزات:</strong> عند وضع <code>layer.trainable = False</code>، تتوقف أوزان هذه الطبقة عن التحديث خلال backpropagation — فتصبح "مستخرج ميزات" ثابت (feature extractor)، محتفظًا بالفلاتر القوية العامة التي تعلمتها من ImageNet، بينما يتم تدريب الطبقات الجديدة المضافة فوقها فقط (أسرع بكثير، ويحتاج بيانات أقل).</p>
+    <br/>
+    <p>الكود يوضح طرقًا مختلفة لتجميد الطبقات: بحلقة على مجموعة طبقات، على الـ model كله دفعة واحدة، بترتيب رقمي (index)، أو بالاسم مباشرة.</p>
+    <br/>
+    <p><strong>استراتيجيتان شائعتان:</strong> (1) <strong>Feature Extraction</strong> — تجميد كل الشبكة المدربة مسبقًا وتدريب رأس تصنيف جديد فقط. (2) <strong>Fine-tuning</strong> — تجميد الطبقات الأولى (ميزات عامة مثل الحواف) وفتح الطبقات الأخيرة (ميزات خاصة بالمهمة) لتدريبها بـ learning rate صغير.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Real World</div>
+    <p>A hospital wants to classify X-ray images into "pneumonia" vs "normal" but only has 2,000 labeled images — far too few to train a CNN from scratch. Loading VGG16 with <code>weights='imagenet'</code>, freezing all its convolutional layers, and only training a small new Dense classifier head on top lets them reach strong accuracy with just those 2,000 images, because the frozen layers already know how to detect general shapes, edges, and textures from ImageNet.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Forgetting <code>include_top=False</code> when you plan to add your own classifier head — you'll end up with a model still shaped for 1000 ImageNet classes</li>
+      <li>❌ Setting a high learning rate when fine-tuning unfrozen layers — this can destroy the useful pretrained weights ("catastrophic forgetting")</li>
+      <li>❌ Forgetting to set <code>model.trainable = False</code> (or freeze layers) before compiling — layers frozen after compilation may not behave as expected unless you recompile</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 <code>weights='imagenet'</code> vs <code>None</code>, and <code>include_top=True</code> vs <code>False</code> — know exactly what each toggles</li>
+      <li>📌 <code>layer.trainable = False</code> is the core mechanism for freezing — know all four ways it was demonstrated (loop, whole model, index, name)</li>
+      <li>📌 Feature extraction (fully frozen backbone) vs fine-tuning (partially unfrozen, small learning rate) — a classic interview comparison question</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Load a pretrained backbone with <code>keras.applications.vgg16.VGG16(weights='imagenet', include_top=False, input_shape=(224,224,3))</code>, then freeze layers with <code>layer.trainable = False</code> (by loop, whole model, index, or name) to use it as a fixed feature extractor, or selectively unfreeze later layers for fine-tuning.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice and Short Answer Questions Covering Lecture 11</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Why is <code>he_normal</code> specifically recommended for ReLU-activated layers?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It initializes all weights to exactly zero</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It doubles the variance to compensate for ReLU zeroing out roughly half the activations</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It only works with sigmoid activations</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It removes the need for backpropagation</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — he_normal uses variance = 2/n_in, the factor of 2 compensating for ReLU's zeroing effect.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. Which regularization technique tends to push weights to exactly zero, effectively performing feature selection?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'A')">A) L1 Regularization</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) L2 Regularization</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Batch Normalization</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) EarlyStopping</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: A</strong> — L1's penalty (λ·Σ|w|) tends to drive many weights all the way to zero, producing sparse models.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What does BatchNormalization do differently at inference time compared to training time?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Nothing — it behaves identically in both modes</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It uses a running average of mean/variance instead of the current mini-batch's statistics</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It disables γ and β</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It removes the layer entirely</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — at inference, BatchNorm uses accumulated running statistics rather than a single batch's mean/variance, ensuring stable single-sample predictions.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Which callback automatically halts training when a monitored metric stops improving?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) CSVLogger</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) ModelCheckpoint</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) EarlyStopping</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) ReduceLROnPlateau</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — EarlyStopping stops training after `patience` epochs of no improvement on the monitored metric.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. What is the correct filter shape used in the Depthwise step of Depthwise Separable Convolution?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 1×1×D_in</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) K×K×1</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) K×K×C_in×C_out</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 1×1×1</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Depthwise filters are K×K×1, one per input channel, with depth always equal to 1.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. In the Wide & Deep model from the slides, what does the Concatenate layer merge?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Two separate models trained independently</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The raw wide input tensor and the deep path's hidden representation, along the last axis</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Only the auxiliary output</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The loss values from two branches</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — <code>concat = tf.keras.layers.concatenate([input_A, hidden2], axis=-1)</code> merges the wide input with the deep path's output.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. What is the main architectural innovation that lets ResNet50 train successfully at 50 layers deep?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Depthwise separable convolutions</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Residual (skip) connections</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Lambda layers</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) L1 regularization</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Skip connections (output = F(x) + x) let gradients flow directly backward, solving the vanishing gradient problem in very deep networks.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. When calling <code>keras.applications.vgg16.VGG16(weights='imagenet', include_top=False, ...)</code>, what does <code>include_top=False</code> do?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Removes all convolutional layers</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Removes the original 1000-class Dense classifier head so you can add your own</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Loads random weights instead of ImageNet weights</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Freezes all layers automatically</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — include_top=False drops the pretrained classification head, keeping only the convolutional feature-extraction backbone.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Explain the difference between EarlyStopping and ReduceLROnPlateau. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Both watch a monitored metric (e.g. val_loss) for lack of improvement over a `patience` number of epochs, but they react differently. <strong>EarlyStopping</strong> stops training entirely once the metric plateaus, optionally restoring the best weights seen. <strong>ReduceLROnPlateau</strong> instead reduces the learning rate by a `factor` on a plateau, giving the optimizer a chance to keep improving with smaller, finer steps before giving up. They are often used together, with ReduceLROnPlateau attempting to rescue a stalled run first and EarlyStopping acting as the final stop.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Walk through what happens, step by step, in the Wide & Deep model code from the slides. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Two separate Input layers are created (input_A: 5 features "wide", input_B: 6 features "deep"). input_B passes through two Dense(30, relu) layers (hidden1, hidden2) forming the deep path. A Concatenate layer merges the raw input_A with hidden2 along the last axis. An auxiliary output is taken directly from hidden2 (before concatenation) as a secondary prediction target. The main output is computed from the concatenated wide+deep representation. Finally, a Model is built with two inputs and two outputs using the Functional API, since the Sequential API cannot express multiple inputs/outputs.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Derive the computational savings of depthwise separable convolution for an input of (224,224,32), K=3, C_out=64. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Standard conv cost = K²·C_in·C_out·H·W = 9×32×64×224×224 ≈ 925.0M MACs. Depthwise separable cost = (K²·C_in·H·W) + (C_in·C_out·H·W) = (9×32×224×224) + (32×64×224×224) ≈ 14.45M + 102.76M ≈ 117.2M MACs. Savings ratio ≈ 925.0M / 117.2M ≈ 7.9×, consistent with the rule of thumb 1/C_out + 1/K² = 1/64 + 1/9 ≈ 0.127 → ≈7.9× fewer computations.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: What is the difference between "feature extraction" and "fine-tuning" in transfer learning, and how is each implemented via `layer.trainable`? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> <strong>Feature extraction</strong> freezes the entire pretrained backbone (`model.trainable = False` or looping over all layers setting `trainable = False`) and only trains a newly added classifier head — fast, needs little data, keeps all pretrained weights unchanged. <strong>Fine-tuning</strong> keeps the earliest layers frozen (they hold generic features like edges/textures) but sets `layer.trainable = True` for later layers, then retrains those with a small learning rate to adapt task-specific features to the new dataset — slower and riskier (can overwrite useful weights if the learning rate is too high) but often yields higher final accuracy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming coverage of all 31 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Initialization Weights And Kernel (he_normal) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — ℓ1 and ℓ2 Regularization — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Batch Normalization (normalizes activations, avoids overfitting) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — Batch Normalization (continued) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Batch Normalization (continued) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Callbacks: EarlyStopping — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — Callbacks: ReduceLROnPlateau — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — Callbacks: ModelCheckpoint — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Callbacks: CSVLogger — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Callbacks: How to add in Training Model — ✅ Section 6 (full combined model.fit code)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Lambda Function / Lambda layers — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Concatenate Layer (introduction) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Concatenate Layer (axis=0 / axis=1 examples) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Concatenate Layer — full Wide & Deep model code — ✅ Section 8 fully annotated</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — VGG19 — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 16</strong> — ResNet50 — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 17</strong> — MobileNet — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 18</strong> — Depthwise Separable Convolution Idea — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 19</strong> — Depthwise Convolution (K×K×1 filters) — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 20</strong> — Pointwise Convolution (1×1×D_in filters) — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 21</strong> — Computations (transition slide) — ✅ Section 11 introduction</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 22</strong> — Computations (numeric setup) — ✅ Section 11 worked example</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 23</strong> — Example (standard conv cost) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 24</strong> — Example (depthwise cost) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 25</strong> — Example (pointwise cost) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 26</strong> — Example (total separable cost) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 27</strong> — Example (savings ratio) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 28</strong> — Cont… SeparableConv2D(filters=64, kernel_size=3, padding='same', input_shape=(224,224,32)) — ✅ Section 11 (exact configuration used in worked example)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 29</strong> — InceptionV3 — ✅ Section 12</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 30</strong> — How Call Transfer Learning? (VGG16, weights/include_top) — ✅ Section 13</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 31</strong> — Feature Extraction Mechanism (layer.trainable = False) — ✅ Section 13</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 31/31 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, formulas, code snippets, and the reconstructed numeric worked example have been explained in both English and Arabic with additional examples, memory tricks, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Training Stability:</strong> <span class="tag tag-blue">he_normal Init</span> → <span class="tag tag-green">L1/L2 Regularization</span> → <span class="tag tag-purple">Batch Normalization</span></p>
+      <p><strong>Callbacks:</strong> <span class="tag tag-orange">EarlyStopping</span> + <span class="tag tag-orange">ReduceLROnPlateau</span> + <span class="tag tag-orange">ModelCheckpoint</span> + <span class="tag tag-orange">CSVLogger</span> → passed as a list to <code>model.fit(callbacks=[...])</code></p>
+      <p><strong>Functional API:</strong> <span class="tag tag-blue">Lambda Layers</span> (stateless custom math) + <span class="tag tag-green">Concatenate</span> (merge tensors) → <span class="tag tag-purple">Wide & Deep Model</span> (multi-input, multi-output)</p>
+      <p><strong>Classic Architectures:</strong> <span class="tag tag-blue">VGG19 (simple, deep)</span> → <span class="tag tag-green">ResNet50 (skip connections)</span> → <span class="tag tag-purple">MobileNet (depthwise separable)</span> → <span class="tag tag-orange">InceptionV3 (parallel multi-scale + concat)</span></p>
+      <p><strong>Efficiency:</strong> <span class="tag tag-blue">Depthwise (K×K×1)</span> + <span class="tag tag-green">Pointwise (1×1×D_in)</span> ≈ <span class="tag tag-purple">7.9× fewer computations</span> than standard Conv2D</p>
+      <p><strong>Transfer Learning:</strong> <span class="tag tag-orange">keras.applications.vgg16.VGG16(weights='imagenet', include_top=False)</span> → <span class="tag tag-blue">layer.trainable=False</span> → Feature Extraction vs Fine-Tuning</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

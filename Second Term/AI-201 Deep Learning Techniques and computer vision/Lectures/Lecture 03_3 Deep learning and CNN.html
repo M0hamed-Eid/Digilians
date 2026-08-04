@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 03 — Deep Learning & CNN: Complete Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 DL & CNN Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Study Guide Introduction</a>
+    <div class="nav-section">Part I — Optimization Foundations</div>
+    <a href="#s1" onclick="setActive(this)">1. Loss Functions & Convex vs Non-Convex</a>
+    <a href="#s2" onclick="setActive(this)">2. Backpropagation, Saddle Points & Learning Rate</a>
+    <div class="nav-section">Part II — Training Techniques</div>
+    <a href="#s3" onclick="setActive(this)">3. Batch Norm, Dropout & Augmentation</a>
+    <a href="#s4" onclick="setActive(this)">4. Batches, Epochs & Iterations</a>
+    <a href="#s5" onclick="setActive(this)">5. Optimizers (Momentum, Nesterov, RMSProp, Adam)</a>
+    <div class="nav-section">Part III — Architectures</div>
+    <a href="#s6" onclick="setActive(this)">6. Convolutional Neural Networks (CNN)</a>
+    <a href="#s7" onclick="setActive(this)">7. Transfer Learning</a>
+    <a href="#s8" onclick="setActive(this)">8. Recurrent Neural Networks (RNN, LSTM, GRU)</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 03 — DEEP LEARNING & CNN: COMPLETE STUDY GUIDE</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 03</div>
+  <h1>Deep Learning & CNN — Complete Study Guide</h1>
+  <p>From Loss Landscapes and Optimizers to CNNs, Transfer Learning, and Recurrent Networks</p>
+  <p class="author">Mohammed Eid's Study Notes &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇪🇬</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">8</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">8</span><span class="lbl">Sections</span></div>
+    <div class="stat-chip"><span class="num">5</span><span class="lbl">Optimizers Covered</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Loss Functions</span>
+    <span class="tag tag-green">Backpropagation</span>
+    <span class="tag tag-purple">Batch Normalization</span>
+    <span class="tag tag-orange">Dropout & Augmentation</span>
+    <span class="tag tag-blue">Optimizers (Adam)</span>
+    <span class="tag tag-green">CNN</span>
+    <span class="tag tag-purple">Transfer Learning</span>
+    <span class="tag tag-orange">RNN / LSTM / GRU</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 1</span>
+    <h2>1. Loss Functions & Convex vs Non-Convex</h2>
+  </div>
+  <p class="section-subtitle">The Shape of the Error Surface a Neural Network Must Navigate</p>
+
+  <!-- English Explanation -->
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>When a neural network trains, it tries to minimize a <span class="hl-blue">loss function</span> — a measure of how wrong its predictions are.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Convex Function</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Looks like a smooth bowl (oval/ellipse shape)</li>
+        <li>Has only <strong>one minimum point</strong> (the bottom of the bowl)</li>
+        <li>Easy to find the best answer</li>
+        <li>Example: <strong>Linear Regression's</strong> loss function</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Non-Convex Function</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Has multiple ups and downs, like a bumpy mountain range</li>
+        <li>Has multiple <strong>local minima</strong> (small valleys) and one <strong>global minimum</strong> (the deepest valley)</li>
+        <li><strong>Deep Neural Networks</strong> have non-convex loss functions because they have millions of weights — each weight is a dimension, making the landscape extremely complex</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Saddle Points</div>
+      <p style="margin-top:6px;font-size:14px">Points where the <strong>gradient = 0</strong>, but it's neither a minimum nor a maximum. The model gets stuck here and stops learning.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Contour Lines</div>
+      <p style="margin-top:6px;font-size:14px">A way to visualize a 3D loss surface in 2D, like a map with altitude lines. They show you where the valleys and hills are.</p>
+    </div>
+  </div>
+
+  <!-- Arabic Explanation -->
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>لما الـ neural network بتتدرب، بتحاول تقلل الـ loss function — يعني الخطأ في تنبؤاتها.</p>
+    <br/>
+    <p><strong>الـ Convex Function:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>شكلها زي الطاسة الملساء</li>
+      <li>فيها نقطة واحدة بس للأدنى (minimum)</li>
+      <li>سهل تلاقي أحسن حل</li>
+      <li>مثال: الـ Linear Regression</li>
+    </ul>
+    <br/>
+    <p><strong>الـ Non-Convex Function:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>فيها صعود ونزول كتير زي جبال وودیان</li>
+      <li>فيها local minima كتير (ودیان صغيرة) و global minimum واحد (أعمق واد)</li>
+      <li>الـ Deep Neural Networks بيبقى الـ loss function بتاعها non-convex لأن فيها ملايين الـ weights</li>
+    </ul>
+    <br/>
+    <p><strong>Saddle Points:</strong> نقط بيقف عندها الـ model ومش بيتعلم — لأن الـ gradient = 0</p>
+  </div>
+
+  <!-- Analogy -->
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه — Mountains & Valleys</div>
+    <p>تخيل إنك شايل عيون وبتدور على أقل نقطة في أرض وعرة. الـ Convex زي ملعب بيه حفرة واحدة في النص — هتوصلها بسهولة. الـ Non-Convex زي جبال فيها حفر كتير — ممكن تقع في حفرة صغيرة وتفتكر إنها الأعمق!</p>
+  </div>
+
+  <!-- Warning -->
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Pitfall — Local Minima & Saddle Points</div>
+    <ul class="e-list">
+      <li>⚠️ Landing in a local minimum can look like "convergence" but it isn't the true global minimum</li>
+      <li>⚠️ Saddle points are especially dangerous in high-dimensional spaces (millions of weights) — they're actually more common than local minima in deep nets</li>
+      <li>⚠️ A gradient of 0 does NOT always mean "done training" — always check whether it's a true minimum, a maximum, or a saddle point</li>
+    </ul>
+  </div>
+
+  <!-- Exam Notes -->
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Be ready to sketch a convex "bowl" vs a non-convex "mountain range with valleys"</li>
+      <li>📌 Know WHY deep nets are non-convex: millions of weights = millions of dimensions in the loss landscape</li>
+      <li>📌 Common interview Q: "What is a saddle point and why is it a problem?" → gradient = 0 but not a true minimum, so training can stall</li>
+      <li>📌 Know that contour lines are a 2D visualization trick for a 3D (or higher-D) loss surface</li>
+    </ul>
+  </div>
+
+  <!-- Quick Summary -->
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Training = minimizing a <strong>loss function</strong>. <strong>Convex</strong> = one smooth bowl, one minimum (e.g. Linear Regression). <strong>Non-convex</strong> = bumpy landscape with many local minima + one global minimum (typical of Deep NNs with millions of weights). <strong>Saddle points</strong> = gradient = 0 but not a true minimum/maximum — model can get "stuck." <strong>Contour lines</strong> visualize the 3D loss surface in 2D.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 2</span>
+    <h2>2. Backpropagation, Saddle Points & Learning Rate</h2>
+  </div>
+  <p class="section-subtitle">How the Network Learns From Its Errors, Step by Step</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <div class="def-box">
+      <div class="def-term">Backpropagation</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>The algorithm that calculates how much each weight contributed to the error</li>
+        <li>It updates all weights to reduce the loss</li>
+        <li>Works by going <strong>backward</strong> through the network, layer by layer</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">The Saddle Point Problem</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>At a saddle point, the gradient = 0 → model thinks it found a minimum, but it didn't</li>
+        <li>The model stops learning (no weight updates happen)</li>
+        <li>This is called being <strong>"stuck"</strong></li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Learning Rate (η)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Controls how big each step is when updating weights</li>
+        <li><strong>Too high</strong> → overshoots the minimum (jumps past it)</li>
+        <li><strong>Too low</strong> → takes forever to converge</li>
+        <li>Value is between 0 and 1</li>
+      </ul>
+    </div>
+    <br/>
+    <p><strong>Learning Rate Scheduling Techniques:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Technique</th><th>How It Works</th></tr>
+        <tr><td>Piecewise Constant</td><td>Start at 0.1, drop to 0.001 after 50 epochs</td></tr>
+        <tr><td>ReduceLROnPlateau</td><td>Reduce LR when validation error stops improving</td></tr>
+        <tr><td>Exponential Decay</td><td>LR decreases by a formula based on iteration number</td></tr>
+        <tr><td>Power Scheduling</td><td>Similar to exponential but drops more slowly</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>الـ Backpropagation:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>الخوارزمية اللي بتحسب مساهمة كل weight في الخطأ</li>
+      <li>بتمشي للخلف في الـ network وبتحدّث الـ weights عشان تقلل الـ loss</li>
+    </ul>
+    <br/>
+    <p><strong>مشكلة الـ Saddle Point:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>عند الـ saddle point، الـ gradient = 0 → الـ model بيفتكر وصل لـ minimum بس مفعلش</li>
+      <li>الـ model بيوقف عن التعلم</li>
+      <li>بنقول عليه "اتعلق"</li>
+    </ul>
+    <br/>
+    <p><strong>الـ Learning Rate:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>بيتحكم في حجم الخطوة لما بنحدّث الـ weights</li>
+      <li>كبير أوي → بيتخطى الـ minimum</li>
+      <li>صغير أوي → بياخد وقت طويل جداً</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه — النزول من الجبل في الظلام</div>
+    <p>الـ Learning Rate زي حجم خطواتك وأنت بتنزل جبل في الظلام. خطوات كبيرة أوي ممكن تعدّى الطريق. خطوات صغيرة أوي وهتاخد طول. لازم تختار حجم مناسب!</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Pitfalls</div>
+    <ul class="e-list">
+      <li>⚠️ Setting the learning rate too high → loss oscillates or diverges instead of decreasing</li>
+      <li>⚠️ Setting it too low → training seems "stuck" simply because progress is painfully slow, not because of a saddle point</li>
+      <li>⚠️ Forgetting that backprop only computes gradients — it's the optimizer that decides HOW to use them to update weights</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Backpropagation = chain rule applied layer by layer, backward through the network</li>
+      <li>📌 Learning rate η is a scalar between 0 and 1 controlling step size</li>
+      <li>📌 Know at least 2 LR scheduling techniques by name: Piecewise Constant, ReduceLROnPlateau, Exponential Decay, Power Scheduling</li>
+      <li>📌 Interview Q: "Why not just use a huge learning rate to train faster?" → it overshoots the minimum and can diverge</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Backpropagation</strong> computes each weight's contribution to the error by working backward through the network. <strong>Saddle points</strong> (gradient = 0, not a true minimum) can get the model "stuck." <strong>Learning rate (η)</strong> controls step size — too high overshoots, too low is painfully slow. Scheduling techniques (Piecewise Constant, ReduceLROnPlateau, Exponential/Power Decay) adapt η during training.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 3</span>
+    <h2>3. Batch Normalization, Dropout & Data Augmentation</h2>
+  </div>
+  <p class="section-subtitle">Three Tools for Faster, More Stable, and Less Overfitted Training</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <div class="def-box">
+      <div class="def-term">🔹 Batch Normalization</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li><strong>Problem:</strong> If your training data has a skewed distribution (e.g., mostly black cats), the model is biased</li>
+        <li><strong>Solution:</strong> Normalize the output of each layer to have a consistent distribution (mean ≈ 0, variance ≈ 1)</li>
+        <li>You add a <code>BatchNormalization()</code> layer inside the hidden layers</li>
+        <li>Helps the model train faster and more stably</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Dropout</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Technique to prevent overfitting</li>
+        <li>Inspired by <strong>Ensemble learning</strong> (training many models and averaging results) — but that's too slow for NNs</li>
+        <li>Instead: randomly disable a percentage of neurons in each training iteration</li>
+        <li>Example: Dropout = 0.8 means each neuron has 80% chance to stay, 20% chance to be dropped</li>
+        <li>Each iteration creates a different "thinned network"</li>
+        <li>A network with N nodes can generate 2<sup>N</sup> different thinned networks</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Data Augmentation</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Technique to expand your dataset artificially</li>
+        <li>Create variations of existing images: rotation, flip, zoom, noise, blur</li>
+        <li>Prevents the model from memorizing (overfitting) because every image looks slightly different</li>
+        <li>Often more important than the network architecture itself</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>🔹 Batch Normalization</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>المشكلة: لو الداتا بتاعتك موزعة بشكل مش متوازن، الـ model بيتحيّز</li>
+      <li>الحل: بنعمل normalize للـ output من كل layer عشان التوزيع يبقى ثابت</li>
+      <li>بنضيف BatchNormalization() جوه الـ hidden layers</li>
+    </ul>
+    <br/>
+    <p><strong>🔹 Dropout</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>تقنية لمنع الـ overfitting (لما الـ model يحفظ الداتا بدل ما يتعلم منها)</li>
+      <li>الفكرة: في كل iteration، بنوقف نسبة من الـ neurons عشوائياً</li>
+      <li>مثال: Dropout = 0.8 → كل neuron عنده 80% فرصة يشتغل، 20% يتجاهل</li>
+    </ul>
+    <br/>
+    <p><strong>🔹 Data Augmentation</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>بنزيد حجم الداتا بطريقة اصطناعية: بنقلب الصور، بنكبرها، بنضيف ضوضاء</li>
+      <li>بيمنع الـ model من حفظ الصور (overfitting) لأن كل صورة بتبان مختلفة شوية</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه الـ Dropout — فريق الكورة</div>
+    <p>تخيل فريق كورة، في كل تدريب بتغيب عدد عشوائي من اللاعبين. النتيجة: كل لاعب بيتعلم يشتغل بدون ما يعتمد على غيره، والفريق كله بيبقى أقوى!</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Pitfalls</div>
+    <ul class="e-list">
+      <li>⚠️ Applying Dropout at <em>inference/test time</em> instead of only during training — Dropout should be disabled when making predictions</li>
+      <li>⚠️ Setting the Dropout rate too high (e.g., 0.9 dropped) → the network can't learn effectively (too little signal remains)</li>
+      <li>⚠️ Skipping Data Augmentation and relying only on architecture changes to fix overfitting — augmentation is often the higher-leverage fix</li>
+      <li>⚠️ Forgetting that Batch Normalization changes behavior between training and inference (uses running statistics at test time)</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Batch Norm normalizes layer outputs to mean ≈ 0, variance ≈ 1 → faster, more stable training</li>
+      <li>📌 Dropout randomly disables neurons per iteration; a network with N nodes can form 2<sup>N</sup> thinned sub-networks</li>
+      <li>📌 Data Augmentation artificially expands the dataset via rotation/flip/zoom/noise/blur</li>
+      <li>📌 Interview Q: "Why does Dropout help prevent overfitting?" → it forces neurons to not over-rely on specific other neurons, similar in spirit to ensembling</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Batch Normalization</strong>: normalizes each layer's output (mean ≈ 0, variance ≈ 1) → faster/stabler training. <strong>Dropout</strong>: randomly disables a % of neurons per iteration to fight overfitting (mimics ensembling). <strong>Data Augmentation</strong>: artificially expands the dataset (rotate/flip/zoom/noise) to prevent memorization — often more impactful than architecture choice.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 4</span>
+    <h2>4. Batches, Epochs & Iterations</h2>
+  </div>
+  <p class="section-subtitle">The Three Terms That Confuse Almost Everyone at First</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>These 3 terms confuse almost everyone at first!</p>
+    <br/>
+    <p><strong>Types of Gradient Descent based on Batch Size:</strong></p>
+    <div class="cmp-grid" style="margin-top:10px">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent4)">Batch GD</h4>
+        <p style="font-size:12px">Batch size = <strong>all</strong> training data (slow but stable)</p>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Stochastic GD (SGD)</h4>
+        <p style="font-size:12px">Batch size = <strong>1</strong> (fast but noisy)</p>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Mini-Batch GD</h4>
+        <p style="font-size:12px">Batch size = <strong>32, 64, or 128</strong> (the most common & practical)</p>
+      </div>
+    </div>
+    <br/>
+    <p><strong>Example:</strong></p>
+    <div class="formula">Dataset = 100,000 images &nbsp;|&nbsp; Batch size = 32 &nbsp;→&nbsp; Number of batches = 100,000 / 32 ≈ 3,125 batches &nbsp;→&nbsp; 1 epoch = 3,125 iterations</div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Term</th><th>Meaning</th></tr>
+        <tr><td>Batch</td><td>A small group of samples processed together</td></tr>
+        <tr><td>Epoch</td><td>One full pass through the entire dataset</td></tr>
+        <tr><td>Iteration</td><td>Number of batches needed to complete one epoch</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>الـ Batch:</strong> مجموعة صغيرة من الداتا بنشغّلها مع بعض في كل مرة</li>
+      <li><strong>الـ Epoch:</strong> لما الـ model يشوف الداتا كلها مرة واحدة كاملة</li>
+      <li><strong>الـ Iteration:</strong> عدد الـ batches اللي محتاجينها نعمل epoch واحدة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> مثال عملي</div>
+    <p>عندك 1000 صورة وكل batch = 100 صورة → في كل epoch هتعمل 10 iterations. لو دربت 50 epoch → هتعمل 500 iteration!</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Pitfalls</div>
+    <ul class="e-list">
+      <li>⚠️ Confusing "epoch" with "iteration" — an epoch is a full pass; an iteration is a single batch update</li>
+      <li>⚠️ Assuming a bigger batch size always trains faster — it uses more memory and can reduce gradient noise that sometimes helps generalization</li>
+      <li>⚠️ Using pure SGD (batch size = 1) expecting stability — it's fast per step but very noisy</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize: Iterations per epoch = dataset size / batch size</li>
+      <li>📌 Know the 3 GD variants by batch size: Batch GD (all data), SGD (1 sample), Mini-Batch GD (32/64/128)</li>
+      <li>📌 Interview Q: "If you have 100,000 images and batch size 32, how many iterations per epoch?" → ≈ 3,125</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Batch</strong> = small group of samples trained together. <strong>Epoch</strong> = one full pass over the entire dataset. <strong>Iteration</strong> = number of batches needed for one epoch (dataset size ÷ batch size). Batch size choice defines Batch GD (all data), SGD (1 sample), or Mini-Batch GD (32/64/128 — most common).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 5</span>
+    <h2>5. Optimizers (Momentum, Nesterov, RMSProp, Adam)</h2>
+  </div>
+  <p class="section-subtitle">Smarter Ways to Update Weights and Reach the Minimum Loss</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Optimizers control how we update the weights to reach the minimum loss.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">🔹 Gradient Descent (Basic)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Update weights directly using the gradient</li>
+      </ul>
+      <div class="formula">θ = θ − η × ∇J(θ)</div>
+      <p style="font-size:13px"><strong>Problem:</strong> Slow, can get stuck</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Momentum Optimization</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Instead of only using the current gradient, it also looks at previous gradients</li>
+        <li>Builds up "speed" in the right direction, like a ball rolling downhill</li>
+        <li>New hyperparameter: β (momentum), usually = 0.9</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Nesterov Momentum</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>An improvement over Momentum</li>
+        <li>Instead of computing gradient at current position, it computes it at a look-ahead position (θ + βm)</li>
+        <li>Anticipates the direction, so it slows down before a turn (more accurate!)</li>
+        <li>Think of it like: Momentum reacts after a turn, Nesterov anticipates the turn</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 RMSProp</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Adapts the learning rate for each parameter individually</li>
+        <li>Uses exponential decay of past squared gradients</li>
+        <li>Prevents drastic learning rate changes due to noisy gradients</li>
+        <li>Was the go-to optimizer before Adam</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Adam (Adaptive Moment Estimation)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Combines Momentum + RMSProp</li>
+        <li>Tracks both past gradients (direction) AND past squared gradients (scale)</li>
+        <li>Adds bias correction for early training stability</li>
+        <li>Currently the most popular optimizer</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ optimizers هي الطرق اللي بنحدّث بيها الـ weights عشان نوصل لأقل loss.</p>
+    <br/>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Gradient Descent الأساسي:</strong> بنطرح الـ gradient مضروب في الـ learning rate من الـ weights</li>
+      <li><strong>Momentum:</strong> بدل ما تنظر بس للخطوة الحالية، بتتذكر الخطوات السابقة وتكوّن "زخم" — زي الكرة بتتدحرج</li>
+      <li><strong>Nesterov:</strong> تحسين على الـ Momentum — بدل ما تحسب الـ gradient في مكانك الحالي، بتحسبه في مكانك المستقبلي المتوقع — يعني بتتوقع وتتصرف مسبقاً!</li>
+      <li><strong>RMSProp:</strong> بيضبط الـ learning rate لكل parameter لوحده بناءً على تاريخ الـ gradients</li>
+      <li><strong>Adam:</strong> الأفضل والأشهر — بيجمع فكرة الـ Momentum والـ RMSProp مع بعض</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه الـ Optimizers — قيادة عربية في الظلام</div>
+    <p>تخيل إنك بتقود عربية في الظلام لتوصل لأخفض نقطة. Gradient Descent = بتشوف الطريق اللي قدامك بس. Momentum = بتاخد في الاعتبار السرعة اللي كنت بتمشي بيها. Nesterov = بتتوقع الكوبري اللي جاي قبل ما توصله. Adam = GPS كامل مع تاريخ الرحلة!</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Pitfalls</div>
+    <ul class="e-list">
+      <li>⚠️ Confusing Momentum and Nesterov — Momentum reacts after moving, Nesterov looks ahead before moving</li>
+      <li>⚠️ Assuming plain Gradient Descent is "good enough" for deep networks — it's slow and easily gets stuck at saddle points/local minima</li>
+      <li>⚠️ Forgetting Adam still has hyperparameters to tune (learning rate, β1, β2) — it's adaptive, not hyperparameter-free</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 <strong>You'll definitely be asked "Why use Adam over SGD?"</strong> → Adam adapts the learning rate per parameter and combines momentum with RMSProp, making it faster and more stable, especially on noisy data</li>
+      <li>📌 Know the formula θ = θ − η × ∇J(θ) for basic Gradient Descent</li>
+      <li>📌 Know that Momentum's β is typically 0.9</li>
+      <li>📌 Be able to rank optimizers by evolution: GD → Momentum → Nesterov → RMSProp → Adam</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Gradient Descent</strong>: θ = θ − η∇J(θ), slow, can get stuck. <strong>Momentum</strong>: adds "speed" from past gradients (β ≈ 0.9). <strong>Nesterov</strong>: looks ahead before computing gradient (anticipates turns). <strong>RMSProp</strong>: adapts learning rate per parameter via decayed squared gradients. <strong>Adam</strong>: Momentum + RMSProp + bias correction — most popular optimizer today.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 6</span>
+    <h2>6. Convolutional Neural Networks (CNN)</h2>
+  </div>
+  <p class="section-subtitle">Preserving Spatial Structure — Designed Specifically for Images</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>CNN is designed specifically for image processing. A regular feedforward network treats an image as a flat list of numbers — it loses spatial structure. CNN preserves it.</p>
+    <br/>
+    <p><strong>🔹 Architecture Overview</strong></p>
+    <div class="formula">Input Image → [Conv Layer + ReLU] × N → Pooling Layer → Fully Connected Layer → Output</div>
+
+    <div class="def-box">
+      <div class="def-term">🔹 Convolutional Layer (CONV)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Uses small filters (e.g., 3×3 matrix) that slide across the image</li>
+        <li>Each filter learns to detect something: edges, textures, colors, shapes</li>
+        <li>The filter does a dot product with each region of the image</li>
+        <li>Output = a <strong>Feature Map</strong> (activation map showing where the feature was detected)</li>
+      </ul>
+      <p style="font-size:13px;margin-top:6px"><strong>Types of filters:</strong> Edge Detectors, Texture Detectors, Color Detectors, Shape Detectors, Gradient Detectors, Blob Detectors</p>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 ReLU Layer</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Applied after Conv layer</li>
+        <li>Removes negative values (replaces with 0)</li>
+        <li>Adds non-linearity to the model</li>
+      </ul>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Pooling Layer (MAX Pooling)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Reduces the size of the feature map</li>
+        <li>Takes the maximum value in each region (e.g., 2×2 block, stride 2)</li>
+        <li><strong>Benefits:</strong> reduces computation, controls overfitting, keeps important features, creates translation invariance (same pattern recognized even if shifted)</li>
+      </ul>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Fully Connected (FC) Layer</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Flattens the feature maps into a 1D vector</li>
+        <li>Connects to regular dense neurons</li>
+        <li>Final layer uses <strong>Softmax</strong> to output class probabilities</li>
+      </ul>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 Why not just use Feedforward NN for images?</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>A regular NN only recognizes patterns in fixed positions</li>
+        <li>If you flip an image of a dog, the NN might not recognize it (the eye is in a different spot!)</li>
+        <li>CNN uses filters that work regardless of where in the image the pattern appears</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ CNN اتصممت خصيصاً لـ معالجة الصور. الـ Feedforward العادية بتاخد الصورة وبتحولها لأرقام بدون ما تفهم العلاقة بين البكسلات. الـ CNN بتحافظ على البنية المكانية للصورة.</p>
+    <br/>
+    <p><strong>الـ Convolutional Layer:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>بتستخدم filters (مصفوفة صغيرة زي 3×3) بتتزحزح على الصورة</li>
+      <li>كل filter بيتعلم يكشف حاجة معينة: حواف، ألوان، أشكال</li>
+      <li>الـ output بيتسمى Feature Map</li>
+    </ul>
+    <br/>
+    <p><strong>الـ Pooling Layer:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>بتقلل حجم الـ feature map</li>
+      <li>بتاخد أكبر قيمة في كل منطقة (Max Pooling)</li>
+      <li>بتقلل الحسابات وبتحافظ على أهم المعلومات</li>
+    </ul>
+    <br/>
+    <p><strong>الـ Fully Connected Layer:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>بتحول الـ feature maps لـ vector ثم توصل بـ neurons عادية</li>
+      <li>آخر layer بتستخدم Softmax عشان تطلع احتمالات كل class</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه الـ CNN — المجهر</div>
+    <p>تخيل إنك بتبص على صورة بمجهر. أول ما بتبص بتشوف الحواف والخطوط البسيطة. بعدين بتشوف أشكال أكبر. وفي النهاية بتشوف الصورة كاملة. الـ CNN بتعمل نفس الكلام: أول الـ layers بتتعلم حاجات بسيطة، وآخر الـ layers بتتعلم concepts معقدة!</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Using a plain feedforward (fully connected) network directly on raw pixels — loses spatial structure and needs far more parameters</li>
+      <li>❌ Forgetting that pooling reduces spatial dimensions but does NOT reduce the number of channels/feature maps</li>
+      <li>❌ Assuming CNNs are invariant to ALL transformations — pooling gives translation invariance, but rotation/scale invariance still requires augmentation or specialized architectures</li>
+      <li>❌ Skipping ReLU — without non-linearity, stacking conv layers is mathematically similar to a single linear operation</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the full pipeline by heart: Input → [Conv + ReLU] × N → Pooling → Fully Connected → Softmax Output</li>
+      <li>📌 Be ready to explain why CNNs use far fewer parameters than fully-connected networks on images (shared filter weights + local connectivity vs. one weight per pixel-neuron pair)</li>
+      <li>📌 Know what a Feature Map is and how it's produced (filter dot-product sliding across the image)</li>
+      <li>📌 Interview Q: "Why does CNN work better than a plain NN for images?" → preserves spatial structure, uses shared filters that detect patterns regardless of position</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>CNN pipeline: <strong>Conv Layer</strong> (filters slide over image → Feature Maps) → <strong>ReLU</strong> (adds non-linearity, zeroes negatives) → <strong>Pooling</strong> (Max Pooling shrinks feature maps, adds translation invariance) → <strong>Fully Connected</strong> (flatten → dense → Softmax). CNNs preserve spatial structure that plain feedforward NNs lose.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 7</span>
+    <h2>7. Transfer Learning</h2>
+  </div>
+  <p class="section-subtitle">Reusing Pre-Trained Models Instead of Starting From Scratch</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <div class="def-box">
+      <div class="def-term">The Problem</div>
+      <p style="margin-top:6px;font-size:14px">Training a CNN from scratch needs millions of labeled images and weeks of computation.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">The Solution</div>
+      <p style="margin-top:6px;font-size:14px">Take a model that was already trained on a large dataset (like <strong>ImageNet</strong> with 1M+ images), and reuse its learned weights for your new task.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">How It Works</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Early layers learn generic features (edges, textures) → reusable</li>
+        <li>Later layers learn task-specific features → need retraining</li>
+        <li>You <strong>freeze</strong> the early layers and only retrain the last few layers</li>
+      </ul>
+    </div>
+    <br/>
+    <p><strong>When to Freeze What:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Dataset Size</th><th>Strategy</th></tr>
+        <tr><td>Small dataset</td><td>Freeze most layers, retrain only the last 1–2</td></tr>
+        <tr><td>Medium dataset</td><td>Freeze early layers, retrain more of the network</td></tr>
+        <tr><td>Large dataset</td><td>Retrain the entire network</td></tr>
+      </table>
+    </div>
+    <br/>
+    <p><strong>Example:</strong> A model trained on ImageNet (100 categories) → Adapt it to classify vehicle types by replacing the last layer.</p>
+    <p style="margin-top:8px"><strong>Famous Pre-trained Models:</strong> AlexNet (5 Conv + 3 FC layers, 1000 classes), VGG, ResNet, InceptionV3...</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>المشكلة:</strong> تدريب CNN من الصفر محتاج ملايين صورة وأسابيع حسابات.</p>
+    <br/>
+    <p><strong>الحل:</strong> تاخد model اتدرب قبل كده على داتا ضخمة (زي ImageNet) وتستخدم الـ weights اللي اتعلمها في مشكلتك الجديدة.</p>
+    <br/>
+    <p><strong>الفكرة:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>أول الـ layers بتتعلم حاجات عامة (حواف، ألوان) → ممكن تستخدمها كما هي (Freeze)</li>
+      <li>آخر الـ layers بتتعلم حاجات خاصة بالمهمة → هتعيد تدريبها</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه — الدكتور المتخصص</div>
+    <p>Transfer Learning زي إنك بتعين دكتور عنده خلفية علمية قوية في الطب العام، وبتدربه على تخصص بعينه بدل ما تبدأ من الصفر. خلفيته الأساسية (أول الـ layers) موجودة، إنت بس بتضيف التخصص (آخر الـ layers).</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Pitfalls</div>
+    <ul class="e-list">
+      <li>⚠️ Freezing too many layers with a large custom dataset — wastes the opportunity to adapt more of the network to your task</li>
+      <li>⚠️ Unfreezing the entire network on a tiny dataset — risks catastrophic overfitting / destroying the useful pretrained weights</li>
+      <li>⚠️ Forgetting to replace the final classification layer to match your new number of classes</li>
+      <li>⚠️ Note: this same course covers Transfer Learning in much greater depth in a later, dedicated lecture — this section is the foundational overview</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the core idea: reuse a model pretrained on a large dataset (e.g., ImageNet) instead of training from scratch</li>
+      <li>📌 Know the freeze/retrain rule: early layers = generic (freeze), later layers = task-specific (retrain)</li>
+      <li>📌 Match freezing strategy to dataset size: small → freeze most; medium → freeze some; large → retrain all</li>
+      <li>📌 Be able to name at least 2 famous pretrained models: AlexNet, VGG, ResNet, InceptionV3</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Transfer Learning reuses a model pretrained on a large dataset (e.g., ImageNet) instead of training from scratch. Early layers (generic features) are frozen; later layers (task-specific) are retrained. Freezing strategy scales with your dataset size: small dataset → freeze most layers; large dataset → retrain the whole network. Famous pretrained models: AlexNet, VGG, ResNet, InceptionV3.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">TOPIC 8</span>
+    <h2>8. Recurrent Neural Networks (RNN, LSTM, GRU)</h2>
+  </div>
+  <p class="section-subtitle">Handling Sequential Data With Memory Mechanisms</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Regular NNs can't handle sequential data (text, speech, time series) — they process each input independently without memory.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">🔹 RNN (Recurrent Neural Network)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Has memory — output of a previous step is fed back as input to the next step</li>
+        <li>Two inputs: current input + previous hidden state</li>
+        <li>Think of it as: "What did I just see?" + "What am I seeing now?"</li>
+        <li>Used for: text generation, speech recognition, time series</li>
+      </ul>
+      <p style="font-size:13px;margin-top:8px"><strong>Problems with basic RNN:</strong></p>
+      <ul style="margin-top:6px;padding-left:20px;font-size:14px">
+        <li><strong>Vanishing Gradient:</strong> For long sequences, gradients become too small → early inputs are forgotten</li>
+        <li>Cannot model long-term dependencies (forgets things from far back)</li>
+        <li>Sequential computation → can't parallelize</li>
+      </ul>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 LSTM (Long Short-Term Memory)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Solves the vanishing gradient problem using gates</li>
+        <li>Has a separate <strong>Cell State</strong> (long-term memory) + <strong>Hidden State</strong> (short-term memory)</li>
+      </ul>
+      <p style="font-size:13px;margin-top:6px"><strong>4 Gates in LSTM:</strong></p>
+      <div class="table-wrap">
+        <table>
+          <tr><th>Gate</th><th>Function</th></tr>
+          <tr><td>Forget Gate (f)</td><td>Decides what to delete from memory (sigmoid → 0 to 1)</td></tr>
+          <tr><td>Input/Update Gate (i)</td><td>Decides what new info to add to memory</td></tr>
+          <tr><td>Cell State Update (g)</td><td>Generates candidate values with tanh (range −1 to 1)</td></tr>
+          <tr><td>Output Gate (o)</td><td>Controls what part of memory to output</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">🔹 GRU (Gated Recurrent Unit)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>A simpler version of LSTM</li>
+        <li>Only 2 gates (Update + Reset) instead of 3</li>
+        <li>Merges Cell State and Hidden State into one</li>
+        <li>Faster to train, performs similarly on most tasks</li>
+      </ul>
+    </div>
+    <br/>
+    <p><strong>LSTM vs GRU Comparison:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Feature</th><th>LSTM</th><th>GRU</th></tr>
+        <tr><td>Gates</td><td>3</td><td>2</td></tr>
+        <tr><td>Cell State</td><td>Separate</td><td>Combined with hidden state</td></tr>
+        <tr><td>Complexity</td><td>Higher</td><td>Lower</td></tr>
+        <tr><td>Long sequences</td><td>Better</td><td>Slightly less effective</td></tr>
+        <tr><td>Speed</td><td>Slower</td><td>Faster</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇪🇬</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ Feedforward NN العادية مش قادرة تتعامل مع البيانات المتسلسلة زي الكلام والنصوص — لأن كل input بتعالجه بشكل مستقل من غير ذاكرة.</p>
+    <br/>
+    <p>الـ RNN: عنده ذاكرة — الـ output من الخطوة السابقة بيرجع كـ input للخطوة الجاية. لكن المشكلة: بينسى الأشياء القديمة (Vanishing Gradient).</p>
+    <br/>
+    <p>الـ LSTM: حلّ مشكلة النسيان باستخدام gates بتتحكم في المعلومات:</p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>Forget Gate:</strong> إيه اللي هنمسحه من الذاكرة؟</li>
+      <li><strong>Input Gate:</strong> إيه الجديد اللي هنضيفه للذاكرة؟</li>
+      <li><strong>Output Gate:</strong> إيه اللي هنطلعه كـ output؟</li>
+    </ul>
+    <br/>
+    <p>الـ GRU: نسخة أبسط وأسرع من الـ LSTM بـ gates أقل، وبتأدي نفس الشغل تقريباً.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> تشبيه الـ LSTM — قراءة رواية طويلة</div>
+    <p>تخيل إنك بتقرأ رواية طويلة. الـ Forget Gate = قررت تنسى التفاصيل الصغيرة. الـ Input Gate = حفظت الأحداث المهمة. الـ Output Gate = الجزء اللي بتستخدمه دلوقتي عشان تفهم الجملة الحالية. الـ LSTM زي القارئ الذكي اللي بيتذكر اللي مهم وبينسى اللي مش مهم!</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes / Problems</div>
+    <ul class="e-list">
+      <li>❌ Using a plain RNN on long sequences and expecting it to remember distant context — vanishing gradients will erase it</li>
+      <li>❌ Confusing LSTM's Cell State with its Hidden State — they serve different memory roles (long-term vs short-term)</li>
+      <li>❌ Assuming GRU is strictly "worse" than LSTM — it's simpler/faster and performs similarly on most tasks, just slightly less effective on very long sequences</li>
+      <li>❌ Forgetting that RNNs/LSTMs/GRUs are inherently sequential and can't be parallelized like CNNs</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 <strong>You'll likely be asked "What's the difference between LSTM and GRU?"</strong> → LSTM has 3 gates + separate cell/hidden state (more powerful on long sequences, slower); GRU has 2 gates + merged state (simpler, faster, similar performance)</li>
+      <li>📌 Know the vanishing gradient problem as the core motivation for LSTM/GRU over plain RNN</li>
+      <li>📌 Know all 4 LSTM gates by name and function: Forget, Input/Update, Cell State Update, Output</li>
+      <li>📌 Know example use cases: text generation, speech recognition, time series forecasting</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>RNN</strong>: has memory (previous hidden state fed forward) but suffers from vanishing gradients on long sequences. <strong>LSTM</strong>: fixes this with 4 gates (Forget, Input, Cell Update, Output) and a separate Cell State + Hidden State. <strong>GRU</strong>: simpler LSTM with only 2 gates (Update, Reset) and a merged state — faster, similar performance, slightly weaker on very long sequences.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice and Short Answer Questions Covering All 8 Topics</p>
+
+  <!-- MCQ -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Why do Deep Neural Networks typically have non-convex loss functions?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Because they use ReLU activations</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Because they have millions of weights, each adding a dimension to a very complex landscape</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Because the loss function is always a straight line</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Because they only have one layer</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Millions of weights create a high-dimensional landscape with many local minima, saddle points, and one global minimum.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. At a saddle point, what is true about the gradient?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It is always positive</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It equals zero, but the point is neither a minimum nor a maximum</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It equals the learning rate</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It is undefined</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Saddle points have gradient = 0 but are not true extrema, which can cause training to stall.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What happens if the learning rate is set too high?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Training converges instantly with no risk</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The weight updates overshoot the minimum, potentially causing divergence</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The model becomes convex</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Dropout is automatically applied</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Too high a learning rate causes large weight update steps that jump past the minimum.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Dropout = 0.8 means:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 80% of neurons are permanently removed from the network</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Each neuron has an 80% chance to stay active and 20% chance to be dropped during that iteration</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The learning rate is reduced by 80%</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 80% of the training data is discarded</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Dropout randomly disables neurons per iteration based on the keep-probability; 0.8 means 80% chance to stay.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Given a dataset of 100,000 images and batch size 32, roughly how many iterations make up one epoch?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 32</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) 100,000</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) ≈ 3,125</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 1</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Iterations per epoch = dataset size / batch size = 100,000 / 32 ≈ 3,125.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. What does the Adam optimizer combine?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Batch Normalization + Dropout</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Momentum + RMSProp (with bias correction)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) CNN + RNN</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) LSTM + GRU</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Adam tracks past gradients (Momentum-style direction) and past squared gradients (RMSProp-style scale), plus bias correction.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. In a CNN, what is the main purpose of a Pooling (Max Pooling) layer?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) To increase the number of channels</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) To reduce feature map size, cut computation, and add translation invariance</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) To apply the Softmax function</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) To normalize pixel values to 0–1</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Pooling downsamples feature maps by taking the max value per region, reducing compute and adding robustness to small shifts.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. In Transfer Learning, which layers are typically frozen (kept unchanged)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The final classification layer</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The early layers, which learn generic features like edges and textures</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) All layers, always</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) No layers are ever frozen</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Early layers learn generic, reusable features; later, task-specific layers are retrained instead.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q9. What is the key architectural difference between LSTM and GRU?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) GRU has more gates than LSTM</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) LSTM has 3 gates and a separate cell/hidden state; GRU has 2 gates and a merged state</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) LSTM cannot process sequences at all</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) GRU uses convolutional filters instead of gates</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — LSTM: Forget, Input/Update, Output gates + separate Cell State and Hidden State. GRU: Update + Reset gates, merged state — simpler and faster.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Why is a convex loss function easier to optimize than a non-convex one? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A convex function has a single smooth "bowl" shape with exactly one minimum, so any gradient-following method is guaranteed to eventually reach the global optimum. A non-convex function (typical of deep networks with millions of weights) has multiple local minima and saddle points, so the optimizer can get stuck in a local minimum or a saddle point that isn't the true global minimum.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Explain the trade-off in choosing a learning rate, and name two scheduling techniques. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A learning rate that is too high causes the optimizer to overshoot the minimum (potentially diverging), while a learning rate that is too low makes convergence extremely slow. Learning rate scheduling addresses this by starting high and decreasing over time. Techniques include: Piecewise Constant (drop LR at fixed epochs), ReduceLROnPlateau (drop LR when validation error stalls), Exponential Decay, and Power Scheduling.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: How do Batch Normalization, Dropout, and Data Augmentation each address a different training problem? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Batch Normalization fixes unstable/biased training caused by skewed layer output distributions, by normalizing each layer's outputs to mean ≈ 0, variance ≈ 1 — this speeds up and stabilizes training. Dropout fights overfitting by randomly disabling a percentage of neurons each iteration, forcing the network to not rely too heavily on any single neuron (similar in spirit to ensembling). Data Augmentation also fights overfitting, but by artificially expanding the dataset (rotation, flip, zoom, noise) so the model sees more variety and memorizes less.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why does a CNN generally outperform a plain fully-connected network on image tasks? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> A fully-connected network flattens an image into a list of numbers and loses the spatial relationships between pixels; it also requires a separate weight for every pixel-neuron connection, and only recognizes patterns in the exact positions it was trained on (e.g., it may fail on a flipped image). A CNN instead uses small filters that slide across the entire image, sharing weights and detecting features (edges, textures, shapes) regardless of where they appear. This preserves spatial structure, drastically reduces the parameter count, and produces translation-invariant feature detection — especially after pooling layers.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 5: What problem does the vanishing gradient cause in plain RNNs, and how do LSTM/GRU solve it? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> In a plain RNN, gradients shrink exponentially as they are propagated backward through many time steps, meaning the network effectively "forgets" information from early in a long sequence and can't learn long-term dependencies. LSTM solves this by introducing a separate Cell State (long-term memory) controlled by gates — Forget Gate, Input/Update Gate, Cell State Update, and Output Gate — that explicitly decide what to keep, add, or output at each time step, allowing gradients to flow more directly through the cell state. GRU achieves a similar effect more efficiently using only 2 gates (Update and Reset) and a single merged state, trading a small amount of long-sequence performance for simplicity and speed.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 8 topics from the original study guide's Table of Contents</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 1</strong> — Loss Functions & Convex vs Non-Convex (convex bowl, non-convex mountains, saddle points, contour lines) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 2</strong> — Backpropagation, Saddle Points & Learning Rate (backward pass, η, LR scheduling table) — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 3</strong> — Batch Normalization, Dropout & Data Augmentation (all three techniques with analogies) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 4</strong> — Batches, Epochs & Iterations (Batch GD, SGD, Mini-Batch GD, worked example) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 5</strong> — Optimizers: Gradient Descent, Momentum, Nesterov, RMSProp, Adam — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 6</strong> — Convolutional Neural Networks (Conv, ReLU, Pooling, Fully Connected, microscope analogy) — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 7</strong> — Transfer Learning (freeze/retrain strategy, dataset-size table, AlexNet/VGG/ResNet) — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Topic 8</strong> — Recurrent Neural Networks: RNN, LSTM (4 gates), GRU, comparison table — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Interview Tip</strong> — "Why Adam over SGD?" and "LSTM vs GRU?" — ✅ Carried into Section 5 and Section 8 Exam Notes, plus Quiz</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 8/8 TOPICS — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, formulas, tables, analogies (💡), and interview tips from the original study guide have been faithfully reformatted into the card-based bilingual system, with added Quick Summaries, Exam Notes, and Quiz questions.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Loss Landscapes:</strong> <span class="tag tag-blue">Convex (one bowl)</span> vs <span class="tag tag-blue">Non-Convex (many valleys + saddle points)</span></p>
+      <p><strong>Training Loop:</strong> <span class="tag tag-orange">Backpropagation</span> → <span class="tag tag-orange">Learning Rate η</span> → <span class="tag tag-orange">LR Scheduling</span></p>
+      <p><strong>Regularization Trio:</strong> <span class="tag tag-purple">Batch Normalization</span> | <span class="tag tag-purple">Dropout</span> | <span class="tag tag-purple">Data Augmentation</span></p>
+      <p><strong>Data Feeding:</strong> <span class="tag tag-green">Batch</span> → <span class="tag tag-green">Iteration</span> → <span class="tag tag-green">Epoch</span></p>
+      <p><strong>Optimizer Evolution:</strong> <span class="tag tag-blue">Gradient Descent</span> → <span class="tag tag-blue">Momentum</span> → <span class="tag tag-blue">Nesterov</span> → <span class="tag tag-blue">RMSProp</span> → <span class="tag tag-blue">Adam</span></p>
+      <p><strong>CNN:</strong> <span class="tag tag-green">Conv (filters → Feature Map)</span> → <span class="tag tag-green">ReLU</span> → <span class="tag tag-green">Pooling</span> → <span class="tag tag-green">Fully Connected + Softmax</span></p>
+      <p><strong>Transfer Learning:</strong> <span class="tag tag-orange">Pretrained Model (ImageNet)</span> → <span class="tag tag-orange">Freeze Early Layers</span> → <span class="tag tag-orange">Retrain Later Layers</span></p>
+      <p><strong>Sequential Models:</strong> <span class="tag tag-purple">RNN (memory, vanishing gradient)</span> → <span class="tag tag-purple">LSTM (4 gates, Cell + Hidden State)</span> → <span class="tag tag-purple">GRU (2 gates, merged state)</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

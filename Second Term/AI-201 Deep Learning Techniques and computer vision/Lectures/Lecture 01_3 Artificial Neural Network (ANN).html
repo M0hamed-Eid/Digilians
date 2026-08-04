@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 01 — Artificial Neural Networks (ANN): Complete Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 ANN Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — Foundations</div>
+    <a href="#s1" onclick="setActive(this)">1. What is a Neural Network?</a>
+    <a href="#s2" onclick="setActive(this)">2. Evolution of the Neuron</a>
+    <a href="#s3" onclick="setActive(this)">3. How Does ANN Work? (Forward Pass)</a>
+    <div class="nav-section">Part II — Learning Mechanics</div>
+    <a href="#s4" onclick="setActive(this)">4. Activation Functions</a>
+    <a href="#s5" onclick="setActive(this)">5. Feedforward Neural Network</a>
+    <a href="#s6" onclick="setActive(this)">6. Backpropagation</a>
+    <div class="nav-section">Part III — Practice</div>
+    <a href="#s7" onclick="setActive(this)">7. Building a DNN in Keras</a>
+    <a href="#s8" onclick="setActive(this)">8. Pros, Cons & Applications</a>
+    <div class="nav-section">Review</div>
+    <a href="#topicmap" onclick="setActive(this)">🗺️ Full Topic Map</a>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 01 — ARTIFICIAL NEURAL NETWORKS (ANN)</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 01</div>
+  <h1>Artificial Neural Networks (ANN): Complete Study Guide</h1>
+  <p>From the Mathematical Neuron to Building a Deep Neural Network in Keras</p>
+  <p class="author">Deep Learning & Computer Vision Diploma &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">8</span><span class="lbl">Sections</span></div>
+    <div class="stat-chip"><span class="num">8</span><span class="lbl">Activation Fns</span></div>
+    <div class="stat-chip"><span class="num">3</span><span class="lbl">Neuron Versions</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Neural Networks</span>
+    <span class="tag tag-green">Perceptron</span>
+    <span class="tag tag-purple">Activation Functions</span>
+    <span class="tag tag-orange">Backpropagation</span>
+    <span class="tag tag-blue">Keras</span>
+    <span class="tag tag-green">Forward Pass</span>
+    <span class="tag tag-purple">MLP</span>
+    <span class="tag tag-orange">Gradient Descent</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 1</span>
+    <h2>1. What is a Neural Network?</h2>
+  </div>
+  <p class="section-subtitle">The Neuron as a Mathematical Function — Input, Hidden, and Output Layers</p>
+
+  <!-- English Explanation -->
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>A <span class="hl-blue">Neural Network</span> is basically a <strong>mathematical function</strong> — you give it an input, and it gives you an output. It's inspired by how the human brain works.</p>
+    <br/>
+    <p>It has three main parts:</p>
+    <div class="def-box">
+      <p><span class="def-term">Input Layer</span> — receives the raw data (like pixels of an image, or numbers)</p>
+      <p style="margin-top:8px"><span class="def-term">Hidden Layer(s)</span> — processes and transforms the data</p>
+      <p style="margin-top:8px"><span class="def-term">Output Layer</span> — gives the final answer (like "this is a cat" or "price = 500")</p>
+    </div>
+    <p>Each connection between neurons has a <strong>weight (W)</strong> — think of it as how important that connection is. There's also a <strong>bias (b)</strong>, which helps shift the output to make the model more flexible.</p>
+  </div>
+
+  <!-- Arabic Explanation -->
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ <strong>Neural Network</strong> هو في الأساس دالة رياضية — بتديلها input وبترد عليك بـ output. الفكرة مستوحاة من طريقة عمل المخ البشري.</p>
+    <br/>
+    <p><strong>المكونات الأساسية:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li><strong>Input Layer</strong> — بتستقبل البيانات الخام زي أرقام أو بيانات</li>
+      <li><strong>Hidden Layers</strong> — بتعالج وتحوّل البيانات</li>
+      <li><strong>Output Layer</strong> — بتطلع النتيجة النهائية</li>
+    </ul>
+    <br/>
+    <p>كل وصلة بين neuron وتانية ليها <strong>weight (وزن)</strong> — ده بيعبّر عن أهمية الوصلة دي. وفيه كمان <strong>bias</strong> — بيساعد النموذج يبقى أكثر مرونة.</p>
+  </div>
+
+  <!-- Analogy -->
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Cooking a Dish</div>
+    <p><strong>EN:</strong> Think of it like cooking. The ingredients are your inputs, the recipe steps are your hidden layers, and the final dish is your output. The weights are like the quantities of each ingredient.</p>
+    <p style="margin-top:10px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>AR:</strong> تخيل إنك بتطبخ. المكونات هي الـ inputs، خطوات الطبخة هي الـ hidden layers، والأكلة اللي طلعت هي الـ output. الـ weights هي كميات كل مكوّن.</p>
+  </div>
+
+  <!-- Memory Trick -->
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — The Three Layers</div>
+    <p><strong>"I-H-O" = In → Hidden → Out"</strong></p>
+    <p style="margin-top:6px;font-size:13px;color:var(--muted)">Data always flows Input → Hidden → Output, transformed by weights (W) and biases (b) along the way.</p>
+  </div>
+
+  <!-- Exam Notes -->
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the 3 layers by name and function: Input (receives), Hidden (processes), Output (answers)</li>
+      <li>📌 Be ready to define <strong>weight</strong> (importance of a connection) and <strong>bias</strong> (shifts output, adds flexibility)</li>
+      <li>📌 Common exam Q: "Why do we need bias if we already have weights?" → Bias lets the activation shift left/right, so the model isn't forced through the origin</li>
+    </ul>
+  </div>
+
+  <!-- Quick Summary -->
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> A Neural Network takes data, processes it through layers, and produces a result — achieved through weights and biases the model learns.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> الـ Neural Network بياخد بيانات، يعالجها في طبقات، ويطلع نتيجة — وده بيتحقق عن طريق أوزان وتحيزات بيتعلمها النموذج.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 2</span>
+    <h2>2. Evolution of the Neuron (3 Versions)</h2>
+  </div>
+  <p class="section-subtitle">McCulloch-Pitts (1943) → Linear Threshold Unit (1957) → Perceptron → Multilayer Perceptron (MLP)</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The artificial neuron went through <span class="hl">3 major versions</span>:</p>
+
+    <div class="def-box">
+      <div class="def-term">Version 1 — McCulloch-Pitts Neuron (1943)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>The very first model, very simple</li>
+        <li>Inputs were only 0 or 1 (Boolean — yes/no)</li>
+      </ul>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Version 2 — Linear Threshold Unit / LTU (1957)</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>Added weights to each input — so some inputs matter more than others</li>
+      </ul>
+    </div>
+
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Version 3 — Perceptron</div>
+      <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+        <li>The first real learning machine!</li>
+        <li>Can adjust its weights to learn from mistakes</li>
+        <li>Added a bias term for better accuracy</li>
+        <li>Can classify data as positive or negative</li>
+      </ul>
+      <div class="formula">f(x) = W·X + b</div>
+      <p style="font-size:13px"><strong>Multilayer Perceptron (MLP)</strong> = stacking multiple perceptrons → this is what we call a <strong>deep neural network</strong></p>
+    </div>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Problems With Each Version</div>
+    <ul class="e-list">
+      <li>❌ <strong>McCulloch-Pitts:</strong> Too limited, couldn't handle real-world complexity</li>
+      <li>❌ <strong>LTU:</strong> Weights were fixed (couldn't learn), output was still binary (0 or 1)</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ <strong>Neuron</strong> الاصطناعي مر بـ 3 مراحل تطور:</p>
+    <br/>
+    <p><strong>الإصدار 1 — McCulloch-Pitts (1943)</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>أول نموذج، بسيط جداً</li>
+      <li>الـ inputs كانت فقط 0 أو 1</li>
+      <li>المشكلة: محدود جداً، مش قادر يتعامل مع بيانات حقيقية معقدة</li>
+    </ul>
+    <br/>
+    <p><strong>الإصدار 2 — LTU (1957)</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>أضاف weights — يعني مش كل input بيأثر بنفس القدر</li>
+      <li>المشكلة: الـ weights كانت ثابتة (مش بتتعلم)، والـ output لسه 0 أو 1</li>
+    </ul>
+    <br/>
+    <p><strong>الإصدار 3 — Perceptron</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>أول نموذج بيقدر يتعلم!</li>
+      <li>بيعدّل الـ weights لما بيغلط</li>
+      <li>أضاف bias لتحسين الدقة</li>
+      <li>المعادلة: f(x) = W·X + b</li>
+    </ul>
+    <p style="margin-top:8px">الـ <strong>MLP (Multilayer Perceptron)</strong> = لما بتضم أكتر من طبقة → ده اللي بنسميه <strong>Deep Neural Network</strong></p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the exact timeline: McCulloch-Pitts (1943) → LTU (1957) → Perceptron → MLP</li>
+      <li>📌 Know exactly what each version added: LTU added weights, Perceptron added learning + bias</li>
+      <li>📌 Memorize the Perceptron formula: <strong>f(x) = W·X + b</strong></li>
+      <li>📌 MLP = stacked Perceptrons = a Deep Neural Network</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> The artificial neuron evolved from a simple 0/1 tool into a complete system that can learn and detect complex patterns in data.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> الـ Neuron الاصطناعي تطور من مجرد أداة بـ 0 و 1 لنظام كامل بيقدر يتعلم ويكتشف patterns معقدة في البيانات.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 3</span>
+    <h2>3. How Does ANN Work? (The Forward Pass)</h2>
+  </div>
+  <p class="section-subtitle">Weighted Sum → Bias → Activation → Output, One Neuron at a Time</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Here's what happens inside a single neuron step by step:</p>
+    <ol class="steps" style="margin-top:10px">
+      <li>Receive inputs → (X1, X2, X3...)</li>
+      <li>Multiply each input by its weight → (X1×W1 + X2×W2 + ...)</li>
+      <li>Add the bias → Z = W·X + b</li>
+      <li>Pass through an Activation Function → decides if the neuron "fires" or not</li>
+      <li>Send output to the next layer</li>
+    </ol>
+    <div class="formula">Z = W·X + b</div>
+    <div class="card-warn" style="margin-top:14px">
+      <div class="card-title"><span class="icon">⚠️</span> Important</div>
+      <p>The <strong>input layer</strong> just passes data through without modifying it. The <strong>hidden layers</strong> do all the actual computation.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>إيه اللي بيحصل جوه الـ Neuron الواحد؟</p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>بياخد الـ inputs → (X1, X2, X3...)</li>
+      <li>بيضرب كل input في الـ weight بتاعته → (X1×W1 + X2×W2 + ...)</li>
+      <li>بيضيف الـ bias → Z = W·X + b</li>
+      <li>بيمشيّه على Activation Function → بتقرر الـ neuron هيـ"يشتغل" ولا لأ</li>
+      <li>بيبعت الناتج للطبقة الجاية</li>
+    </ul>
+    <br/>
+    <p><strong>ملحوظة مهمة:</strong> الـ Input Layer بس بتنقل البيانات من غير ما تعدّل فيها. الـ Hidden Layers هي اللي بتعمل الحسابات الحقيقية.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Deciding to Go to the Gym</div>
+    <p><strong>EN:</strong> Imagine you're deciding whether to go to the gym. Inputs: "tired?", "have time?", "feeling motivated?". Each has a different weight (motivation matters more than tiredness). Add them up. If the result passes your threshold → you go. That's a neuron!</p>
+    <p style="margin-top:10px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>AR:</strong> تخيل إنك بتقرر تروح الجيم ولا لأ. الـ inputs: "تعبان؟"، "عندك وقت؟"، "متحمس؟". كل عامل ليه وزن (التحمس أهم من التعب). اجمعهم. لو النتيجة عدت حد معين → روح. ده بالظبط الـ neuron!</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the exact order: inputs → weighted sum → + bias → activation function → output</li>
+      <li>📌 Common exam Q: "Does the input layer perform computation?" → No, it only passes data through unchanged</li>
+      <li>📌 Be able to compute Z = W·X + b manually for a simple 2-3 input example</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> A neuron takes data, computes the weighted sum, adds a bias, then decides based on the Activation Function.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> الـ Neuron بياخد بيانات، بيحسب المجموع الموزون، بيضيف bias، ثم بيقرر بناءً على الـ Activation Function.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 4</span>
+    <h2>4. Activation Functions</h2>
+  </div>
+  <p class="section-subtitle">The Decision-Maker of a Neuron — 8 Functions Every Practitioner Must Know</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The <span class="hl-blue">Activation Function</span> is the decision-maker of a neuron — should it fire (pass signal forward) or not?</p>
+    <p style="margin-top:8px">Without it, the entire network would just be one giant linear equation — useless for complex problems.</p>
+
+    <div class="def-box">
+      <div class="def-term">1️⃣ Binary Step Function</div>
+      <p style="margin-top:6px;font-size:13px">If input &gt; threshold → output = 1, else → output = 0.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2️⃣ Linear Activation Function</div>
+      <div class="formula">A = w × x</div>
+      <p style="font-size:13px">Allows multiple output values (not just 0/1).</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3️⃣ Sigmoid (Logistic)</div>
+      <p style="margin-top:6px;font-size:13px">Output range: <strong>0 to 1</strong>. S-shaped curve. Great for binary classification output.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">4️⃣ Tanh</div>
+      <p style="margin-top:6px;font-size:13px">Output range: <strong>-1 to +1</strong>. Better than sigmoid — symmetric around 0.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">5️⃣ ReLU (Rectified Linear Unit)</div>
+      <div class="formula">f(x) = max(0, x)</div>
+      <p style="font-size:13px">If negative → 0, if positive → keep it. Most popular for hidden layers. Fast, computationally cheap.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">6️⃣ Leaky ReLU</div>
+      <p style="margin-top:6px;font-size:13px">Fixes dying ReLU by allowing small negative values instead of zero. Example: f(x) = 0.01x for negative x.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">7️⃣ Softmax</div>
+      <p style="margin-top:6px;font-size:13px">Used in the output layer for multi-class classification. Converts outputs to probabilities that sum to 1. Example: [cat: 0.7, dog: 0.2, bird: 0.1]</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">8️⃣ Swish (by Google)</div>
+      <p style="margin-top:6px;font-size:13px">Like ReLU but smoother, better performance on deep networks.</p>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="table-wrap">
+    <table>
+      <tr><th>Function</th><th>Formula / Rule</th><th>Output Range</th><th>Main Problem</th></tr>
+      <tr><td>Binary Step</td><td>1 if x&gt;T else 0</td><td>{0, 1}</td><td>Derivative = 0 → can't learn via backprop; no multi-class</td></tr>
+      <tr><td>Linear</td><td>A = w×x</td><td>(-∞, ∞)</td><td>Can't capture complex patterns; deep layers collapse mathematically</td></tr>
+      <tr><td>Sigmoid</td><td>Logistic curve</td><td>0 to 1</td><td>Vanishing gradient; not symmetric around 0</td></tr>
+      <tr><td>Tanh</td><td>Scaled/shifted sigmoid</td><td>-1 to +1</td><td>Still has vanishing gradient</td></tr>
+      <tr><td>ReLU</td><td>max(0, x)</td><td>0 to ∞</td><td>Dying ReLU (negative inputs → stuck at 0)</td></tr>
+      <tr><td>Leaky ReLU</td><td>0.01x if x&lt;0 else x</td><td>-∞ to ∞</td><td>Fixes dying ReLU</td></tr>
+      <tr><td>Softmax</td><td>Normalized exponentials</td><td>0 to 1 (sums to 1)</td><td>Output-layer only, multi-class</td></tr>
+      <tr><td>Swish</td><td>x × sigmoid(x)</td><td>-∞ to ∞ (smooth)</td><td>More compute than ReLU</td></tr>
+    </table>
+  </div>
+
+  <!-- Situation -> Use quick reference table from source -->
+  <div class="table-wrap">
+    <table>
+      <tr><th>Situation</th><th>Use</th></tr>
+      <tr><td>Hidden layers (default)</td><td>ReLU</td></tr>
+      <tr><td>Dead neurons problem</td><td>Leaky ReLU</td></tr>
+      <tr><td>Binary classification output</td><td>Sigmoid</td></tr>
+      <tr><td>Multi-class output</td><td>Softmax</td></tr>
+      <tr><td>Deep networks</td><td>Swish or ReLU</td></tr>
+    </table>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Problems to Remember</div>
+    <ul class="e-list">
+      <li>❌ <strong>Binary Step:</strong> Only YES/NO. Can't handle multi-class problems. Derivative = 0 (can't learn via backprop)</li>
+      <li>❌ <strong>Linear:</strong> Can't capture complex patterns. Deep layers become useless (collapse to one layer mathematically)</li>
+      <li>❌ <strong>Sigmoid:</strong> Vanishing Gradient — gradients become tiny → learning slows dramatically. Not symmetric around 0 → all neuron outputs are positive</li>
+      <li>❌ <strong>Tanh:</strong> Still has vanishing gradient</li>
+      <li>❌ <strong>ReLU:</strong> Dying ReLU — neurons that get negative inputs always output 0 and stop learning</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ <strong>Activation Function</strong> هي اللي بتقرر: هل الـ neuron هيبعت إشارة للأمام ولا لأ؟</p>
+    <p style="margin-top:8px">من غيرها، الـ network كلها ستبقى معادلة خطية واحدة — وده مش كفاية لمشاكل معقدة.</p>
+    <br/>
+    <p><strong>1️⃣ Binary Step Function:</strong> لو الـ input &gt; حد معين → 1، وإلا → 0. المشكلة: بس YES/NO. مش بتنفع لـ multi-class. الـ derivative = 0 → مش ممكن تتعلم</p>
+    <p style="margin-top:8px"><strong>2️⃣ Linear Function:</strong> A = w × x. بتسمح بنتائج متعددة مش بس 0/1. المشكلة: مش قادرة تتعلم patterns معقدة. الطبقات العميقة بتبقى بلا فايدة رياضياً</p>
+    <p style="margin-top:8px"><strong>3️⃣ Sigmoid:</strong> output: 0 to 1. شكلها زي حرف S. كويسة لـ binary classification. المشاكل: Vanishing Gradient — الـ gradient بيبقى صغير جداً → التعلم بيبطّأ. ومش symmetric حول الصفر → كل الـ neurons بتطلع positive دايماً</p>
+    <p style="margin-top:8px"><strong>4️⃣ Tanh:</strong> output: -1 to +1. أحسن من sigmoid — symmetric حول الصفر. المشكلة: لسه عندها Vanishing Gradient</p>
+    <p style="margin-top:8px"><strong>5️⃣ ReLU:</strong> f(x) = max(0, x) → السالب يبقى 0، الموجب يفضل زي ما هو. الأكثر استخداماً في الـ hidden layers — سريعة وبسيطة. المشكلة: Dying ReLU — الـ neurons اللي بتاخد قيم سالبة دايماً بتوقف عن التعلم</p>
+    <p style="margin-top:8px"><strong>6️⃣ Leaky ReLU:</strong> بتحل مشكلة الـ dying ReLU بإنها بتعطي قيمة صغيرة بدل الصفر للسالب</p>
+    <p style="margin-top:8px"><strong>7️⃣ Softmax:</strong> للـ output layer في مشاكل التصنيف المتعدد. بتحوّل الـ outputs لـ احتمالات مجموعها 1</p>
+    <p style="margin-top:8px"><strong>8️⃣ Swish:</strong> زي ReLU بس أكثر سلاسة وأداء أفضل في الـ deep networks</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes — Quick Cheat Sheet</div>
+    <ul class="e-list">
+      <li>📌 Default for hidden layers → <strong>ReLU</strong></li>
+      <li>📌 Dead neurons problem → <strong>Leaky ReLU</strong></li>
+      <li>📌 Binary classification output → <strong>Sigmoid</strong></li>
+      <li>📌 Multi-class output → <strong>Softmax</strong></li>
+      <li>📌 Deep networks needing smoother gradients → <strong>Swish or ReLU</strong></li>
+      <li>📌 Interview favorite: be ready to explain <em>why ReLU is preferred over Sigmoid in hidden layers</em> (vanishing gradient) — see Section 6 exam notes for the full interview answer.</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> Choose ReLU for hidden layers by default. Sigmoid for binary output. Softmax for multi-class output.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> اختار ReLU للـ hidden layers بشكل افتراضي. Sigmoid للـ binary output. Softmax للـ multi-class output.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 5</span>
+    <h2>5. Feedforward Neural Network</h2>
+  </div>
+  <p class="section-subtitle">One-Direction Data Flow — Shallow (Single-Layer) vs Deep (MLP)</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>In a <span class="hl-blue">Feedforward Network</span>, data flows in one direction only — from input → hidden layers → output. No loops, no going back.</p>
+    <p style="margin-top:8px"><strong>Two types:</strong></p>
+    <div class="cmp-grid" style="margin-top:10px">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Shallow (Single-layer Perceptron)</h4>
+        <p style="font-size:12px">Just input + output, no hidden layers. Very limited.</p>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Deep (MLP — Multi-layer Perceptron)</h4>
+        <p style="font-size:12px">Multiple hidden layers. Can learn non-linear, complex patterns. This is the standard neural network you'll build for most problems.</p>
+      </div>
+    </div>
+    <div class="def-box" style="margin-top:12px">
+      <div class="def-term">Weight Initialization</div>
+      <p style="margin-top:6px;font-size:13px">Weights start as random small values (between -0.5 and 0.5). The network then learns to adjust them.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>في الـ <strong>Feedforward Network</strong>، البيانات بتتحرك في اتجاه واحد بس — من input → hidden layers → output. مفيش loops أو رجوع.</p>
+    <p style="margin-top:8px"><strong>نوعان:</strong></p>
+    <ul style="padding-right:20px;margin-top:6px;font-size:14px">
+      <li><strong>Shallow (Single-layer):</strong> Input + Output بس. بسيط ومحدود.</li>
+      <li><strong>Deep (MLP):</strong> فيها hidden layers متعددة. تقدر تتعلم patterns معقدة وغير خطية — وده اللي بنستخدمه في معظم المشاكل الحقيقية.</li>
+    </ul>
+    <p style="margin-top:8px"><strong>تهيئة الـ Weights:</strong> الأوزان بتبدأ بقيم عشوائية صغيرة، وبعدين النموذج بيتعلم يعدّلها.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the defining property of Feedforward: one-direction flow only, no loops/no feedback</li>
+      <li>📌 Shallow = no hidden layers; Deep/MLP = multiple hidden layers, can learn non-linear patterns</li>
+      <li>📌 Weight initialization is random and small (typically between -0.5 and 0.5), not zero — the network learns adjustments from there</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> The Feedforward NN is the basic shape of neural networks. The more hidden layers, the more complex patterns it can learn.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> الـ Feedforward NN هي الشكل الأساسي للـ neural networks. كلما زادت الـ hidden layers، كلما قدرت تتعلم أنماط أكثر تعقيداً.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 6</span>
+    <h2>6. Backpropagation — How the Network Learns</h2>
+  </div>
+  <p class="section-subtitle">Forward Pass → Error → Backward Pass → Gradient Descent Weight Update</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Backpropagation</span> is the learning algorithm. It answers: "How much does each weight contribute to the error?"</p>
+    <p style="margin-top:8px"><strong>Training Steps:</strong></p>
+    <ol class="steps" style="margin-top:10px">
+      <li>Initialize weights (random small values)</li>
+      <li>Forward pass — feed input, calculate output</li>
+      <li>Calculate error — compare predicted vs. actual output</li>
+      <li>Backward pass — use derivatives (calculus!) to calculate how much each weight contributed to the error</li>
+      <li>Update weights using Gradient Descent</li>
+      <li>Repeat until error is small enough</li>
+    </ol>
+    <div class="def-box" style="margin-top:12px">
+      <div class="def-term">Gradient Descent — Weight Update Rule</div>
+      <div class="formula">W_new = W_old - (learning_rate × gradient)</div>
+      <ul style="margin-top:6px;padding-left:20px;font-size:13px">
+        <li>If the slope is positive → decrease the weight</li>
+        <li>If the slope is negative → increase the weight</li>
+      </ul>
+      <p style="margin-top:6px;font-size:13px"><strong>Learning Rate (α):</strong> Controls how big each update step is. Too big = overshoots. Too small = learns slowly.</p>
+    </div>
+
+    <p style="margin-top:14px"><strong>Why Activation Functions Matter in Backprop:</strong></p>
+    <div class="cmp-grid" style="margin-top:10px">
+      <div class="cmp-col">
+        <h4 style="color:var(--warn)">Learning Problems</h4>
+        <ul>
+          <li>Binary Step / Linear: Derivative = 0 or constant → weights don't update properly → can't learn</li>
+          <li>Sigmoid/Tanh: Vanishing gradient → slow learning</li>
+          <li>ReLU: Fast gradient, but dead neurons</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Best Choices</h4>
+        <ul>
+          <li>Leaky ReLU / Swish: Best of both worlds — fast gradients without dying neurons</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Pitfalls</div>
+    <ul class="e-list">
+      <li>❌ Too high a learning rate → weight updates overshoot the minimum and the model never converges</li>
+      <li>❌ Too low a learning rate → training is painfully slow</li>
+      <li>❌ Using Binary Step/Linear activations → derivative is 0/constant, so gradients can't flow — the network cannot learn at all</li>
+    </ul>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الـ <strong>Backpropagation</strong> هو خوارزمية التعلم. بتجاوب على السؤال: "كل weight أثّر بقد إيه في الخطأ؟"</p>
+    <p style="margin-top:8px"><strong>خطوات التدريب:</strong></p>
+    <ol style="padding-right:20px;margin-top:6px;font-size:14px">
+      <li>Initialize الـ weights (قيم عشوائية صغيرة)</li>
+      <li>Forward pass — ادفع الـ input للأمام واحسب الـ output</li>
+      <li>احسب الـ Error — قارن الـ predicted بالـ actual</li>
+      <li>Backward pass — استخدم المشتقات (calculus) عشان تعرف كل weight أثّر بقد إيه في الخطأ</li>
+      <li>حدّث الـ weights باستخدام Gradient Descent</li>
+      <li>كرر لحد ما الخطأ يبقى صغير</li>
+    </ol>
+    <p style="margin-top:8px"><strong>قاعدة تحديث الـ Weights:</strong></p>
+    <p style="font-size:14px">W_new = W_old - (learning_rate × gradient)</p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>لو الـ slope موجب → قلّل الـ weight</li>
+      <li>لو الـ slope سالب → زوّد الـ weight</li>
+    </ul>
+    <p style="margin-top:8px"><strong>Learning Rate (α):</strong> بيتحكم في حجم خطوة التحديث. كبير جداً = بيتخطى الحل. صغير جداً = بيتعلم ببطء.</p>
+    <p style="margin-top:8px"><strong>ليه الـ Activation Functions مهمة في الـ Backprop؟</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li>Step / Linear: الـ derivative = 0 أو ثابت → الـ weights مش بتتحدث صح → مش بيتعلم</li>
+      <li>Sigmoid/Tanh: Vanishing gradient → تعلم بطيء</li>
+      <li>ReLU: سريع، لكن فيه مشكلة الـ dead neurons</li>
+      <li>Leaky ReLU / Swish: الأفضل للـ hidden layers</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the full training loop order: Initialize → Forward pass → Calculate error → Backward pass → Update weights → Repeat</li>
+      <li>📌 Memorize the update rule: <strong>W_new = W_old − (learning_rate × gradient)</strong></li>
+      <li>📌 Know the effect of learning rate size: too big = overshoot / never converges, too small = slow learning</li>
+    </ul>
+    <div class="def-box" style="margin-top:12px;border-color:var(--accent2)">
+      <div class="def-term" style="color:var(--accent2)">💡 Pro Tip for Job Interviews</div>
+      <p style="margin-top:6px;font-size:14px">Be ready to explain <strong>why ReLU is preferred over Sigmoid in hidden layers</strong> (vanishing gradient), and <strong>what backpropagation does in simple terms</strong> — it calculates the error at the output, then propagates that error backward through the network using derivatives (calculus) to figure out how much each weight contributed to the mistake, then nudges each weight using Gradient Descent to reduce future error. These are very common interview questions!</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> Backpropagation is what makes the network "learn" — it calculates errors and goes backward to adjust the weights intelligently.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> الـ Backpropagation هو اللي بيخلي الـ network "يتعلم" — بيحسب الأخطاء ويرجع للخلف عشان يعدّل الـ weights بطريقة ذكية.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 7</span>
+    <h2>7. Building a Deep Neural Network (Practical Steps)</h2>
+  </div>
+  <p class="section-subtitle">Create → Compile → Train → Evaluate → Predict, with Keras (Python)</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>To build a DNN with Keras (Python):</p>
+    <pre><code># 1. Create the model
+model = Sequential([...])
+
+# 2. Compile — choose optimizer, loss function, metrics
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 3. Train
+model.fit(X_train, y_train, epochs=10)
+
+# 4. Evaluate
+model.evaluate(X_test, y_test)
+
+# 5. Predict
+model.predict(X_new)</code></pre>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>عشان تبني Deep Neural Network بـ Keras:</p>
+    <pre><code># 1. بناء النموذج
+model = Sequential([...])
+
+# 2. Compile — بتختار طريقة التعلم والـ loss function
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 3. تدريب
+model.fit(X_train, y_train, epochs=10)
+
+# 4. تقييم
+model.evaluate(X_test, y_test)
+
+# 5. تنبؤ
+model.predict(X_new)</code></pre>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the 5-step Keras workflow order: <strong>Create → Compile → Train → Evaluate → Predict</strong></li>
+      <li>📌 Know what each step configures: Compile sets optimizer/loss/metrics, fit() trains over epochs, evaluate() tests on unseen data, predict() runs inference on new data</li>
+      <li>📌 The difficulty isn't in the code — it's in choosing the right architecture and hyperparameters</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> Building a DNN in code happens in 4–5 simple steps. The difficulty isn't in the code — it's in choosing the right architecture and hyperparameters.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> بناء الـ DNN في الكود بيتم في 4-5 خطوات بسيطة. الصعوبة مش في الكود — في اختيار الـ architecture المناسبة والـ hyperparameters.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SECTION 8</span>
+    <h2>8. Pros, Cons & Applications</h2>
+  </div>
+  <p class="section-subtitle">Where ANNs Shine, Where They Struggle, and Where They're Used in the Real World</p>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Pros ✅</h4>
+        <ul>
+          <li>Can model complex, non-linear patterns</li>
+          <li>Adapts to new environments (keeps learning)</li>
+          <li>Handles large feature sets</li>
+          <li>Noise tolerant</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--danger)">Cons ❌</h4>
+        <ul>
+          <li>Long training time</li>
+          <li>Hard to interpret ("black box")</li>
+          <li>Requires trial & error to tune</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:12px"><strong>Applications:</strong> Image recognition, speech recognition, face detection, medical diagnosis, fraud detection, NLP, sales forecasting</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>المزايا ✅</strong></p>
+    <ul style="padding-right:20px;margin-top:6px;font-size:14px">
+      <li>بيتعلم patterns معقدة وغير خطية</li>
+      <li>بيتكيف مع البيانات الجديدة</li>
+      <li>بيتعامل مع عدد كبير من الـ features</li>
+      <li>متحمل للـ noise</li>
+    </ul>
+    <p style="margin-top:10px"><strong>العيوب ❌</strong></p>
+    <ul style="padding-right:20px;margin-top:6px;font-size:14px">
+      <li>وقت تدريب طويل</li>
+      <li>صعب التفسير (Black Box)</li>
+      <li>محتاج تجربة وخطأ لضبط الـ hyperparameters</li>
+    </ul>
+    <p style="margin-top:10px"><strong>التطبيقات:</strong> التعرف على الصور، التعرف على الكلام، تشخيص الأمراض، اكتشاف الاحتيال، معالجة اللغة الطبيعية</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Be ready to list 2 pros and 2 cons on the spot — "black box" interpretability is the classic ANN weakness interviewers probe</li>
+      <li>📌 Know at least 4 real-world application domains: image recognition, speech recognition, medical diagnosis, fraud detection</li>
+      <li>📌 Common exam Q: "Why is training an ANN considered trial and error?" → No closed-form rule for architecture/hyperparameters — tuning requires experimentation</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">
+    ⚡ Quick Summary <span class="arrow">▼</span>
+  </button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>EN:</strong> ANNs excel at complex, non-linear, noisy problems but cost training time, interpretability, and tuning effort. They power vision, speech, medical, fraud, NLP, and forecasting applications.</p>
+      <p style="margin-top:8px;direction:rtl;text-align:right;font-family:var(--font-arabic)"><strong>الخلاصة:</strong> الـ ANN قوي في المشاكل المعقدة وغير الخطية، لكنه بياخد وقت تدريب طويل وصعب التفسير ومحتاج ضبط دقيق — وبيُستخدم في الرؤية والصوت والطب والاحتيال ومعالجة اللغة والتنبؤ.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== FULL TOPIC MAP ===================== -->
+<div class="section" id="topicmap">
+  <div class="section-header">
+    <span class="slide-badge">REFERENCE</span>
+    <h2>🗺️ Full Topic Map (Quick Reference)</h2>
+  </div>
+  <p class="section-subtitle">The Entire Lecture in One Tree Diagram</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> ANN — Complete Structure</div>
+    <pre><code>ANN
+├── What is it?        → Math function: Input → Hidden → Output
+├── Neuron Evolution   → McCulloch-Pitts → LTU → Perceptron (MLP)
+├── How it works       → Weighted sum + Bias + Activation Function
+├── Activation Fns     → Step | Linear | Sigmoid | Tanh | ReLU | Softmax
+├── Feedforward        → One-direction flow (Shallow vs Deep/MLP)
+├── Backpropagation    → Forward → Error → Backward → Update Weights
+├── Building DNN       → Create → Compile → Train → Evaluate → Predict
+└── Use cases          → Vision, NLP, Medical, Finance...</code></pre>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">💡</span> Pro Tip for Job Interviews</div>
+    <p>Be ready to explain why ReLU is preferred over Sigmoid in hidden layers (vanishing gradient), and what backpropagation does in simple terms. These are very common interview questions!</p>
+  </div>
+</div>
+
+<!-- ===================== QUIZ ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Test Your Understanding of All 8 Sections</p>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. What are the three main parts of a Neural Network?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Weight, Bias, Gradient</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Input Layer, Hidden Layer(s), Output Layer</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Forward Pass, Backward Pass, Loss Function</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Optimizer, Metric, Epoch</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Input Layer receives raw data, Hidden Layer(s) process/transform it, Output Layer gives the final answer.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. Put the neuron evolution in the correct order.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Perceptron → LTU → McCulloch-Pitts</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) McCulloch-Pitts → LTU → Perceptron</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) LTU → Perceptron → McCulloch-Pitts</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Perceptron → McCulloch-Pitts → LTU</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — McCulloch-Pitts (1943) → LTU (1957) → Perceptron, which was the first neuron that could actually learn.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. In the forward pass, what happens right after the weighted sum is computed?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The output layer fires immediately</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The bias is added, producing Z = W·X + b</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Backpropagation begins</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The learning rate is updated</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — After X1×W1 + X2×W2 + ..., the bias is added to form Z, which then goes through the activation function.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Which activation function is most commonly used for hidden layers by default?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Sigmoid</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Binary Step</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) ReLU</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Softmax</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — ReLU is fast, computationally cheap, and is the default choice for hidden layers (unless dying ReLU is a concern, then use Leaky ReLU).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. A Feedforward Network with no hidden layers (just input + output) is called:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) A Multilayer Perceptron (MLP)</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) A Shallow / Single-layer Perceptron</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) A Deep Neural Network</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A Recurrent Neural Network</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Shallow (Single-layer Perceptron) = input + output only, no hidden layers, and is very limited compared to Deep/MLP.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. In Gradient Descent, what happens if the learning rate is set too high?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The model learns extremely slowly</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The updates overshoot and the model may never converge</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The activation function stops working</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The bias term is removed automatically</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Too big a learning rate causes the weight update step to overshoot the minimum, preventing convergence.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. What is the correct order of steps to build and use a model in Keras?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Predict → Train → Compile → Create → Evaluate</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Create → Compile → Train → Evaluate → Predict</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Compile → Create → Evaluate → Train → Predict</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Train → Create → Predict → Compile → Evaluate</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — model = Sequential([...]) → model.compile(...) → model.fit(...) → model.evaluate(...) → model.predict(...)</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. Which of the following is listed as a "Con" of Artificial Neural Networks in the source guide?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) They cannot handle large feature sets</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) They are hard to interpret ("black box")</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) They cannot model non-linear patterns</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) They are intolerant of noise</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — ANNs are famously "black box" models — hard to interpret, in addition to long training time and needing trial & error tuning.</div>
+  </div>
+
+  <!-- True/False -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">✅</span> True / False Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 1: The Perceptron introduced the ability for a neuron to learn by adjusting its own weights.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — The Perceptron was the first real learning machine: it adjusts weights from mistakes and added a bias term.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 2: Sigmoid and Tanh both suffer from the vanishing gradient problem.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'True')">True</li>
+      <li onclick="mcqAnswer(this, false, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>TRUE</strong> — Tanh improves on Sigmoid by being symmetric around 0, but it still suffers from vanishing gradient.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 3: The Input Layer performs computation (weighted sums and activation) on the data.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — The Input Layer only passes data through unchanged. Hidden layers do all the actual computation.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">T/F 4: Softmax is typically used in hidden layers rather than the output layer.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'True')">True</li>
+      <li onclick="mcqAnswer(this, true, 'False')">False</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>FALSE</strong> — Softmax is used in the output layer for multi-class classification, converting outputs into probabilities that sum to 1.</div>
+  </div>
+
+  <!-- Fill in the blank -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--warn)"><span class="icon">📝</span> Fill in the Blank</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 1: The Perceptron's formula is f(x) = W·X + ________.</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Gradient</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) b (bias)</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Learning rate</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Activation</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: b (bias)</strong> — f(x) = W·X + b, where b shifts the output for better accuracy.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">FIB 2: The Keras function used to train a model over a number of epochs is model.________().</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) compile</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) fit</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) evaluate</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) predict</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: fit</strong> — model.fit(X_train, y_train, epochs=10) trains the model.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Why is a bias term needed in addition to weights? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> The bias (b) helps shift the output, making the model more flexible — think of it as how important a connection is (weight) versus a baseline offset the model can adjust independent of the inputs (bias). Without bias, the decision boundary would be forced through the origin, limiting what the neuron can represent.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Explain the vanishing gradient problem and which activation functions suffer from it. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Vanishing gradient happens when gradients become extremely tiny as they are propagated backward through many layers, causing learning to slow down dramatically or stop. Sigmoid and Tanh both suffer from this — Sigmoid additionally isn't symmetric around 0 (all outputs positive), while Tanh is symmetric but still vanishes.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: What is Dying ReLU, and how is it fixed? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Dying ReLU occurs when a neuron consistently receives negative inputs — since ReLU outputs exactly 0 for any negative input, the neuron always outputs 0 and its gradient is 0, so it stops learning permanently. It's fixed with Leaky ReLU, which allows a small negative value (e.g. f(x) = 0.01x for negative x) instead of a hard zero, keeping gradients flowing.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Walk through the full Backpropagation training loop in your own words. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> (1) Initialize weights with small random values. (2) Forward pass — feed the input through the network to get a prediction. (3) Calculate error by comparing the prediction to the actual label. (4) Backward pass — use derivatives to compute how much each weight contributed to that error. (5) Update every weight using Gradient Descent: W_new = W_old − (learning_rate × gradient). (6) Repeat the whole loop until the error is small enough.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 8 sections of the source study guide</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 1</strong> — What is a Neural Network? (Input/Hidden/Output layers, Weight, Bias, Cooking analogy) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 2</strong> — Evolution of the Neuron (McCulloch-Pitts → LTU → Perceptron → MLP, f(x)=W·X+b) — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 3</strong> — How Does ANN Work? (Forward Pass: weighted sum, bias, activation, Gym analogy) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 4</strong> — Activation Functions (Binary Step, Linear, Sigmoid, Tanh, ReLU, Leaky ReLU, Softmax, Swish, cheat sheet table) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 5</strong> — Feedforward Neural Network (Shallow vs Deep/MLP, weight initialization) — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 6</strong> — Backpropagation (training steps, Gradient Descent update rule, learning rate, activation-backprop interplay) — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 7</strong> — Building a DNN in Keras (Sequential, compile, fit, evaluate, predict — English + Arabic-commented code) — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Section 8</strong> — Pros, Cons & Applications (black box, training time, tuning, vision/speech/medical/fraud/NLP/forecasting) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Full Topic Map</strong> — Complete tree diagram of ANN concepts — ✅ Topic Map section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Pro Tip for Job Interviews</strong> — ReLU vs Sigmoid + explaining backprop simply — ✅ Section 6 exam notes + Topic Map section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Situation → Use Table</strong> — ReLU / Leaky ReLU / Sigmoid / Softmax / Swish quick reference — ✅ Section 4</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 8/8 SECTIONS — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, formulas, code snippets, tables, and application examples from the original bilingual study guide have been preserved and reformatted in both English and Arabic, with additional memory tricks and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><span class="tag tag-blue">Input Layer</span> → <span class="tag tag-blue">Hidden Layer(s)</span> → <span class="tag tag-blue">Output Layer</span></p>
+      <p><strong>Neuron Evolution:</strong> <span class="tag tag-orange">McCulloch-Pitts (1943)</span> → <span class="tag tag-orange">LTU (1957)</span> → <span class="tag tag-orange">Perceptron f(x)=W·X+b</span> → <span class="tag tag-orange">MLP</span></p>
+      <p><strong>Forward Pass:</strong> <span class="tag tag-purple">Weighted Sum</span> → <span class="tag tag-purple">+ Bias (Z=W·X+b)</span> → <span class="tag tag-purple">Activation Function</span></p>
+      <p><strong>Activation Fns:</strong> <span class="tag tag-green">Step</span> <span class="tag tag-green">Linear</span> <span class="tag tag-green">Sigmoid</span> <span class="tag tag-green">Tanh</span> <span class="tag tag-green">ReLU</span> <span class="tag tag-green">Leaky ReLU</span> <span class="tag tag-green">Softmax</span> <span class="tag tag-green">Swish</span></p>
+      <p><strong>Feedforward:</strong> <span class="tag tag-blue">Shallow (Single-layer)</span> vs <span class="tag tag-blue">Deep (MLP)</span></p>
+      <p><strong>Backpropagation:</strong> <span class="tag tag-orange">Forward Pass</span> → <span class="tag tag-orange">Error</span> → <span class="tag tag-orange">Backward Pass</span> → <span class="tag tag-orange">Gradient Descent Update</span></p>
+      <p><strong>Keras Workflow:</strong> <span class="tag tag-purple">Create</span> → <span class="tag tag-purple">Compile</span> → <span class="tag tag-purple">Train (fit)</span> → <span class="tag tag-purple">Evaluate</span> → <span class="tag tag-purple">Predict</span></p>
+      <p><strong>Pros/Cons:</strong> <span class="tag tag-green">Non-linear, adaptive, noise-tolerant</span> vs <span class="tag tag-orange">Slow training, black box, trial & error</span></p>
+      <p><strong>Applications:</strong> <span class="tag tag-blue">Vision</span> <span class="tag tag-green">Speech</span> <span class="tag tag-purple">Medical Diagnosis</span> <span class="tag tag-orange">Fraud Detection</span> <span class="tag tag-blue">NLP</span> <span class="tag tag-green">Sales Forecasting</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 12 — Object Detection: YOLO, NMS &amp; Detection Architectures | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .pipe-row{flex-direction:column}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* PIPELINE DIAGRAM */
+.pipe-row{display:flex;align-items:center;gap:8px;margin:16px 0;flex-wrap:wrap}
+.pipe-box{
+  flex:1;min-width:140px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 12px;
+  text-align:center;
+}
+.pipe-box .pb-title{font-family:var(--font-mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.pipe-box .pb-sub{font-size:11px;color:var(--muted)}
+.pipe-arrow{font-size:20px;color:var(--muted);flex-shrink:0}
+.pipe-box.backbone{border-color:rgba(56,189,248,0.4)}
+.pipe-box.backbone .pb-title{color:var(--accent)}
+.pipe-box.neck{border-color:rgba(129,140,248,0.4)}
+.pipe-box.neck .pb-title{color:var(--accent2)}
+.pipe-box.head{border-color:rgba(52,211,153,0.4)}
+.pipe-box.head .pb-title{color:var(--accent3)}
+/* IoU BOX ILLUSTRATION */
+.iou-demo{position:relative;width:260px;height:200px;margin:16px auto;background:var(--bg);border:1px solid var(--border);border-radius:10px}
+.iou-box{position:absolute;border-radius:4px}
+.iou-gt{left:30px;top:40px;width:140px;height:110px;border:2px solid var(--accent3);background:rgba(52,211,153,0.08)}
+.iou-pred{left:80px;top:70px;width:140px;height:110px;border:2px dashed var(--accent4);background:rgba(251,146,60,0.1)}
+.iou-label{position:absolute;font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 CV Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — Detection Basics</div>
+    <a href="#s1" onclick="setActive(this)">1. What is Object Detection</a>
+    <a href="#s2" onclick="setActive(this)">2. (C,X,Y,W,H) Label Format</a>
+    <a href="#s3" onclick="setActive(this)">3. The COCO Dataset</a>
+    <div class="nav-section">Part II — Architectures</div>
+    <a href="#s4" onclick="setActive(this)">4. Algorithm Families</a>
+    <a href="#s5" onclick="setActive(this)">5. What is YOLO?</a>
+    <a href="#s6" onclick="setActive(this)">6. YOLO Pipeline — Backbone</a>
+    <a href="#s7" onclick="setActive(this)">7. YOLO Pipeline — Neck &amp; Head</a>
+    <a href="#s8" onclick="setActive(this)">8. Non-Maximum Suppression</a>
+    <a href="#s9" onclick="setActive(this)">9. YOLOv8 Architecture &amp; Export</a>
+    <div class="nav-section">Part III — Evaluation</div>
+    <a href="#s10" onclick="setActive(this)">10. FLOPs &amp; Model Size</a>
+    <a href="#s11" onclick="setActive(this)">11. IoU &amp; Mean Average Precision</a>
+    <div class="nav-section">Part IV — Practice</div>
+    <a href="#s12" onclick="setActive(this)">12. YOLO Version Comparison</a>
+    <a href="#s13" onclick="setActive(this)">13. Image Labeling Tools</a>
+    <a href="#s14" onclick="setActive(this)">14. Training YOLO on Custom Data</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 12 — OBJECT DETECTION: YOLO, NMS &amp; DETECTION ARCHITECTURES</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 12</div>
+  <h1>Object Detection: YOLO, NMS &amp; Detection Architectures</h1>
+  <p>From Bounding Boxes to Real-Time Detection Pipelines — Backbone, Neck, Head and Beyond</p>
+  <p class="author">Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">37</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">14</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">12+</span><span class="lbl">YOLO Versions</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Object Detection</span>
+    <span class="tag tag-green">YOLO</span>
+    <span class="tag tag-purple">Bounding Box</span>
+    <span class="tag tag-orange">Non-Max Suppression</span>
+    <span class="tag tag-blue">COCO Dataset</span>
+    <span class="tag tag-green">Backbone</span>
+    <span class="tag tag-purple">Neck</span>
+    <span class="tag tag-orange">Head</span>
+    <span class="tag tag-blue">IoU</span>
+    <span class="tag tag-green">mAP</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 2–3</span>
+    <h2>1. What is Object Detection?</h2>
+  </div>
+  <p class="section-subtitle">Classification vs Localization vs Detection — Bounding Boxes as a Regression Task</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 2 — Object Detection:</strong> Object detection is a phenomenon in computer vision — the task of classifying and localizing multiple objects in an image. Some of the objects detected include people, cars, chairs, etc.</p>
+    <br/>
+    <p><strong>Slide 3 — Object Detection:</strong> We all know about the image classification problem — given an image, the network finds the class the image belongs to. Localizing an object in a picture means predicting a bounding box around the object, and can be expressed as a regression task.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Object Detection</span> is a computer vision task that answers two questions at once: <strong>"what objects are in this image?"</strong> and <strong>"where exactly are they?"</strong> It combines two simpler tasks:</p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Classification</h4>
+        <ul>
+          <li>One label for the whole image</li>
+          <li>"This image contains a cat"</li>
+          <li>No location information</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Localization</h4>
+        <ul>
+          <li>Predicts a bounding box for one main object</li>
+          <li>Framed as a <strong>regression</strong> problem (predicting numbers, not categories)</li>
+          <li>Outputs box coordinates</li>
+        </ul>
+      </div>
+    </div>
+    <p><span class="hl-green">Object Detection = Classification + Localization</span>, applied to <em>multiple</em> objects in the same image. For every object found, the model must output <strong>both</strong> a class label (what) and a bounding box (where).</p>
+    <div class="def-box">
+      <div class="def-term">Why is localization a "regression" task?</div>
+      <p style="margin-top:6px;font-size:13px">Classification predicts a discrete category (cat, dog, car — a probability distribution over classes). Localization instead predicts <strong>continuous numeric values</strong> — the coordinates and size of a box. Predicting continuous numbers is exactly what regression means in machine learning, as opposed to classification which predicts discrete labels.</p>
+    </div>
+    <p>Typical objects detected in real applications: people, cars, chairs, traffic signs, animals — essentially any countable "thing" a model has been trained to recognize.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>كشف الأجسام (Object Detection)</strong> هو مهمة في رؤية الحاسوب تجاوب على سؤالين في نفس الوقت: "ما هي الأجسام الموجودة في الصورة؟" و"أين تقع بالضبط؟". هي مزيج من مهمتين:</p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li><strong>Classification (التصنيف)</strong> — يعطي تصنيفًا واحدًا للصورة كاملة، بدون أي معلومة عن الموقع</li>
+      <li><strong>Localization (تحديد الموقع)</strong> — يتنبأ بـ bounding box (مربع محيط) حول جسم واحد رئيسي، وتُعامل كمهمة <strong>Regression</strong> (تنبؤ بقيم رقمية مستمرة لا فئات)</li>
+    </ul>
+    <br/>
+    <p>ببساطة: <strong>Object Detection = Classification + Localization</strong>، وتُطبَّق على أكثر من جسم واحد في نفس الصورة. لكل جسم يكتشفه الـ model، يجب أن يُخرج تصنيف (class) و bounding box معًا.</p>
+    <br/>
+    <p><strong>لماذا Regression؟</strong> لأن الـ Classification يتنبأ بفئة محددة (قطة، كلب...)، أما تحديد موقع المربع فهو تنبؤ بأرقام مستمرة (إحداثيات وأبعاد)، وهذا بالتحديد تعريف الـ Regression في تعلم الآلة.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — Photo of a Street</div>
+    <p>Imagine a photo of a busy street. <strong>Classification</strong> would just say "this photo contains cars" (one label). <strong>Object Detection</strong> would draw a separate box around every car, every pedestrian, and every traffic light — and label each box with its class: "car", "person", "traffic light".</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick</div>
+    <p><strong>"What + Where, for Everyone"</strong> — Detection tells you WHAT each object is (classification) and WHERE it is (bounding box/localization), repeated for EVERY object in the image.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>Object Detection is not the same as Segmentation. Detection gives a rectangular box (coarse location); Segmentation gives a pixel-precise mask (exact shape outline). Detection is faster and less precise than segmentation.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Definition: Object Detection = Classification + Localization, applied to multiple objects</li>
+      <li>📌 Localization is a regression task (predicts numbers, not categories)</li>
+      <li>📌 Classification is done per-image; Detection produces one class + one box per object</li>
+      <li>📌 Common exam Q: "Why is bounding box prediction called regression?" → because it predicts continuous coordinate values</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Object Detection = Classification (what) + Localization (where), applied to every object in an image. Localization is framed as a regression problem because it predicts continuous bounding-box coordinates rather than discrete class labels.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 4–6</span>
+    <h2>2. The (C, X, Y, W, H) Label Format &amp; Data Pipeline</h2>
+  </div>
+  <p class="section-subtitle">How Images Are Labeled and Fed Into a Detection Model</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 4 — Object Detection Example:</strong> A raw image of size 416×416 is passed through image labeling, producing a tuple <code>(C, X, Y, W, H)</code>. Each item fed to the model should be a tuple of the form: <code>(images, (class_labels, bounding_boxes))</code>. The raw image → labeling → model → image result.</p>
+    <p style="margin-top:8px"><strong>Slides 5–6 — Object Detection Example:</strong> Visual examples of labeled images, including a "TL" (top-left origin) labeled example showing how the box coordinates are drawn on top of the object.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Before a model can learn to detect objects, every training image must be <strong>labeled</strong> with the ground-truth answer: which classes are present, and exactly where each one is. The standard format used is the tuple:</p>
+    <div class="formula">(C, X, Y, W, H)</div>
+    <div class="def-box">
+      <div class="def-term">Decoding the tuple</div>
+      <ul style="margin-top:8px;padding-left:18px;font-size:13px">
+        <li><strong>C</strong> — Class label (e.g., 0 = person, 1 = car, 2 = chair)</li>
+        <li><strong>X</strong> — X-coordinate of the box center (often normalized 0–1 relative to image width)</li>
+        <li><strong>Y</strong> — Y-coordinate of the box center (normalized relative to image height)</li>
+        <li><strong>W</strong> — Width of the bounding box</li>
+        <li><strong>H</strong> — Height of the bounding box</li>
+      </ul>
+    </div>
+    <p>The full data pipeline: a <strong>raw image</strong> (e.g., 416×416 pixels) goes through <strong>image labeling</strong>, which produces one <code>(C,X,Y,W,H)</code> tuple per object. Each training sample fed into the model is structured as:</p>
+    <div class="formula">(images, (class_labels, bounding_boxes))</div>
+    <p>That is: an image paired with a list of class labels AND a matching list of bounding boxes — one pair per object in that image. The model consumes this structure, learns the mapping from pixels to boxes+classes, and at inference time produces an <strong>image result</strong>: the same image with predicted boxes drawn on it.</p>
+    <div class="def-box">
+      <div class="def-term">Worked Mini-Example</div>
+      <p style="margin-top:6px;font-size:13px">A 416×416 image contains one car. Its label might be:</p>
+      <div class="formula">(C=1, X=0.5, Y=0.6, W=0.3, H=0.2)</div>
+      <p style="font-size:13px">Meaning: class 1 (car), box center at 50% across and 60% down the image, box width = 30% of image width (≈125px), box height = 20% of image height (≈83px). If two objects are present (a car and a person), the label becomes a list of two such tuples.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>قبل أن يتعلّم الـ model كشف الأجسام، يجب تصنيف (label) كل صورة تدريبية بالإجابة الصحيحة: ما هي الفئات (classes) الموجودة، وأين يقع كل جسم بالضبط. الصيغة القياسية المستخدمة هي:</p>
+    <div class="formula" style="direction:ltr">(C, X, Y, W, H)</div>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li><strong>C</strong> — رقم الفئة (Class)، مثلاً 0=شخص، 1=سيارة</li>
+      <li><strong>X, Y</strong> — إحداثيات مركز الـ bounding box (غالبًا نسبية بين 0 و1)</li>
+      <li><strong>W, H</strong> — عرض وارتفاع الصندوق</li>
+    </ul>
+    <br/>
+    <p>خط الأنابيب الكامل: صورة خام (raw image) بمقاس مثلاً 416×416 بيكسل تمر بعملية <strong>image labeling</strong> (وضع الصناديق يدويًا أو بأداة تصنيف)، فينتج tuple واحد <code>(C,X,Y,W,H)</code> لكل جسم. الشكل النهائي لكل عنصر تدريبي يُغذّى في الـ model هو:</p>
+    <div class="formula" style="direction:ltr">(images, (class_labels, bounding_boxes))</div>
+    <p>أي: صورة مرتبطة بقائمة فئات وقائمة صناديق مطابقة لها — زوج واحد لكل جسم في الصورة. يتعلم الـ model من هذه البيانات كيف يحوّل البكسلات إلى فئات وصناديق، وعند الاستدلال (inference) يُخرج نتيجة الصورة (image result) مع الصناديق المتوقعة مرسومة عليها.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Building the Label</div>
+    <ol class="steps">
+      <li>Take a raw 416×416 photo containing one dog</li>
+      <li>Open a labeling tool and draw a rectangle around the dog</li>
+      <li>Assign the class "dog" → C = 3 (if dog is class index 3)</li>
+      <li>The tool computes the box center (X,Y) and size (W,H), normalized 0–1</li>
+      <li>Save label as (3, 0.42, 0.55, 0.28, 0.35) — this is the ground truth used to train the model</li>
+    </ol>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Confusing (X,Y) as the top-left corner instead of the box <strong>center</strong> — most modern formats (YOLO) use center coordinates, not corner coordinates</li>
+      <li>❌ Forgetting to normalize coordinates — mixing pixel values and 0–1 fractions breaks training</li>
+      <li>❌ Mismatching the order of class_labels and bounding_boxes lists — they must correspond one-to-one</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the tuple: (C, X, Y, W, H) — Class, center-X, center-Y, Width, Height</li>
+      <li>📌 Know the training sample structure: (images, (class_labels, bounding_boxes))</li>
+      <li>📌 Pipeline: raw image → image labeling → (C,X,Y,W,H) → model → image result</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Every labeled object is stored as (C,X,Y,W,H) — class + box center + box size. Training samples are structured as (images, (class_labels, bounding_boxes)). The pipeline is: raw image → labeling → model → image result with predicted boxes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 7</span>
+    <h2>3. The COCO Dataset</h2>
+  </div>
+  <p class="section-subtitle">The Standard Benchmark Dataset for Object Detection</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 7 — COCO Dataset:</strong> The slide introduces the COCO (Common Objects in Context) dataset as the benchmark dataset used to train and evaluate object detection models.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">COCO</span> stands for <strong>Common Objects in Context</strong>. It is one of the most widely used large-scale datasets for object detection, segmentation, and keypoint detection research.</p>
+    <div class="def-box">
+      <div class="def-term">Key facts about COCO</div>
+      <ul style="margin-top:8px;padding-left:18px;font-size:13px">
+        <li>Over 330,000 images, more than 200,000 of them labeled</li>
+        <li>80 object categories (person, car, dog, chair, etc.)</li>
+        <li>Objects labeled "in context" — real, cluttered everyday scenes, not isolated studio shots</li>
+        <li>Each object has a bounding box AND a pixel-level segmentation mask</li>
+        <li>Used as the standard benchmark to compare detection models (YOLO, SSD, Faster R-CNN, etc. all report their accuracy on COCO)</li>
+      </ul>
+    </div>
+    <p>Why "in context" matters: a model trained only on clean, centered, single-object images will fail in the real world, where objects overlap, are partially hidden, and appear at many scales. COCO images look like real photographs — multiple objects, occlusion, varied lighting — forcing models to become genuinely robust.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>COCO</strong> اختصار لـ <strong>Common Objects in Context</strong>، وهو من أشهر datasets الضخمة المستخدمة في أبحاث كشف الأجسام (object detection) والتقطيع (segmentation) وتحديد نقاط الجسم (keypoints).</p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li>أكثر من 330,000 صورة، منها أكثر من 200,000 صورة موصوفة (labeled)</li>
+      <li>80 فئة (category) مختلفة مثل شخص، سيارة، كلب، كرسي</li>
+      <li>الأجسام موصوفة "في سياقها الطبيعي" (in context) — يعني مشاهد حقيقية مزدحمة، وليس صور استوديو معزولة</li>
+      <li>كل جسم له bounding box وأيضًا segmentation mask دقيق على مستوى البيكسل</li>
+      <li>يُستخدم كـ benchmark قياسي لمقارنة موديلات الكشف المختلفة (YOLO مقابل SSD مقابل Faster R-CNN...)</li>
+    </ul>
+    <p style="margin-top:8px">أهمية "in context": موديل تدرّب فقط على صور نظيفة لجسم واحد وسط الصورة سيفشل في الواقع، حيث تتداخل الأجسام وتُحجب جزئيًا وتظهر بمقاسات مختلفة. صور COCO تشبه صورًا حقيقية، فتجعل الموديل أكثر متانة (robust).</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example</div>
+    <p>A research paper introducing a new detection algorithm will almost always report a metric like "mAP@0.5 on COCO val2017 = 52.3%" — meaning the model was tested against COCO's standard validation images so researchers everywhere can compare results fairly, using the same dataset and the same evaluation rules.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 COCO = Common Objects in Context</li>
+      <li>📌 80 categories, 330K+ images, bounding boxes + segmentation masks</li>
+      <li>📌 The standard benchmark for comparing detection model accuracy (mAP scores reported "on COCO")</li>
+      <li>📌 "In context" = realistic cluttered scenes, not isolated objects</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>COCO (Common Objects in Context) is the standard large-scale benchmark dataset for object detection: 80 classes, 330K+ images, bounding boxes + segmentation masks, objects shown in realistic, cluttered scenes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 8</span>
+    <h2>4. Object Detection Algorithm Families</h2>
+  </div>
+  <p class="section-subtitle">One-Stage vs Two-Stage Detectors — YOLO, SSD, R-CNN Family, DINOv3</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 8 — Object Detection Algorithms:</strong></p>
+    <ul style="padding-left:20px;font-size:14px;margin-top:8px">
+      <li>YOLO (You Only Look Once) — Versions 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 26, World</li>
+      <li>Single Shot Detector (SSD)</li>
+      <li>Fast R-CNN</li>
+      <li>Faster R-CNN</li>
+      <li>DINOv3</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Object detection algorithms fall into two broad families, differing in how many passes they make over the image:</p>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">One-Stage Detectors</h4>
+        <ul>
+          <li>YOLO (all versions 3–12, World, 26)</li>
+          <li>SSD (Single Shot Detector)</li>
+          <li>Predict boxes + classes in a single forward pass</li>
+          <li>Very fast — suited for real-time</li>
+          <li>Slightly lower accuracy historically (gap has closed a lot)</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Two-Stage Detectors</h4>
+        <ul>
+          <li>Fast R-CNN</li>
+          <li>Faster R-CNN</li>
+          <li>Stage 1: propose candidate regions; Stage 2: classify + refine each region</li>
+          <li>Historically more accurate</li>
+          <li>Slower — harder to run in real-time</li>
+        </ul>
+      </div>
+    </div>
+    <p>A newer family, <span class="hl-purple">DINOv3</span>, represents transformer-based self-supervised vision backbones that can be adapted for detection and other dense vision tasks — an alternative to purely convolutional pipelines.</p>
+    <div class="def-box">
+      <div class="def-term">The name "YOLO" family is huge</div>
+      <p style="margin-top:6px;font-size:13px">Unlike SSD or Faster R-CNN which stayed mostly static, YOLO has had a continuous stream of versions from the community and Ultralytics: v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v26, and "YOLO-World" (an open-vocabulary variant that can detect classes described in free text, not just fixed categories).</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>خوارزميات كشف الأجسام تنقسم إلى عائلتين رئيسيتين حسب عدد مرات تمرير الصورة عبر الشبكة:</p>
+    <p style="margin-top:8px"><strong>One-Stage Detectors (كاشفات المرحلة الواحدة):</strong> مثل YOLO بجميع إصداراته وSSD. تتنبأ بالصناديق والفئات في تمريرة واحدة فقط، وهذا يجعلها سريعة جدًا ومناسبة للـ real-time.</p>
+    <p style="margin-top:8px"><strong>Two-Stage Detectors (كاشفات المرحلتين):</strong> مثل Fast R-CNN وFaster R-CNN. المرحلة الأولى تقترح مناطق مرشحة (region proposals)، والمرحلة الثانية تصنّف وتُحسّن كل منطقة. أدق تاريخيًا لكنها أبطأ.</p>
+    <p style="margin-top:8px">أما <strong>DINOv3</strong> فهو نموذج أحدث يعتمد على بنية Transformer وتعلم ذاتي الإشراف (self-supervised)، ويُستخدم كـ backbone بصري بديل للـ CNN التقليدية.</p>
+    <br/>
+    <p><strong>عائلة YOLO ضخمة:</strong> بعكس SSD أو Faster R-CNN اللي ظلت شبه ثابتة، YOLO عندها إصدارات كتيرة جدًا من v3 لغاية v12 وv26 وأيضًا YOLO-World (نسخة تكتشف فئات موصوفة بالنص الحر، مش فئات ثابتة فقط).</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy</div>
+    <p>A one-stage detector is like a chef who glances at the whole kitchen once and immediately calls out every dish and where it is. A two-stage detector is like a chef who first walks around pointing at "something might be here" spots, then goes back to carefully examine and name each one — more careful, but slower.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>"One-stage is always worse than two-stage" is outdated. Modern YOLO versions (v8+) match or beat many two-stage detectors in accuracy while remaining much faster — the speed/accuracy trade-off has largely closed.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 One-stage: YOLO, SSD — single pass, fast, real-time friendly</li>
+      <li>📌 Two-stage: Fast R-CNN, Faster R-CNN — region proposal then classification, historically more accurate but slower</li>
+      <li>📌 DINOv3 — transformer-based, self-supervised vision backbone</li>
+      <li>📌 Know YOLO has the most actively evolving version history (v3 → v12, World, 26)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Detection algorithms split into one-stage (YOLO, SSD — fast, single pass) and two-stage (Fast/Faster R-CNN — region proposal then classification, historically more accurate but slower). DINOv3 represents a newer transformer-based approach.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 9</span>
+    <h2>5. What is YOLO — And Why Is It Fast?</h2>
+  </div>
+  <p class="section-subtitle">You Only Look Once — Single-Shot Regression for Real-Time Detection</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 9 — What Is YOLO?</strong> You Only Look Once (YOLO) is an algorithm that uses convolutional neural networks for object detection. It is one of the fastest object detection algorithms out there. It is a very good choice when we need real-time detection, without loss of too much accuracy.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">YOLO (You Only Look Once)</span> is a family of convolutional neural network (CNN) based object detectors. The name describes exactly what makes it fast: the network looks at the entire image <strong>only once</strong> and directly outputs every bounding box and class in one forward pass — no separate "look for regions, then look again to classify" step.</p>
+    <div class="def-box">
+      <div class="def-term">Why "one look" = speed</div>
+      <p style="margin-top:6px;font-size:13px">Two-stage detectors run the network multiple times — once to propose regions, again to classify each region. YOLO instead divides the image into a grid and, in a single pass, predicts for every grid cell: is there an object here, what class is it, and what are its box coordinates. One pass through one network = dramatically fewer computations = real-time speed (often 30+ frames per second).</p>
+    </div>
+    <p>This makes YOLO an excellent choice whenever <strong>real-time detection</strong> is required — live video, robotics, autonomous driving, security cameras — situations where waiting even a fraction of a second longer per frame is unacceptable. Crucially, YOLO achieves this speed <strong>without losing too much accuracy</strong> compared to slower two-stage methods, which is why it became the dominant real-time detector family.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>YOLO (You Only Look Once)</strong> هو خوارزمية تعتمد على الشبكات العصبية التلافيفية (CNN) لكشف الأجسام. اسمها يوضّح سرّ سرعتها: الشبكة "تنظر للصورة مرة واحدة فقط" وتُخرج مباشرة كل الصناديق والفئات في تمريرة واحدة (forward pass)، بدون خطوة منفصلة للبحث عن مناطق مرشحة ثم تصنيفها.</p>
+    <p style="margin-top:8px">في المقابل، الكاشفات ثنائية المرحلة تُشغّل الشبكة أكثر من مرة (مرة لاقتراح المناطق، ومرة لتصنيفها). YOLO تقسّم الصورة إلى شبكة (grid) وفي تمريرة واحدة تتنبأ لكل خلية: هل يوجد جسم هنا؟ وما فئته؟ وما إحداثيات صندوقه؟</p>
+    <p style="margin-top:8px">هذا يجعل YOLO خيارًا مثاليًا عند الحاجة لـ <strong>real-time detection</strong>: فيديو مباشر، روبوتات، قيادة ذاتية، كاميرات أمنية — أي حالة لا تحتمل أي تأخير إضافي. والأهم أن YOLO تحقق هذه السرعة <strong>بدون خسارة كبيرة في الدقة</strong> مقارنة بالطرق الأبطأ، وهذا سبب انتشارها الواسع.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy</div>
+    <p>Imagine scanning a crowded photo with your eyes just once and instantly pointing at every person, car, and dog simultaneously — versus scanning it once to spot "interesting areas," then going back to stare at each area individually. The first approach ("you only look once") is obviously faster.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 YOLO = You Only Look Once; CNN-based; single forward pass</li>
+      <li>📌 Speed comes from unifying detection into one regression problem over a grid, instead of separate proposal + classification stages</li>
+      <li>📌 Best choice for real-time detection without major accuracy loss</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>YOLO looks at the image once and directly predicts all boxes and classes in a single CNN forward pass, making it one of the fastest detectors — ideal for real-time use without sacrificing much accuracy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>6. YOLO Pipeline — The Backbone</h2>
+  </div>
+  <p class="section-subtitle">Feature Extraction — Tiny YOLO vs Darknet53 vs YOLOv4 Backbone Options</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 10 — YOLO Steps:</strong> Backbone refers to the feature-extraction architecture. Tiny YOLO has only 9 convolutional layers, so it's less accurate but faster and better suited for mobile and embedded projects. Darknet53 (the backbone used in YOLOv3) has 53 convolutional layers, so it's more accurate but slower. In YOLOv4, backbones can be VGG, ResNet, SpineNet, EfficientNet, ResNeXt, or Darknet53.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The YOLO pipeline has three conceptual stages: <span class="hl-blue">Backbone</span> → <span class="hl-purple">Neck</span> → <span class="hl-green">Head</span>. The <strong>Backbone</strong> is the first stage — it's the feature-extraction network that converts a raw image into a rich set of feature maps (edges, textures, shapes, object parts) at various levels of abstraction.</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Backbone</th><th>Conv Layers</th><th>Speed</th><th>Accuracy</th><th>Best For</th></tr>
+        <tr><td>Tiny YOLO</td><td>9</td><td>Very fast</td><td>Lower</td><td>Mobile / embedded devices</td></tr>
+        <tr><td>Darknet53 (YOLOv3)</td><td>53</td><td>Slower</td><td>Higher</td><td>Accuracy-focused server deployment</td></tr>
+        <tr><td>VGG / ResNet / SpineNet / EfficientNet / ResNeXt (YOLOv4 options)</td><td>Varies</td><td>Varies</td><td>Varies</td><td>Configurable trade-off per use case</td></tr>
+      </table>
+    </div>
+    <p>The core trade-off is <strong>depth vs speed</strong>: more convolutional layers extract richer, more accurate features, but cost more computation and latency. That's why <span class="hl">Tiny YOLO</span> (only 9 layers) sacrifices some accuracy in exchange for running smoothly on low-power mobile/embedded hardware, while <span class="hl">Darknet53</span> (53 layers, used in YOLOv3) is deeper and more accurate but slower.</p>
+    <p><span class="hl-purple">YOLOv4</span> generalized this choice further — instead of being locked to one backbone, it supports swapping in VGG, ResNet, SpineNet, EfficientNet, ResNeXt, or Darknet53, letting engineers pick the best backbone for their hardware and accuracy requirements.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>خط أنابيب YOLO يتكون من ثلاث مراحل مفاهيمية: <strong>Backbone</strong> ← <strong>Neck</strong> ← <strong>Head</strong>. الـ <strong>Backbone</strong> هي المرحلة الأولى، وهي الشبكة المسؤولة عن استخراج الخصائص (feature extraction) — تحويل الصورة الخام إلى مجموعة غنية من feature maps (حواف، أنسجة، أشكال، أجزاء أجسام) على مستويات مختلفة من التجريد.</p>
+    <p style="margin-top:8px"><strong>Tiny YOLO</strong>: 9 طبقات تلافيفية فقط، أقل دقة لكنها أسرع وأنسب للأجهزة المحمولة والمدمجة (mobile/embedded).</p>
+    <p style="margin-top:6px"><strong>Darknet53</strong> (الـ backbone المستخدم في YOLOv3): 53 طبقة تلافيفية، أدق لكنها أبطأ.</p>
+    <p style="margin-top:6px"><strong>YOLOv4</strong>: يسمح باختيار الـ backbone من بين VGG وResNet وSpineNet وEfficientNet وResNeXt أو Darknet53، حسب متطلبات السرعة والدقة.</p>
+    <br/>
+    <p><strong>المقايضة الأساسية (trade-off):</strong> عدد أكبر من الطبقات = دقة أعلى لكن حساب أبطأ. عدد أقل من الطبقات = سرعة أعلى لكن دقة أقل. اختيار الـ backbone المناسب يعتمد على الجهاز المستهدف (سيرفر قوي أم موبايل محدود الموارد).</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>A security-camera app running on a Raspberry Pi would choose <strong>Tiny YOLO</strong> — fast enough for real-time on weak hardware, even if it occasionally misses small distant objects. A cloud-based photo-tagging service processing millions of images offline would choose <strong>Darknet53</strong> or an EfficientNet backbone — slower per image, but far more accurate.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick</div>
+    <p><strong>"Tiny is Tiny, Dark is Deep"</strong> — Tiny YOLO = 9 layers = tiny and fast. Darknet53 = 53 layers = deep and accurate.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Backbone = feature-extraction stage of the YOLO pipeline</li>
+      <li>📌 Tiny YOLO: 9 conv layers, faster, less accurate, mobile/embedded</li>
+      <li>📌 Darknet53: 53 conv layers, YOLOv3's backbone, slower, more accurate</li>
+      <li>📌 YOLOv4 supports swappable backbones: VGG, ResNet, SpineNet, EfficientNet, ResNeXt, Darknet53</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Backbone = feature extractor. Tiny YOLO (9 layers) = fast/less accurate/mobile. Darknet53 (53 layers, YOLOv3) = slower/more accurate. YOLOv4 lets you swap backbones (VGG, ResNet, SpineNet, EfficientNet, ResNeXt, Darknet53) to balance speed vs accuracy.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 11</span>
+    <h2>7. YOLO Pipeline — Neck and Head</h2>
+  </div>
+  <p class="section-subtitle">Bridging Features to Predictions — and the Full Backbone→Neck→Head Diagram</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 11 — YOLO Steps:</strong> <strong>Neck</strong> — additional layers between the backbone and the head (dense prediction block); its purpose is to add extra information in the layers. <strong>Head</strong> — the head block is the part used to: locate bounding boxes and classify what's inside each box.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Continuing the pipeline: after the Backbone extracts feature maps, two more stages turn those features into final predictions.</p>
+    <div class="def-box">
+      <div class="def-term">Neck</div>
+      <p style="margin-top:6px;font-size:13px">The Neck sits between the Backbone and the Head. It is a set of <strong>additional layers</strong> whose purpose is to add extra information into the feature maps — typically by mixing features extracted at different depths/resolutions (e.g., combining fine, shallow detail with coarse, deep semantic meaning). This helps the model detect objects at multiple scales (tiny and huge objects in the same image). Common Neck designs include FPN (Feature Pyramid Network) and PANet.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Head</div>
+      <p style="margin-top:6px;font-size:13px">The Head is the final block — often called the "dense prediction block." It takes the enriched feature maps from the Neck and produces the actual output: it must (1) <strong>locate</strong> bounding boxes (predict X, Y, W, H) and (2) <strong>classify</strong> what's inside each box (predict class probabilities and a confidence score).</p>
+    </div>
+    <p>Putting it together, the full pipeline diagram is:</p>
+    <div class="pipe-row">
+      <div class="pipe-box backbone"><div class="pb-title">Backbone</div><div class="pb-sub">Feature extraction<br/>(Tiny YOLO / Darknet53 / ResNet...)</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box neck"><div class="pb-title">Neck</div><div class="pb-sub">Multi-scale feature fusion<br/>(FPN / PANet — adds info)</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box head"><div class="pb-title">Head</div><div class="pb-sub">Dense prediction block<br/>Locate boxes + Classify</div></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted)">Raw image enters the Backbone → refined multi-scale features pass through the Neck → the Head outputs (C,X,Y,W,H) for every detected object.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>بعد أن يستخرج الـ Backbone الخصائص، هناك مرحلتان إضافيتان تحوّلان هذه الخصائص إلى تنبؤات نهائية:</p>
+    <p style="margin-top:8px"><strong>Neck (الرقبة):</strong> طبقات إضافية بين الـ Backbone والـ Head، وظيفتها إضافة معلومات إضافية للطبقات — عادة بدمج خصائص من مستويات عمق ودقة مختلفة (تفاصيل دقيقة من طبقات سطحية + معاني عامة من طبقات عميقة). هذا يساعد الموديل على كشف أجسام بمقاسات مختلفة (صغيرة وكبيرة) في نفس الصورة. من الأمثلة الشائعة: FPN وPANet.</p>
+    <p style="margin-top:8px"><strong>Head (الرأس):</strong> الكتلة الأخيرة، وتُسمى أيضًا "dense prediction block". تستقبل الخصائص المُحسَّنة من الـ Neck وتُخرج النتيجة الفعلية: (1) تحديد موقع الصناديق (X,Y,W,H)، و(2) تصنيف محتوى كل صندوق (فئة + درجة ثقة).</p>
+    <br/>
+    <p><strong>الخط الكامل:</strong> صورة خام ← Backbone (استخراج خصائص) ← Neck (دمج خصائص متعددة المقاييس) ← Head (تحديد صناديق + تصنيف) ← نتيجة الكشف النهائية.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy — A Detective Agency</div>
+    <p>The Backbone is like field agents gathering raw clues (photos, fingerprints, witness notes) at different levels of detail. The Neck is the analyst who cross-references all those clues, connecting fine details with the big picture. The Head is the detective who finally says "Here — exactly this location, and it's a burglary" — locating and classifying the case.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>The Neck is not optional filler — skipping it (or a weak Neck) is a common reason models struggle to detect small objects, because without multi-scale feature fusion, fine details get lost by the time features reach the Head.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Full pipeline order: Backbone → Neck → Head</li>
+      <li>📌 Neck = adds extra information, fuses multi-scale features (FPN/PANet)</li>
+      <li>📌 Head = dense prediction block: locates boxes AND classifies contents</li>
+      <li>📌 Be able to redraw the 3-stage pipeline diagram from memory</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Neck = extra layers between Backbone and Head that fuse multi-scale features, adding information. Head = dense prediction block that locates bounding boxes and classifies their contents. Full pipeline: Backbone → Neck → Head.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 8 ===================== -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 12</span>
+    <h2>8. Non-Maximum Suppression (NMS)</h2>
+  </div>
+  <p class="section-subtitle">Filtering Duplicate Boxes Down to the Best Prediction Per Object</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 12 — Non-Maximal Suppression:</strong> Non-max suppression is the final step of these object detection algorithms and is used to select the most appropriate bounding box for the object.</p>
+    <ol style="padding-left:20px;font-size:14px;margin-top:8px">
+      <li><strong>Filter:</strong> Discard all bounding boxes with a confidence score below a set threshold.</li>
+      <li><strong>Sort:</strong> Sort the remaining boxes in descending order by their confidence scores.</li>
+      <li><strong>Select:</strong> Pick the box with the highest score, save it as a final prediction, and remove it from the list.</li>
+      <li><strong>Compare (IoU):</strong> Calculate the Intersection over Union (IoU) between this selected box and all other remaining boxes.</li>
+      <li><strong>Suppress:</strong> Remove any box from the list that has an IoU higher than your overlap threshold (meaning it overlaps too much with the selected box).</li>
+      <li><strong>Repeat:</strong> Loop back to Step 3 until no boxes are left in the list.</li>
+    </ol>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Non-Maximum Suppression (NMS)</span> is the final clean-up step of every object detection pipeline. A detector like YOLO typically predicts <em>many</em> overlapping boxes for the same real object (because many grid cells fire for the same object). NMS keeps only the single best box per object and discards the redundant ones.</p>
+    <p><strong>The exact algorithm, step by step:</strong></p>
+    <ol class="steps">
+      <li><strong>Filter</strong> — Discard all boxes whose confidence score is below a chosen threshold (e.g., below 0.5). Low-confidence boxes are likely noise.</li>
+      <li><strong>Sort</strong> — Sort the surviving boxes in descending order of confidence score, highest first.</li>
+      <li><strong>Select</strong> — Take the box with the highest score, keep it as a final prediction, and remove it from the working list.</li>
+      <li><strong>Compare (IoU)</strong> — Compute the Intersection over Union (IoU) between the selected box and every remaining box in the list.</li>
+      <li><strong>Suppress</strong> — Remove (discard) any remaining box whose IoU with the selected box exceeds the overlap threshold (e.g., IoU &gt; 0.5) — such boxes are considered duplicates of the same object.</li>
+      <li><strong>Repeat</strong> — Go back to step 3 and repeat with whatever boxes are left, until the list is empty.</li>
+    </ol>
+    <div class="def-box">
+      <div class="def-term">Intersection over Union (IoU)</div>
+      <p style="margin-top:6px;font-size:13px">IoU measures how much two boxes overlap:</p>
+      <div class="formula">IoU = Area of Overlap / Area of Union</div>
+      <p style="font-size:13px">IoU = 1 means the boxes are identical. IoU = 0 means they don't overlap at all. High IoU between two predicted boxes strongly suggests they're both describing the same physical object.</p>
+    </div>
+    <p><strong>Worked numeric example — two overlapping boxes:</strong></p>
+    <div class="iou-demo">
+      <div class="iou-box iou-gt"></div>
+      <div class="iou-box iou-pred"></div>
+      <div class="iou-label" style="left:34px;top:24px;background:rgba(52,211,153,0.2);color:var(--accent3)">Box A (score 0.92)</div>
+      <div class="iou-label" style="left:84px;top:184px;background:rgba(251,146,60,0.2);color:var(--accent4)">Box B (score 0.71)</div>
+    </div>
+    <div class="def-box">
+      <p style="font-size:13px">Suppose Box A covers area 140×110 = 15,400 px², Box B covers 140×110 = 15,400 px², and their overlapping region is 90×80 = 7,200 px². Union = 15,400 + 15,400 − 7,200 = 23,600 px².</p>
+      <div class="formula">IoU = 7,200 / 23,600 ≈ 0.305</div>
+      <p style="font-size:13px">If the overlap threshold is 0.5, IoU 0.305 is <strong>below</strong> threshold, so NMS would actually keep both boxes (they might be two separate nearby objects). If instead the two boxes overlapped much more heavily (say IoU = 0.8), NMS would suppress Box B (lower score) and keep only Box A.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>Non-Maximum Suppression (NMS)</strong> هي الخطوة الأخيرة في أي خط أنابيب لكشف الأجسام. الكاشف مثل YOLO غالبًا يتنبأ بعدة صناديق متداخلة لنفس الجسم الحقيقي (لأن خلايا شبكة متعددة "تشتعل" لنفس الجسم). مهمة NMS هي الاحتفاظ بأفضل صندوق واحد لكل جسم وحذف الباقي.</p>
+    <p style="margin-top:8px"><strong>الخوارزمية خطوة بخطوة:</strong></p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li><strong>Filter (تصفية)</strong> — حذف كل الصناديق التي درجة ثقتها أقل من حد معيّن</li>
+      <li><strong>Sort (ترتيب)</strong> — ترتيب الصناديق المتبقية تنازليًا حسب درجة الثقة</li>
+      <li><strong>Select (اختيار)</strong> — أخذ الصندوق ذو أعلى درجة، حفظه كنتيجة نهائية، وحذفه من القائمة</li>
+      <li><strong>Compare/IoU (مقارنة)</strong> — حساب Intersection over Union بين الصندوق المختار وكل الصناديق المتبقية</li>
+      <li><strong>Suppress (كبت/حذف)</strong> — حذف كل صندوق يتجاوز IoU الخاص به حد التداخل المسموح (يُعتبر تكرارًا لنفس الجسم)</li>
+      <li><strong>Repeat (تكرار)</strong> — الرجوع للخطوة 3 مع الصناديق المتبقية حتى تصبح القائمة فارغة</li>
+    </ol>
+    <br/>
+    <p><strong>IoU (تقاطع على اتحاد):</strong> يقيس درجة تداخل صندوقين:</p>
+    <div class="formula" style="direction:ltr">IoU = مساحة التقاطع / مساحة الاتحاد</div>
+    <p style="font-size:14px">IoU = 1 يعني الصندوقان متطابقان تمامًا. IoU = 0 يعني لا يوجد تداخل. قيمة IoU مرتفعة بين صندوقين متنبأين تعني على الأغلب أنهما يصفان نفس الجسم الحقيقي.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Detecting One Dog, Three Times</div>
+    <p>YOLO's grid might produce three boxes for a single dog: Box1 (conf 0.95), Box2 (conf 0.88, heavily overlapping Box1), Box3 (conf 0.4, also overlapping). NMS filters out Box3 immediately (below confidence threshold). It sorts Box1 before Box2, selects Box1 as final, computes IoU(Box1, Box2) — say 0.82, which is above the 0.5 overlap threshold — and suppresses Box2. Result: only Box1 survives as the final detection for that dog.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Forgetting NMS operates <strong>per class</strong> in most implementations — an overlapping "dog" box and "cat" box are usually not compared against each other</li>
+      <li>❌ Setting the IoU threshold too low — accidentally suppresses two genuinely separate, nearby objects</li>
+      <li>❌ Setting the IoU threshold too high — leaves many duplicate boxes for the same object</li>
+      <li>❌ Confusing confidence threshold (step 1, Filter) with IoU threshold (step 5, Suppress) — they are two different thresholds serving two different purposes</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Memorize the 6 NMS steps in order: Filter → Sort → Select → Compare(IoU) → Suppress → Repeat</li>
+      <li>📌 IoU formula: Area of Overlap / Area of Union</li>
+      <li>📌 NMS is the final step of the detection pipeline, applied after Backbone→Neck→Head produce raw candidate boxes</li>
+      <li>📌 Two distinct thresholds exist: confidence threshold (Filter step) and IoU/overlap threshold (Suppress step)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>NMS removes duplicate overlapping boxes for the same object: Filter (drop low-confidence) → Sort (by score) → Select (keep highest, remove from list) → Compare via IoU against remaining boxes → Suppress (drop boxes with IoU above the overlap threshold) → Repeat until the list is empty.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 9 ===================== -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 13</span>
+    <h2>9. YOLOv8 Architecture &amp; the Export/Deployment Pipeline</h2>
+  </div>
+  <p class="section-subtitle">Ultralytics YOLOv8 — From PyTorch to Edge Devices</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 13 — Architecture Of YOLOv8:</strong> GitHub - ultralytics/ultralytics: NEW - YOLOv8 🚀 in PyTorch &gt; ONNX &gt; OpenVINO &gt; CoreML &gt; TFLite</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">YOLOv8</span> is maintained by <strong>Ultralytics</strong> in an open-source GitHub repository (ultralytics/ultralytics). It follows the same Backbone → Neck → Head structure covered earlier, refined with modern building blocks (e.g., a more efficient backbone and an anchor-free, decoupled detection head).</p>
+    <p>What the slide is highlighting is YOLOv8's <strong>deployment/export pipeline</strong> — the model is trained once in PyTorch, then can be exported to run efficiently across many different hardware and software targets:</p>
+    <div class="pipe-row">
+      <div class="pipe-box backbone"><div class="pb-title">PyTorch</div><div class="pb-sub">Training format<br/>(.pt)</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box neck"><div class="pb-title">ONNX</div><div class="pb-sub">Open, cross-framework<br/>interchange format</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box head"><div class="pb-title">OpenVINO</div><div class="pb-sub">Optimized for Intel<br/>CPUs/hardware</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box backbone"><div class="pb-title">CoreML</div><div class="pb-sub">Apple devices<br/>(iOS/macOS)</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-box neck"><div class="pb-title">TFLite</div><div class="pb-sub">Mobile/embedded<br/>(Android, microcontrollers)</div></div>
+    </div>
+    <p>Each export format targets a different deployment scenario: <strong>ONNX</strong> is a universal interchange format usable across many runtimes; <strong>OpenVINO</strong> accelerates inference on Intel hardware; <strong>CoreML</strong> lets the model run natively and efficiently on Apple devices; <strong>TFLite</strong> (TensorFlow Lite) is optimized for mobile phones and tiny embedded chips. This export chain is exactly why YOLOv8 is popular in production — train once, deploy anywhere.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>YOLOv8</strong> تُطوَّر وتُصان من قِبل شركة <strong>Ultralytics</strong> في مستودع مفتوح المصدر على GitHub (ultralytics/ultralytics). تتبع نفس بنية Backbone ← Neck ← Head التي شرحناها، لكن بمكونات أحدث (backbone أكثر كفاءة، وhead بدون anchor boxes وmنفصل decoupled).</p>
+    <p style="margin-top:8px">ما تُبرزه هذه الشريحة هو خط أنابيب <strong>التصدير والنشر (export/deployment)</strong> لموديل YOLOv8: يتم تدريب الموديل مرة واحدة في PyTorch، ثم يُصدَّر ليعمل بكفاءة على أجهزة وأنظمة مختلفة:</p>
+    <p style="margin-top:6px"><strong>PyTorch</strong> (صيغة التدريب) ← <strong>ONNX</strong> (صيغة تبادل مفتوحة بين المنصات) ← <strong>OpenVINO</strong> (محسّن لمعالجات Intel) ← <strong>CoreML</strong> (لأجهزة Apple) ← <strong>TFLite</strong> (للموبايل والأجهزة المدمجة الصغيرة).</p>
+    <p style="margin-top:8px">هذا التسلسل هو تحديدًا سبب شهرة YOLOv8 في بيئات الإنتاج (production): تدريب مرة واحدة، ونشر في أي مكان (train once, deploy anywhere).</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example</div>
+    <p>A company builds a YOLOv8 model in PyTorch to detect defective parts on a factory line. To run it on an iPhone-based inspection app, they export to CoreML. To run it on a cheap Android tablet on the floor, they export to TFLite. To run it fast on an Intel-based industrial PC, they export to OpenVINO. Same trained model, three different deployment targets — all via the export pipeline.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 YOLOv8 is developed/maintained by Ultralytics (open-source on GitHub)</li>
+      <li>📌 Export pipeline order: PyTorch → ONNX → OpenVINO → CoreML → TFLite</li>
+      <li>📌 Know what each target is for: ONNX = universal interchange, OpenVINO = Intel hardware, CoreML = Apple devices, TFLite = mobile/embedded</li>
+      <li>📌 The point of the export chain: train once, deploy across many hardware platforms</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>YOLOv8 (Ultralytics, open-source on GitHub) follows the standard Backbone→Neck→Head pipeline and supports exporting a single trained PyTorch model to ONNX, OpenVINO, CoreML, and TFLite for deployment across servers, Intel hardware, Apple devices, and mobile/embedded targets.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 10 ===================== -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 14</span>
+    <h2>10. FLOPs &amp; Model Size</h2>
+  </div>
+  <p class="section-subtitle">Measuring Computational Cost of a YOLO Model</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 14 — YOLO:</strong> The number of these operations is called FLOPs. For example: a small model like YOLOv5s might need 17 GFLOPs (17 billion operations). A larger model like YOLOv5x might need 140+ GFLOPs.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">FLOPs</span> (Floating Point Operations) count how many arithmetic operations (additions, multiplications) a model performs to process one image. It is a hardware-independent way to estimate how computationally expensive a model is.</p>
+    <div class="def-box">
+      <div class="def-term">GFLOPs = Giga-FLOPs = billions of operations</div>
+      <p style="margin-top:6px;font-size:13px"><strong>YOLOv5s</strong> (small): ≈17 GFLOPs per image — lightweight, fast, good for constrained hardware. <strong>YOLOv5x</strong> (extra-large): 140+ GFLOPs per image — far more computation, but typically higher accuracy.</p>
+    </div>
+    <p>This connects directly to the Backbone discussion: bigger/deeper backbones (more layers, more channels) mean more FLOPs, which means slower inference but usually better accuracy. Choosing a model size (s/m/l/x) is really choosing a point on the speed-vs-accuracy trade-off curve, and FLOPs is the number engineers use to quantify that choice before even running the model.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>FLOPs</strong> (عمليات الفاصلة العائمة) تُحصي عدد العمليات الحسابية (جمع، ضرب) التي يقوم بها الموديل لمعالجة صورة واحدة. هي طريقة مستقلة عن نوع الجهاز لتقدير كم "تكلفة حسابية" يحتاجها الموديل.</p>
+    <p style="margin-top:8px"><strong>GFLOPs = مليار عملية.</strong> موديل صغير مثل YOLOv5s يحتاج تقريبًا 17 GFLOPs لكل صورة — خفيف وسريع ومناسب للأجهزة محدودة الموارد. موديل ضخم مثل YOLOv5x يحتاج أكثر من 140 GFLOPs — حساب أكبر بكثير، لكن دقة أعلى عادةً.</p>
+    <p style="margin-top:8px">هذا مرتبط مباشرة بموضوع الـ Backbone: backbone أعمق وأكبر = FLOPs أكثر = استدلال أبطأ لكن دقة أفضل عادة. اختيار حجم الموديل (s/m/l/x) هو فعليًا اختيار نقطة على منحنى المقايضة بين السرعة والدقة.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>Deploying on a drone with a tiny onboard chip and a strict power budget → pick YOLOv5s (~17 GFLOPs) to keep inference fast and battery drain low. Running offline batch analysis on a GPU server with no real-time constraint → pick YOLOv5x (140+ GFLOPs) for maximum accuracy.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 FLOPs = Floating Point Operations; GFLOPs = billions of FLOPs</li>
+      <li>📌 YOLOv5s ≈ 17 GFLOPs (small/fast); YOLOv5x ≈ 140+ GFLOPs (large/accurate)</li>
+      <li>📌 More FLOPs generally = deeper/larger backbone = slower but more accurate</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>FLOPs measure a model's computational cost per image. YOLOv5s (~17 GFLOPs) is small and fast; YOLOv5x (140+ GFLOPs) is large and more accurate but slower — model size selection is a speed-vs-accuracy trade-off quantified in GFLOPs.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 11 ===================== -->
+<div class="section" id="s11">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 15–24</span>
+    <h2>11. Evaluating Detection Models — IoU &amp; Mean Average Precision (mAP)</h2>
+  </div>
+  <p class="section-subtitle">TP/FP, Precision-Recall Curves, and How mAP Is Actually Computed</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slides 15–17:</strong> Evaluating an object detection model (mAP). MSE works fairly well as a training cost function but is not a great evaluation metric for bounding boxes. The most common evaluation metric is IoU (coded via <code>tf.keras.metrics.MeanIoU</code>). mAP measures average precision (AP) over a set of IoU thresholds; in COCO evaluation the IoU threshold ranges from 0.5 to 0.95 in steps of 0.05, written AP@[0.5:0.05:0.95]. mAP averages AP across all classes.</p>
+    <p style="margin-top:8px"><strong>Slides 18–22:</strong> Worked table — two ground-truth objects (GT1, GT2), four predictions with confidence/IoU, classified as TP/FP (IoU ≥ 0.5), then cumulative TP/FP, then Precision and Recall at each step, plotted as an Average Precision (AP) curve.</p>
+    <p style="margin-top:8px"><strong>Slides 20, 23–24:</strong> Definitions of TP, FP, FN, IoU. The Precision-Recall curve's area under the curve = AP; drawn per class, and mAP = mean of AP across classes and thresholds.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Training a model uses a loss function like MSE, but MSE is a poor way to <em>evaluate</em> how good bounding-box predictions are once training is done. Instead, detection models are evaluated using <span class="hl-blue">Intersection over Union (IoU)</span> together with <span class="hl-green">mean Average Precision (mAP)</span>.</p>
+    <div class="def-box">
+      <div class="def-term">The building blocks</div>
+      <ul style="margin-top:8px;padding-left:18px;font-size:13px">
+        <li><strong>True Positive (TP)</strong> — a correctly detected object, IoU ≥ threshold (e.g., 0.5)</li>
+        <li><strong>False Positive (FP)</strong> — an incorrect detection (wrong location or wrong class)</li>
+        <li><strong>False Negative (FN)</strong> — a real (ground-truth) object the model failed to detect</li>
+        <li><strong>IoU</strong> — overlap between predicted box and ground-truth box</li>
+      </ul>
+    </div>
+    <p><strong>Worked example (from the slides):</strong> Two ground-truth objects (GT1, GT2). Four predictions:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Prediction</th><th>Confidence</th><th>IoU</th><th>TP/FP (IoU≥0.5)</th></tr>
+        <tr><td>Pred1</td><td>0.9</td><td>0.8</td><td>TP</td></tr>
+        <tr><td>Pred2</td><td>0.07</td><td>0.1</td><td>FP</td></tr>
+        <tr><td>Pred3</td><td>0.7</td><td>0.9</td><td>TP</td></tr>
+        <tr><td>Pred4</td><td>0.05</td><td>0.07</td><td>FP</td></tr>
+      </table>
+    </div>
+    <p>Sorting by confidence and accumulating TP/FP counts, then computing Precision = TP/(TP+FP) and Recall = TP/(TP+FN) at each step:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Prediction</th><th>TP/FP</th><th>Cum. TP</th><th>Cum. FP</th><th>Precision</th><th>Recall</th></tr>
+        <tr><td>Pred1</td><td>TP</td><td>1</td><td>0</td><td>1.0</td><td>0.5</td></tr>
+        <tr><td>Pred2</td><td>FP</td><td>1</td><td>1</td><td>0.5</td><td>0.5</td></tr>
+        <tr><td>Pred3</td><td>TP</td><td>2</td><td>1</td><td>0.67</td><td>1.0</td></tr>
+        <tr><td>Pred4</td><td>FP</td><td>2</td><td>2</td><td>0.5</td><td>1.0</td></tr>
+      </table>
+    </div>
+    <p>Plotting Precision (y-axis) against Recall (x-axis) at each point gives the <strong>Precision-Recall curve</strong>. The <strong>area under this curve</strong> is the <span class="hl">Average Precision (AP)</span> for that class. Drawing PR curves separately for each class (e.g., 3 classes) and averaging the AP values gives <span class="hl-green">mean Average Precision (mAP)</span>.</p>
+    <div class="def-box">
+      <div class="def-term">COCO's mAP convention: AP@[0.5:0.05:0.95]</div>
+      <p style="margin-top:6px;font-size:13px">Instead of computing AP at a single IoU threshold, COCO computes AP at ten thresholds — 0.5, 0.55, 0.6, ..., 0.95 — and averages them. This rewards models that produce very precisely-located boxes, not just "roughly right" ones. mAP is then the mean of AP across all classes at all these thresholds.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>تدريب الموديل يستخدم دالة خسارة مثل MSE، لكن MSE ليست مقياسًا جيدًا لتقييم جودة صناديق التنبؤ بعد التدريب. بدلاً من ذلك، تُقيَّم موديلات الكشف باستخدام <strong>IoU</strong> مع <strong>mean Average Precision (mAP)</strong>.</p>
+    <p style="margin-top:8px"><strong>المكوّنات الأساسية:</strong></p>
+    <ul style="padding-right:20px;font-size:14px">
+      <li><strong>True Positive (TP)</strong> — كشف صحيح، IoU ≥ الحد (مثلاً 0.5)</li>
+      <li><strong>False Positive (FP)</strong> — كشف خاطئ (موقع أو فئة غير صحيحة)</li>
+      <li><strong>False Negative (FN)</strong> — جسم حقيقي لم يكتشفه الموديل</li>
+      <li><strong>IoU</strong> — نسبة التداخل بين الصندوق المتنبأ والحقيقي</li>
+    </ul>
+    <p style="margin-top:8px">بترتيب التنبؤات حسب الثقة وحساب TP/FP التراكمية، نحصل على Precision = TP/(TP+FP) وRecall = TP/(TP+FN) عند كل نقطة. رسم Precision مقابل Recall يعطي منحنى <strong>Precision-Recall</strong>، والمساحة تحت هذا المنحنى هي <strong>Average Precision (AP)</strong> لتلك الفئة. حساب AP لكل فئة ثم أخذ المتوسط يعطي <strong>mAP</strong>.</p>
+    <p style="margin-top:8px"><strong>معيار COCO:</strong> AP@[0.5:0.05:0.95] يعني حساب AP عند عشر عتبات IoU مختلفة (0.5 إلى 0.95 بخطوة 0.05) ثم أخذ المتوسط — هذا يُجازي الموديلات التي تُنتج صناديق دقيقة الموقع جدًا، لا فقط "تقريبًا صحيحة".</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>If a paper reports "YOLOv8m: mAP@0.5 = 50.2%, mAP@[0.5:0.95] = 34.0%" it means: using a lenient IoU≥0.5 rule, half of the ranked predictions are precise/recalled well; but under the stricter COCO-style average across ten IoU thresholds, the score drops — showing the model's boxes are decent but not pixel-perfect.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>mAP is not "accuracy." It combines both localization quality (via IoU) and classification confidence ranking (via the precision-recall curve) into a single number — a model can have high classification accuracy but low mAP if its boxes are poorly localized.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 MSE is used for training loss but is a poor evaluation metric for boxes; IoU/mAP are used for evaluation</li>
+      <li>📌 TP: IoU ≥ threshold; FP: wrong detection; FN: missed ground-truth object</li>
+      <li>📌 AP = area under the Precision-Recall curve for one class; mAP = mean of AP across classes</li>
+      <li>📌 COCO's AP@[0.5:0.05:0.95] averages AP over 10 IoU thresholds from 0.5 to 0.95</li>
+      <li>📌 <code>tf.keras.metrics.MeanIoU</code> is the mentioned coding utility for IoU</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Detection models are evaluated with IoU and mAP, not MSE. TP/FP/FN are determined via IoU thresholding; Precision-Recall curves are built from ranked confidence scores; AP = area under that curve per class; mAP = mean AP across classes (and, in COCO, across IoU thresholds 0.5–0.95).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 12 ===================== -->
+<div class="section" id="s12">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 25–26</span>
+    <h2>12. YOLO Version Comparison — Choosing the Right Version</h2>
+  </div>
+  <p class="section-subtitle">YOLOv8 Through YOLO26 — Innovations, Trade-offs, and the "Toyota Corolla" Rule</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 25 — Comparison between YOLO versions:</strong> A table comparing YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLOv12, and YOLO26 across year released, architecture highlights, native task support, pros, and cons.</p>
+    <p style="margin-top:8px"><strong>Slide 26 — When to use?</strong> "Think of YOLOv8 like a Toyota Corolla — it might not have the cutting-edge hyper-tech of a prototype sports car (like YOLOv12 or YOLO26), but it is highly efficient, incredibly reliable, easy to fix, and everyone knows how to drive it."</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>YOLO keeps evolving rapidly. Here's the key comparison from the source material:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Version</th><th>Year</th><th>Key Innovation</th><th>Trade-off</th></tr>
+        <tr><td>YOLOv8</td><td>2023</td><td>Anchor-free split head, C2f blocks, decoupled head</td><td>Higher parameter count vs newer streamlined versions</td></tr>
+        <tr><td>YOLOv9</td><td>2024</td><td>PGI (Programmable Gradient Information) + GELAN</td><td>Higher training memory requirements</td></tr>
+        <tr><td>YOLOv10</td><td>2024</td><td>NMS-free training (consistent dual assignments)</td><td>Slower convergence on complex custom datasets</td></tr>
+        <tr><td>YOLO11</td><td>2024</td><td>C3K2 blocks, SPPF, C2PSA (spatial attention)</td><td>Slight latency on low-end CPUs</td></tr>
+        <tr><td>YOLOv12</td><td>2025</td><td>Attention-centric (Area Attention, FlashAttention, R-ELAN)</td><td>Training instability, high CPU/memory use</td></tr>
+        <tr><td>YOLO26</td><td>2025/2026</td><td>Deployment-first: removes NMS &amp; DFL entirely, ProgLoss + MuSGD</td><td>Stricter fine-tuning requirements for optimal convergence</td></tr>
+      </table>
+    </div>
+    <p><strong>Which one to actually use?</strong> The source material offers a memorable rule of thumb: <span class="hl">"Think of YOLOv8 like a Toyota Corolla"</span> — it doesn't have the newest cutting-edge tech of a prototype sports car (like YOLOv12 or YOLO26), but it is highly efficient, extremely reliable, easy to fix/debug, and has a huge community — "everyone knows how to drive it." In practice, that means: choose the newest version if you need its specific innovation (e.g., YOLOv10's zero-NMS latency for edge AI, or YOLO26's deployment-first design); choose YOLOv8 when you want maximum stability, documentation, and community support for a production project.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>YOLO تتطور بسرعة كبيرة. أهم إصداراتها: <strong>YOLOv8</strong> (2023) — head منفصل بدون anchor boxes. <strong>YOLOv9</strong> (2024) — تقنية PGI لتقليل فقد المعلومات في الطبقات العميقة. <strong>YOLOv10</strong> (2024) — تدريب بدون NMS (zero latency عند الاستدلال). <strong>YOLO11</strong> (2024) — كتل C3K2 وانتباه مكاني (C2PSA) لكشف أجسام صغيرة/محجوبة بدقة أعلى. <strong>YOLOv12</strong> (2025) — تصميم يعتمد على الانتباه (Attention) بالكامل. <strong>YOLO26</strong> (2025/2026) — تصميم "للنشر أولاً": يحذف NMS وDFL تمامًا لسرعة استدلال قصوى على الأجهزة الضعيفة.</p>
+    <p style="margin-top:8px"><strong>أي إصدار نختار؟</strong> القاعدة المذكورة في المصدر: <strong>"YOLOv8 مثل سيارة Toyota Corolla"</strong> — ليست بها أحدث تقنيات سيارة رياضية تجريبية (كـ YOLOv12 أو YOLO26)، لكنها موفّرة جدًا، موثوقة للغاية، سهلة الإصلاح، وكل الناس تعرف كيف تقودها (مجتمع دعم ضخم). عمليًا: اختر أحدث إصدار لو تحتاج ميزته الخاصة (مثل زمن استدلال بدون NMS في YOLOv10)، واختر YOLOv8 لو تريد أقصى ثبات ودعم مجتمعي في مشروع إنتاج حقيقي.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Analogy — The Toyota Corolla Rule</div>
+    <p>YOLOv12/YOLO26 = prototype sports cars: cutting-edge but occasionally unstable, harder to fix if something goes wrong. YOLOv8 = Toyota Corolla: not flashy, but reliable, well-documented, and easy to get help with — a safe default choice for most production systems.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Be able to name at least one key innovation per version (v8 decoupled head, v9 PGI, v10 NMS-free, v11 C2PSA attention, v12 attention-centric, v26 removes NMS+DFL)</li>
+      <li>📌 Understand the "Toyota Corolla" analogy: stability/community vs cutting-edge/instability trade-off</li>
+      <li>📌 YOLOv10's headline feature: NMS-free training → zero NMS latency at inference</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>YOLOv8 through YOLO26 each bring specific innovations (decoupled head, PGI, NMS-free training, spatial attention, attention-centric design, deployment-first NMS/DFL removal) with corresponding trade-offs. YOLOv8 remains the reliable "Toyota Corolla" default for stable production use.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 13 ===================== -->
+<div class="section" id="s13">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 27–29</span>
+    <h2>13. Image Labeling Tools</h2>
+  </div>
+  <p class="section-subtitle">Open-Source Tools for Creating (C,X,Y,W,H) Ground-Truth Labels</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 27 — Computer Vision / Object Detection (Labeling Tools):</strong> introduces the topic of labeling tools.</p>
+    <p style="margin-top:8px"><strong>Slide 28 — Image Labeling Tool:</strong> Open-source image labeling tools include: VGG Image Annotator, LabelImg, OpenLabeler, ImgLab, Roboflow.</p>
+    <p style="margin-top:8px"><strong>Slide 29 — Image Labeling Tool — LabelImg:</strong> a visual example of the LabelImg tool interface.</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The <code>(C,X,Y,W,H)</code> labels covered in Section 2 don't appear by magic — someone (or some semi-automated process) has to draw a box around each object and assign it a class. Several open-source tools exist for exactly this:</p>
+    <ul class="e-list">
+      <li>🖼️ <strong>VGG Image Annotator (VIA)</strong> — a lightweight, browser-based annotation tool from Oxford's VGG group; runs entirely in a single HTML page, no install needed</li>
+      <li>🏷️ <strong>LabelImg</strong> — one of the most popular desktop tools; draws rectangular boxes and exports directly in YOLO or PASCAL VOC / XML format</li>
+      <li>🔓 <strong>OpenLabeler</strong> — open-source desktop annotation tool, similar goal to LabelImg</li>
+      <li>🌐 <strong>ImgLab</strong> — browser-based image annotation, supports polygons and boxes</li>
+      <li>☁️ <strong>Roboflow</strong> — a full cloud platform: annotation + dataset management + automatic augmentation + one-click export in almost any format (YOLO, COCO, TFRecord...)</li>
+    </ul>
+    <p>The output of any of these tools is exactly the ground-truth data structure discussed earlier: for every image, a set of <code>(C,X,Y,W,H)</code> tuples, ready to be packaged as <code>(images, (class_labels, bounding_boxes))</code> for training.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>الملصقات (labels) بصيغة <code>(C,X,Y,W,H)</code> لا تظهر بمعجزة — شخص ما (أو عملية شبه تلقائية) يجب أن يرسم صندوقًا حول كل جسم ويحدد فئته. توجد أدوات مفتوحة المصدر لهذا الغرض:</p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li><strong>VGG Image Annotator (VIA)</strong> — أداة خفيفة تعمل من المتصفح مباشرة، من جامعة أكسفورد، بدون تثبيت</li>
+      <li><strong>LabelImg</strong> — من أشهر أدوات سطح المكتب؛ ترسم صناديق مستطيلة وتُصدّر مباشرة بصيغة YOLO أو PASCAL VOC/XML</li>
+      <li><strong>OpenLabeler</strong> — أداة سطح مكتب مفتوحة المصدر، نفس هدف LabelImg</li>
+      <li><strong>ImgLab</strong> — أداة توصيف صور من المتصفح، تدعم المضلعات والصناديق</li>
+      <li><strong>Roboflow</strong> — منصة سحابية كاملة: توصيف + إدارة datasets + تكبير/تعزيز تلقائي (augmentation) + تصدير بضغطة واحدة لأي صيغة (YOLO, COCO...)</li>
+    </ul>
+    <p style="margin-top:8px">مخرجات أي أداة من هذه الأدوات هي تحديدًا بنية البيانات الحقيقية (ground truth) التي شرحناها سابقًا: مجموعة من tuples <code>(C,X,Y,W,H)</code> لكل صورة، جاهزة للتحويل إلى <code>(images, (class_labels, bounding_boxes))</code> للتدريب.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example</div>
+    <p>A student building a custom "detect my own cat vs dog" dataset would: (1) collect 200 photos, (2) open LabelImg, (3) draw a box around the cat/dog in each photo and tag it, (4) save — LabelImg writes out a .txt file per image already in YOLO's <code>&lt;class&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt;</code> format, ready to feed straight into training.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Know the 5 named tools: VGG Image Annotator, LabelImg, OpenLabeler, ImgLab, Roboflow</li>
+      <li>📌 LabelImg exports directly to YOLO-format text labels</li>
+      <li>📌 Roboflow is the only one that is a full managed cloud platform (annotation + augmentation + export)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Ground-truth (C,X,Y,W,H) labels are produced using annotation tools: VGG Image Annotator, LabelImg, OpenLabeler, ImgLab, and Roboflow — each lets a human draw boxes and assign classes, exporting in formats ready for YOLO training.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 14 ===================== -->
+<div class="section" id="s14">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 30–37</span>
+    <h2>14. Training YOLO on a Custom Dataset</h2>
+  </div>
+  <p class="section-subtitle">Dataset Structure, YAML Configuration, and Training Parameters</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slides 30–32 — Training YOLOv8:12 on a Custom Dataset:</strong> A typical dataset folder structure: "My dataset" → Train labels + Train images (Train set). Each label file uses the format <code>&lt;class&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt;</code>.</p>
+    <p style="margin-top:8px"><strong>Slide 33 — Define Model Configuration And Architecture:</strong> a new YAML script (e.g., data.yaml) defines model parameters — each class with its ID, and the path of the dataset.</p>
+    <p style="margin-top:8px"><strong>Slide 34 — Custom Object Detection Data Format:</strong> image and label pairing example.</p>
+    <p style="margin-top:8px"><strong>Slide 35 — YOLO Training parameters:</strong> imgsz (input image size), batch (batch size), epochs (number of training epochs), data (path to yaml file), mode (train/test/valid), model (path to weights), task (detect/classify/segment), project (path to save weights), name (folder name).</p>
+    <p style="margin-top:8px"><strong>Slide 36 — Pretrained weight files:</strong> YOLOv8 | YOLOv9 | YOLOv10 | YOLO11 | YOLOv12, each with n/s/m/l/x size variants (e.g., yolov8n.pt, yolov8s.pt, yolov8m.pt, yolov8l.pt, yolov8x.pt).</p>
+    <p style="margin-top:8px"><strong>Slide 37 — Yolo Training</strong> (continuation, source text cut off here).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Training YOLO on your own data (rather than using a pretrained model as-is) follows a standard recipe:</p>
+    <ol class="steps">
+      <li>Organize a dataset folder with separate Train/Validation images and matching label files (one .txt label file per image)</li>
+      <li>Each label line uses YOLO's plain-text format: <code>&lt;class&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt;</code> — exactly the (C,X,Y,W,H) format from Section 2, just written as space-separated numbers per line, one line per object</li>
+      <li>Write a YAML configuration file (e.g., <code>data.yaml</code>) that lists every class name with its ID and points to the dataset paths</li>
+      <li>Choose a pretrained weight file as a starting point (e.g., <code>yolov8n.pt</code>, <code>yolov8s.pt</code> ... up to <code>yolov8x.pt</code>) — n/s/m/l/x indicate increasing size (nano→small→medium→large→extra-large)</li>
+      <li>Run training, setting key parameters: <code>imgsz</code> (input resolution), <code>batch</code> (images per training step), <code>epochs</code> (training passes over the full dataset), <code>data</code> (path to the yaml file), <code>mode</code> (train/test/valid), <code>model</code> (weights to start from), <code>task</code> (detect/classify/segment), <code>project</code> &amp; <code>name</code> (where results are saved)</li>
+    </ol>
+    <div class="def-box">
+      <div class="def-term">Size variants across versions</div>
+      <p style="margin-top:6px;font-size:13px">Every recent YOLO version ships the same size family: nano (n), small (s), medium (m), large (l), extra-large (x) — e.g. yolov8n.pt vs yolov8x.pt, yolo11n.pt vs yolo11x.pt. Smaller = faster/fewer FLOPs; larger = slower/more accurate, echoing the Backbone and FLOPs trade-off from earlier sections.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p>تدريب YOLO على بياناتك الخاصة (بدلاً من استخدام موديل جاهز كما هو) يتبع خطوات قياسية:</p>
+    <ol style="padding-right:20px;font-size:14px">
+      <li>تنظيم مجلد dataset يحتوي صور Train/Validation منفصلة وملفات labels مطابقة (ملف .txt واحد لكل صورة)</li>
+      <li>كل سطر في ملف الـ label يستخدم صيغة YOLO النصية: <code>&lt;class&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt;</code> — نفس صيغة (C,X,Y,W,H) من القسم 2، مكتوبة كأرقام مفصولة بمسافات، سطر واحد لكل جسم</li>
+      <li>كتابة ملف تهيئة YAML (مثل data.yaml) يسرد كل فئة مع رقمها (ID) ومسارات الـ dataset</li>
+      <li>اختيار ملف أوزان جاهز (pretrained) كنقطة انطلاق، مثل yolov8n.pt وحتى yolov8x.pt — الحروف n/s/m/l/x تعني حجمًا متزايدًا (nano→small→medium→large→extra-large)</li>
+      <li>تشغيل التدريب بضبط المعاملات: imgsz (مقاس الصورة المُدخلة)، batch (عدد الصور في كل خطوة)، epochs (عدد مرات المرور على كل الـ dataset)، data (مسار ملف yaml)، mode (train/test/valid)، model (الأوزان الابتدائية)، task (detect/classify/segment)، project وname (مكان حفظ النتائج)</li>
+    </ol>
+    <p style="margin-top:8px"><strong>أحجام الموديل:</strong> كل إصدار حديث من YOLO يوفّر نفس عائلة الأحجام: nano، small، medium، large، extra-large. الأصغر = أسرع وFLOPs أقل، الأكبر = أبطأ ودقة أعلى — نفس مبدأ المقايضة الذي ناقشناه في قسم الـ Backbone والـ FLOPs.</p>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — data.yaml</div>
+    <pre><code><span class="code-kw">train</span>: ./dataset/train/images
+<span class="code-kw">val</span>: ./dataset/val/images
+<span class="code-kw">nc</span>: <span class="code-nb">2</span>  <span class="code-cm"># number of classes</span>
+<span class="code-kw">names</span>: [<span class="code-str">'cat'</span>, <span class="code-str">'dog'</span>]</code></pre>
+    <p style="font-size:13px;color:var(--muted)">Running training: <code>yolo task=detect mode=train model=yolov8n.pt data=data.yaml epochs=50 imgsz=416 batch=16</code></p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Mismatched class IDs between the YAML file and the label .txt files — causes silently wrong training</li>
+      <li>❌ Choosing an oversized model (yolov8x) for a small dataset/weak GPU — extremely slow training with little accuracy gain</li>
+      <li>❌ Forgetting that imgsz should generally match the size used for the pretrained weights for best transfer learning results</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 YOLO label format: &lt;class&gt; &lt;x_center&gt; &lt;y_center&gt; &lt;width&gt; &lt;height&gt; — same concept as (C,X,Y,W,H)</li>
+      <li>📌 data.yaml defines class names/IDs and dataset paths</li>
+      <li>📌 Know all training parameters: imgsz, batch, epochs, data, mode, model, task, project, name</li>
+      <li>📌 Know the size suffixes: n (nano) &lt; s (small) &lt; m (medium) &lt; l (large) &lt; x (extra-large)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Custom training needs: an organized image/label dataset (labels in &lt;class&gt; &lt;x&gt; &lt;y&gt; &lt;w&gt; &lt;h&gt; format), a data.yaml describing classes and paths, a chosen pretrained weight size (n/s/m/l/x), and training parameters (imgsz, batch, epochs, data, mode, model, task, project, name).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice and Short Answer Questions Covering the Full Lecture</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Object Detection can be described as:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Classification only, applied to one object</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Classification + Localization, applied to multiple objects</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Pixel-level labeling of the entire image</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Only drawing a box, with no class label</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Object detection classifies AND localizes every object present, unlike plain classification.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. In the label tuple (C, X, Y, W, H), what do X and Y represent (in the YOLO convention)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) The top-left corner of the box</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) The center of the box</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) The bottom-right corner of the box</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) The image's overall width and height</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — X, Y represent the bounding box's center coordinates, typically normalized 0–1.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. What does COCO stand for, and what does it primarily provide?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Convolutional Object Classifier Output — a model architecture</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Common Objects in Context — a large benchmark dataset</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Cascaded Object Correction — an NMS variant</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) A specific YOLO version</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — COCO (Common Objects in Context) is the standard 80-class benchmark dataset for detection/segmentation.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. Which of these is a two-stage detector?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) YOLO</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) SSD</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Faster R-CNN</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) YOLO-World</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Faster R-CNN proposes regions first, then classifies them — a two-stage detector. YOLO/SSD/YOLO-World are one-stage.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Why is YOLO fast compared to two-stage detectors?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It uses smaller images only</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) It predicts all boxes and classes in a single forward pass over the image</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) It skips the backbone entirely</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It only detects one object per image</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — "You Only Look Once" — a single unified pass replaces separate region-proposal and classification stages.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. Which backbone is used by YOLOv3 and has 53 convolutional layers?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Tiny YOLO</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Darknet53</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) EfficientNet</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) ResNeXt</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Darknet53, YOLOv3's backbone, has 53 conv layers — more accurate, but slower than Tiny YOLO's 9 layers.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. What is the role of the "Neck" in the YOLO pipeline?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) It classifies the final object</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) It loads the raw image from disk</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) It adds extra layers between backbone and head to add information, often fusing multi-scale features</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) It performs Non-Maximum Suppression</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — The Neck sits between Backbone and Head, enriching feature maps (e.g., via FPN/PANet).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. In the Non-Maximum Suppression algorithm, what happens right after "Select" (picking the highest-scoring box)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Sort the boxes again</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Compare the selected box's IoU against all remaining boxes</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Discard the selected box</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Re-run the backbone</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — NMS order: Filter → Sort → Select → Compare (IoU) → Suppress → Repeat.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q9. Two boxes have an overlap area of 7,200 px² and a union area of 23,600 px². What is their IoU (approximately)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 0.90</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) 0.31</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) 3.28</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) 0.05</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — IoU = 7,200 / 23,600 ≈ 0.305, matching the worked NMS example in Section 8.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q10. What is the correct YOLOv8 export/deployment order shown in the lecture?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) TFLite → CoreML → OpenVINO → ONNX → PyTorch</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) PyTorch → ONNX → OpenVINO → CoreML → TFLite</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) ONNX → PyTorch → TFLite → CoreML → OpenVINO</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) OpenVINO → PyTorch → ONNX → TFLite → CoreML</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Ultralytics' documented export pipeline: PyTorch (train) → ONNX → OpenVINO → CoreML → TFLite (deploy).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q11. mAP (mean Average Precision) is computed by:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Averaging the confidence scores of all predictions</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Averaging the Average Precision (area under the Precision-Recall curve) across all classes</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Counting the total number of detections</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Measuring inference speed in FPS</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — AP is computed per class (area under PR curve); mAP averages AP across all classes (and, in COCO, across IoU thresholds too).</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q12. A small YOLOv5s model needs approximately how many GFLOPs?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'A')">A) ~17 GFLOPs</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) ~140 GFLOPs</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) ~1.7 GFLOPs</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) ~1400 GFLOPs</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: A</strong> — YOLOv5s ≈ 17 GFLOPs; the larger YOLOv5x needs 140+ GFLOPs.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Write out the full (C,X,Y,W,H) label format and explain each element. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> C = class label (which category the object belongs to). X, Y = the coordinates of the bounding box's center point (typically normalized between 0 and 1 relative to image width/height). W, H = the width and height of the bounding box (also typically normalized). Each labeled object in an image is one such tuple; a training sample is packaged as (images, (class_labels, bounding_boxes)).</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: List the 6 steps of Non-Maximum Suppression in order, and explain the purpose of the IoU comparison step. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> (1) Filter — drop boxes below the confidence threshold. (2) Sort — order remaining boxes by confidence, descending. (3) Select — take the top box, keep it as final, remove from the list. (4) Compare (IoU) — compute IoU between the selected box and every remaining box. (5) Suppress — remove any remaining box whose IoU with the selected box exceeds the overlap threshold. (6) Repeat — go back to step 3 until the list is empty. The IoU comparison step exists to detect duplicate boxes describing the same physical object, so only the highest-confidence one survives.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Describe the Backbone, Neck, and Head stages of the YOLO pipeline and give one concrete example architecture for each where applicable. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Backbone — extracts features from the raw image (examples: Tiny YOLO's 9-layer network, Darknet53's 53-layer network, or swappable options in YOLOv4 like ResNet/EfficientNet). Neck — additional layers between backbone and head that add extra information, usually fusing multi-scale features (examples: FPN, PANet). Head — the dense prediction block that both locates bounding boxes (regresses X,Y,W,H) and classifies what's inside each box.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why is mAP considered a better evaluation metric for object detection than MSE, and how does COCO's AP@[0.5:0.05:0.95] work? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> MSE only measures raw numeric distance between predicted and true coordinates, and works fine as a training loss, but it doesn't capture what really matters for detection quality: whether predictions rank correctly by confidence and how well boxes overlap ground truth across a range of strictness levels. mAP instead evaluates using IoU-based TP/FP classification, builds a Precision-Recall curve per class, and averages the area under that curve (AP) across all classes. COCO's AP@[0.5:0.05:0.95] takes this further by computing AP at ten different IoU thresholds (0.5, 0.55, ..., 0.95) and averaging them, rewarding models whose boxes are precisely located, not just roughly correct.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming coverage of all 37 slides in the extracted source material</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Computer Vision Fundamentals" — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Object Detection definition (classify + localize multiple objects) — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — Classification recap + localization as regression — ✅ Section 1</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — (C,X,Y,W,H) label format, image labeling, (images,(class_labels,bounding_boxes)) tuple — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Object Detection Example (visual) — ✅ Section 2 (worked mini-example)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Object Detection Example TL (top-left labeling illustration) — ✅ Section 2</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — COCO Dataset — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — Object Detection Algorithms (YOLO, SSD, Fast/Faster R-CNN, DINOv3) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — What Is YOLO — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — YOLO Steps: Backbone (Tiny YOLO, Darknet53, YOLOv4 options) — ✅ Section 6</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — YOLO Steps: Neck and Head — ✅ Section 7</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Non-Maximal Suppression (Filter/Sort/Select/Compare/Suppress/Repeat) — ✅ Section 8</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Architecture Of YOLOv8 (Ultralytics GitHub, export pipeline) — ✅ Section 9</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — YOLO FLOPs (YOLOv5s ~17 GFLOPs, YOLOv5x 140+ GFLOPs) — ✅ Section 10</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Evaluate Object Detection Model (mAP) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 16</strong> — MSE vs IoU as evaluation metric, tf.keras.metrics.MeanIoU — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 17</strong> — mAP definition, AP over IoU thresholds, COCO AP@[0.5:0.05:0.95] — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 18</strong> — Worked example: GT1/GT2, 4 predictions with confidence/IoU/TP-FP table — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 19</strong> — Cumulative TP/FP calculation table — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 20</strong> — Definitions: TP, FP, FN, IoU — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 21</strong> — Precision and Recall computed at each step — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 22</strong> — Average Precision (AP) table of Precision/Recall pairs — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 23</strong> — Mean Average Precision (mAP) (title/transition slide) — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 24</strong> — PR curve, area under curve = AP, per-class curves — ✅ Section 11</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 25</strong> — Comparison between YOLO versions (v8–v12, YOLO26 table) — ✅ Section 12</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 26</strong> — When to use? (Toyota Corolla analogy for YOLOv8) — ✅ Section 12</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 27</strong> — Computer Vision / Object Detection (Labeling Tools intro) — ✅ Section 13</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 28</strong> — Image Labeling Tool list (VIA, LabelImg, OpenLabeler, ImgLab, Roboflow) — ✅ Section 13</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 29</strong> — Image Labeling Tool — LabelImg (visual) — ✅ Section 13</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 30</strong> — Training YOLOv8:12 on a Custom Dataset (intro) — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 31</strong> — Train YOLO on a Custom Dataset (visual) — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 32</strong> — Dataset folder structure, label format &lt;class&gt;&lt;x_center&gt;&lt;y_center&gt;&lt;width&gt;&lt;height&gt; — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 33</strong> — Define Model Configuration And Architecture (data.yaml) — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 34</strong> — Custom Object Detection Data Format — image/label pairing — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 35</strong> — YOLO Training parameters (imgsz, batch, epochs, data, mode, model, task, project, name) — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 36</strong> — Pretrained weight files across versions and sizes (n/s/m/l/x) — ✅ Section 14</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 37</strong> — Yolo Training (continuation slide, source text truncated) — ✅ Acknowledged in Section 14</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 37/37 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, formulas, algorithms, tables, and tool/version references have been explained in both English and Arabic, with worked numeric examples, diagrams, memory tricks, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Task:</strong> <span class="tag tag-blue">Classification</span> + <span class="tag tag-blue">Localization (regression)</span> = <span class="tag tag-blue">Object Detection</span></p>
+      <p><strong>Labels:</strong> <span class="tag tag-orange">(C, X, Y, W, H)</span> → <span class="tag tag-orange">(images, (class_labels, bounding_boxes))</span></p>
+      <p><strong>Dataset:</strong> <span class="tag tag-green">COCO — 80 classes, 330K+ images, boxes + masks</span></p>
+      <p><strong>Families:</strong> <span class="tag tag-purple">One-stage: YOLO, SSD</span> | <span class="tag tag-purple">Two-stage: Fast/Faster R-CNN</span> | <span class="tag tag-purple">DINOv3</span></p>
+      <p><strong>YOLO Pipeline:</strong> <span class="tag tag-blue">Backbone (Tiny YOLO/Darknet53/...)</span> → <span class="tag tag-purple">Neck (FPN/PANet)</span> → <span class="tag tag-green">Head (locate + classify)</span></p>
+      <p><strong>Cleanup:</strong> <span class="tag tag-orange">NMS = Filter → Sort → Select → IoU Compare → Suppress → Repeat</span></p>
+      <p><strong>Deployment:</strong> <span class="tag tag-blue">PyTorch → ONNX → OpenVINO → CoreML → TFLite</span></p>
+      <p><strong>Efficiency:</strong> <span class="tag tag-green">FLOPs/GFLOPs — model size (n/s/m/l/x) trade-off</span></p>
+      <p><strong>Evaluation:</strong> <span class="tag tag-purple">IoU → TP/FP/FN → Precision/Recall → AP (area under PR curve) → mAP</span></p>
+      <p><strong>Versions:</strong> <span class="tag tag-orange">YOLOv8 (stable) → v9 (PGI) → v10 (NMS-free) → v11 (attention) → v12 (attention-centric) → YOLO26 (deployment-first)</span></p>
+      <p><strong>Tools:</strong> <span class="tag tag-blue">VGG Image Annotator, LabelImg, OpenLabeler, ImgLab, Roboflow</span></p>
+      <p><strong>Training:</strong> <span class="tag tag-green">data.yaml + imgsz/batch/epochs/data/mode/model/task/project/name</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>

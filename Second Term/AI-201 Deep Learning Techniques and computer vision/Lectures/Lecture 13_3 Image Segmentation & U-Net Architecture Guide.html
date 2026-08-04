@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lecture 13 — Image Segmentation &amp; U-Net Architecture | Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=Noto+Kufi+Arabic:wght@300;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1c2535;
+  --surface: #1e2d40;
+  --border: #2a3f5a;
+  --text: #e2e8f0;
+  --muted: #7a8fa8;
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --accent4: #fb923c;
+  --accent5: #f472b6;
+  --warn: #fbbf24;
+  --danger: #f87171;
+  --card-en: rgba(56,189,248,0.07);
+  --card-ar: rgba(129,140,248,0.07);
+  --card-ex: rgba(52,211,153,0.07);
+  --card-warn: rgba(251,191,36,0.09);
+  --card-danger: rgba(248,113,113,0.09);
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 14px;
+  --sidebar-w: 280px;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-arabic: 'Noto Kufi Arabic', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --bg2: #ffffff;
+  --bg3: #e8eef5;
+  --surface: #dde6f0;
+  --border: #b8cce0;
+  --text: #1a2433;
+  --muted: #5a7490;
+  --card-en: rgba(2,100,148,0.07);
+  --card-ar: rgba(79,70,229,0.07);
+  --card-ex: rgba(5,150,105,0.07);
+  --card-warn: rgba(180,130,0,0.08);
+  --card-danger: rgba(200,50,50,0.08);
+  --shadow: 0 4px 24px rgba(0,0,0,0.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  font-size:15px;
+  transition:background .3s,color .3s;
+}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sidebar-w);height:100vh;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow-y:auto;
+  z-index:100;
+  transition:transform .3s;
+  display:flex;flex-direction:column;
+}
+#sidebar::-webkit-scrollbar{width:4px}
+#sidebar::-webkit-scrollbar-track{background:transparent}
+#sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+.sidebar-header{
+  padding:20px 16px 12px;
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;
+  background:var(--bg2);
+  z-index:1;
+}
+.sidebar-header h2{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+#search{
+  width:100%;
+  padding:8px 12px;
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:13px;
+  outline:none;
+}
+#search:focus{border-color:var(--accent)}
+.progress-bar-wrap{
+  margin-top:10px;
+  height:4px;background:var(--bg3);
+  border-radius:9px;overflow:hidden;
+}
+#progress-bar{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;
+  transition:width .3s;
+  border-radius:9px;
+}
+.progress-label{
+  font-size:11px;color:var(--muted);
+  margin-top:4px;
+}
+nav{padding:10px 0;flex:1}
+.nav-section{
+  padding:4px 16px 2px;
+  font-size:10px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:8px;
+}
+nav a{
+  display:block;
+  padding:7px 16px;
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  border-left:2px solid transparent;
+  transition:all .15s;
+}
+nav a:hover,nav a.active{
+  color:var(--accent);
+  border-left-color:var(--accent);
+  background:rgba(56,189,248,0.06);
+}
+/* TOPBAR */
+#topbar{
+  position:fixed;top:0;left:var(--sidebar-w);right:0;
+  height:56px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;
+  z-index:99;
+}
+.topbar-title{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn-icon{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:12px;
+  font-family:var(--font-mono);
+  transition:all .15s;
+  white-space:nowrap;
+}
+.btn-icon:hover{background:var(--border);color:var(--accent)}
+#menu-toggle{display:none}
+/* MAIN */
+#main{
+  margin-left:var(--sidebar-w);
+  padding-top:56px;
+  min-height:100vh;
+}
+.content{
+  max-width:880px;
+  margin:0 auto;
+  padding:40px 32px 80px;
+}
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#0d1b2e 0%,#0a1628 50%,#11213a 100%);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:48px 40px;
+  margin-bottom:40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:radial-gradient(circle,rgba(56,189,248,0.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(56,189,248,0.12);
+  border:1px solid rgba(56,189,248,0.3);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:4px 10px;
+  border-radius:6px;
+  margin-bottom:16px;
+}
+.hero h1{
+  font-size:32px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:8px;
+  line-height:1.2;
+}
+.hero p{font-size:15px;color:var(--muted);margin-bottom:4px}
+.hero .author{
+  font-family:var(--font-mono);
+  font-size:12px;
+  color:var(--accent3);
+  margin-top:16px;
+}
+.stat-row{
+  display:flex;gap:20px;margin-top:24px;flex-wrap:wrap;
+}
+.stat-chip{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.1);
+  padding:8px 16px;
+  border-radius:8px;
+  text-align:center;
+}
+.stat-chip .num{
+  font-family:var(--font-mono);
+  font-size:20px;
+  color:var(--accent);
+  display:block;
+}
+.stat-chip .lbl{
+  font-size:11px;color:var(--muted);
+}
+/* SECTIONS */
+.section{
+  margin-bottom:56px;
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .5s,transform .5s;
+}
+.section.visible{opacity:1;transform:none}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.slide-badge{
+  font-family:var(--font-mono);
+  font-size:10px;
+  background:rgba(56,189,248,0.1);
+  border:1px solid rgba(56,189,248,0.25);
+  color:var(--accent);
+  padding:3px 8px;
+  border-radius:5px;
+  white-space:nowrap;
+}
+.section-header h2{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+}
+.section-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:20px;
+  font-style:italic;
+}
+/* CARDS */
+.card{
+  border-radius:var(--radius);
+  padding:20px 24px;
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-en{
+  background:var(--card-en);
+  border-left:3px solid var(--accent);
+}
+.card-ar{
+  background:var(--card-ar);
+  border-right:3px solid var(--accent2);
+  border-left:none;
+  direction:rtl;
+  font-family:var(--font-arabic);
+  line-height:2;
+  text-align:right;
+}
+.card-ar .card-title{text-align:right}
+.card-example{background:var(--card-ex);border-left:3px solid var(--accent3)}
+.card-warn{background:var(--card-warn);border-left:3px solid var(--warn)}
+.card-danger{background:var(--card-danger);border-left:3px solid var(--danger)}
+.card-exam{
+  background:linear-gradient(135deg,rgba(129,140,248,0.08),rgba(56,189,248,0.05));
+  border:1px solid rgba(129,140,248,0.25);
+}
+.card-title{
+  font-size:11px;
+  font-family:var(--font-mono);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card-title .icon{font-size:14px}
+.card-en .card-title{color:var(--accent)}
+.card-ar .card-title{color:var(--accent2);direction:rtl}
+.card-example .card-title{color:var(--accent3)}
+.card-warn .card-title{color:var(--warn)}
+.card-danger .card-title{color:var(--danger)}
+.card-exam .card-title{color:var(--accent2)}
+/* DEFINITION BOX */
+.def-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 18px;
+  margin:12px 0;
+}
+.def-term{
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent4);
+  font-weight:700;
+}
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+th{
+  background:var(--surface);
+  color:var(--accent);
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  padding:10px 14px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+/* CODE */
+pre{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  overflow-x:auto;
+  font-family:var(--font-mono);
+  font-size:12px;
+  margin:12px 0;
+  line-height:1.6;
+}
+code{
+  font-family:var(--font-mono);
+  font-size:12px;
+  background:rgba(56,189,248,0.1);
+  color:var(--accent);
+  padding:2px 6px;
+  border-radius:4px;
+}
+pre code{background:none;padding:0;color:#c9d1d9}
+.code-kw{color:#ff79c6}
+.code-fn{color:#8be9fd}
+.code-str{color:#f1fa8c}
+.code-cm{color:#6272a4}
+.code-nb{color:#bd93f9}
+/* MCQ */
+.mcq-block{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin:12px 0;
+}
+.mcq-q{font-weight:500;margin-bottom:12px;font-size:14px}
+.mcq-opts{list-style:none}
+.mcq-opts li{
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-bottom:6px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  transition:all .15s;
+  font-size:13px;
+}
+.mcq-opts li:hover{border-color:var(--accent);color:var(--accent)}
+.mcq-opts li.correct{background:rgba(52,211,153,0.15);border-color:var(--accent3);color:var(--accent3)}
+.mcq-opts li.wrong{background:rgba(248,113,113,0.1);border-color:var(--danger);color:var(--danger)}
+.mcq-explain{
+  margin-top:10px;
+  padding:10px;
+  background:rgba(52,211,153,0.08);
+  border-radius:8px;
+  font-size:13px;
+  color:var(--accent3);
+  display:none;
+}
+/* COLLAPSE */
+.collapse-btn{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:4px;
+  text-align:left;
+  transition:all .15s;
+}
+.collapse-btn:hover{background:var(--border);color:var(--accent)}
+.collapse-btn .arrow{transition:transform .2s;font-size:12px;color:var(--muted)}
+.collapse-btn.open .arrow{transform:rotate(180deg)}
+.collapse-content{
+  display:none;
+  padding:0 4px;
+  margin-bottom:8px;
+}
+.collapse-content.open{display:block}
+/* TAGS */
+.tag{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  margin:2px;
+}
+.tag-blue{background:rgba(56,189,248,0.12);color:var(--accent);border:1px solid rgba(56,189,248,0.25)}
+.tag-green{background:rgba(52,211,153,0.12);color:var(--accent3);border:1px solid rgba(52,211,153,0.25)}
+.tag-purple{background:rgba(129,140,248,0.12);color:var(--accent2);border:1px solid rgba(129,140,248,0.25)}
+.tag-orange{background:rgba(251,146,60,0.12);color:var(--accent4);border:1px solid rgba(251,146,60,0.25)}
+/* STEPS */
+.steps{list-style:none;counter-reset:step}
+.steps li{
+  counter-increment:step;
+  padding:10px 14px 10px 46px;
+  position:relative;
+  margin-bottom:8px;
+  background:var(--bg3);
+  border-radius:8px;
+  font-size:14px;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:22px;height:22px;
+  background:var(--accent);
+  color:#000;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  font-family:var(--font-mono);
+}
+/* COMPARISON TABLE */
+.cmp-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  margin:12px 0;
+}
+.cmp-col{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+.cmp-col h4{
+  font-size:12px;
+  font-family:var(--font-mono);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.cmp-col ul{list-style:none;font-size:13px}
+.cmp-col ul li{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.cmp-col ul li::before{content:'→ ';color:var(--muted)}
+/* AR terms */
+.term-ar{
+  display:inline-block;
+  background:rgba(129,140,248,0.12);
+  border:1px solid rgba(129,140,248,0.2);
+  padding:2px 8px;
+  border-radius:6px;
+  font-family:var(--font-arabic);
+  font-size:13px;
+  color:var(--accent2);
+}
+/* HIGHLIGHT */
+.hl{color:var(--accent4);font-weight:600}
+.hl-green{color:var(--accent3);font-weight:600}
+.hl-blue{color:var(--accent);font-weight:600}
+.hl-purple{color:var(--accent2);font-weight:600}
+/* EMOJI LIST */
+.e-list{list-style:none;font-size:14px}
+.e-list li{padding:4px 0}
+.e-list li::before{margin-right:6px}
+/* RESPONSIVE */
+@media(max-width:768px){
+  :root{--sidebar-w:0px}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0);width:280px}
+  #main{margin-left:0}
+  #topbar{left:0}
+  #menu-toggle{display:block}
+  .hero h1{font-size:22px}
+  .content{padding:24px 16px 60px}
+  .cmp-grid{grid-template-columns:1fr}
+  .unet-row{flex-wrap:wrap}
+  .car-row{flex-wrap:wrap}
+}
+@media print{
+  #sidebar,#topbar{display:none}
+  #main{margin-left:0;padding-top:0}
+  .section{opacity:1;transform:none}
+  .collapse-content{display:block}
+}
+/* HIGHLIGHT SEARCH */
+mark{background:rgba(251,191,36,0.3);color:var(--warn);border-radius:2px}
+/* FORMULA */
+.formula{
+  background:var(--bg);
+  border:1px solid rgba(129,140,248,0.3);
+  border-radius:8px;
+  padding:14px 20px;
+  font-family:var(--font-mono);
+  font-size:13px;
+  color:var(--accent2);
+  text-align:center;
+  margin:12px 0;
+}
+/* TOC BADGE COLORS */
+.nav-sec-1{border-left-color:var(--accent)!important}
+.nav-sec-2{border-left-color:var(--accent2)!important}
+.nav-sec-3{border-left-color:var(--accent3)!important}
+/* COVERAGE */
+.cov-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:13px;
+}
+.cov-check{
+  width:18px;height:18px;
+  background:rgba(52,211,153,0.2);
+  border:1px solid var(--accent3);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;
+  color:var(--accent3);
+  flex-shrink:0;
+}
+/* LANG TOGGLE */
+.lang-indicator{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:2px 8px;
+  border-radius:4px;
+  margin-bottom:6px;
+  display:inline-block;
+}
+.li-en{background:rgba(56,189,248,0.1);color:var(--accent)}
+.li-ar{background:rgba(129,140,248,0.1);color:var(--accent2)}
+/* MNEMONIC */
+.mnemonic{
+  background:linear-gradient(135deg,rgba(244,114,182,0.1),rgba(129,140,248,0.1));
+  border:1px solid rgba(244,114,182,0.25);
+  border-radius:10px;
+  padding:16px 20px;
+  margin:12px 0;
+  font-style:italic;
+}
+.mnemonic .mnem-title{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:1.5px;
+  color:var(--accent5);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+/* STICKY TOC INDICATOR */
+#toc-indicator{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:11px;
+  font-family:var(--font-mono);
+  color:var(--muted);
+  max-width:200px;
+  z-index:50;
+  transition:opacity .3s;
+}
+/* ====== ADDITIVE: SEGMENTATION-SPECIFIC DIAGRAM SHAPES (same visual language) ====== */
+.car-row{display:flex;gap:20px;margin:16px 0;flex-wrap:wrap;justify-content:center}
+.car-item{text-align:center}
+.car-silhouette{
+  width:90px;height:46px;
+  border-radius:22px 22px 8px 8px;
+  position:relative;
+  margin:0 auto 8px;
+  border:1px solid var(--border);
+}
+.car-silhouette::before{
+  content:'';
+  position:absolute;bottom:-8px;left:14px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--muted);
+}
+.car-silhouette::after{
+  content:'';
+  position:absolute;bottom:-8px;right:14px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--bg);border:2px solid var(--muted);
+}
+.car-label{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.unet-wrap{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:24px 16px;margin:16px 0;overflow-x:auto}
+.unet-row{display:flex;align-items:flex-end;justify-content:center;gap:6px;min-width:640px}
+.unet-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+.unet-block{
+  border-radius:8px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:10px;color:var(--text);
+  writing-mode:vertical-rl;
+  padding:6px 4px;
+}
+.unet-lbl{font-family:var(--font-mono);font-size:10px;color:var(--muted);text-align:center;max-width:80px}
+.unet-arrow-down{font-size:16px;color:var(--muted)}
+.skip-row{display:flex;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap}
+.skip-chip{
+  flex:1;min-width:140px;
+  background:var(--surface);border:1px dashed var(--accent2);
+  border-radius:8px;padding:8px 10px;
+  font-size:11px;font-family:var(--font-mono);color:var(--accent2);
+  text-align:center;
+}
+.iou-wrap{display:flex;align-items:center;justify-content:center;gap:40px;margin:16px 0;flex-wrap:wrap}
+.iou-boxes{position:relative;width:180px;height:130px}
+.iou-sq{position:absolute;border-radius:8px;font-family:var(--font-mono);font-size:10px;display:flex;align-items:flex-start;justify-content:flex-start;padding:4px 6px}
+.iou-sq.gt{top:10px;left:10px;width:110px;height:90px;background:rgba(56,189,248,0.18);border:2px solid var(--accent)}
+.iou-sq.pred{top:40px;left:60px;width:110px;height:90px;background:rgba(52,211,153,0.18);border:2px solid var(--accent3)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h2>📡 CV Study Guide</h2>
+    <input type="text" id="search" placeholder="Search concepts..." oninput="searchContent(this.value)"/>
+    <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">0% read</div>
+  </div>
+  <nav id="toc">
+    <div class="nav-section">Overview</div>
+    <a href="#s0" onclick="setActive(this)">🏠 Course Introduction</a>
+    <div class="nav-section">Part I — Fundamentals</div>
+    <a href="#s1" onclick="setActive(this)">1. What Is Image Segmentation?</a>
+    <a href="#s2" onclick="setActive(this)">2. Semantic vs Instance Segmentation</a>
+    <a href="#s3" onclick="setActive(this)">3. Traditional Segmentation Techniques</a>
+    <div class="nav-section">Part II — U-Net Architecture</div>
+    <a href="#s4" onclick="setActive(this)">4. U-Net Architecture Overview</a>
+    <a href="#s5" onclick="setActive(this)">5. Decoder Upsampling Mechanics</a>
+    <div class="nav-section">Part III — Evaluation Metrics</div>
+    <a href="#s6" onclick="setActive(this)">6. Intersection over Union (IoU)</a>
+    <a href="#s7" onclick="setActive(this)">7. Dice, Cosine Similarity &amp; Jaccard Index</a>
+    <div class="nav-section">Review</div>
+    <a href="#quiz" onclick="setActive(this)">🧪 Full Quiz Bank</a>
+    <a href="#coverage" onclick="setActive(this)">✅ Coverage Verification</a>
+  </nav>
+</aside>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-title">LECTURE 13 — IMAGE SEGMENTATION &amp; U-NET ARCHITECTURE</span>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="toggleTheme()">🌙 Theme</button>
+    <button class="btn-icon" onclick="window.print()">🖨 Print</button>
+    <button class="btn-icon" onclick="expandAll()">⊞ Expand All</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+<div class="content" id="content-root">
+
+<!-- HERO -->
+<div class="hero" id="s0">
+  <div class="hero-badge">📡 Lecture 13</div>
+  <h1>Image Segmentation &amp; U-Net Architecture</h1>
+  <p>From Pixel-Level Labels to Symmetric Encoder-Decoder Networks and Their Evaluation Metrics</p>
+  <p class="author">Dr. Ahmed Yousry &nbsp;|&nbsp; Complete Bilingual Study Guide 🇬🇧 🇸🇦</p>
+  <div class="stat-row">
+    <div class="stat-chip"><span class="num">15</span><span class="lbl">Slides</span></div>
+    <div class="stat-chip"><span class="num">7</span><span class="lbl">Topics</span></div>
+    <div class="stat-chip"><span class="num">3</span><span class="lbl">Metrics</span></div>
+    <div class="stat-chip"><span class="num">2</span><span class="lbl">Languages</span></div>
+  </div>
+  <div style="margin-top:20px">
+    <span class="tag tag-blue">Image Segmentation</span>
+    <span class="tag tag-green">Semantic Segmentation</span>
+    <span class="tag tag-purple">Instance Segmentation</span>
+    <span class="tag tag-orange">U-Net</span>
+    <span class="tag tag-blue">Skip Connections</span>
+    <span class="tag tag-green">IoU</span>
+    <span class="tag tag-purple">Dice Coefficient</span>
+    <span class="tag tag-orange">Conv2DTranspose</span>
+  </div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 2–3</span>
+    <h2>1. What Is Image Segmentation?</h2>
+  </div>
+  <p class="section-subtitle">Pixel-Level Mapping — Partitioning an Image into Meaningful Regions</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 2 — Part 01: Fundamentals of Image Segmentation:</strong> An introduction to standard pixel-level classification paradigms, comparing semantic versus instance approaches and historical mathematical solutions.</p>
+    <br/>
+    <p><strong>Slide 3 — The Core Concept:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li><strong>Pixel-Level Mapping:</strong> Image segmentation is the crucial process of partitioning a digital image into multiple distinct regions comprising groups of pixels or "super-pixels".</li>
+      <li><strong>Feature Categorization:</strong> It effectively assigns meaningful semantic labels to each pixel, helping machines identify contextual boundaries.</li>
+      <li><strong>Target Isolation:</strong> Rather than predicting global features (like standard classification), segmentation focuses on exactly "where" specific targets exist down to structural contours.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Image Segmentation</span> is the task of dividing a digital image into multiple regions, where every single pixel is assigned a meaningful label describing what that pixel represents.</p>
+    <br/>
+    <p>Compare this with what you already know from earlier lectures:</p>
+    <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-top:8px;font-size:13px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="background:rgba(56,189,248,0.2);padding:4px 10px;border-radius:6px">Classification<br/><small>one label per image</small></span>
+        <span style="color:var(--muted)">→ more precise →</span>
+        <span style="background:rgba(52,211,153,0.2);padding:4px 10px;border-radius:6px">Detection<br/><small>bounding box per object</small></span>
+        <span style="color:var(--muted)">→ more precise →</span>
+        <span style="background:rgba(244,114,182,0.2);padding:4px 10px;border-radius:6px">Segmentation<br/><small>label per pixel</small></span>
+      </div>
+    </div>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Pixel-Level Mapping</div>
+      <p style="font-size:13px;margin-top:6px">Instead of drawing a rectangle around an object (as in detection), segmentation partitions the whole image into distinct regions made up of groups of pixels, sometimes called <strong>super-pixels</strong>. Every pixel ends up belonging to exactly one region.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Feature Categorization</div>
+      <p style="font-size:13px;margin-top:6px">Each region or pixel is then given a <strong>semantic label</strong> — a meaningful name such as "road", "car", "sky", or "tumor". This lets a machine understand contextual boundaries: where one object ends and another begins.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Target Isolation</div>
+      <p style="font-size:13px;margin-top:6px">Standard classification predicts a single global feature for the whole image ("this image contains a cat"). Segmentation instead answers <strong>"where exactly"</strong> — it isolates the precise structural contour of the target, pixel by pixel.</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <div class="lang-indicator li-ar" style="font-family:var(--font-arabic)">شرح تفصيلي</div>
+    <p><strong>تجزئة الصورة (Image Segmentation)</strong> هي عملية تقسيم الصورة الرقمية إلى مناطق متعددة ومميزة، حيث يحصل كل بيكسل في الصورة على تصنيف (label) يوضح ما يمثله.</p>
+    <br/>
+    <p><strong>مقارنة سريعة بما درسناه سابقًا:</strong></p>
+    <ul style="padding-right:20px;margin-top:8px;font-size:14px">
+      <li><strong>Classification (تصنيف)</strong> — تصنيف واحد لكامل الصورة</li>
+      <li><strong>Detection (كشف)</strong> — صندوق (bounding box) حول كل جسم</li>
+      <li><strong>Segmentation (تجزئة)</strong> — تصنيف لكل بيكسل على حدة، وهذا أعلى درجة من الدقة</li>
+    </ul>
+    <br/>
+    <p><strong>Pixel-Level Mapping (التخطيط على مستوى البيكسل):</strong></p>
+    <p style="font-size:14px">بدلًا من رسم مستطيل حول الجسم، تُقسّم الصورة بالكامل إلى مناطق (regions) تتكون من مجموعات من البيكسلات، وقد تسمى هذه المجموعات "super-pixels". كل بيكسل ينتهي به الأمر إلى منطقة واحدة فقط.</p>
+    <br/>
+    <p><strong>Feature Categorization (تصنيف الميزات):</strong></p>
+    <p style="font-size:14px">كل منطقة أو بيكسل يحصل على تصنيف دلالي (semantic label) — اسم واضح مثل "طريق" أو "سيارة" أو "سماء" أو "ورم". هذا يساعد النموذج (model) على فهم الحدود السياقية بين الأجسام.</p>
+    <br/>
+    <p><strong>Target Isolation (عزل الهدف):</strong></p>
+    <p style="font-size:14px">التصنيف العادي (classification) يتنبأ بميزة عامة واحدة للصورة كلها ("هذه صورة قطة"). أما التجزئة (segmentation) فتُجاوب على سؤال "أين تمامًا؟" — تحدد الشكل الدقيق للهدف بيكسلًا ببيكسل.</p>
+    <br/>
+    <p><strong>المصطلحات المهمة:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Segmentation (تجزئة)</strong> — تقسيم الصورة إلى مناطق ذات معنى</li>
+      <li><strong>Mask (قناع)</strong> — الصورة الناتجة التي تحمل تصنيف كل بيكسل</li>
+      <li><strong>Super-pixel (بيكسل فائق)</strong> — مجموعة من البيكسلات المتجانسة تُعامل كوحدة واحدة</li>
+      <li><strong>Semantic Label (تصنيف دلالي)</strong> — الاسم المعطى لكل منطقة/بيكسل</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Simple Example — Street Scene</div>
+    <p>Imagine a photo of a street. Classification says: "street scene." Detection draws boxes around each car and pedestrian. Segmentation colors every single pixel: gray for road, blue for sky, red for cars, green for trees — producing a full pixel-accurate map, not just boxes.</p>
+  </div>
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">🌍</span> Practical Example — Real World</div>
+    <ul class="e-list">
+      <li>🏥 <strong>Medical Imaging</strong>: Segmenting a tumor's exact boundary in an MRI scan, pixel by pixel</li>
+      <li>🚗 <strong>Autonomous Driving</strong>: Segmenting drivable road surface vs. sidewalk vs. pedestrian zone</li>
+      <li>🛰️ <strong>Satellite Imagery</strong>: Segmenting farmland, forest, and water bodies for land-use analysis</li>
+    </ul>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — The Spectrum</div>
+    <p><strong>"What, Where-ish, Where-exactly"</strong></p>
+    <p>Classification = <strong>What</strong> is in the image. Detection = <strong>Where-ish</strong> (a box). Segmentation = <strong>Where-exactly</strong> (every pixel).</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam / Interview Notes</div>
+    <ul class="e-list">
+      <li>📌 Segmentation assigns a label to <em>every pixel</em>, not just a box or a single image-level tag</li>
+      <li>📌 Know the term "super-pixel" — a cluster of similar adjacent pixels treated as one unit</li>
+      <li>📌 Common exam Q: "How does segmentation differ from classification?" → segmentation localizes at pixel level, classification predicts a global label</li>
+      <li>📌 Segmentation output is usually called a <strong>mask</strong></li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Image segmentation partitions an image into pixel-level regions, giving each pixel a semantic label. It is the most spatially precise CV task, sitting beyond classification (whole-image label) and detection (bounding boxes).</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 4</span>
+    <h2>2. Semantic vs. Instance Segmentation</h2>
+  </div>
+  <p class="section-subtitle">Same Class, Different Objects — Grouped Labels vs. Individual Outlines</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Semantic Segmentation — Definition:</strong> Classifies all pixels within the image into predefined, semantically interpretable categories of real-world objects.</li>
+      <li><strong>Semantic Segmentation — Key Aspect:</strong> Does not distinguish between individual objects of the same class. If three cars are parked side-by-side, all pixels representing them are designated identically as "car".</li>
+      <li><strong>Instance Segmentation — Definition:</strong> Identifies, outlines, and catalogs every discrete occurrence of every target category mapped within an image.</li>
+      <li><strong>Instance Segmentation — Key Aspect:</strong> Explicitly separates individual boundaries of identical classes. Instead of a unified group class, it creates distinct bounding structures (e.g., separating "Car 1", "Car 2", and "Car 3").</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Both semantic and instance segmentation label pixels, but they answer a <span class="hl">different question</span>: "what class is this pixel?" vs. "which specific object does this pixel belong to?"</p>
+    <br/>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">Semantic Segmentation</h4>
+        <ul>
+          <li>Classifies every pixel into a category (car, road, sky...)</li>
+          <li>All instances of the same class share <strong>one label / one color</strong></li>
+          <li>3 cars parked together → all pixels labeled simply "car"</li>
+          <li>Cannot count how many objects exist</li>
+          <li>Example model: DeepLab, U-Net (for binary/class masks)</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Instance Segmentation</h4>
+        <ul>
+          <li>Identifies, outlines, and catalogs every discrete occurrence</li>
+          <li>Each object instance gets its <strong>own distinct mask</strong></li>
+          <li>3 cars parked together → "Car 1", "Car 2", "Car 3" (each a different color)</li>
+          <li>Can count objects directly from the output</li>
+          <li>Example model: Mask R-CNN</li>
+        </ul>
+      </div>
+    </div>
+    <br/>
+    <p><strong>Visualizing the Difference — Three Parked Cars:</strong></p>
+    <div class="car-row">
+      <div class="car-item">
+        <div class="car-silhouette" style="background:rgba(56,189,248,0.5);border-color:var(--accent)"></div>
+        <div class="car-label">"car"</div>
+      </div>
+      <div class="car-item">
+        <div class="car-silhouette" style="background:rgba(56,189,248,0.5);border-color:var(--accent)"></div>
+        <div class="car-label">"car"</div>
+      </div>
+      <div class="car-item">
+        <div class="car-silhouette" style="background:rgba(56,189,248,0.5);border-color:var(--accent)"></div>
+        <div class="car-label">"car"</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:-6px">↑ Semantic Segmentation: same color / same label for all three cars</p>
+    <div class="car-row" style="margin-top:20px">
+      <div class="car-item">
+        <div class="car-silhouette" style="background:rgba(56,189,248,0.5);border-color:var(--accent)"></div>
+        <div class="car-label">"Car 1"</div>
+      </div>
+      <div class="car-item">
+        <div class="car-silhouette" style="background:rgba(52,211,153,0.5);border-color:var(--accent3)"></div>
+        <div class="car-label">"Car 2"</div>
+      </div>
+      <div class="car-item">
+        <div class="car-silhouette" style="background:rgba(244,114,182,0.5);border-color:var(--accent5)"></div>
+        <div class="car-label">"Car 3"</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:-6px">↑ Instance Segmentation: each car gets a distinct color / distinct label</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>كلا النوعين يُصنّفان البيكسلات، لكنهما يجاوبان على سؤال مختلف: "ما فئة هذا البيكسل؟" في مقابل "لأي جسم بالتحديد ينتمي هذا البيكسل؟"</p>
+    <br/>
+    <p><strong>التجزئة الدلالية (Semantic Segmentation):</strong></p>
+    <p style="font-size:14px">تُصنّف كل بيكسل إلى فئة عامة معروفة مسبقًا (سيارة، طريق، سماء...). <strong>لا تُميّز بين الأجسام المتشابهة</strong> — إذا كانت هناك 3 سيارات متجاورة، فكل البيكسلات الخاصة بها تُصنَّف بنفس الاسم "car" وبنفس اللون.</p>
+    <br/>
+    <p><strong>التجزئة الفردية (Instance Segmentation):</strong></p>
+    <p style="font-size:14px">تحدد وتُحدّد حدود كل ظهور فردي لكل فئة على حدة. بدلًا من فئة موحدة، تُنشئ حدودًا مستقلة لكل جسم — مثل تسمية "Car 1" و "Car 2" و "Car 3" لكل سيارة بلون مختلف.</p>
+    <br/>
+    <p><strong>مثال توضيحي:</strong> لو عندنا 3 سيارات متجاورة في الصورة — الـ semantic segmentation تعطيهم كلهم لون واحد لأنهم كلهم "car"، لكن الـ instance segmentation تعطي كل سيارة لونًا مختلفًا لأنها تعتبرهم أجسامًا (objects) مستقلة.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Semantic Segmentation (تجزئة دلالية)</strong> — تصنيف حسب الفئة فقط</li>
+      <li><strong>Instance Segmentation (تجزئة فردية)</strong> — تصنيف حسب الجسم الفردي</li>
+      <li><strong>Mask (قناع)</strong> — الخريطة الملونة الناتجة عن التجزئة</li>
+      <li><strong>Category (فئة)</strong> — النوع العام للجسم مثل "car" أو "person"</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Crowd Counting</div>
+    <p>A CCTV camera watching a crowded street. Semantic segmentation just says "these pixels are person" without knowing how many people there are. Instance segmentation separates each individual — allowing the system to literally count how many distinct people are present, since each gets a unique mask.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>People sometimes assume segmentation always separates individual objects — that is only true for <strong>instance</strong> segmentation. Plain <strong>semantic</strong> segmentation deliberately groups same-class objects together and cannot tell you "how many" objects are present.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Semantic = class-level labels (all same-class pixels share one label)</li>
+      <li>📌 Instance = object-level labels (each occurrence gets a unique mask)</li>
+      <li>📌 Panoptic segmentation (not on this slide, but useful to know) = semantic + instance combined</li>
+      <li>📌 Mask R-CNN is the classic instance segmentation model; U-Net is typically used for semantic/binary masks</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Semantic segmentation</strong>: all objects of the same class share one label (3 cars = "car"). <strong>Instance segmentation</strong>: every object occurrence gets its own distinct mask ("Car 1", "Car 2", "Car 3").</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 5</span>
+    <h2>3. Traditional Segmentation Techniques</h2>
+  </div>
+  <p class="section-subtitle">Pre-Deep-Learning Approaches — Thresholding, Clustering &amp; Edge Detection</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>Thresholding:</strong> Separates pixels based on static intensity values to isolate objects from backgrounds, transforming grayscale frames into sharp binary maps.</li>
+      <li><strong>K-Means Clustering:</strong> An unsupervised iterative clustering algorithm partitioning data organically into distinct groups based on numeric feature and color similarities.</li>
+      <li><strong>Edge Detection:</strong> Tracks sudden localized variations or mathematical discontinuities in brightness to isolate regional contours and object outlines.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>Before deep neural networks like U-Net, engineers used <span class="hl">mathematical, rule-based methods</span> to segment images. These three techniques are still useful today for simple, fast, or low-resource tasks.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">1. Thresholding</div>
+      <p style="margin-top:6px;font-size:13px">Separates pixels based on <strong>static intensity values</strong> to isolate objects from backgrounds, converting a grayscale frame into a sharp binary map. Every pixel becomes either foreground or background depending on whether its intensity crosses a threshold T.</p>
+      <div class="formula">If pixel_value ≥ T → Foreground &nbsp;|&nbsp; If pixel_value &lt; T → Background</div>
+      <p style="font-size:13px"><strong>Best for:</strong> High-contrast images (e.g. a dark object on a bright background)</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">2. K-Means Clustering</div>
+      <p style="margin-top:6px;font-size:13px">An <strong>unsupervised, iterative</strong> algorithm that organically partitions the image's pixels into K distinct groups, based on similarity in numeric features and color. Each pixel is assigned to the cluster (centroid) whose color is closest to it; centroids are then recomputed and the process repeats until stable.</p>
+      <p style="font-size:13px"><strong>Best for:</strong> Segmenting images with several distinct color regions, without predefined thresholds</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">3. Edge Detection</div>
+      <p style="margin-top:6px;font-size:13px">Tracks <strong>sudden, localized variations</strong> — mathematical discontinuities in brightness — to isolate regional contours and object outlines. Where brightness changes sharply, there is likely an object boundary.</p>
+      <p style="font-size:13px"><strong>Best for:</strong> Finding object outlines/contours, useful as a preprocessing step before other segmentation methods</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>قبل ظهور الشبكات العصبية العميقة مثل U-Net، كان المهندسون يستخدمون <strong>طرقًا رياضية قائمة على قواعد ثابتة</strong> لتجزئة الصور. هذه الطرق الثلاث لا تزال مفيدة اليوم في المهام البسيطة أو السريعة.</p>
+    <br/>
+    <p><strong>١. العتبة (Thresholding):</strong></p>
+    <p style="font-size:14px">تفصل البيكسلات بناءً على قيم شدة الإضاءة الثابتة لعزل الأجسام عن الخلفية، وتحوّل الصورة الرمادية إلى خريطة ثنائية واضحة (أبيض/أسود). كل بيكسل يصبح "مقدمة" أو "خلفية" حسب تجاوزه لعتبة T.</p>
+    <br/>
+    <p><strong>٢. تجميع K-Means (K-Means Clustering):</strong></p>
+    <p style="font-size:14px">خوارزمية تجميع (clustering) غير مُوجَّهة (unsupervised) وتكرارية، تُقسّم البيانات بشكل عضوي إلى مجموعات متمايزة بناءً على تشابه الميزات العددية والألوان. كل بيكسل يُنسب لأقرب "مركز" (centroid)، ثم تُحسب المراكز من جديد، وتتكرر العملية حتى الاستقرار.</p>
+    <br/>
+    <p><strong>٣. كشف الحواف (Edge Detection):</strong></p>
+    <p style="font-size:14px">يتتبع التغيرات المفاجئة والموضعية — أي الانقطاعات الرياضية في السطوع — لعزل محيطات المناطق وحدود الأجسام. حيث يتغير السطوع بشكل حاد، يوجد غالبًا حد فاصل بين جسمين.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Thresholding (العتبة)</strong> — الفصل بناءً على شدة الإضاءة</li>
+      <li><strong>K-Means Clustering (تجميع K-Means)</strong> — تجميع غير مُوجَّه حسب التشابه</li>
+      <li><strong>Centroid (المركز)</strong> — نقطة مرجعية لكل مجموعة في K-Means</li>
+      <li><strong>Edge Detection (كشف الحواف)</strong> — تتبع تغيرات السطوع الحادة</li>
+      <li><strong>Contour (المحيط/الحافة)</strong> — الخط الفاصل حول الجسم</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Comparing the Three</div>
+    <p><strong>Task:</strong> Segment a single dark coin on a white table.</p>
+    <ol class="steps">
+      <li><strong>Thresholding:</strong> Any pixel darker than value 100 → coin; else → background. Fast, but fails if lighting is uneven.</li>
+      <li><strong>K-Means (K=2):</strong> Groups all pixels into 2 clusters by color similarity — "dark cluster" (coin) and "light cluster" (table). No fixed threshold needed.</li>
+      <li><strong>Edge Detection:</strong> Finds the sharp brightness change at the coin's circular boundary, producing an outline rather than a filled region.</li>
+    </ol>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Thinking K-Means is supervised — it is unsupervised, it needs no labeled training data</li>
+      <li>❌ Confusing edge detection (finds boundaries/outlines) with thresholding (fills regions)</li>
+      <li>❌ Assuming these traditional methods are obsolete — they remain fast, cheap baselines and preprocessing steps for deep models like U-Net</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Thresholding = fixed intensity cutoff → binary map</li>
+      <li>📌 K-Means = unsupervised iterative clustering by color/feature similarity</li>
+      <li>📌 Edge Detection = tracks brightness discontinuities → contours/outlines</li>
+      <li>📌 All three predate deep learning and require no training data (unlike U-Net)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>Traditional segmentation: <strong>Thresholding</strong> (fixed intensity cutoff), <strong>K-Means Clustering</strong> (unsupervised grouping by similarity), <strong>Edge Detection</strong> (tracks brightness discontinuities). No training data required, but limited on complex scenes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 4 ===================== -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 6–8</span>
+    <h2>4. U-Net Architecture Overview</h2>
+  </div>
+  <p class="section-subtitle">Part 02 — The Symmetric Contracting &amp; Expanding Deep Architecture</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 6 — Part 02: The U-Net Deep Architecture:</strong> A detailed architectural walkthrough of U-Net, exploring the contracting and expanding paths alongside skip connection functionalities.</p>
+    <br/>
+    <p><strong>Slide 7 — Symmetric Contracting &amp; Expanding Design:</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li><strong>Contracting Path (Encoder):</strong> Sequential 3x3 convolutions and 2x2 max-pooling reduce spatial matrices to abstract rich feature context.</li>
+      <li><strong>Expanding Path (Decoder):</strong> Successive up-sampling layers precisely reconstruct spatial dimensions to provide localization accuracy.</li>
+      <li><strong>Skip Connections:</strong> High-resolution spatial feature maps are direct-copied and concatenated to preserve sharp structural contours.</li>
+    </ul>
+    <br/>
+    <p><strong>Slide 8:</strong> The U-Net architecture diagram (visual reference — reproduced below as an interactive HTML diagram).</p>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">U-Net</span> is a convolutional neural network architecture designed specifically for image segmentation. Its name comes from its <strong>symmetric "U" shape</strong> when drawn as a diagram — a shrinking half followed by a growing half, mirror images of each other.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Contracting Path (Encoder) — the left/down side of the "U"</div>
+      <p style="font-size:13px;margin-top:6px">A sequence of <strong>3×3 convolutions</strong> followed by <strong>2×2 max-pooling</strong>. Each pooling step halves the spatial resolution (height/width) while doubling the number of feature channels. The result: the spatial matrix shrinks, but the network extracts increasingly abstract, rich feature context (what is in the image, less about exactly where).</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Expanding Path (Decoder) — the right/up side of the "U"</div>
+      <p style="font-size:13px;margin-top:6px">Successive <strong>up-sampling layers</strong> reconstruct the spatial dimensions back to the original image size, providing <strong>localization accuracy</strong> — precisely where each class is in the image.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Skip Connections — the horizontal bridges</div>
+      <p style="font-size:13px;margin-top:6px">The single most important trick in U-Net. High-resolution feature maps from each encoder level are <strong>directly copied and concatenated</strong> with the corresponding decoder level. This preserves the sharp structural contours and fine detail that would otherwise be lost during the aggressive downsampling in the encoder.</p>
+    </div>
+    <br/>
+    <p><strong>The U-Net Diagram (encoder shrinks down → bottleneck → decoder grows back up, with skip connections bridging matching levels):</strong></p>
+    <div class="unet-wrap">
+      <div class="unet-row">
+        <div class="unet-col">
+          <div class="unet-block" style="width:46px;height:130px;background:rgba(56,189,248,0.28);border-color:var(--accent)">ENC 1</div>
+          <div class="unet-lbl">128×128<br/>Conv 3×3 + Pool</div>
+        </div>
+        <div class="unet-arrow-down">→</div>
+        <div class="unet-col">
+          <div class="unet-block" style="width:40px;height:104px;background:rgba(56,189,248,0.34);border-color:var(--accent)">ENC 2</div>
+          <div class="unet-lbl">64×64<br/>Conv 3×3 + Pool</div>
+        </div>
+        <div class="unet-arrow-down">→</div>
+        <div class="unet-col">
+          <div class="unet-block" style="width:34px;height:78px;background:rgba(56,189,248,0.4);border-color:var(--accent)">ENC 3</div>
+          <div class="unet-lbl">32×32<br/>Conv 3×3 + Pool</div>
+        </div>
+        <div class="unet-arrow-down">→</div>
+        <div class="unet-col">
+          <div class="unet-block" style="width:30px;height:52px;background:rgba(129,140,248,0.5);border-color:var(--accent2)">BOT</div>
+          <div class="unet-lbl">16×16<br/>Bottleneck</div>
+        </div>
+        <div class="unet-arrow-down">→</div>
+        <div class="unet-col">
+          <div class="unet-block" style="width:34px;height:78px;background:rgba(52,211,153,0.4);border-color:var(--accent3)">DEC 3</div>
+          <div class="unet-lbl">32×32<br/>UpSample</div>
+        </div>
+        <div class="unet-arrow-down">→</div>
+        <div class="unet-col">
+          <div class="unet-block" style="width:40px;height:104px;background:rgba(52,211,153,0.34);border-color:var(--accent3)">DEC 2</div>
+          <div class="unet-lbl">64×64<br/>UpSample</div>
+        </div>
+        <div class="unet-arrow-down">→</div>
+        <div class="unet-col">
+          <div class="unet-block" style="width:46px;height:130px;background:rgba(52,211,153,0.28);border-color:var(--accent3)">DEC 1</div>
+          <div class="unet-lbl">128×128<br/>Output Mask</div>
+        </div>
+      </div>
+      <div class="skip-row">
+        <div class="skip-chip">⤳ Skip 1: ENC1 → DEC1<br/>copy + concat</div>
+        <div class="skip-chip">⤳ Skip 2: ENC2 → DEC2<br/>copy + concat</div>
+        <div class="skip-chip">⤳ Skip 3: ENC3 → DEC3<br/>copy + concat</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:-4px">The encoder (blue) shrinks spatial size while deepening features; the bottleneck (purple) holds the most abstract representation; the decoder (green) grows back to full resolution; skip connections (dashed) bridge each matching encoder/decoder level.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>U-Net</strong> هي بنية شبكة عصبية التفافية (CNN) مصممة خصيصًا لتجزئة الصور. اسمها مأخوذ من شكلها المتماثل على هيئة حرف "U" عند رسمها كمخطط — نصف يتقلص ثم نصف يتوسع، وكل نصف صورة مرآة للآخر.</p>
+    <br/>
+    <p><strong>مسار التقلص (Contracting Path / Encoder):</strong></p>
+    <p style="font-size:14px">سلسلة من عمليات الالتفاف (convolutions) بحجم 3×3 يتبعها تجميع أقصى (max-pooling) بحجم 2×2. كل خطوة تجميع تُنصّف الأبعاد المكانية (height/width) وتُضاعف عدد قنوات الميزات (feature channels). النتيجة: المصفوفة المكانية تتقلص، لكن الشبكة تستخرج سياقًا أكثر تجريدًا وغنى (يعرف "ماذا" يوجد بدقة أعلى من "أين").</p>
+    <br/>
+    <p><strong>مسار التوسع (Expanding Path / Decoder):</strong></p>
+    <p style="font-size:14px">طبقات متتالية من الرفع (up-sampling) تُعيد بناء الأبعاد المكانية إلى حجم الصورة الأصلي، مما يوفر دقة تحديد الموقع (localization accuracy) — أي تحديد أين تمامًا يقع كل تصنيف في الصورة.</p>
+    <br/>
+    <p><strong>الوصلات التخطيطية (Skip Connections):</strong></p>
+    <p style="font-size:14px">أهم فكرة في U-Net. خرائط الميزات عالية الدقة من كل مستوى في الـ encoder تُنسخ مباشرة وتُدمج (concatenate) مع المستوى المقابل في الـ decoder. هذا يحافظ على الحدود الهيكلية الدقيقة التي كانت ستُفقد أثناء عملية التقليص القوية في الـ encoder.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Encoder (المُرمِّز)</strong> — مسار التقلص، يستخرج الميزات</li>
+      <li><strong>Decoder (المُفكِّك)</strong> — مسار التوسع، يعيد بناء الأبعاد</li>
+      <li><strong>Bottleneck (عنق الزجاجة)</strong> — أضيق نقطة، أكثر الميزات تجريدًا</li>
+      <li><strong>Skip Connection (وصلة تخطيطية)</strong> — نسخ ودمج الميزات من الـ encoder إلى الـ decoder</li>
+      <li><strong>Max-Pooling (التجميع الأقصى)</strong> — تقليص الأبعاد المكانية</li>
+      <li><strong>Concatenate (دمج/ربط)</strong> — ضم خريطتي ميزات معًا</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Analogy — Zooming Out Then Back In</div>
+    <p>Imagine looking at a photo through a camera that first zooms far out (encoder) to understand the overall scene — "there's a tumor somewhere in this scan" — then zooms back in (decoder) to trace its exact boundary. The skip connections are like keeping small sticky notes of exactly where fine edges were before you zoomed out, so you don't lose that precision when you zoom back in.</p>
+  </div>
+
+  <div class="mnemonic">
+    <div class="mnem-title">🧠 Memory Trick — U-Net's Three Pillars</div>
+    <p><strong>"Shrink, Think, Skip, Grow"</strong></p>
+    <p>Encoder <strong>shrinks</strong> spatial size while the bottleneck lets the network <strong>think</strong> abstractly; <strong>skip</strong> connections preserve detail; decoder makes the mask <strong>grow</strong> back to full size.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>U-Net's skip connections are not the same as residual connections in ResNet. Skip connections in U-Net <strong>concatenate</strong> (stack channels together) rather than <strong>add</strong> feature maps — this preserves both the encoder's fine detail and the decoder's reconstructed detail side-by-side, feeding both into the next convolution.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Be able to sketch the U-shape: encoder (down) → bottleneck → decoder (up), with horizontal skip connections</li>
+      <li>📌 Encoder = 3×3 convolutions + 2×2 max-pooling, halving resolution each step</li>
+      <li>📌 Decoder = up-sampling layers, doubling resolution each step</li>
+      <li>📌 Skip connections copy + concatenate (not add) encoder feature maps into the decoder</li>
+      <li>📌 U-Net was originally designed for biomedical image segmentation</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p>U-Net = symmetric encoder (contracting: conv + max-pool, shrinks spatial size) + bottleneck + decoder (expanding: up-sampling, restores spatial size), connected by <strong>skip connections</strong> that copy and concatenate high-resolution encoder features into the decoder to preserve fine structural detail.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 5 ===================== -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <span class="slide-badge">SLIDE 9</span>
+    <h2>5. Decoder Upsampling Mechanics</h2>
+  </div>
+  <p class="section-subtitle">UpSampling2D vs. Conv2DTranspose — Static Interpolation vs. Learnable Reconstruction</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <ul style="padding-left:20px;font-size:14px">
+      <li><strong>UpSampling2D — Mechanism:</strong> A static, non-learnable layer that doubles spatial dimensions by duplicating rows and columns of the incoming feature matrix.</li>
+      <li><strong>UpSampling2D — Advantage:</strong> Uses standard geometric interpolation (nearest-neighbor or bilinear). It is computationally efficient and introduces no parameters, ensuring incredibly fast runtime execution.</li>
+      <li><strong>Conv2DTranspose — Mechanism:</strong> Also referred to as deconvolution. A learnable up-scaling operation where kernels apply parameterized weights to reconstruct missing pixel data.</li>
+      <li><strong>Conv2DTranspose — Advantage:</strong> The network actively learns the optimal spatial reconstruction filters during the training process, leading to more intricate and precise edge boundary outputs.</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>The U-Net decoder needs to grow the spatial resolution back up at every level. There are <span class="hl">two common ways</span> to implement this "upsampling" step, and they trade off speed against learned precision.</p>
+    <br/>
+    <div class="cmp-grid">
+      <div class="cmp-col">
+        <h4 style="color:var(--accent)">UpSampling2D</h4>
+        <ul>
+          <li><strong>Static, non-learnable</strong> layer — has zero trainable parameters</li>
+          <li>Doubles spatial dimensions by <strong>duplicating rows and columns</strong></li>
+          <li>Uses standard geometric interpolation: nearest-neighbor or bilinear</li>
+          <li>Computationally cheap, very fast at runtime</li>
+          <li>Output detail is limited to a fixed mathematical rule</li>
+        </ul>
+      </div>
+      <div class="cmp-col">
+        <h4 style="color:var(--accent3)">Conv2DTranspose (Deconvolution)</h4>
+        <ul>
+          <li><strong>Learnable</strong> upscaling operation with trainable kernels</li>
+          <li>Applies parameterized weights to reconstruct missing pixel data</li>
+          <li>The network <strong>learns the optimal reconstruction filters</strong> during training</li>
+          <li>Produces more intricate, precise edge boundaries</li>
+          <li>More computationally expensive (extra parameters to train)</li>
+        </ul>
+      </div>
+    </div>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Why does this choice matter?</div>
+      <p style="font-size:13px;margin-top:6px">UpSampling2D is a fixed rule — it cannot adapt to the data. Conv2DTranspose has weights that are updated by backpropagation just like any convolution, so the decoder can learn <em>how</em> to best fill in detail for the specific segmentation task, at the cost of extra compute and a risk of "checkerboard" artifacts if not configured carefully.</p>
+    </div>
+    <p style="margin-top:10px;font-size:13px">A common practical pattern (used by many modern U-Net implementations) is <strong>UpSampling2D followed by a regular Conv2D layer</strong> — this gets some learnable refinement while avoiding the checkerboard artifacts that pure Conv2DTranspose can sometimes introduce.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>يحتاج decoder في U-Net إلى إعادة رفع الدقة المكانية في كل مستوى. هناك طريقتان شائعتان لتنفيذ خطوة "الرفع" هذه، وكل واحدة تُوازن بين السرعة والدقة المتعلَّمة.</p>
+    <br/>
+    <p><strong>UpSampling2D:</strong></p>
+    <p style="font-size:14px">طبقة ثابتة <strong>غير قابلة للتعلّم</strong> — لا تحتوي على أي معاملات (parameters) قابلة للتدريب. تُضاعف الأبعاد المكانية بتكرار (duplicate) الصفوف والأعمدة للمصفوفة الواردة. تستخدم تقنيات استيفاء هندسية قياسية مثل nearest-neighbor أو bilinear. سريعة جدًا وغير مكلفة حسابيًا، لكن دقتها محدودة بقاعدة رياضية ثابتة.</p>
+    <br/>
+    <p><strong>Conv2DTranspose (يُسمى أيضًا Deconvolution):</strong></p>
+    <p style="font-size:14px">عملية رفع دقة <strong>قابلة للتعلّم</strong>، تستخدم نُوى (kernels) ذات معاملات قابلة للتدريب لإعادة بناء البيانات المفقودة من البيكسلات. تتعلم الشبكة أثناء التدريب أفضل مرشحات إعادة البناء المكانية، مما يؤدي إلى حدود أكثر دقة وتفصيلًا، لكنها أبطأ وأكثر تكلفة حسابيًا.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>UpSampling2D</strong> — رفع ثابت غير قابل للتعلم</li>
+      <li><strong>Conv2DTranspose / Deconvolution (الالتفاف العكسي)</strong> — رفع قابل للتعلم بأوزان مدرَّبة</li>
+      <li><strong>Nearest-Neighbor / Bilinear Interpolation (الاستيفاء)</strong> — طرق رياضية ثابتة لتقدير قيم البيكسلات الجديدة</li>
+      <li><strong>Kernel (النواة)</strong> — المرشح الذي يتحرك على الصورة</li>
+      <li><strong>Checkerboard Artifact (تأثير رقعة الشطرنج)</strong> — تشويه بصري قد يحدث مع Conv2DTranspose</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Practical Example — Photo Resizing Analogy</div>
+    <p><strong>UpSampling2D</strong> is like stretching a small photo bigger in a basic image viewer — pixels just get duplicated/blurred, no new information is invented. <strong>Conv2DTranspose</strong> is like an AI photo upscaler (super-resolution) that has learned from millions of images how to plausibly fill in fine detail that wasn't there before.</p>
+  </div>
+
+  <div class="card card-danger">
+    <div class="card-title"><span class="icon">🚫</span> Common Mistakes</div>
+    <ul class="e-list">
+      <li>❌ Thinking Conv2DTranspose always outperforms UpSampling2D — it costs more compute and can introduce checkerboard artifacts</li>
+      <li>❌ Confusing "deconvolution" with the mathematically strict inverse of convolution — it is not a true inverse, just a learnable upsampling operation</li>
+      <li>❌ Forgetting that UpSampling2D has zero trainable parameters, unlike Conv2DTranspose</li>
+    </ul>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 UpSampling2D = static, no parameters, fast, duplicates rows/columns</li>
+      <li>📌 Conv2DTranspose = learnable, trainable kernels, slower, more precise edges</li>
+      <li>📌 Conv2DTranspose is also called "deconvolution"</li>
+      <li>📌 Common exam Q: "Which upsampling method has trainable parameters?" → Conv2DTranspose</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>UpSampling2D</strong>: static, non-learnable, duplicates rows/columns, cheap and fast. <strong>Conv2DTranspose</strong>: learnable upscaling with trainable kernels, more precise but more expensive. Both double spatial resolution in the U-Net decoder.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 6 ===================== -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 10–11</span>
+    <h2>6. Intersection over Union (IoU)</h2>
+  </div>
+  <p class="section-subtitle">Part 03 — Metrics &amp; Mathematical Evaluation of Predicted Masks</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 10 — Part 03: Metrics &amp; Mathematical Evaluation:</strong> Detailed coverage of Intersection over Union (IoU), Jaccard parameters, Dice similarities, and mathematical modeling techniques.</p>
+    <br/>
+    <p><strong>Slide 11 — Intersection Over Union (IoU):</strong></p>
+    <ul style="margin-top:8px;padding-left:20px;font-size:14px">
+      <li>The standard evaluation metric used in structural segmentation, evaluating predicted masks against ground-truth labels.</li>
+      <li><strong>Overlap Quotient:</strong> Quantifies the region of shared target overlap divided by the total visual union.</li>
+      <li><strong>Standard:</strong> Scores range from 0.0 (no overlap) to 1.0 (flawless matching).</li>
+    </ul>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p><span class="hl-blue">Intersection over Union (IoU)</span>, also known as the <strong>Jaccard Index</strong>, is the standard metric for evaluating how well a predicted segmentation mask matches the ground-truth (correct) mask.</p>
+    <br/>
+    <div class="formula">IoU = Area of Overlap ÷ Area of Union</div>
+    <p style="font-size:13px">Where <strong>Area of Overlap</strong> is the region where the prediction and the ground truth agree (both say "this pixel is the object"), and <strong>Area of Union</strong> is every pixel claimed by either the prediction OR the ground truth (or both).</p>
+    <br/>
+    <p><strong>Visualizing IoU — Two Overlapping Regions:</strong></p>
+    <div class="iou-wrap">
+      <div class="iou-boxes">
+        <div class="iou-sq gt">Ground Truth</div>
+        <div class="iou-sq pred">Prediction</div>
+      </div>
+      <div style="font-size:13px;max-width:220px">
+        <p><span class="hl-blue">Blue square</span> = ground-truth mask</p>
+        <p style="margin-top:4px"><span class="hl-green">Green square</span> = predicted mask</p>
+        <p style="margin-top:4px">The <strong>overlapping region</strong> (where both squares cover the same pixels) is the intersection. The <strong>total area covered by either square</strong> is the union.</p>
+      </div>
+    </div>
+    <div class="def-box">
+      <div class="def-term">Standard Score Range</div>
+      <p style="font-size:13px;margin-top:6px">IoU scores always fall between <strong>0.0</strong> (no overlap at all — completely wrong prediction) and <strong>1.0</strong> (flawless match — prediction is pixel-for-pixel identical to ground truth).</p>
+    </div>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p><strong>التقاطع على الاتحاد (Intersection over Union - IoU)</strong>، ويُعرف أيضًا بـ <strong>مؤشر جاكارد (Jaccard Index)</strong>، هو المقياس القياسي لتقييم مدى تطابق قناع التجزئة المتوقع (predicted mask) مع القناع الصحيح (ground truth).</p>
+    <br/>
+    <div class="formula" style="direction:ltr;font-family:var(--font-mono)">IoU = مساحة التقاطع ÷ مساحة الاتحاد</div>
+    <p style="font-size:14px"><strong>مساحة التقاطع (Area of Overlap)</strong> هي المنطقة التي يتفق فيها النموذج (model) مع القناع الصحيح (كلاهما يقول "هذا البيكسل هو الجسم"). أما <strong>مساحة الاتحاد (Area of Union)</strong> فهي كل البيكسلات التي يُطالب بها التنبؤ (prediction) أو القناع الصحيح أو كليهما.</p>
+    <br/>
+    <p><strong>المعيار القياسي:</strong></p>
+    <p style="font-size:14px">تتراوح قيم IoU دائمًا بين <strong>0.0</strong> (لا يوجد أي تداخل — تنبؤ خاطئ تمامًا) و <strong>1.0</strong> (تطابق مثالي — التنبؤ مطابق تمامًا للقناع الصحيح بيكسلًا ببيكسل).</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>IoU (التقاطع على الاتحاد)</strong> — مقياس دقة التجزئة</li>
+      <li><strong>Ground Truth (الحقيقة الأرضية/الوسم الصحيح)</strong> — القناع الصحيح المُعطى يدويًا</li>
+      <li><strong>Predicted Mask (القناع المتوقع)</strong> — خرج النموذج</li>
+      <li><strong>Jaccard Index (مؤشر جاكارد)</strong> — اسم آخر لـ IoU</li>
+      <li><strong>Overlap (التداخل)</strong> — المنطقة المشتركة</li>
+      <li><strong>Union (الاتحاد)</strong> — المساحة الكلية المغطاة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Numeric Example</div>
+    <p>Suppose the ground-truth tumor mask covers <strong>100 pixels</strong>, the predicted mask covers <strong>90 pixels</strong>, and they overlap on <strong>70 pixels</strong>.</p>
+    <div class="formula">Union = 100 + 90 − 70 = 120 &nbsp;→&nbsp; IoU = 70 ÷ 120 ≈ 0.58</div>
+    <p style="font-size:13px">An IoU of 0.58 means the prediction is reasonably close but not tight — some pixels were missed and some extra pixels were incorrectly included.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Common Misconception</div>
+    <p>IoU is not the same as simple pixel accuracy. A model that predicts "background" for almost every pixel can still get high pixel accuracy on an image mostly full of background, but its IoU on the actual object of interest would be very low — IoU specifically penalizes both missed pixels and extra false-positive pixels.</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 IoU = Overlap ÷ Union, range 0.0 to 1.0</li>
+      <li>📌 IoU is also called the Jaccard Index</li>
+      <li>📌 Know how to compute IoU given overlap and union pixel counts (see Section 7 for thresholds)</li>
+      <li>📌 IoU is the standard metric for both object detection (box overlap) and segmentation (mask overlap)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>IoU = Area of Overlap ÷ Area of Union</strong>, ranging from 0.0 (no match) to 1.0 (perfect match). Also called the Jaccard Index. The standard metric for comparing predicted masks against ground truth in segmentation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SECTION 7 ===================== -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <span class="slide-badge">SLIDES 12–13</span>
+    <h2>7. Dice, Cosine Similarity &amp; Jaccard Index</h2>
+  </div>
+  <p class="section-subtitle">Similarity Metric Formulations — Comparing Strictness and Production Targets</p>
+
+  <div class="card" style="background:var(--surface);border-left:3px solid var(--accent4)">
+    <div class="card-title" style="color:var(--accent4)"><span class="icon">📋</span> Original Slide Content</div>
+    <p><strong>Slide 12 — Similarity Metric Formulations</strong> (section header for the metrics comparison table).</p>
+    <br/>
+    <p><strong>Slide 13 — Metrics Table:</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Metric</th><th>Stricter?</th><th>Standard Acceptable Target</th><th>Excellent/Production Target</th></tr>
+        <tr><td>Dice Coefficient</td><td>No</td><td>&ge; 0.80</td><td>&ge; 0.85</td></tr>
+        <tr><td>Cosine Similarity (Ochiai)</td><td>No</td><td>&ge; 0.80</td><td>&ge; 0.85</td></tr>
+        <tr><td>Jaccard Index (IoU)</td><td>Yes</td><td>&ge; 0.70</td><td>&ge; 0.75</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-en">
+    <div class="card-title"><span class="icon">🇬🇧</span> English Explanation</div>
+    <div class="lang-indicator li-en">ENGLISH EXPLANATION</div>
+    <p>These three metrics all measure <span class="hl">similarity between a predicted mask and the ground truth</span>, but they are mathematically different and disagree on how "strict" a good score should look.</p>
+    <br/>
+    <div class="def-box">
+      <div class="def-term">Dice Coefficient (also called F1 Score for segmentation)</div>
+      <div class="formula">Dice = (2 × Area of Overlap) ÷ (Area of Prediction + Area of Ground Truth)</div>
+      <p style="font-size:13px">Dice counts the overlap <strong>twice</strong> in the numerator and divides by the <strong>sum</strong> of both areas (rather than their union). This makes Dice mathematically <strong>less strict / more forgiving</strong> than IoU — for the same prediction, Dice will always be greater than or equal to IoU.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Cosine Similarity (Ochiai Coefficient)</div>
+      <p style="font-size:13px;margin-top:6px">Treats the ground-truth and predicted masks as binary vectors and measures the cosine of the angle between them. For binary masks, this is mathematically equivalent to the <strong>Ochiai coefficient</strong>: Overlap ÷ √(Area of Prediction × Area of Ground Truth). Like Dice, it is <strong>not stricter</strong> than IoU.</p>
+    </div>
+    <div class="def-box" style="margin-top:10px">
+      <div class="def-term">Jaccard Index (= IoU)</div>
+      <p style="font-size:13px;margin-top:6px">The same metric covered in Section 6: Overlap ÷ Union. Because the denominator (union) is always larger than or equal to the denominator used by Dice (sum of areas), Jaccard/IoU produces the <strong>lowest, strictest</strong> score of the three for any given prediction.</p>
+    </div>
+    <br/>
+    <p><strong>The Comparison Table (reproduced from the slide):</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>Metric</th><th>Stricter?</th><th>Standard Acceptable Target</th><th>Excellent / Production Target</th></tr>
+        <tr><td><strong>Dice Coefficient</strong></td><td>No</td><td>≥ 0.80</td><td>≥ 0.85</td></tr>
+        <tr><td><strong>Cosine Similarity (Ochiai)</strong></td><td>No</td><td>≥ 0.80</td><td>≥ 0.85</td></tr>
+        <tr><td><strong>Jaccard Index (IoU)</strong></td><td>Yes</td><td>≥ 0.70</td><td>≥ 0.75</td></tr>
+      </table>
+    </div>
+    <p style="font-size:13px;margin-top:10px">Notice the pattern: Dice and Cosine Similarity require a <strong>higher</strong> numeric threshold (0.80 / 0.85) to be considered good, precisely because they are naturally inflated compared to IoU. Jaccard/IoU is judged against a <strong>lower</strong> threshold (0.70 / 0.75) because it is inherently the stricter, harsher-scoring metric. A model might report Dice = 0.85 and IoU = 0.75 on the exact same prediction — both numbers can represent the same underlying segmentation quality.</p>
+  </div>
+
+  <div class="card card-ar">
+    <div class="card-title"><span class="icon">🇸🇦</span> الشرح بالعربي</div>
+    <p>هذه المقاييس الثلاث تقيس جميعها <strong>التشابه بين القناع المتوقع والقناع الصحيح</strong>، لكنها مختلفة رياضيًا وتختلف في مدى "صرامتها" عند الحكم على جودة النتيجة.</p>
+    <br/>
+    <p><strong>معامل Dice (يُسمى أيضًا F1 Score في التجزئة):</strong></p>
+    <div class="formula" style="direction:ltr;font-family:var(--font-mono)">Dice = (2 × مساحة التقاطع) ÷ (مساحة التنبؤ + مساحة الحقيقة الأرضية)</div>
+    <p style="font-size:14px">يحسب Dice مساحة التداخل مرتين في البسط، ويقسمها على <strong>مجموع</strong> المساحتين (لا على اتحادهما). هذا يجعل Dice <strong>أقل صرامة</strong> رياضيًا من IoU — لنفس التنبؤ، قيمة Dice ستكون دائمًا أكبر من أو تساوي قيمة IoU.</p>
+    <br/>
+    <p><strong>تشابه الجيب التمام (Cosine Similarity / Ochiai):</strong></p>
+    <p style="font-size:14px">يُعامل القناعين كمتجهين ثنائيين (binary vectors) ويقيس جيب تمام الزاوية بينهما. بالنسبة للأقنعة الثنائية، هذا يُعادل رياضيًا معامل Ochiai: التقاطع ÷ الجذر التربيعي لـ (مساحة التنبؤ × مساحة الحقيقة). مثل Dice، هو <strong>غير أكثر صرامة</strong> من IoU.</p>
+    <br/>
+    <p><strong>مؤشر جاكارد (Jaccard Index = IoU):</strong></p>
+    <p style="font-size:14px">نفس المقياس الذي شرحناه في القسم السادس: التقاطع ÷ الاتحاد. لأن المقام (الاتحاد) أكبر من أو يساوي المقام المستخدم في Dice (مجموع المساحتين)، فإن Jaccard/IoU يُعطي <strong>أدنى وأكثر صرامة</strong> من القيمتين الأخريين لنفس التنبؤ.</p>
+    <br/>
+    <p><strong>الجدول (كما ورد في الشريحة):</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Dice Coefficient</strong> — غير أكثر صرامة — العتبة المقبولة ≥ 0.80 — الممتازة ≥ 0.85</li>
+      <li><strong>Cosine Similarity (Ochiai)</strong> — غير أكثر صرامة — العتبة المقبولة ≥ 0.80 — الممتازة ≥ 0.85</li>
+      <li><strong>Jaccard Index (IoU)</strong> — أكثر صرامة — العتبة المقبولة ≥ 0.70 — الممتازة ≥ 0.75</li>
+    </ul>
+    <p style="font-size:14px;margin-top:8px">لاحظ النمط: مقاييس Dice وCosine تحتاج عتبة رقمية <strong>أعلى</strong> (0.80/0.85) لتُعتبر جيدة، لأنها بطبيعتها تُعطي قيمًا أعلى من IoU. أما Jaccard/IoU يُقاس بعتبة <strong>أقل</strong> (0.70/0.75) لأنه المقياس الأكثر صرامة بطبيعته. النموذج قد يُظهر Dice = 0.85 وIoU = 0.75 لنفس التنبؤ تمامًا — وكلا الرقمين يعكسان نفس جودة التجزئة الحقيقية.</p>
+    <br/>
+    <p><strong>المصطلحات:</strong></p>
+    <ul style="padding-right:18px;font-size:13px">
+      <li><strong>Dice Coefficient (معامل Dice)</strong> — مقياس تشابه غير صارم</li>
+      <li><strong>Cosine Similarity (تشابه الجيب التمام)</strong> — قياس زاوية بين متجهين</li>
+      <li><strong>Ochiai Coefficient (معامل أوتشياي)</strong> — الاسم البديل لـ cosine similarity على الأقنعة الثنائية</li>
+      <li><strong>Jaccard Index (مؤشر جاكارد)</strong> — نفس IoU، الأكثر صرامة</li>
+      <li><strong>Threshold (العتبة)</strong> — الحد الأدنى المقبول للقيمة</li>
+    </ul>
+  </div>
+
+  <div class="card card-example">
+    <div class="card-title"><span class="icon">💡</span> Worked Numeric Example — Same Prediction, Three Metrics</div>
+    <p>Using the same numbers from Section 6: ground truth = 100 pixels, prediction = 90 pixels, overlap = 70 pixels.</p>
+    <div class="formula">IoU/Jaccard = 70 ÷ (100+90−70) = 70 ÷ 120 ≈ 0.58</div>
+    <div class="formula">Dice = (2 × 70) ÷ (100 + 90) = 140 ÷ 190 ≈ 0.74</div>
+    <p style="font-size:13px">Same underlying prediction, but Dice (≈0.74) reports a noticeably higher score than IoU (≈0.58) — exactly why the "acceptable" thresholds differ per metric.</p>
+  </div>
+
+  <div class="card card-warn">
+    <div class="card-title"><span class="icon">⚠️</span> Important Note — Never Compare Raw Numbers Across Metrics</div>
+    <p>Never directly compare a Dice score to an IoU score as if they were on the same scale. A Dice of 0.80 is roughly comparable in quality to an IoU around 0.67–0.70, not to an IoU of 0.80. Always check which metric a reported number belongs to before judging "good" or "bad."</p>
+  </div>
+
+  <div class="card card-exam">
+    <div class="card-title"><span class="icon">🎓</span> Exam Notes</div>
+    <ul class="e-list">
+      <li>📌 Dice = 2×Overlap ÷ (sum of areas); IoU/Jaccard = Overlap ÷ Union; Dice ≥ IoU always</li>
+      <li>📌 Memorize the table: Dice &amp; Cosine acceptable ≥0.80 / excellent ≥0.85; Jaccard(IoU) acceptable ≥0.70 / excellent ≥0.75</li>
+      <li>📌 Jaccard Index is literally the same metric as IoU — just a different name</li>
+      <li>📌 Cosine Similarity on binary masks = Ochiai coefficient</li>
+      <li>📌 Know why Jaccard/IoU is "stricter": bigger denominator (union vs. sum of areas)</li>
+    </ul>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">⚡ Quick Summary <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card" style="background:var(--surface)">
+      <p><strong>Dice Coefficient</strong> and <strong>Cosine Similarity (Ochiai)</strong> are not stricter than IoU (acceptable ≥0.80, excellent ≥0.85). <strong>Jaccard Index (= IoU)</strong> is the stricter metric (acceptable ≥0.70, excellent ≥0.75) because its denominator is the union rather than the sum of areas.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== QUIZ SECTION ===================== -->
+<div class="section" id="quiz">
+  <div class="section-header">
+    <span class="slide-badge">REVIEW</span>
+    <h2>🧪 Full Quiz Bank</h2>
+  </div>
+  <p class="section-subtitle">Multiple Choice and Short Answer Questions Covering All Seven Topics</p>
+
+  <div class="card" style="background:var(--surface);border:1px solid var(--border)">
+    <div class="card-title" style="color:var(--accent)"><span class="icon">🔵</span> Multiple Choice Questions</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q1. Image segmentation is best described as:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Assigning one label to the entire image</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Drawing a bounding box around each object</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Partitioning an image into regions and assigning a semantic label to every pixel</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Counting connected components after binarization</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Segmentation performs pixel-level mapping, giving every pixel a meaningful semantic label.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q2. Three cars are parked side by side. A model labels all their pixels simply as "car" without telling them apart. This is:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, true, 'A')">A) Semantic segmentation</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Instance segmentation</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Object detection</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Image classification</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: A</strong> — Semantic segmentation does not distinguish between individual objects of the same class; all cars share the "car" label.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q3. Which traditional segmentation technique is unsupervised and iterative, grouping pixels by color/feature similarity?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Thresholding</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) K-Means Clustering</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Edge Detection</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Conv2DTranspose</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — K-Means is an unsupervised, iterative clustering algorithm that partitions pixels into groups by similarity.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q4. In the U-Net architecture, skip connections primarily serve to:</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Speed up the encoder's max-pooling operations</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Reduce the number of channels in the bottleneck</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Copy and concatenate high-resolution encoder feature maps into the decoder to preserve structural detail</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Convert the output mask into a binary image</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Skip connections preserve sharp structural contours that would otherwise be lost during aggressive downsampling.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q5. Which decoder upsampling method has trainable parameters and learns its reconstruction filters?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) UpSampling2D</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Conv2DTranspose</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Max-Pooling</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Thresholding</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Conv2DTranspose (deconvolution) uses learnable kernels; UpSampling2D has zero trainable parameters.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q6. What is the correct formula for Intersection over Union (IoU)?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) 2 × Overlap ÷ Sum of Areas</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Area of Overlap ÷ Area of Union</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Overlap ÷ √(Area1 × Area2)</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) Union ÷ Overlap</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — IoU = Area of Overlap ÷ Area of Union, ranging from 0.0 to 1.0.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q7. According to the metrics table, which metric is considered "stricter" and therefore judged against a lower acceptable threshold?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Dice Coefficient</li>
+      <li onclick="mcqAnswer(this, false, 'B')">B) Cosine Similarity (Ochiai)</li>
+      <li onclick="mcqAnswer(this, true, 'C')">C) Jaccard Index (IoU)</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) All three are equally strict</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: C</strong> — Jaccard Index (IoU) is stricter; its acceptable/excellent targets are ≥0.70/≥0.75, lower than Dice and Cosine's ≥0.80/≥0.85 precisely because it scores harder.</div>
+  </div>
+
+  <div class="mcq-block">
+    <p class="mcq-q">Q8. For the same prediction, which relationship between Dice and IoU is always true?</p>
+    <ul class="mcq-opts">
+      <li onclick="mcqAnswer(this, false, 'A')">A) Dice is always less than IoU</li>
+      <li onclick="mcqAnswer(this, true, 'B')">B) Dice is always greater than or equal to IoU</li>
+      <li onclick="mcqAnswer(this, false, 'C')">C) Dice and IoU are always identical</li>
+      <li onclick="mcqAnswer(this, false, 'D')">D) There is no mathematical relationship</li>
+    </ul>
+    <div class="mcq-explain">✅ <strong>Answer: B</strong> — Because Dice divides by the sum of areas (smaller denominator) while IoU divides by the union (larger denominator), Dice ≥ IoU always.</div>
+  </div>
+
+  <!-- Short Answer -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);margin-top:20px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">📖</span> Short Answer Questions</div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 1: Explain the difference between semantic and instance segmentation with an example. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Semantic segmentation classifies every pixel into a category but does not distinguish between individual objects of the same class — three parked cars all get the identical label "car". Instance segmentation identifies, outlines, and catalogs every discrete occurrence of every target category — the same three cars would be separated into "Car 1", "Car 2", and "Car 3", each with a distinct mask/color.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 2: Describe the three main structural components of U-Net and what each one does. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> (1) <strong>Contracting path / encoder</strong> — sequential 3×3 convolutions and 2×2 max-pooling reduce spatial dimensions while extracting rich abstract feature context. (2) <strong>Expanding path / decoder</strong> — successive up-sampling layers reconstruct the spatial dimensions back to the original size for accurate localization. (3) <strong>Skip connections</strong> — high-resolution feature maps from the encoder are copied and concatenated into the corresponding decoder level, preserving fine structural detail that downsampling would otherwise destroy.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 3: Compare UpSampling2D and Conv2DTranspose as decoder upsampling mechanisms. <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> <strong>UpSampling2D</strong> is a static, non-learnable layer that doubles spatial dimensions by duplicating rows and columns using standard geometric interpolation (nearest-neighbor or bilinear); it introduces no parameters, so it is computationally cheap and fast but limited to a fixed rule. <strong>Conv2DTranspose</strong> (deconvolution) is a learnable upscaling operation with trainable kernels that reconstruct missing pixel data; the network learns the optimal reconstruction filters during training, producing more precise edge boundaries at higher computational cost.</p>
+    </div>
+  </div>
+
+  <button class="collapse-btn" onclick="toggleCollapse(this)">SA 4: Why is the Dice Coefficient considered "less strict" than the Jaccard Index (IoU), and how does this affect the acceptable-score thresholds? <span class="arrow">▼</span></button>
+  <div class="collapse-content">
+    <div class="card card-example">
+      <p><strong>Answer:</strong> Dice = (2 × Overlap) ÷ (Area of Prediction + Area of Ground Truth), while Jaccard/IoU = Overlap ÷ Union. Because the union of two regions is always greater than or equal to their overlap but smaller than or equal to the sum of their individual areas, IoU's denominator is effectively larger, making IoU mathematically less forgiving — Dice ≥ IoU for any given prediction. This is exactly why the slide's threshold table sets Dice and Cosine Similarity's acceptable/excellent targets higher (≥0.80/≥0.85) than Jaccard Index/IoU's (≥0.70/≥0.75): the thresholds are calibrated to each metric's natural scale so that similar underlying segmentation quality is judged consistently.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COVERAGE VERIFICATION ===================== -->
+<div class="section" id="coverage">
+  <div class="section-header">
+    <span class="slide-badge">FINAL</span>
+    <h2>✅ Coverage Verification</h2>
+  </div>
+  <p class="section-subtitle">Confirming 100% coverage of all 15 slides and their content</p>
+
+  <div class="card" style="background:var(--surface)">
+    <div class="card-title" style="color:var(--accent3)"><span class="icon">📊</span> Coverage Report</div>
+
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 1</strong> — Title: "Image Segmentation &amp; U-Net" / Dr. Ahmed Yousry — ✅ Hero section</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 2</strong> — Part 01: Fundamentals of Image Segmentation (intro to semantic vs instance, traditional solutions) — ✅ Addressed in Section 1 intro</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 3</strong> — The Core Concept: Pixel-Level Mapping, Feature Categorization, Target Isolation — ✅ Section 1 (What Is Image Segmentation?)</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 4</strong> — Semantic vs. Instance Segmentation (definitions and key aspects) — ✅ Section 2, with car-silhouette diagram</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 5</strong> — Traditional Segmentation Techniques (Thresholding, K-Means Clustering, Edge Detection) — ✅ Section 3</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 6</strong> — Part 02: The U-Net Deep Architecture (intro to contracting/expanding paths, skip connections) — ✅ Addressed in Section 4 intro</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 7</strong> — Symmetric Contracting &amp; Expanding Design (Contracting/Encoder, Expanding/Decoder, Skip Connections) — ✅ Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 8</strong> — U-Net architecture reference diagram — ✅ Reproduced as an interactive labeled HTML/CSS diagram in Section 4</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 9</strong> — Decoder Upsampling Mechanics (UpSampling2D vs. Conv2DTranspose) — ✅ Section 5</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 10</strong> — Part 03: Metrics &amp; Mathematical Evaluation (IoU, Jaccard, Dice intro) — ✅ Addressed in Section 6 intro</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 11</strong> — Intersection Over Union: Overlap Quotient, 0.0–1.0 standard — ✅ Section 6, with formula and visual overlap diagram</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 12</strong> — Similarity Metric Formulations (table header) — ✅ Addressed in Section 7 intro</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 13</strong> — Metrics Table (Dice Coefficient, Cosine Similarity/Ochiai, Jaccard Index/IoU with strictness and thresholds) — ✅ Section 7, reproduced as a full HTML table with worked numeric example</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 14</strong> — Questions &amp; Discussion / closing thank-you slide — ✅ Acknowledged; addressed via the Quiz section (🧪 Full Quiz Bank) as the discussion/review component</span></div>
+    <div class="cov-item"><div class="cov-check">✓</div><span><strong>Slide 15</strong> — Image Sources (keymakr.com, lmb.informatik.uni-freiburg.de U-Net diagram source, pyimagesearch.com IoU examples) — ✅ Acknowledged; source imagery concepts reproduced faithfully as original HTML/CSS diagrams throughout Sections 2, 4, and 6</span></div>
+
+    <div style="margin-top:20px;padding:14px;background:rgba(52,211,153,0.1);border:1px solid var(--accent3);border-radius:10px">
+      <p style="color:var(--accent3);font-family:var(--font-mono);font-size:13px">✅ COVERAGE: 15/15 SLIDES — 100% COMPLETE</p>
+      <p style="font-size:13px;margin-top:6px">All concepts, definitions, formulas, and the metrics table have been explained in both English and Arabic with additional examples, memory tricks, worked numeric calculations, and exam notes.</p>
+    </div>
+  </div>
+
+  <!-- Final Concept Map -->
+  <div class="card" style="background:var(--surface);margin-top:16px">
+    <div class="card-title" style="color:var(--accent2)"><span class="icon">🗺️</span> Complete Concept Map — Everything in One View</div>
+    <div style="font-size:13px;line-height:2.5">
+      <p><strong>Fundamentals:</strong> <span class="tag tag-blue">Image Segmentation</span> = <span class="tag tag-blue">Pixel-Level Mapping</span> ⊃ <span class="tag tag-green">Semantic Segmentation</span> vs <span class="tag tag-purple">Instance Segmentation</span></p>
+      <p><strong>Traditional Techniques:</strong> <span class="tag tag-orange">Thresholding</span> → <span class="tag tag-orange">K-Means Clustering</span> → <span class="tag tag-orange">Edge Detection</span></p>
+      <p><strong>U-Net Architecture:</strong> <span class="tag tag-blue">Encoder (Conv 3×3 + MaxPool)</span> → <span class="tag tag-purple">Bottleneck</span> → <span class="tag tag-green">Decoder (Upsampling)</span>, bridged by <span class="tag tag-blue">Skip Connections</span></p>
+      <p><strong>Upsampling Mechanics:</strong> <span class="tag tag-orange">UpSampling2D (static)</span> vs <span class="tag tag-green">Conv2DTranspose (learnable)</span></p>
+      <p><strong>Evaluation Metrics:</strong> <span class="tag tag-blue">IoU = Overlap/Union</span> | <span class="tag tag-green">Dice = 2×Overlap/(sum of areas)</span> | <span class="tag tag-purple">Cosine Similarity (Ochiai)</span></p>
+      <p><strong>Strictness Ranking:</strong> <span class="tag tag-purple">Jaccard/IoU (stricter, ≥0.70/0.75)</span> &lt; <span class="tag tag-green">Dice &amp; Cosine (≥0.80/0.85)</span></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</main>
+
+<!-- Floating TOC indicator -->
+<div id="toc-indicator">📍 <span id="current-section">Introduction</span></div>
+
+<script>
+// THEME TOGGLE
+function toggleTheme() {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.querySelector('[onclick="toggleTheme()"]').textContent =
+    html.dataset.theme === 'dark' ? '☀️ Theme' : '🌙 Theme';
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ACTIVE NAV
+function setActive(el) {
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+// COLLAPSE
+function toggleCollapse(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+// EXPAND ALL
+function expandAll() {
+  document.querySelectorAll('.collapse-btn').forEach(btn => {
+    btn.classList.add('open');
+    btn.nextElementSibling.classList.add('open');
+  });
+}
+
+// MCQ
+function mcqAnswer(li, isCorrect, label) {
+  const block = li.closest('.mcq-block');
+  block.querySelectorAll('li').forEach(l => l.classList.remove('correct','wrong'));
+  li.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    block.querySelectorAll('li').forEach(l => {
+      if (l.dataset.correct === 'true') l.classList.add('correct');
+    });
+  }
+
+  const explain = block.querySelector('.mcq-explain');
+  if (explain) explain.style.display = 'block';
+}
+
+// Set correct answer data attributes
+document.querySelectorAll('.mcq-opts li').forEach(li => {
+  li.dataset.correct = li.onclick.toString().includes('true,') ? 'true' : 'false';
+});
+
+// SEARCH
+function searchContent(query) {
+  // Remove existing highlights
+  document.querySelectorAll('mark').forEach(m => {
+    m.outerHTML = m.innerHTML;
+  });
+
+  if (!query || query.length < 2) return;
+
+  const content = document.getElementById('content-root');
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node.nodeValue.trim() && !['SCRIPT','STYLE','CODE','PRE'].includes(node.parentElement.tagName)) {
+      nodes.push(node);
+    }
+  }
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  nodes.forEach(n => {
+    if (regex.test(n.nodeValue)) {
+      const span = document.createElement('span');
+      span.innerHTML = n.nodeValue.replace(regex, '<mark>$1</mark>');
+      n.parentNode.replaceChild(span, n);
+    }
+  });
+}
+
+// PROGRESS TRACKING
+function updateProgress() {
+  const sections = document.querySelectorAll('.section');
+  const total = sections.length;
+  let visible = 0;
+  sections.forEach(s => {
+    if (s.classList.contains('visible')) visible++;
+  });
+  const pct = Math.round((visible / total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% read';
+}
+
+// INTERSECTION OBSERVER for animations and progress
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      updateProgress();
+
+      // Update TOC indicator
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) {
+        document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+        document.getElementById('current-section').textContent = link.textContent.slice(0,30);
+      }
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
