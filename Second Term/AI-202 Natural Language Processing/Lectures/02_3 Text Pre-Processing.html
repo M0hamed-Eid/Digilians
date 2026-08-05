@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Text Pre-Processing — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #intro    .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #regex    .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #tokenization .section-icon { background: var(--c-teal-bg);  color: var(--c-teal);  border: 1.5px solid var(--c-teal-mid); }
+  #stopwords .section-icon { background: var(--c-purple-bg); color: var(--c-purple); border: 1.5px solid var(--c-purple-mid); }
+  #stemming  .section-icon { background: var(--c-rose-bg);   color: var(--c-rose);   border: 1.5px solid var(--c-rose-mid); }
+  #lemma     .section-icon { background: var(--c-emerald-bg);color: var(--c-emerald);border: 1.5px solid var(--c-emerald-mid); }
+  #pos       .section-icon { background: var(--c-indigo-bg); color: var(--c-indigo); border: 1.5px solid var(--c-indigo-mid); }
+  #autotagging .section-icon { background: var(--c-orange-bg);color: var(--c-orange);border: 1.5px solid var(--c-orange-mid); }
+  #ner       .section-icon { background: var(--c-sky-bg);    color: var(--c-sky);    border: 1.5px solid var(--c-sky-mid); }
+
+  /* Section left-border accent stripe */
+  #intro       { border-left: 4px solid var(--c-blue); }
+  #regex       { border-left: 4px solid var(--c-amber); }
+  #tokenization { border-left: 4px solid var(--c-teal); }
+  #stopwords   { border-left: 4px solid var(--c-purple); }
+  #stemming    { border-left: 4px solid var(--c-rose); }
+  #lemma       { border-left: 4px solid var(--c-emerald); }
+  #pos         { border-left: 4px solid var(--c-indigo); }
+  #autotagging { border-left: 4px solid var(--c-orange); }
+  #ner         { border-left: 4px solid var(--c-sky); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+
+  /* ── Pipeline diagram ── */
+  .pipeline-wrap { overflow-x: auto; margin: 16px 0; }
+  .pipeline-svg { width: 100%; min-width: 640px; height: auto; display: block; }
+  .pipeline-step-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; }
+  .pipeline-step-sub { font-family: 'Sora', sans-serif; font-size: 9.5px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: Text Pre-Processing</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('intro')">Introduction</button>
+      <button class="toc-chip" onclick="scrollTo('regex')">Regular Expressions</button>
+      <button class="toc-chip" onclick="scrollTo('tokenization')">Tokenization</button>
+      <button class="toc-chip" onclick="scrollTo('stopwords')">Stop Words</button>
+      <button class="toc-chip" onclick="scrollTo('stemming')">Stemming</button>
+      <button class="toc-chip" onclick="scrollTo('lemma')">Lemmatization</button>
+      <button class="toc-chip" onclick="scrollTo('pos')">POS Tagging</button>
+      <button class="toc-chip" onclick="scrollTo('autotagging')">Automatic Tagging</button>
+      <button class="toc-chip" onclick="scrollTo('ner')">NER</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Introduction -->
+  <div class="section" id="intro">
+    <div class="section-header" onclick="toggle('intro')">
+      <div class="section-icon">01</div>
+      <div class="section-title">Introduction to Text Pre-Processing</div>
+      <div class="section-toggle" id="toggle-intro">▼</div>
+    </div>
+    <div class="section-body open" id="body-intro">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('intro','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('intro','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="intro-en">
+        <h3>What does "text pre-processing" mean?</h3>
+        <p>Text pre-processing is the set of steps you apply to raw human text — cleaning it, normalizing it, and standardizing it — <em>before</em> you feed it into any NLP technique. In other words, it is the process of converting messy, human-written language into something a machine can actually interpret and process.</p>
+        <p>A single lecture cannot cover every pre-processing technique that exists, so this course walks through the pipeline in stages: pattern matching with <span class="term">regex</span>, breaking text into pieces with <span class="term">tokenization</span>, filtering with <span class="term">stop word removal</span>, root-finding with <span class="term">stemming</span> and <span class="term">lemmatization</span>, and grammatical labeling with <span class="term">POS tagging</span> — ending with a first look at <span class="term">Named Entity Recognition</span>.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of raw text like ingredients you just picked up from the market — still dirty, unsorted, some of it inedible. You would never throw them straight into the pot. You wash, peel, chop, and remove what you don't need first. Text pre-processing is that "mise en place" step, just for language instead of vegetables.
+        </div>
+
+        <h3>Why bother pre-processing at all?</h3>
+        <ul>
+          <li>Machine learning models — whether classic statistical models or modern deep learning ones — do not understand words. They understand numbers, patterns, and structure.</li>
+          <li>Raw text is inconsistent: mixed capitalization, punctuation, filler words, typos, and multiple surface forms of the same underlying word ("run", "running", "ran").</li>
+          <li>Cleaning and standardizing the text reduces this noise, shrinks the vocabulary the model has to deal with, and generally improves accuracy and training speed.</li>
+        </ul>
+
+        <h3>One rule to remember</h3>
+        <p>There is no single "correct" pipeline. You pick the techniques that are appropriate for your specific task, and you apply them in an order that makes sense for that task. Removing stop words before tokenizing, for example, does not make sense — you cannot filter out words you have not separated yet. The order matters just as much as the choice of steps.</p>
+
+        <div class="pipeline-wrap">
+          <svg class="pipeline-svg" viewBox="0 0 920 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow-en" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="var(--muted)"></path>
+              </marker>
+            </defs>
+            <g font-family="Sora, sans-serif">
+              <!-- boxes -->
+              <g>
+                <rect x="10" y="55" width="120" height="60" rx="10" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1.5"></rect>
+                <text x="70" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-blue)">Raw Text</text>
+                <text x="70" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">messy input</text>
+              </g>
+              <line x1="130" y1="85" x2="168" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-en)"></line>
+
+              <g>
+                <rect x="170" y="55" width="120" height="60" rx="10" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.5"></rect>
+                <text x="230" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-amber)">Cleaning</text>
+                <text x="230" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">regex, case</text>
+              </g>
+              <line x1="290" y1="85" x2="328" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-en)"></line>
+
+              <g>
+                <rect x="330" y="55" width="120" height="60" rx="10" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1.5"></rect>
+                <text x="390" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-teal)">Tokenize</text>
+                <text x="390" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">words / sents</text>
+              </g>
+              <line x1="450" y1="85" x2="488" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-en)"></line>
+
+              <g>
+                <rect x="490" y="55" width="120" height="60" rx="10" fill="var(--c-purple-bg)" stroke="var(--c-purple)" stroke-width="1.5"></rect>
+                <text x="550" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-purple)">Stop Words</text>
+                <text x="550" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">filter noise</text>
+              </g>
+              <line x1="610" y1="85" x2="648" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-en)"></line>
+
+              <g>
+                <rect x="650" y="55" width="120" height="60" rx="10" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1.5"></rect>
+                <text x="710" y="76" text-anchor="middle" class="pipeline-step-label" fill="var(--c-rose)">Stem /</text>
+                <text x="710" y="90" text-anchor="middle" class="pipeline-step-label" fill="var(--c-rose)">Lemmatize</text>
+                <text x="710" y="104" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">find root</text>
+              </g>
+              <line x1="770" y1="85" x2="808" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-en)"></line>
+
+              <g>
+                <rect x="810" y="55" width="105" height="60" rx="10" fill="var(--c-indigo-bg)" stroke="var(--c-indigo)" stroke-width="1.5"></rect>
+                <text x="862" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-indigo)">POS Tag</text>
+                <text x="862" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">+ NER</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Text pre-processing turns raw, noisy human text into a clean, standardized form a model can use. It is a pipeline of techniques (regex, tokenization, stop word removal, stemming/lemmatization, POS tagging...), and you select and order them based on your task.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="intro-ar" dir="rtl">
+        <h3>إيش معنى Text Pre-Processing؟</h3>
+        <p>Text pre-processing هو مجموعة الخطوات اللي تطبّقها على النص الخام (raw text) — تنظيفه، وعمل normalization له، وتوحيد شكله — قبل ما تديه لأي تقنية NLP. بمعنى تاني، هي عملية تحويل لغة بشرية فوضوية إلى شكل تقدر الماكينة تفهمه وتتعامل معه فعلاً.</p>
+        <p>ما ممكن نغطي كل تقنيات الـ pre-processing في محاضرة واحدة، فهذا الكورس بيمشي على الـ pipeline على مراحل: مطابقة الأنماط بـ <span class="term">regex</span>، تقسيم النص بـ <span class="term">tokenization</span>، فلترة بـ <span class="term">stop word removal</span>، إيجاد الجذر بـ <span class="term">stemming</span> و<span class="term">lemmatization</span>، وتوسيم نحوي بـ <span class="term">POS tagging</span> — وننهي بنظرة أولى على <span class="term">Named Entity Recognition</span>.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في النص الخام زي مكونات لسه جايبها من السوق — وسخة، مش مرتبة، وبعضها مش صالح للأكل. مستحيل ترميها كلها في القدر على طول. أول شي تغسلها وتقشّرها وتقطّعها وتشيل اللي مش محتاجه. Text pre-processing هي نفس خطوة الـ "تجهيز" هذه، بس للغة بدل الخضار.
+        </div>
+
+        <h3>ليش أصلاً نعمل pre-processing؟</h3>
+        <ul>
+          <li>موديلات الـ machine learning — سواء التقليدية أو deep learning الحديثة — ما بتفهم الكلمات. هي بتفهم أرقام وأنماط وبنية.</li>
+          <li>النص الخام غير متّسق: أحرف كبيرة وصغيرة مختلطة، علامات ترقيم، كلمات حشو، أخطاء إملائية، وأشكال متعددة لنفس الكلمة ("run"، "running"، "ran").</li>
+          <li>تنظيف وتوحيد النص بيقلّل هذه الضوضاء (noise)، ويصغّر الـ vocabulary اللي الموديل لازم يتعامل معه، وعموماً بيحسّن الدقة وسرعة التدريب.</li>
+        </ul>
+
+        <h3>قاعدة لازم تفتكرها</h3>
+        <p>مافيش "pipeline واحد صحيح" لكل المهام. أنت تختار التقنيات المناسبة لمهمتك، وتطبّقها بترتيب منطقي لتلك المهمة. مثلاً حذف stop words قبل الـ tokenization مالوش معنى — مش هتقدر تفلتر كلمات لسه ما فصلتهاش. الترتيب مهم زي أهمية اختيار الخطوات نفسها.</p>
+
+        <div class="pipeline-wrap">
+          <svg class="pipeline-svg" viewBox="0 0 920 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow-ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="var(--muted)"></path>
+              </marker>
+            </defs>
+            <g font-family="Sora, sans-serif">
+              <g>
+                <rect x="10" y="55" width="120" height="60" rx="10" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1.5"></rect>
+                <text x="70" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-blue)">Raw Text</text>
+                <text x="70" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">نص خام</text>
+              </g>
+              <line x1="130" y1="85" x2="168" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-ar)"></line>
+
+              <g>
+                <rect x="170" y="55" width="120" height="60" rx="10" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.5"></rect>
+                <text x="230" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-amber)">Cleaning</text>
+                <text x="230" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">regex</text>
+              </g>
+              <line x1="290" y1="85" x2="328" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-ar)"></line>
+
+              <g>
+                <rect x="330" y="55" width="120" height="60" rx="10" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1.5"></rect>
+                <text x="390" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-teal)">Tokenize</text>
+                <text x="390" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">تقسيم</text>
+              </g>
+              <line x1="450" y1="85" x2="488" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-ar)"></line>
+
+              <g>
+                <rect x="490" y="55" width="120" height="60" rx="10" fill="var(--c-purple-bg)" stroke="var(--c-purple)" stroke-width="1.5"></rect>
+                <text x="550" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-purple)">Stop Words</text>
+                <text x="550" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">فلترة</text>
+              </g>
+              <line x1="610" y1="85" x2="648" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-ar)"></line>
+
+              <g>
+                <rect x="650" y="55" width="120" height="60" rx="10" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1.5"></rect>
+                <text x="710" y="76" text-anchor="middle" class="pipeline-step-label" fill="var(--c-rose)">Stem /</text>
+                <text x="710" y="90" text-anchor="middle" class="pipeline-step-label" fill="var(--c-rose)">Lemmatize</text>
+                <text x="710" y="104" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">جذر الكلمة</text>
+              </g>
+              <line x1="770" y1="85" x2="808" y2="85" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow-ar)"></line>
+
+              <g>
+                <rect x="810" y="55" width="105" height="60" rx="10" fill="var(--c-indigo-bg)" stroke="var(--c-indigo)" stroke-width="1.5"></rect>
+                <text x="862" y="82" text-anchor="middle" class="pipeline-step-label" fill="var(--c-indigo)">POS Tag</text>
+                <text x="862" y="98" text-anchor="middle" class="pipeline-step-sub" fill="var(--muted)">+ NER</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Text pre-processing بيحوّل النص الخام الفوضوي لشكل نظيف وموحّد الموديل يقدر يستخدمه. هو عبارة عن pipeline من تقنيات (regex، tokenization، stop word removal، stemming/lemmatization، POS tagging...)، وأنت تختار وترتّب هذه الخطوات حسب مهمتك.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Regular Expressions -->
+  <div class="section" id="regex">
+    <div class="section-header" onclick="toggle('regex')">
+      <div class="section-icon">02</div>
+      <div class="section-title">Regular Expressions (Regex)</div>
+      <div class="section-toggle" id="toggle-regex">▼</div>
+    </div>
+    <div class="section-body open" id="body-regex">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('regex','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('regex','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="regex-en">
+        <h3>What is a regular expression?</h3>
+        <p>A <span class="term">regular expression</span> (regex) is simply a sequence of characters that specifies a search pattern in text. String-searching algorithms use these patterns to perform "find," "find and replace," and input-validation operations. In Python, the built-in <span class="code-inline">re</span> module gives you everything you need to work with regex.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          A normal search box only finds exact text — type "cat" and it finds "cat". Regex is a search box that understands descriptions instead of exact words: "find me anything that looks like a US phone number" or "find anything that starts with a capital letter and ends in a digit." You describe the shape of what you want, and regex hunts it down for you.
+        </div>
+
+        <h3>The three building blocks</h3>
+        <table class="compare-table">
+          <tr><th>Building block</th><th>What it is</th><th>Example</th></tr>
+          <tr><td><span class="code-inline">Metacharacters</span></td><td>Characters with a special, reserved meaning rather than their literal meaning</td><td><span class="code-inline">.</span> = any character, <span class="code-inline">^</span> = start of string, <span class="code-inline">$</span> = end of string</td></tr>
+          <tr><td><span class="code-inline">Special sequences</span></td><td>A backslash <span class="code-inline">\</span> followed by a letter — a shortcut for a common pattern</td><td><span class="code-inline">\d</span> = digit, <span class="code-inline">\w</span> = word character, <span class="code-inline">\s</span> = whitespace</td></tr>
+          <tr><td><span class="code-inline">Sets [ ]</span></td><td>A set of characters inside square brackets — match any single character from that set</td><td><span class="code-inline">[aeiou]</span> = any vowel, <span class="code-inline">[0-9]</span> = any digit</td></tr>
+        </table>
+
+        <h3>The four core regex functions (Python <span class="code-inline">re</span>)</h3>
+        <ul>
+          <li><span class="highlight">findall()</span> — returns a list of ALL matches, in the order they were found. Returns an empty list if nothing matches.</li>
+          <li><span class="highlight">search()</span> — scans the whole string but only returns the FIRST match, as a Match object. Returns <span class="code-inline">None</span> if there is no match.</li>
+          <li><span class="highlight">split()</span> — splits the string at every match, returning a list of the pieces. You can cap how many splits happen with the <span class="code-inline">maxsplit</span> parameter.</li>
+          <li><span class="highlight">sub()</span> — substitutes (replaces) every match with text of your choosing.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">Code Example</div>
+          <div class="code-block">
+<span class="kw">import</span> re
+
+text = <span class="str">"Contact us at info@digilians.com or sales@digilians.com"</span>
+
+<span class="cm"># findall — get every match</span>
+emails = re.<span class="fn">findall</span>(<span class="str">r'\b\w+@\w+\.\w+\b'</span>, text)
+<span class="cm"># ['info@digilians.com', 'sales@digilians.com']</span>
+
+<span class="cm"># search — get only the first match</span>
+first = re.<span class="fn">search</span>(<span class="str">r'\b\w+@\w+\.\w+\b'</span>, text)
+<span class="cm"># first.group() -> 'info@digilians.com'</span>
+
+<span class="cm"># split — cut the string at each match</span>
+pieces = re.<span class="fn">split</span>(<span class="str">r'\s+or\s+'</span>, text)
+
+<span class="cm"># sub — mask the emails</span>
+masked = re.<span class="fn">sub</span>(<span class="str">r'\b\w+@\w+\.\w+\b'</span>, <span class="str">'[EMAIL]'</span>, text)
+<span class="cm"># 'Contact us at [EMAIL] or [EMAIL]'</span>
+          </div>
+        </div>
+
+        <h3>Where regex is used in NLP</h3>
+        <ul>
+          <li>Parsing documents with a known structure — e.g. pulling all <span class="code-inline">&lt;h1&gt;</span> headers out of HTML, or stripping quoted reply chains out of emails.</li>
+          <li>Validating user input — does this string actually look like <span class="code-inline">name@domain.com</span>?</li>
+          <li>NLP pre-processing itself — deciding what pattern counts as "one word" is a regex problem, which directly feeds into tokenization (the next topic).</li>
+        </ul>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Regex describes a search pattern instead of exact text. Python's <span class="code-inline">re</span> module gives you findall (all matches), search (first match), split (cut at matches), and sub (replace matches). In NLP it powers cleaning, validation, and custom tokenization rules.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="regex-ar" dir="rtl">
+        <h3>إيش هي Regular Expression؟</h3>
+        <p><span class="term">Regular expression</span> (regex) هي ببساطة تسلسل من الحروف بيحدّد نمط بحث (search pattern) داخل النص. خوارزميات البحث في النصوص بتستخدم هذه الأنماط لعمليات "find" و"find and replace" وvalidation. في Python، مكتبة <span class="code-inline">re</span> المدمجة فيها كل شي تحتاجه للتعامل مع regex.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          صندوق البحث العادي بيلاقي نص مطابق تماماً — تكتب "cat" ويلاقي "cat" بس. Regex هو صندوق بحث بيفهم الوصف مش الكلمة بالظبط: "لاقي لي أي شي شكله رقم هاتف أمريكي" أو "لاقي أي شي يبدأ بحرف كبير وينتهي برقم." أنت تصف شكل اللي تدور عليه، وregex يطلعه لك.
+        </div>
+
+        <h3>المكونات الأساسية الثلاثة</h3>
+        <table class="compare-table">
+          <tr><th>المكوّن</th><th>إيش هو</th><th>مثال</th></tr>
+          <tr><td><span class="code-inline">Metacharacters</span></td><td>حروف لها معنى خاص محجوز بدل معناها الحرفي</td><td><span class="code-inline">.</span> = أي حرف، <span class="code-inline">^</span> = بداية النص، <span class="code-inline">$</span> = نهاية النص</td></tr>
+          <tr><td><span class="code-inline">Special sequences</span></td><td>backslash <span class="code-inline">\</span> متبوع بحرف — اختصار لنمط شائع</td><td><span class="code-inline">\d</span> = رقم، <span class="code-inline">\w</span> = حرف كلمة، <span class="code-inline">\s</span> = مسافة</td></tr>
+          <tr><td><span class="code-inline">Sets [ ]</span></td><td>مجموعة حروف داخل أقواس مربعة — طابق أي حرف واحد منها</td><td><span class="code-inline">[aeiou]</span> = أي حرف علّة، <span class="code-inline">[0-9]</span> = أي رقم</td></tr>
+        </table>
+
+        <h3>الدوال الأربعة الأساسية (Python <span class="code-inline">re</span>)</h3>
+        <ul>
+          <li><span class="highlight">findall()</span> — بترجّع list فيها كل الـ matches بترتيب ظهورها. لو مافيش matches بترجّع list فاضية.</li>
+          <li><span class="highlight">search()</span> — بتفحص كل النص لكن بترجّع أول match بس، كـ Match object. لو مافيش match بترجّع <span class="code-inline">None</span>.</li>
+          <li><span class="highlight">split()</span> — بتقسّم النص عند كل match وترجّع list بالأجزاء. تقدر تحدّد عدد التقسيمات بـ <span class="code-inline">maxsplit</span>.</li>
+          <li><span class="highlight">sub()</span> — بتستبدل كل match بنص تختاره أنت.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">مثال كود</div>
+          <div class="code-block">
+<span class="kw">import</span> re
+
+text = <span class="str">"Contact us at info@digilians.com or sales@digilians.com"</span>
+
+<span class="cm"># findall — كل الـ matches</span>
+emails = re.<span class="fn">findall</span>(<span class="str">r'\b\w+@\w+\.\w+\b'</span>, text)
+<span class="cm"># ['info@digilians.com', 'sales@digilians.com']</span>
+
+<span class="cm"># sub — إخفاء الإيميلات</span>
+masked = re.<span class="fn">sub</span>(<span class="str">r'\b\w+@\w+\.\w+\b'</span>, <span class="str">'[EMAIL]'</span>, text)
+<span class="cm"># 'Contact us at [EMAIL] or [EMAIL]'</span>
+          </div>
+        </div>
+
+        <h3>وين نستخدم regex في NLP؟</h3>
+        <ul>
+          <li>تحليل مستندات ببنية معروفة — زي سحب كل عناوين <span class="code-inline">&lt;h1&gt;</span> من HTML، أو إزالة سلاسل الرد المقتبسة من الإيميلات.</li>
+          <li>التحقق من صحة إدخال المستخدم — هل هذا النص فعلاً شكله <span class="code-inline">name@domain.com</span>؟</li>
+          <li>الـ pre-processing نفسها — تحديد إيش النمط اللي يُعتبر "كلمة واحدة" هي مشكلة regex، وده بيغذّي مباشرة موضوع الـ tokenization (الموضوع الجاي).</li>
+        </ul>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Regex بتوصف نمط بحث بدل نص مطابق تماماً. مكتبة <span class="code-inline">re</span> في Python فيها findall (كل الـ matches) وsearch (أول match) وsplit (تقسيم عند matches) وsub (استبدال). في NLP بتشغّل التنظيف والتحقق وقواعد tokenization المخصصة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Tokenization -->
+  <div class="section" id="tokenization">
+    <div class="section-header" onclick="toggle('tokenization')">
+      <div class="section-icon">03</div>
+      <div class="section-title">Tokenization</div>
+      <div class="section-toggle" id="toggle-tokenization">▼</div>
+    </div>
+    <div class="section-body open" id="body-tokenization">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('tokenization','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('tokenization','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="tokenization-en">
+        <h3>What is tokenization?</h3>
+        <p><span class="term">Tokenization</span> is the process of splitting raw text into small units, called <span class="term">tokens</span>, so it can be processed further. It is a mandatory, foundational step — both classical NLP pipelines (like a Count Vectorizer for bag-of-words models) and modern deep-learning architectures (like Transformers) depend on some form of tokenization before anything else can happen.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          A sentence is like a train of connected boxcars. You cannot inspect, weigh, or process an individual boxcar while it is still hooked to the rest of the train. Tokenization uncouples the train into individual cars — now each piece (word, sentence, or n-gram) can be examined and processed on its own.
+        </div>
+
+        <h3>What can you tokenize into?</h3>
+        <table class="compare-table">
+          <tr><th>Token type</th><th>Splits text into</th><th>Example</th></tr>
+          <tr><td><span class="highlight">Words</span></td><td>Individual words / punctuation marks</td><td>"I love NLP" → ['I', 'love', 'NLP']</td></tr>
+          <tr><td><span class="highlight">Sentences</span></td><td>Individual sentences</td><td>A paragraph → a list of sentence strings</td></tr>
+          <tr><td><span class="highlight">N-grams</span></td><td>Groups of N consecutive words/tokens</td><td>Bigram (N=2): "I love", "love NLP"</td></tr>
+          <tr><td><span class="highlight">Regex-defined tokens</span></td><td>Whatever custom pattern you define</td><td>Keep "don't" as one token instead of splitting on the apostrophe</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">Code Example (NLTK)</div>
+          <div class="code-block">
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> word_tokenize, sent_tokenize, regexp_tokenize
+<span class="kw">from</span> nltk.util <span class="kw">import</span> ngrams
+
+text = <span class="str">"I love NLP. It's very powerful!"</span>
+
+<span class="cm"># Word tokenization</span>
+words = <span class="fn">word_tokenize</span>(text)
+<span class="cm"># ['I', 'love', 'NLP', '.', 'It', "'s", 'very', 'powerful', '!']</span>
+
+<span class="cm"># Sentence tokenization</span>
+sents = <span class="fn">sent_tokenize</span>(text)
+<span class="cm"># ['I love NLP.', "It's very powerful!"]</span>
+
+<span class="cm"># Regex-based tokenization (words only, ignore punctuation)</span>
+words_only = <span class="fn">regexp_tokenize</span>(text, <span class="str">r'\w+'</span>)
+<span class="cm"># ['I', 'love', 'NLP', 'It', 's', 'very', 'powerful']</span>
+
+<span class="cm"># Bigrams (N=2)</span>
+bigrams = list(<span class="fn">ngrams</span>(words, 2))
+<span class="cm"># [('I','love'), ('love','NLP'), ('NLP','.'), ...]</span>
+          </div>
+        </div>
+
+        <h3>Why bother with n-grams?</h3>
+        <p>A single, isolated word can lose context that a group of words carries. "New" and "York" as two separate tokens do not obviously mean a city; kept together as the bigram "New York", the meaning survives. N-grams are a simple way to preserve some of that local word-order context that a bag of single words throws away.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Tokenization splits raw text into processable units — words, sentences, n-grams, or custom regex-defined chunks. It is mandatory before almost anything else in an NLP pipeline. NLTK's word_tokenize, sent_tokenize, regexp_tokenize, and ngrams cover the common cases.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="tokenization-ar" dir="rtl">
+        <h3>إيش هي Tokenization؟</h3>
+        <p><span class="term">Tokenization</span> هي عملية تقسيم النص الخام إلى وحدات صغيرة اسمها <span class="term">tokens</span> حتى نقدر نكمل معالجتها. هي خطوة إلزامية وأساسية — سواء الـ pipelines التقليدية (زي Count Vectorizer لموديلات bag-of-words) أو معماريات الـ deep learning الحديثة (زي Transformers)، كلها محتاجة شكل من أشكال الـ tokenization قبل ما يصير أي شي.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الجملة زي قطار من عربات مربوطة ببعض. ما تقدر تفحص أو تزن أو تعالج عربة لحالها وهي لسه مربوطة بباقي القطار. الـ tokenization بتفصل القطار لعربات منفردة — دلوقتي كل قطعة (كلمة، جملة، أو n-gram) تقدر تتفحص وتتعالج لحالها.
+        </div>
+
+        <h3>على إيش تقدر تقسّم النص؟</h3>
+        <table class="compare-table">
+          <tr><th>نوع الـ token</th><th>يقسّم النص إلى</th><th>مثال</th></tr>
+          <tr><td><span class="highlight">Words</span></td><td>كلمات منفردة / علامات ترقيم</td><td>"I love NLP" ← ['I', 'love', 'NLP']</td></tr>
+          <tr><td><span class="highlight">Sentences</span></td><td>جمل منفردة</td><td>فقرة ← list من الجمل</td></tr>
+          <tr><td><span class="highlight">N-grams</span></td><td>مجموعات من N كلمة/token متتالية</td><td>Bigram (N=2): "I love"، "love NLP"</td></tr>
+          <tr><td><span class="highlight">Regex-defined tokens</span></td><td>أي نمط مخصص تحدده أنت</td><td>خلّي "don't" token واحد بدل ما تقسّمها عند الفاصلة العليا</td></tr>
+        </table>
+
+        <h3>ليش نهتم بـ n-grams؟</h3>
+        <p>الكلمة المنفردة ممكن تفقد سياق كانت تحمله وهي مع كلمات ثانية. "New" و"York" كـ tokens منفصلة ما تدل بوضوح على اسم مدينة؛ لو بقيت مع بعض كـ bigram "New York"، المعنى يفضل موجود. الـ n-grams طريقة بسيطة للحفاظ على شوية من سياق ترتيب الكلمات اللي bag of words بيضيعه.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Tokenization بتقسّم النص الخام لوحدات قابلة للمعالجة — كلمات، جمل، n-grams، أو أنماط regex مخصصة. إلزامية قبل تقريباً أي خطوة تانية في NLP pipeline. دوال NLTK مثل word_tokenize وsent_tokenize وregexp_tokenize وngrams بتغطّي معظم الحالات الشائعة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Stop Words -->
+  <div class="section" id="stopwords">
+    <div class="section-header" onclick="toggle('stopwords')">
+      <div class="section-icon">04</div>
+      <div class="section-title">Removing Stop Words</div>
+      <div class="section-toggle" id="toggle-stopwords">▼</div>
+    </div>
+    <div class="section-body open" id="body-stopwords">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('stopwords','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('stopwords','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="stopwords-en">
+        <h3>What are stop words?</h3>
+        <p><span class="term">Stop words</span> are words that occur so commonly across nearly every document in a corpus that they carry very little information about what makes any single document distinct. This is one of the most widely used pre-processing steps across NLP applications. Typically, articles and pronouns (a, an, the, it, they, of, in...) end up classified as stop words — NLTK ships with a ready-made list of roughly 180 English stop words.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine flipping through every page of a novel trying to figure out what it's about. Words like "the," "a," "is," and "and" appear on literally every page — they tell you nothing about the plot. But if you strip them all away and are left with "dragon," "castle," "betrayal," "kingdom" — now you know the book's topic in seconds. That's exactly the job stop word removal does for a document.
+        </div>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Original: "The cat is sitting on the mat in the house"</p>
+          <p>After removing stop words: "cat sitting mat house"</p>
+          <p>The core meaning survives, but the model now has fewer, more informative tokens to work with — which usually means a smaller vocabulary and faster, more focused training.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Important note</div>
+          Removing stop words is not always the right move. In sentiment analysis, for example, "not" is technically a stop word — but stripping it turns "not good" into "good," which completely flips the meaning. Always check whether the task depends on words a generic stop-word list would throw away.
+        </div>
+
+        <div class="example-box">
+          <div class="label">Code Example (NLTK)</div>
+          <div class="code-block">
+<span class="kw">from</span> nltk.corpus <span class="kw">import</span> stopwords
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> word_tokenize
+
+stop_words = set(<span class="fn">stopwords</span>.words(<span class="str">'english'</span>))
+text = <span class="str">"The cat is sitting on the mat"</span>
+tokens = <span class="fn">word_tokenize</span>(text.lower())
+
+filtered = [w <span class="kw">for</span> w <span class="kw">in</span> tokens <span class="kw">if</span> w <span class="kw">not in</span> stop_words]
+<span class="cm"># ['cat', 'sitting', 'mat']</span>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Stop words are extremely common, low-information words (a, the, is, of...). Removing them shrinks the vocabulary and reduces noise, but for meaning-sensitive tasks like sentiment analysis, be careful — words like "not" are stop words that you usually cannot afford to drop.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="stopwords-ar" dir="rtl">
+        <h3>إيش هي Stop Words؟</h3>
+        <p><span class="term">Stop words</span> هي كلمات بتتكرر بكثرة في تقريباً كل document داخل الـ corpus لدرجة إنها ما بتحمل معلومة كبيرة عن اللي يميّز أي document عن غيره. هذه من أكثر خطوات الـ pre-processing استخداماً في تطبيقات NLP. عادة، أدوات التعريف والضمائر (a, an, the, it, they, of, in...) هي اللي بتتصنّف كـ stop words — NLTK جاهزة بقائمة حوالي 180 كلمة إنجليزية.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل إنك بتقلّب في كل صفحات رواية عشان تعرف موضوعها. كلمات زي "the" و"a" و"is" و"and" موجودة حرفياً في كل صفحة — ما بتقولك شي عن القصة. لكن لو شلتها كلها وبقي عندك "dragon" و"castle" و"betrayal" و"kingdom" — دلوقتي عرفت موضوع الكتاب في ثواني. هذا بالضبط اللي بيعمله حذف الـ stop words للـ document.
+        </div>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>الأصل: "The cat is sitting on the mat in the house"</p>
+          <p>بعد الحذف: "cat sitting mat house"</p>
+          <p>المعنى الأساسي فضل موجود، لكن الموديل دلوقتي عنده tokens أقل وأكثر فائدة — وده عادة معناه vocabulary أصغر وتدريب أسرع وأكثر تركيز.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة مهمة</div>
+          حذف stop words مش دايماً الخطوة الصح. في sentiment analysis مثلاً، "not" تقنياً هي stop word — بس لو حذفتها، "not good" بتتحول لـ "good"، وده بيقلب المعنى تماماً. دائماً تأكد إذا المهمة بتعتمد على كلمات قائمة الـ stop words العامة ممكن تشيلها.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Stop words هي كلمات شائعة جداً بمعلومات قليلة (a, the, is, of...). حذفها بيصغّر الـ vocabulary ويقلّل الضوضاء، لكن في مهام حساسة للمعنى زي sentiment analysis، انتبه — كلمات زي "not" هي stop words بس عادة مش قادر تستغني عنها.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Stemming -->
+  <div class="section" id="stemming">
+    <div class="section-header" onclick="toggle('stemming')">
+      <div class="section-icon">05</div>
+      <div class="section-title">Stemming</div>
+      <div class="section-toggle" id="toggle-stemming">▼</div>
+    </div>
+    <div class="section-body open" id="body-stemming">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('stemming','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('stemming','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="stemming-en">
+        <h3>What is stemming?</h3>
+        <p><span class="term">Stemming</span> is a process where text is stripped of its affixes (mostly suffixes) by chopping off the end of a word to reduce it to its stem, or root. It works purely mechanically — in many cases, the output is not even a real dictionary word.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Stemming behaves like a very impatient barber who uses one fixed rule: "always cut off the last few centimeters, no matter what." Sometimes the haircut looks great ("running" → "run"). Sometimes it looks odd ("studies" → "studi"). The barber never stops to check if the result actually looks good — the rule is applied blindly and fast.
+        </div>
+
+        <div class="example-box">
+          <div class="label">Examples</div>
+          <table class="compare-table">
+            <tr><th>Original word</th><th>After stemming</th><th>Real word?</th></tr>
+            <tr><td>running</td><td>run</td><td>Yes</td></tr>
+            <tr><td>studies</td><td>studi</td><td>No</td></tr>
+            <tr><td>programming</td><td>program</td><td>Yes</td></tr>
+            <tr><td>happiness</td><td>happi</td><td>No</td></tr>
+          </table>
+        </div>
+
+        <h3>Stemmer algorithms available in NLTK</h3>
+        <ul>
+          <li><span class="highlight">Porter Stemmer</span> — the classic, most widely used algorithm; a good, moderate balance between aggressiveness and preserving meaning.</li>
+          <li><span class="highlight">Lancaster Stemmer</span> — a much more aggressive algorithm that produces shorter, more heavily chopped stems.</li>
+          <li><span class="highlight">Snowball Stemmer</span> — an improved, more consistent successor to Porter that also supports several languages beyond English.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">Code Example</div>
+          <div class="code-block">
+<span class="kw">from</span> nltk.stem <span class="kw">import</span> PorterStemmer, LancasterStemmer
+
+porter = <span class="fn">PorterStemmer</span>()
+lancaster = <span class="fn">LancasterStemmer</span>()
+words = [<span class="str">'running'</span>, <span class="str">'studies'</span>, <span class="str">'programming'</span>]
+
+[porter.<span class="fn">stem</span>(w) <span class="kw">for</span> w <span class="kw">in</span> words]
+<span class="cm"># ['run', 'studi', 'program']</span>
+
+[lancaster.<span class="fn">stem</span>(w) <span class="kw">for</span> w <span class="kw">in</span> words]
+<span class="cm"># ['run', 'study', 'program']  -- more aggressive rules</span>
+          </div>
+        </div>
+
+        <h3>When should you reach for stemming?</h3>
+        <p>Stemming is fast and simple to implement, so it is a solid choice when speed matters more than perfect linguistic accuracy — large-scale search indexing, quick document clustering, or coarse text classification are typical use cases. If the inaccuracies it introduces do not really matter for your downstream task, stemming is the cheaper option.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Stemming chops off word endings using rough heuristics to reach a root. It is fast and simple, but the result may not be a real word. NLTK offers Porter (standard), Lancaster (aggressive), and Snowball (multilingual, refined Porter).
+        </div>
+      </div>
+
+      <div class="lang-panel" id="stemming-ar" dir="rtl">
+        <h3>إيش هو Stemming؟</h3>
+        <p><span class="term">Stemming</span> عملية بتشيل الإضافات (affixes) — غالباً suffixes — من الكلمة عن طريق قص نهايتها للوصول لجذرها (stem). بتشتغل بطريقة ميكانيكية بحتة — في حالات كثيرة، الناتج مش حتى كلمة حقيقية موجودة في القاموس.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          Stemming بيتصرف زي حلاق مستعجل عنده قاعدة واحدة ثابتة: "دايماً اقص آخر كام سنتيمتر، مهما كان." أحياناً القصة بتطلع حلوة ("running" ← "run"). أحياناً بتطلع غريبة ("studies" ← "studi"). الحلاق ما بيوقف يتأكد إذا الشكل النهائي حلو — القاعدة بتتطبّق بشكل أعمى وسريع.
+        </div>
+
+        <div class="example-box">
+          <div class="label">أمثلة</div>
+          <table class="compare-table">
+            <tr><th>الكلمة الأصلية</th><th>بعد Stemming</th><th>كلمة حقيقية؟</th></tr>
+            <tr><td>running</td><td>run</td><td>نعم</td></tr>
+            <tr><td>studies</td><td>studi</td><td>لا</td></tr>
+            <tr><td>programming</td><td>program</td><td>نعم</td></tr>
+            <tr><td>happiness</td><td>happi</td><td>لا</td></tr>
+          </table>
+        </div>
+
+        <h3>خوارزميات Stemming الموجودة في NLTK</h3>
+        <ul>
+          <li><span class="highlight">Porter Stemmer</span> — الخوارزمية الكلاسيكية الأكثر استخداماً؛ توازن جيد بين العدوانية والحفاظ على المعنى.</li>
+          <li><span class="highlight">Lancaster Stemmer</span> — خوارزمية أكثر عدوانية بكثير، بتنتج جذور أقصر وأشد قصّاً.</li>
+          <li><span class="highlight">Snowball Stemmer</span> — نسخة محسّنة وأكثر اتساقاً من Porter، وكمان بتدعم لغات تانية غير الإنجليزية.</li>
+        </ul>
+
+        <h3>إمتى تستخدم Stemming؟</h3>
+        <p>Stemming سريع وسهل التنفيذ، فهو خيار قوي لما السرعة أهم من الدقة اللغوية المثالية — زي فهرسة بحث على نطاق واسع، أو تجميع مستندات سريع، أو تصنيف نصوص تقريبي. لو عدم الدقة اللي بيسببها مش هيأثر فعلياً على مهمتك، Stemming هو الخيار الأرخص.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Stemming بيقص نهايات الكلمات باستخدام قواعد تقريبية (heuristics) للوصول للجذر. سريع وبسيط، لكن الناتج ممكن ما يكون كلمة حقيقية. NLTK فيها Porter (معياري)، Lancaster (عدواني)، Snowball (متعدد اللغات، نسخة محسّنة من Porter).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Lemmatization -->
+  <div class="section" id="lemma">
+    <div class="section-header" onclick="toggle('lemma')">
+      <div class="section-icon">06</div>
+      <div class="section-title">Lemmatization</div>
+      <div class="section-toggle" id="toggle-lemma">▼</div>
+    </div>
+    <div class="section-body open" id="body-lemma">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('lemma','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('lemma','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="lemma-en">
+        <h3>What is lemmatization?</h3>
+        <p><span class="term">Lemmatization</span> also strips words of their affixes, just like stemming — but the resulting root, called a <span class="term">lemma</span>, is always a genuine dictionary word taken from a real corpus. Lemmatization does not simply chop off endings. Instead, each word first gets tagged with its <span class="term">Part of Speech (POS)</span>, and then a dictionary resource — WordNet, in NLTK's case — is consulted to look up the correct dictionary root given that grammatical role.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          If stemming is an impatient barber with one fixed cutting rule, lemmatization is a linguist with a dictionary in hand. Before touching the word, the linguist asks: "what part of speech is this — verb, noun, adjective?" Then they look up the proper base form in the dictionary. "Was" becomes "be." "Better" becomes "good." These are informed, grammar-aware transformations, not blind cuts.
+        </div>
+
+        <h3>Stemming vs. lemmatization — the direct comparison</h3>
+        <table class="compare-table">
+          <tr><th>Feature</th><th>Stemming</th><th>Lemmatization</th></tr>
+          <tr><td>Approach</td><td>Rough heuristics — chop the ending</td><td>Vocabulary lookup + morphological analysis</td></tr>
+          <tr><td>Output</td><td>May not be a real word</td><td>Always a real dictionary word</td></tr>
+          <tr><td>Speed</td><td>Faster, simpler to implement</td><td>Slower, harder to implement</td></tr>
+          <tr><td>Accuracy</td><td>Rougher, may be irrelevant for some tasks</td><td>Better results by analyzing POS</td></tr>
+          <tr><td>Example</td><td>studies → studi</td><td>studies → study</td></tr>
+          <tr><td>Best for</td><td>Optimizing for speed</td><td>Optimizing for quality</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">Code Example (NLTK WordNetLemmatizer)</div>
+          <div class="code-block">
+<span class="kw">from</span> nltk.stem <span class="kw">import</span> WordNetLemmatizer
+
+lemmatizer = <span class="fn">WordNetLemmatizer</span>()
+
+<span class="cm"># Without a POS tag, it assumes "noun" by default</span>
+print(lemmatizer.<span class="fn">lemmatize</span>(<span class="str">'running'</span>))       <span class="cm"># 'running' -- wrong!</span>
+
+<span class="cm"># With the correct POS tag (verb, adjective)</span>
+print(lemmatizer.<span class="fn">lemmatize</span>(<span class="str">'running'</span>, pos=<span class="str">'v'</span>))  <span class="cm"># 'run'</span>
+print(lemmatizer.<span class="fn">lemmatize</span>(<span class="str">'better'</span>, pos=<span class="str">'a'</span>))   <span class="cm"># 'good'</span>
+print(lemmatizer.<span class="fn">lemmatize</span>(<span class="str">'studies'</span>, pos=<span class="str">'v'</span>))  <span class="cm"># 'study'</span>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Important</div>
+          Always supply a POS tag to WordNetLemmatizer if you can. Without one, it defaults to treating every word as a noun, which frequently produces wrong or unchanged output (e.g. "running" stays "running" instead of correctly reducing to "run").
+        </div>
+
+        <p>In practice, lemmatization gives better, more qualitative results than stemming because it actually reasons about the word's grammatical role instead of guessing from spelling alone. It is harder to implement and historically slower, but on modern hardware the performance gap rarely matters — so lemmatization is generally the better default choice unless raw speed is the priority.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Lemmatization is the more careful, grammar-aware sibling of stemming. It always returns real dictionary words by consulting a POS tag and a dictionary (WordNet). Slower to implement but more accurate — the right choice when quality matters more than raw speed.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="lemma-ar" dir="rtl">
+        <h3>إيش هو Lemmatization؟</h3>
+        <p><span class="term">Lemmatization</span> كمان بتشيل إضافات الكلمة زي الـ stemming بالظبط — لكن الجذر الناتج، واسمه <span class="term">lemma</span>، دايماً كلمة حقيقية موجودة فعلاً في القاموس ومأخوذة من corpus حقيقي. Lemmatization مش مجرد قص للنهايات. بالعكس، كل كلمة أول شي بتاخد tag لدورها النحوي (<span class="term">Part of Speech</span>)، وبعدين بنرجع لمصدر قاموسي — WordNet في حالة NLTK — للبحث عن الجذر الصحيح بناءً على هذا الدور النحوي.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          لو الـ stemming حلاق مستعجل بقاعدة قص واحدة ثابتة، فـ lemmatization لغوي ماسك قاموس في إيده. قبل ما يلمس الكلمة، اللغوي بيسأل: "إيش دور هذه الكلمة نحوياً — فعل، اسم، صفة؟" وبعدين بيدوّر على الصيغة الأساسية الصحيحة في القاموس. "was" بتصير "be". "better" بتصير "good". هذه تحويلات واعية تراعي القواعد النحوية، مش قص أعمى.
+        </div>
+
+        <h3>Stemming مقابل Lemmatization — مقارنة مباشرة</h3>
+        <table class="compare-table">
+          <tr><th>الميزة</th><th>Stemming</th><th>Lemmatization</th></tr>
+          <tr><td>الأسلوب</td><td>قواعد تقريبية — قص النهاية</td><td>بحث في vocabulary + تحليل صرفي</td></tr>
+          <tr><td>النتيجة</td><td>قد لا تكون كلمة حقيقية</td><td>دائماً كلمة حقيقية في القاموس</td></tr>
+          <tr><td>السرعة</td><td>أسرع، أسهل تنفيذاً</td><td>أبطأ، أصعب تنفيذاً</td></tr>
+          <tr><td>الدقة</td><td>أخشن، قد تكون غير مناسبة لبعض المهام</td><td>نتائج أفضل بفضل تحليل POS</td></tr>
+          <tr><td>مثال</td><td>studies ← studi</td><td>studies ← study</td></tr>
+          <tr><td>الأنسب لـ</td><td>تحسين السرعة</td><td>تحسين الجودة</td></tr>
+        </table>
+
+        <div class="warning-box">
+          <div class="label">مهم</div>
+          دايماً حاول تدّي POS tag لـ WordNetLemmatizer. بدونه، بيفترض إن كل كلمة اسم (noun) افتراضياً، وده كتير بيطلع نتائج خاطئة أو بدون تغيير (مثلاً "running" تفضل "running" بدل ما تترد صح لـ "run").
+        </div>
+
+        <p>عملياً، lemmatization بتدّي نتائج أفضل وأكثر جودة من stemming لأنها فعلاً بتحلل الدور النحوي للكلمة بدل ما تخمّن من الإملاء بس. أصعب تنفيذاً وتاريخياً أبطأ، لكن على الأجهزة الحديثة فرق الأداء نادراً ما يهم — فـ lemmatization عموماً هي الخيار الافتراضي الأفضل إلا لو السرعة الخام هي الأولوية.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Lemmatization هي الأخت الأدق والواعية نحوياً لـ Stemming. دايماً بترجع كلمات حقيقية من القاموس عن طريق الرجوع لـ POS tag وقاموس (WordNet). أبطأ تنفيذاً لكن أدق — الخيار الصح لما الجودة أهم من السرعة الخام.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: POS Tagging -->
+  <div class="section" id="pos">
+    <div class="section-header" onclick="toggle('pos')">
+      <div class="section-icon">07</div>
+      <div class="section-title">Part of Speech (POS) Tagging</div>
+      <div class="section-toggle" id="toggle-pos">▼</div>
+    </div>
+    <div class="section-body open" id="body-pos">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('pos','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('pos','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="pos-en">
+        <h3>What is POS tagging?</h3>
+        <p><span class="term">Part of Speech (POS) tagging</span> is the process of marking up each word in a text with its grammatical category — noun, verb, adjective, adverb, and so on — based on both the word's definition and its context in the sentence. It is also known as <span class="term">grammatical tagging</span>. Concretely, a tagger reads through text and assigns a specific POS tag (drawn from a predefined tag set) to every token.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of POS tagging as color-coding a sentence with highlighters: blue for every noun, green for every verb, yellow for every adjective. Once the sentence is color-coded, both a human reader and a machine can instantly see its grammatical skeleton — who is doing what to whom.
+        </div>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Sentence: "The quick brown fox jumps over the lazy dog"</p>
+          <table class="compare-table">
+            <tr><th>Word</th><th>POS Tag</th><th>Meaning</th></tr>
+            <tr><td>The</td><td>DT</td><td>Determiner</td></tr>
+            <tr><td>quick</td><td>JJ</td><td>Adjective</td></tr>
+            <tr><td>fox</td><td>NN</td><td>Noun, singular</td></tr>
+            <tr><td>jumps</td><td>VBZ</td><td>Verb, 3rd person singular present</td></tr>
+            <tr><td>over</td><td>IN</td><td>Preposition</td></tr>
+            <tr><td>lazy</td><td>JJ</td><td>Adjective</td></tr>
+            <tr><td>dog</td><td>NN</td><td>Noun, singular</td></tr>
+          </table>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Code Example (NLTK)</div>
+          <div class="code-block">
+<span class="kw">import</span> nltk
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> word_tokenize
+
+text = <span class="str">"The quick brown fox jumps over the lazy dog"</span>
+tokens = <span class="fn">word_tokenize</span>(text)
+tags = nltk.<span class="fn">pos_tag</span>(tokens)
+<span class="cm"># [('The','DT'), ('quick','JJ'), ('brown','JJ'), ('fox','NN'),
+#  ('jumps','VBZ'), ('over','IN'), ('the','DT'), ('lazy','JJ'), ('dog','NN')]</span>
+          </div>
+        </div>
+
+        <h3>Why does POS tagging matter?</h3>
+        <p>POS tags feed directly into other pre-processing steps — lemmatization needs them to look up the correct root, and syntactic parsing needs them to build sentence structure. It is also useful on its own, e.g. for extracting only the nouns from a text to summarize what it is about.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          POS tagging labels every word with its grammatical role (noun, verb, adjective...) using both the word and its sentence context. It underpins lemmatization and syntactic analysis, and NLTK's pos_tag() gives you a working tagger out of the box.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="pos-ar" dir="rtl">
+        <h3>إيش هو POS Tagging؟</h3>
+        <p><span class="term">Part of Speech (POS) tagging</span> هي عملية توسيم كل كلمة في النص بفئتها النحوية — اسم، فعل، صفة، ظرف، وهكذا — بناءً على معنى الكلمة وسياقها في الجملة. بتُعرف كمان باسم <span class="term">grammatical tagging</span>. عملياً، الـ tagger بيقرأ النص ويدّي كل token واحد من الـ POS tags المحددة مسبقاً (POS tag set).</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في POS tagging زي تلوين جملة بأقلام تحديد: أزرق لكل اسم، أخضر لكل فعل، أصفر لكل صفة. لما تخلص من التلوين، القارئ البشري والماكينة كلاهما يقدر يشوف الهيكل النحوي للجملة فوراً — مين بيعمل إيش لمين.
+        </div>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>الجملة: "The quick brown fox jumps over the lazy dog"</p>
+          <table class="compare-table">
+            <tr><th>الكلمة</th><th>POS Tag</th><th>المعنى</th></tr>
+            <tr><td>The</td><td>DT</td><td>أداة تعريف</td></tr>
+            <tr><td>quick</td><td>JJ</td><td>صفة</td></tr>
+            <tr><td>fox</td><td>NN</td><td>اسم مفرد</td></tr>
+            <tr><td>jumps</td><td>VBZ</td><td>فعل مضارع للغائب المفرد</td></tr>
+            <tr><td>over</td><td>IN</td><td>حرف جر</td></tr>
+          </table>
+        </div>
+
+        <h3>ليش POS tagging مهم؟</h3>
+        <p>الـ POS tags بتغذّي مباشرة خطوات ثانية في المعالجة — الـ lemmatization محتاجاها للوصول للجذر الصحيح، والـ syntactic parsing محتاجاها لبناء هيكل الجملة. كمان مفيدة لوحدها، مثلاً لاستخراج الأسماء بس من نص عشان تلخّص موضوعه.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          POS tagging بتوسم كل كلمة بدورها النحوي (اسم، فعل، صفة...) باستخدام الكلمة نفسها وسياقها في الجملة. أساس لـ lemmatization والتحليل النحوي، ودالة pos_tag() في NLTK بتديك tagger جاهز.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Automatic Tagging -->
+  <div class="section" id="autotagging">
+    <div class="section-header" onclick="toggle('autotagging')">
+      <div class="section-icon">08</div>
+      <div class="section-title">Automatic Tagging</div>
+      <div class="section-toggle" id="toggle-autotagging">▼</div>
+    </div>
+    <div class="section-body open" id="body-autotagging">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('autotagging','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('autotagging','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="autotagging-en">
+        <h3>The problem: tags depend on context</h3>
+        <p>The correct POS tag for a word is not fixed — it depends on both the word and its context inside a sentence. "Frequent" is an adjective in "a frequent word" but a verb in "I frequent this cafe." <span class="term">Automatic tagging</span> is about training algorithms that assign POS tags to raw text automatically, learning from sentences that have already been manually tagged by linguists — a so-called <span class="term">Gold Standard</span> corpus.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Automatic taggers are like apprentices learning a trade by watching a master (the manually-tagged corpus) work. A simple apprentice memorizes "wood always means furniture." A smarter apprentice also watches what tool is in the master's hand and what came right before — building up a much richer sense of when the same raw material means different things.
+        </div>
+
+        <h3>What is a corpus, and why does it matter here?</h3>
+        <p>A <span class="term">corpus</span> (plural: corpora) is a large collection of text, usually stored and processed electronically, that serves as a language resource. Corpora can be monolingual or multilingual. To make a corpus useful for linguistic research, it goes through <span class="term">annotation</span> — adding structured information on top of the raw text. POS-tagging a corpus (attaching a part-of-speech tag to every word) is a classic example of annotation. The <span class="term">Brown Corpus</span>, built at Brown University in 1961, was the first million-word electronic corpus of English and remains a foundational reference — it contains text from 500 sources categorized by genre (news, editorial, reviews, government, etc.).</p>
+
+        <h3>Building block taggers</h3>
+        <table class="compare-table">
+          <tr><th>Tagger</th><th>How it decides a tag</th><th>Notes</th></tr>
+          <tr><td><span class="highlight">Default Tagger</span></td><td>Assigns the exact same tag to every single token</td><td>The simplest possible baseline — sounds trivial, but it establishes an important floor for measuring accuracy improvements</td></tr>
+          <tr><td><span class="highlight">Regular Expression Tagger</span></td><td>Assigns a tag based on pattern matching the word's surface form</td><td>E.g. "any word ending in -ed is probably a past-tense verb," "any word ending in 's is probably a possessive noun"</td></tr>
+          <tr><td><span class="highlight">Unigram Tagger</span></td><td>Assigns whichever tag is statistically most likely for that specific word</td><td>Trained by scanning a tagged corpus and storing the most frequent tag per word in a lookup dictionary</td></tr>
+          <tr><td><span class="highlight">N-gram Tagger</span></td><td>Considers the current word plus the POS tags of the (n-1) preceding words</td><td>A unigram tagger only looks at the word in isolation — an n-gram tagger uses surrounding context to disambiguate words like "wind" (noun vs. verb)</td></tr>
+        </table>
+
+        <div class="warning-box">
+          <div class="label">Training pitfall</div>
+          When you train a tagger on tagged data, never evaluate it on the very same data it was trained on. A tagger that has simply memorized its training set will score perfectly on that set while being useless on new text. The standard fix is a train/test split — commonly training on 90% of the data and testing on the held-out 10%.
+        </div>
+
+        <h3>Combining taggers (backoff chaining)</h3>
+        <p>More context-aware taggers (like bigram or trigram taggers) tend to be more accurate but have lower <em>coverage</em> — they may never have seen a rare word/context combination during training and simply fail to produce a tag. The standard fix is to chain several taggers together with a fallback ("backoff") strategy:</p>
+        <ol>
+          <li>Try tagging the token with the (more accurate) bigram tagger.</li>
+          <li>If the bigram tagger cannot produce a tag, fall back to the unigram tagger.</li>
+          <li>If the unigram tagger also fails, fall back to a default tagger so every token gets <em>some</em> tag.</li>
+        </ol>
+        <p>This trades a little accuracy for guaranteed coverage — every word ends up with a tag, even a rare one the model has never directly encountered.</p>
+
+        <h3>Brill's Tagger — a transformation-based approach</h3>
+        <p><span class="term">Brill's tagger</span> is a transformational, rule-based tagger. The core idea: guess a tag for every word first, then go back over the results and fix the mistakes using learned correction rules. Like n-gram tagging, it is a supervised method — it needs annotated training data so it can tell whether a guess was a mistake. Unlike n-gram tagging, though, it does not simply count co-occurrence statistics — it compiles an explicit list of transformation rules of the form "replace tag T1 with tag T2 in context C" (where the context might be the identity or tag of a nearby word). During training, the algorithm proposes thousands of candidate rules and scores each one by its net benefit — how many wrong tags it fixes, minus how many correct tags it accidentally breaks — keeping only the rules that help.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Automatic taggers learn to assign POS tags from a manually-tagged (Gold Standard) corpus like the Brown Corpus. Building blocks range from a trivial default tagger, to regex-pattern taggers, to unigram/n-gram statistical taggers — usually chained together with backoff for both accuracy and coverage. Brill's tagger takes a different, rule-based transformation approach: guess first, then learn rules to fix mistakes.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="autotagging-ar" dir="rtl">
+        <h3>المشكلة: الـ tag بيعتمد على السياق</h3>
+        <p>الـ POS tag الصحيح لكلمة مش ثابت — بيعتمد على الكلمة نفسها وعلى سياقها داخل الجملة. "Frequent" صفة في "a frequent word" بس فعل في "I frequent this cafe." <span class="term">Automatic tagging</span> يعني تدريب خوارزميات تدّي POS tags للنص الخام تلقائياً، بالتعلّم من جمل اتوسمت يدوياً من لغويين — corpus بيُسمّى <span class="term">Gold Standard</span>.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ automatic taggers زي متدرّب بيتعلّم مهنة من ملاحظة أسطى (الـ corpus الموسوم يدوياً) وهو شغال. المتدرّب البسيط بيحفظ "الخشب دايماً معناه أثاث." المتدرب الأذكى كمان بيلاحظ إيش الأداة اللي في إيد الأسطى وإيش اللي جاء قبلها مباشرة — وبيبني حس أغنى بكثير لما نفس المادة الخام تعني حاجات مختلفة.
+        </div>
+
+        <h3>إيش هو الـ corpus وليش مهم هنا؟</h3>
+        <p>الـ <span class="term">corpus</span> (جمعها corpora) هو مجموعة كبيرة من النصوص، عادة مخزّنة ومعالَجة إلكترونياً، وبتُستخدم كمصدر لغوي. ممكن يكون monolingual (لغة واحدة) أو multilingual (لغات متعددة). حتى يصير الـ corpus مفيد للبحث اللغوي، بيمر بعملية <span class="term">annotation</span> — إضافة معلومات منظّمة فوق النص الخام. توسيم corpus بالـ POS (إضافة POS tag لكل كلمة) مثال كلاسيكي على الـ annotation. الـ <span class="term">Brown Corpus</span>، المبني في جامعة Brown سنة 1961، كان أول corpus إلكتروني إنجليزي بمليون كلمة ولسه مرجع أساسي — فيه نصوص من 500 مصدر مصنّفة حسب النوع (أخبار، افتتاحيات، مراجعات، حكومي، إلخ).</p>
+
+        <h3>Taggers أساسية</h3>
+        <table class="compare-table">
+          <tr><th>الـ Tagger</th><th>كيف يقرر الـ tag</th><th>ملاحظات</th></tr>
+          <tr><td><span class="highlight">Default Tagger</span></td><td>يدّي نفس الـ tag بالظبط لكل token</td><td>أبسط baseline ممكن — يبدو تافه، لكنه بيأسس حد أدنى مهم لقياس تحسّن الدقة</td></tr>
+          <tr><td><span class="highlight">Regular Expression Tagger</span></td><td>يدّي tag بناءً على مطابقة نمط شكل الكلمة</td><td>مثلاً "أي كلمة تنتهي بـ -ed غالباً فعل ماضٍ"، "أي كلمة تنتهي بـ 's غالباً اسم ملكية"</td></tr>
+          <tr><td><span class="highlight">Unigram Tagger</span></td><td>يدّي أكثر tag شائع إحصائياً لتلك الكلمة بالذات</td><td>يتدرّب بمسح corpus موسوم وتخزين أكثر tag تكراراً لكل كلمة في dictionary</td></tr>
+          <tr><td><span class="highlight">N-gram Tagger</span></td><td>يعتبر الكلمة الحالية مع POS tags لـ (n-1) كلمات سابقة</td><td>الـ unigram tagger بيشوف الكلمة لحالها بس — الـ n-gram tagger بيستخدم السياق المحيط لحل غموض كلمات زي "wind" (اسم أو فعل)</td></tr>
+        </table>
+
+        <div class="warning-box">
+          <div class="label">خطأ شائع في التدريب</div>
+          لما تدرّب tagger على بيانات موسومة، أبداً ما تقيّمه على نفس البيانات اللي اتدرّب عليها. الـ tagger اللي بس حفظ بيانات التدريب هيطلع درجة كاملة عليها بس هيكون عديم الفائدة على نص جديد. الحل المعياري هو train/test split — عادة تدريب على 90% من البيانات واختبار على الـ 10% المتبقية.</p>
+        </div>
+
+        <h3>دمج الـ taggers (backoff chaining)</h3>
+        <p>الـ taggers الأكثر وعياً بالسياق (زي bigram أو trigram) عادة أدق لكن بتغطية أقل — ممكن ما تكون شافت تركيبة كلمة/سياق نادرة أثناء التدريب وببساطة تفشل تدّي tag. الحل المعياري إنك تسلسل عدة taggers مع استراتيجية احتياط (backoff):</p>
+        <ol>
+          <li>جرّب توسيم الـ token بالـ bigram tagger (الأدق).</li>
+          <li>لو الـ bigram tagger فشل، ارجع للـ unigram tagger.</li>
+          <li>لو الـ unigram tagger كمان فشل، ارجع للـ default tagger عشان كل token ياخد tag.</li>
+        </ol>
+        <p>هذا بيضحّي بشوية دقة مقابل ضمان التغطية — كل كلمة بتطلع لها tag، حتى لو نادرة والموديل ما شافها مباشرة.</p>
+
+        <h3>Brill's Tagger — أسلوب قائم على التحويل</h3>
+        <p><span class="term">Brill's tagger</span> هو tagger تحويلي قائم على قواعد (rule-based). الفكرة الأساسية: خمّن tag لكل كلمة أولاً، ثم ارجع على النتائج وصحّح الأخطاء باستخدام قواعد تصحيح متعلَّمة. زي n-gram tagging، هو أسلوب supervised — محتاج بيانات تدريب موسومة عشان يقدر يعرف إذا التخمين كان غلط. لكن بالعكس من n-gram tagging، هو ما بيعدّ إحصائيات التكرار بس — بيبني قائمة صريحة من قواعد التحويل بصيغة "استبدل T1 بـ T2 في السياق C" (والسياق ممكن يكون هوية أو tag كلمة قريبة). أثناء التدريب، الخوارزمية بتقترح آلاف القواعد المرشحة وبتقيّم كل واحدة حسب فائدتها الصافية — كم tag غلط صحّحت، ناقص كم tag صح خربطته بالغلط — وبتحتفظ بس بالقواعد المفيدة.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ automatic taggers بتتعلّم توسيم POS من corpus موسوم يدوياً (Gold Standard) زي الـ Brown Corpus. اللبنات الأساسية تتراوح من default tagger بسيط، لـ regex-pattern taggers، لـ unigram/n-gram statistical taggers — عادة مسلسلة مع بعض بـ backoff لضمان الدقة والتغطية. Brill's tagger بياخد أسلوب مختلف قائم على القواعد: خمّن أولاً، بعدين اتعلّم قواعد لتصحيح الأخطاء.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9: Named Entity Recognition -->
+  <div class="section" id="ner">
+    <div class="section-header" onclick="toggle('ner')">
+      <div class="section-icon">09</div>
+      <div class="section-title">Named Entity Recognition (NER)</div>
+      <div class="section-toggle" id="toggle-ner">▼</div>
+    </div>
+    <div class="section-body open" id="body-ner">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('ner','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('ner','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="ner-en">
+        <h3>What is NER?</h3>
+        <p><span class="term">Named Entity Recognition (NER)</span> — also called named entity identification, entity chunking, or entity extraction — is a subtask of <span class="term">information extraction</span>. Its job is to locate spans of text and classify them into predefined categories: person names, organizations, locations, time expressions, quantities, monetary values, percentages, and more.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of NER as a highlighter set applied to a news article: blue for every person's name, green for every company, yellow for every location. Once the article is color-coded this way, you can instantly answer "who, where, and what" without re-reading the whole piece.
+        </div>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Input: "Apple was founded by Steve Jobs in California in 1976."</p>
+          <table class="compare-table">
+            <tr><th>Entity</th><th>Category</th></tr>
+            <tr><td>Apple</td><td>ORG (Organization)</td></tr>
+            <tr><td>Steve Jobs</td><td>PERSON</td></tr>
+            <tr><td>California</td><td>GPE (Geo-political entity / location)</td></tr>
+            <tr><td>1976</td><td>DATE</td></tr>
+          </table>
+        </div>
+
+        <h3>Where it fits in the bigger picture</h3>
+        <p>NER lets you pull structured facts out of unstructured text at scale — for example, scanning thousands of news articles and automatically compiling a list of every company, person, and location mentioned, without a human reading any of it manually. This is why NER is considered a subtask of information extraction rather than a stand-alone preprocessing step: it produces structured output that downstream applications (search, knowledge graphs, analytics) can consume directly.</p>
+
+        <div class="warning-box">
+          <div class="label">Scope note</div>
+          This lecture only introduces NER conceptually. The detailed algorithms and hands-on implementation are covered in a dedicated lecture later in the course.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          NER identifies and classifies named entities — people, organizations, locations, dates, monetary values — inside unstructured text. It is a subtask of information extraction and a key building block for turning raw text into structured, queryable data.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="ner-ar" dir="rtl">
+        <h3>إيش هو NER؟</h3>
+        <p><span class="term">Named Entity Recognition (NER)</span> — بتُعرف كمان باسم named entity identification أو entity chunking أو entity extraction — هي مهمة فرعية من <span class="term">information extraction</span>. وظيفتها إنها تحدد أجزاء من النص وتصنّفها لفئات محددة مسبقاً: أسماء أشخاص، منظمات، مواقع، تعابير زمنية، كميات، قيم مالية، نسب مئوية، وغيرها.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في NER كمجموعة أقلام تحديد مطبّقة على مقال إخباري: أزرق لكل اسم شخص، أخضر لكل شركة، أصفر لكل موقع. بمجرد ما المقال يتلوّن بهذا الشكل، تقدر تجاوب فوراً على "مين، وين، إيش" من غير ما تعيد قراءة المقال كامل.
+        </div>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>الإدخال: "Apple was founded by Steve Jobs in California in 1976."</p>
+          <table class="compare-table">
+            <tr><th>الـ Entity</th><th>التصنيف</th></tr>
+            <tr><td>Apple</td><td>ORG (منظمة)</td></tr>
+            <tr><td>Steve Jobs</td><td>PERSON (شخص)</td></tr>
+            <tr><td>California</td><td>GPE (موقع / كيان جغرافي-سياسي)</td></tr>
+            <tr><td>1976</td><td>DATE (تاريخ)</td></tr>
+          </table>
+        </div>
+
+        <h3>وين بتترتّب في الصورة الأكبر</h3>
+        <p>الـ NER بتخليك تسحب حقائق منظّمة من نص غير منظّم وعلى نطاق واسع — مثلاً تفحص آلاف المقالات الإخبارية وتلقائياً تبني قائمة بكل شركة وشخص وموقع اتذكر، من غير ما إنسان يقرأها يدوياً. لهذا السبب NER تُعتبر subtask من information extraction مش مجرد خطوة pre-processing مستقلة: هي بتنتج مخرجات منظّمة تقدر تطبيقات تانية (بحث، knowledge graphs، تحليلات) تستخدمها مباشرة.</p>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة عن النطاق</div>
+          هذه المحاضرة بس بتقدّم NER بشكل مفاهيمي. الخوارزميات التفصيلية والتطبيق العملي هيتغطّوا في محاضرة مخصصة لاحقاً في الكورس.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          NER بتحدد وتصنّف الـ entities المسمّاة — أشخاص، منظمات، مواقع، تواريخ، قيم مالية — داخل نص غير منظّم. هي subtask من information extraction ولبنة أساسية لتحويل النص الخام لبيانات منظّمة وقابلة للاستعلام.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

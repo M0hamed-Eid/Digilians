@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Introduction to NLP — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #intro    .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #hard     .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #stages   .section-icon { background: var(--c-teal-bg);    color: var(--c-teal);    border: 1.5px solid var(--c-teal-mid); }
+  #fields   .section-icon { background: var(--c-purple-bg);  color: var(--c-purple);  border: 1.5px solid var(--c-purple-mid); }
+  #applications .section-icon { background: var(--c-rose-bg);   color: var(--c-rose);   border: 1.5px solid var(--c-rose-mid); }
+  #landscape .section-icon { background: var(--c-emerald-bg);color: var(--c-emerald);border: 1.5px solid var(--c-emerald-mid); }
+  #roadmap  .section-icon { background: var(--c-indigo-bg); color: var(--c-indigo); border: 1.5px solid var(--c-indigo-mid); }
+
+  /* Section left-border accent stripe */
+  #intro       { border-left: 4px solid var(--c-blue); }
+  #hard        { border-left: 4px solid var(--c-amber); }
+  #stages      { border-left: 4px solid var(--c-teal); }
+  #fields      { border-left: 4px solid var(--c-purple); }
+  #applications { border-left: 4px solid var(--c-rose); }
+  #landscape   { border-left: 4px solid var(--c-emerald); }
+  #roadmap     { border-left: 4px solid var(--c-indigo); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  /* ── Diagrams ── */
+  .diagram-wrap {
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin: 16px 0;
+    overflow-x: auto;
+  }
+  .diagram-caption {
+    text-align: center; font-size: 11.5px; color: var(--muted);
+    margin-top: 10px; font-style: italic;
+  }
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: Introduction to NLP</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('intro')">What is NLP?</button>
+      <button class="toc-chip" onclick="scrollTo('hard')">Why NLP is Hard</button>
+      <button class="toc-chip" onclick="scrollTo('stages')">Stages of Processing</button>
+      <button class="toc-chip" onclick="scrollTo('fields')">Connected Fields</button>
+      <button class="toc-chip" onclick="scrollTo('applications')">Applications</button>
+      <button class="toc-chip" onclick="scrollTo('landscape')">Changing Landscape</button>
+      <button class="toc-chip" onclick="scrollTo('roadmap')">Course Roadmap</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: What is NLP -->
+  <div class="section" id="intro">
+    <div class="section-header" onclick="toggle('intro')">
+      <div class="section-icon">01</div>
+      <div class="section-title">What is NLP & Why It Matters</div>
+      <div class="section-toggle open" id="toggle-intro">▼</div>
+    </div>
+    <div class="section-body open" id="body-intro">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('intro','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('intro','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="intro-en">
+        <h3>A quick definition</h3>
+        <p><span class="term">Natural Language Processing (NLP)</span> is a subfield that sits at the intersection of <span class="highlight">linguistics</span>, <span class="highlight">computer science</span>, and <span class="highlight">artificial intelligence</span>. It uses algorithms to interpret and manipulate human language — the language people actually speak and write, not a programming language.</p>
+        <p>In short: NLP is how we teach computers to read, understand, and sometimes generate human language such as English or Arabic.</p>
+
+        <h3>A brief history — ELIZA and the Turing Test</h3>
+        <p>Long before ChatGPT, there was <span class="term">ELIZA</span>, one of the very first chatbot programs, built between 1964 and 1966. ELIZA imitated a Rogerian psychotherapist — it would take whatever the user typed and reflect it back as a question, giving the illusion of understanding, even though it had no real comprehension of meaning.</p>
+        <p>ELIZA is historically important because it was one of the first programs to attempt the <span class="term">Turing Test</span>, proposed by Alan Turing in 1950. The Turing Test asks: can a machine's conversation be indistinguishable from a human's? If a human judge cannot reliably tell whether they are talking to a machine or a person, the machine "passes."</p>
+        <p>Fast forward to today: modern systems like ChatGPT are so advanced that one was even listed as a co-author on a peer-reviewed research paper — a sign of how far NLP has come from ELIZA's simple pattern-matching tricks to genuinely fluent, contextual language generation.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of ELIZA as a parrot that has memorized a few clever tricks — it repeats your words back in a rearranged way and it can fool you for a few minutes. Modern NLP systems are more like a well-read colleague — they actually build an internal representation of meaning, context, and intent before responding.
+        </div>
+
+        <h3>Why NLP matters</h3>
+        <ul>
+          <li>Human language is the most natural interface between people and technology — voice assistants, search engines, and chatbots all depend on NLP.</li>
+          <li>Huge amounts of unstructured text and speech data (emails, reviews, social media, articles) are useless to a business unless a machine can extract meaning from them — that is NLP's job.</li>
+          <li>NLP is the foundation for translation, summarization, sentiment analysis, question answering, and virtually every "AI understands text" product you use today.</li>
+        </ul>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          NLP is the field that teaches machines to understand and generate human language. It began with simple rule-based systems like ELIZA in the 1960s, was inspired by Turing's 1950 test for machine intelligence, and has evolved into today's highly fluent language models.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="intro-ar" dir="rtl">
+        <h3>تعريف سريع</h3>
+        <p><span class="term">Natural Language Processing (NLP)</span> هو مجال بيجمع بين <span class="highlight">اللسانيات (linguistics)</span> و<span class="highlight">علوم الحاسب</span> و<span class="highlight">الذكاء الاصطناعي (AI)</span>. بيستخدم algorithms عشان يفهم ويتعامل مع اللغة البشرية — اللغة اللي إحنا بنتكلم بيها فعلاً، مش لغة برمجة.</p>
+        <p>باختصار: NLP هو الطريقة اللي بنعلّم بيها الكمبيوتر يقرأ ويفهم، وأحياناً يولّد لغة بشرية زي العربي أو الإنجليزي.</p>
+
+        <h3>لمحة تاريخية — ELIZA واختبار Turing</h3>
+        <p>قبل ChatGPT بزمن طويل، كان فيه برنامج اسمه <span class="term">ELIZA</span>، واحد من أول الـ chatbots، اتعمل بين 1964 و1966. كان بيقلّد معالج نفسي (psychotherapist) — يعني كان بياخد كلام المستخدم ويرجّعه في صيغة سؤال، وده بيدي إحساس وهمي إنه "فاهم"، مع إنه في الحقيقة ما بيفهم المعنى خالص.</p>
+        <p>ELIZA مهم تاريخياً لأنه كان من أول البرامج اللي حاولت تعدي <span class="term">Turing Test</span>، اللي اقترحها Alan Turing سنة 1950. فكرة الاختبار: هل الآلة تقدر تتكلم بشكل ما تقدرش تفرّق فيه بينها وبين إنسان؟ لو الحكم (judge) ما قدرش يحدد إذا كان بيكلم إنسان ولا آلة، يبقى الآلة "عدّت" الاختبار.</p>
+        <p>ولو نيجي للنهاردة: أنظمة زي ChatGPT بقت متقدمة جداً لدرجة إنها اتذكرت كـ co-author في paper علمي محكّم (peer-reviewed) — ده دليل على المسافة الكبيرة من حيل ELIZA البسيطة للـ pattern matching، لحد الـ fluent generation اللي شايفينها دلوقتي.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في ELIZA كأنها ببغاء (parrot) حافظ شوية حركات ذكية — بيكرر كلامك بترتيب مختلف وممكن يخدعك لدقايق. أما أنظمة NLP الحديثة فهي أشبه بزميل مثقّف — فعلاً بيبني تمثيل داخلي للمعنى والسياق (context) والنية (intent) قبل ما يرد.
+        </div>
+
+        <h3>ليش NLP مهم؟</h3>
+        <ul>
+          <li>اللغة البشرية هي أطبع (natural) واجهة بين الناس والتكنولوجيا — الـ voice assistants ومحركات البحث والـ chatbots كلها معتمدة على NLP.</li>
+          <li>كمية ضخمة من البيانات غير المنظّمة (emails، reviews، social media، مقالات) ما لهاش فايدة للشركة إلا لو في آلة تقدر تستخرج منها معنى — وده شغل NLP بالظبط.</li>
+          <li>NLP هو الأساس لـ translation، summarization، sentiment analysis، question answering، وتقريباً أي منتج "AI بيفهم نص" بتستخدمه النهاردة.</li>
+        </ul>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          NLP هو المجال اللي بيعلّم الآلات تفهم وتولّد اللغة البشرية. بدأ بأنظمة بسيطة قائمة على قواعد (rule-based) زي ELIZA في الستينات، اتلهم من اختبار Turing سنة 1950، وتطور لحد النماذج اللغوية الطليقة اللي عندنا دلوقتي.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Why NLP is Hard -->
+  <div class="section" id="hard">
+    <div class="section-header" onclick="toggle('hard')">
+      <div class="section-icon">02</div>
+      <div class="section-title">Why NLP is Hard: Ambiguity</div>
+      <div class="section-toggle" id="toggle-hard">▼</div>
+    </div>
+    <div class="section-body" id="body-hard">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('hard','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('hard','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="hard-en">
+        <h3>The core problem: ambiguity</h3>
+        <p>Human language looks simple to us because our brains resolve ambiguity automatically and instantly. But for a machine, almost every sentence can be understood in more than one way. This is the number one reason NLP is a genuinely hard engineering and research problem — not because computers can't process words, but because words alone rarely carry a single, fixed meaning.</p>
+        <p>Ambiguity shows up at multiple levels of language at once:</p>
+
+        <table class="compare-table">
+          <tr><th>Level</th><th>Example</th><th>What's ambiguous</th></tr>
+          <tr><td>Phonological</td><td>"write" vs "right"</td><td>Same sound, different spelling and meaning (homophones)</td></tr>
+          <tr><td>Word sense</td><td>"bank"</td><td>A financial institution, or the side of a river?</td></tr>
+          <tr><td>Part of speech</td><td>"play"</td><td>Is it a noun ("a play") or a verb ("to play")?</td></tr>
+          <tr><td>Syntactic structure</td><td>"I can see a man with a telescope"</td><td>Who has the telescope — the man, or the person seeing him?</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">Example — the "I made her duck" puzzle</div>
+          <p>This single sentence has at least five valid interpretations, which shows just how deep ambiguity can go:</p>
+          <ol>
+            <li>I cooked waterfowl for her (to eat).</li>
+            <li>I cooked a duck that belongs to her.</li>
+            <li>I created the (plaster?) duck she owns.</li>
+            <li>I caused her to quickly lower her head or body ("duck" as a verb, meaning to dodge).</li>
+            <li>I waved a magic wand and turned her into a duck.</li>
+          </ol>
+          <p>Each meaning depends on a different reading of "made" (created vs. caused vs. cooked) and "duck" (the bird vs. the action of ducking down).</p>
+        </div>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:Sora,sans-serif;">
+            <text x="320" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">"I made her duck" — one sentence, five meanings</text>
+            <rect x="255" y="40" width="130" height="34" rx="8" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.5"/>
+            <text x="320" y="62" text-anchor="middle" font-size="12" fill="var(--c-amber)" font-weight="700">I made her duck</text>
+
+            <line x1="255" y1="74" x2="90"  y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="290" y1="74" x2="215" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="350" y1="74" x2="425" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="385" y1="74" x2="550" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="320" y1="74" x2="320" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+
+            <rect x="20"  y="120" width="140" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="90" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">Cooked waterfowl</text>
+            <text x="90" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">for her to eat</text>
+
+            <rect x="165" y="120" width="130" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="230" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">Cooked the duck</text>
+            <text x="230" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">she owns</text>
+
+            <rect x="255" y="120" width="130" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="320" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">Created a (plaster)</text>
+            <text x="320" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">duck she owns</text>
+
+            <rect x="360" y="120" width="130" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="425" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">Made her quickly</text>
+            <text x="425" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">lower her head</text>
+
+            <rect x="485" y="120" width="135" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="552" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">Turned her into</text>
+            <text x="552" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">a duck (magic)</text>
+          </svg>
+          <div class="diagram-caption">One surface sentence maps to five different underlying meanings — this is lexical, syntactic, and semantic ambiguity combined.</div>
+        </div>
+
+        <h3>Are there other reasons NLP is hard?</h3>
+        <p>Yes — beyond ambiguity, NLP must also deal with: language constantly evolving (slang, new words), context and world knowledge needed to disambiguate, sarcasm and figurative language, spelling errors and informal writing (especially on social media), and the sheer diversity of the world's languages, each with its own grammar and structure.</p>
+
+        <div class="warning-box">
+          <div class="label">Key takeaway</div>
+          Ambiguity is not a minor annoyance — it is the central challenge of NLP. Every technique you will learn in this course (tokenization, POS tagging, parsing, embeddings, language models) exists, at least in part, to help a machine narrow down the correct meaning among many possibilities.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          NLP is hard mainly because of ambiguity at the phonological, lexical (word sense), part-of-speech, and syntactic levels. The "I made her duck" example shows how one sentence can have five valid meanings — resolving this kind of ambiguity is what most NLP techniques are built to do.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="hard-ar" dir="rtl">
+        <h3>المشكلة الأساسية: الـ Ambiguity (الغموض)</h3>
+        <p>اللغة البشرية بتبان لينا بسيطة لأن مخّنا بيحلّ الـ ambiguity تلقائياً وبسرعة. لكن بالنسبة للآلة، تقريباً كل جملة ممكن تتفهم بأكتر من طريقة. وده السبب الأول اللي بيخلي NLP مشكلة صعبة فعلاً — مش لأن الكمبيوتر ما يقدرش يعالج كلمات، لكن لأن الكلمات لوحدها نادراً ما بتحمل معنى واحد ثابت.</p>
+        <p>الـ ambiguity بتظهر على أكتر من مستوى في نفس الوقت:</p>
+
+        <table class="compare-table">
+          <tr><th>المستوى</th><th>مثال</th><th>الغموض</th></tr>
+          <tr><td>Phonological (صوتي)</td><td>"write" و "right"</td><td>نفس النطق، معنى وكتابة مختلفين (homophones)</td></tr>
+          <tr><td>Word sense (معنى الكلمة)</td><td>"bank"</td><td>بنك (مؤسسة مالية) ولا ضفة نهر؟</td></tr>
+          <tr><td>Part of speech</td><td>"play"</td><td>اسم ("a play" = مسرحية) ولا فعل ("to play" = يلعب)؟</td></tr>
+          <tr><td>Syntactic (تركيبي)</td><td>"I can see a man with a telescope"</td><td>مين معاه التلسكوب — الراجل، ولا اللي شايفه؟</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">مثال — لغز "I made her duck"</div>
+          <p>الجملة دي لوحدها عندها على الأقل 5 معاني صحيحة، وده بيوضّح عمق الـ ambiguity:</p>
+          <ol>
+            <li>طبخت بطة (waterfowl) عشان تاكلها.</li>
+            <li>طبخت بطة هي مالكاها.</li>
+            <li>عملت (تمثال؟) بطة تخصّها.</li>
+            <li>خليتها تنزل راسها بسرعة (fعل "duck" بمعنى ينحني/يتفادى).</li>
+            <li>حوّلتها لبطة بعصا سحرية.</li>
+          </ol>
+          <p>كل معنى بيعتمد على قراءة مختلفة لكلمة "made" (عمل / سبّب / طبخ) وكلمة "duck" (الطائر أو فعل الانحناء).</p>
+        </div>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:Sora,sans-serif;">
+            <text x="320" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">"I made her duck" — جملة واحدة، خمس معاني</text>
+            <rect x="255" y="40" width="130" height="34" rx="8" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.5"/>
+            <text x="320" y="62" text-anchor="middle" font-size="12" fill="var(--c-amber)" font-weight="700">I made her duck</text>
+
+            <line x1="255" y1="74" x2="90"  y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="290" y1="74" x2="215" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="350" y1="74" x2="425" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="385" y1="74" x2="550" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="320" y1="74" x2="320" y2="120" stroke="var(--muted)" stroke-width="1.3"/>
+
+            <rect x="20"  y="120" width="140" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="90" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">طبخت بطة</text>
+            <text x="90" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">عشان تاكلها</text>
+
+            <rect x="165" y="120" width="130" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="230" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">طبخت البطة</text>
+            <text x="230" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">اللي تملكها</text>
+
+            <rect x="255" y="120" width="130" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="320" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">عملت بطة (تمثال)</text>
+            <text x="320" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">تخصّها</text>
+
+            <rect x="360" y="120" width="130" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="425" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">خليتها تنزل</text>
+            <text x="425" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">راسها بسرعة</text>
+
+            <rect x="485" y="120" width="135" height="46" rx="7" fill="var(--card)" stroke="var(--border)"/>
+            <text x="552" y="140" text-anchor="middle" font-size="10.5" fill="var(--text)">حوّلتها لبطة</text>
+            <text x="552" y="154" text-anchor="middle" font-size="10.5" fill="var(--text)">(سحر)</text>
+          </svg>
+          <div class="diagram-caption">جملة سطحية واحدة بتترجم لخمس معاني مختلفة — دمج بين lexical وsyntactic وsemantic ambiguity.</div>
+        </div>
+
+        <h3>فيه أسباب تانية بتخلي NLP صعب؟</h3>
+        <p>أكيد — غير الـ ambiguity، NLP لازم يتعامل مع: اللغة بتتطور باستمرار (slang، كلمات جديدة)، محتاج context ومعرفة عامة بالعالم عشان يفكّ الغموض، السخرية (sarcasm) واللغة المجازية، أخطاء الإملاء والكتابة غير الرسمية (خصوصاً على السوشيال ميديا)، وتنوّع لغات العالم اللي كل واحدة عندها قواعد وتركيب مختلف.</p>
+
+        <div class="warning-box">
+          <div class="label">أهم نقطة</div>
+          الـ ambiguity مش مجرد إزعاج بسيط — هي التحدي المركزي في NLP. كل تقنية هتاخدها في الكورس ده (tokenization، POS tagging، parsing، embeddings، language models) موجودة جزئياً عشان تساعد الآلة تحدد المعنى الصح من بين احتمالات كتير.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          NLP صعب أساساً بسبب الـ ambiguity على مستوى الصوت، ومعنى الكلمة، وnوع الكلمة (POS)، والتركيب النحوي. مثال "I made her duck" بيوضّح إزاي جملة واحدة ممكن يكون لها 5 معاني صحيحة — وحل هذا النوع من الغموض هو اللي أغلب تقنيات NLP بتحاول تعمله.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Stages of Language Processing -->
+  <div class="section" id="stages">
+    <div class="section-header" onclick="toggle('stages')">
+      <div class="section-icon">03</div>
+      <div class="section-title">Stages of Language Processing</div>
+      <div class="section-toggle" id="toggle-stages">▼</div>
+    </div>
+    <div class="section-body" id="body-stages">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('stages','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('stages','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="stages-en">
+        <h3>The linguistic pipeline</h3>
+        <p>To go from raw sound or text to full understanding, language is traditionally analyzed in a series of stages, moving from the smallest units of language to the largest. Each stage answers a different question about the input.</p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:Sora,sans-serif;">
+            <defs>
+              <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="var(--muted)"/>
+              </marker>
+            </defs>
+            <g font-size="10.5" font-weight="700">
+              <rect x="10"  y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="62" y="56" text-anchor="middle" fill="var(--c-teal)">Phonology</text>
+              <text x="62" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">sounds</text>
+
+              <rect x="130" y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="182" y="56" text-anchor="middle" fill="var(--c-teal)">Morphology</text>
+              <text x="182" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">word forms</text>
+
+              <rect x="250" y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="302" y="56" text-anchor="middle" fill="var(--c-teal)">Syntax</text>
+              <text x="302" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">sentence structure</text>
+
+              <rect x="370" y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="422" y="56" text-anchor="middle" fill="var(--c-teal)">Semantics</text>
+              <text x="422" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">literal meaning</text>
+
+              <rect x="490" y="35" width="140" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="560" y="56" text-anchor="middle" fill="var(--c-teal)">Pragmatics /</text>
+              <text x="560" y="68" text-anchor="middle" fill="var(--c-teal)">Discourse</text>
+              <text x="560" y="80" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">context, intent</text>
+            </g>
+            <line x1="115" y1="60" x2="128" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <line x1="235" y1="60" x2="248" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <line x1="355" y1="60" x2="368" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <line x1="475" y1="60" x2="488" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+          </svg>
+          <div class="diagram-caption">The classical NLP pipeline: from raw sounds up to context-dependent meaning.</div>
+        </div>
+
+        <h3>What each stage does</h3>
+        <ul>
+          <li><span class="term">Phonology</span> — studies how sounds are organized in a language (relevant for speech recognition and text-to-speech).</li>
+          <li><span class="term">Morphology</span> — studies the internal structure of words: roots, prefixes, suffixes (e.g., "unhappiness" = un + happy + ness).</li>
+          <li><span class="term">Syntax</span> — studies how words combine into grammatically correct sentences (sentence structure, grammar rules).</li>
+          <li><span class="term">Semantics</span> — studies the literal meaning of words and sentences, independent of context.</li>
+          <li><span class="term">Pragmatics / Discourse</span> — studies meaning in context: what a speaker actually intends, how sentences relate to each other across a conversation or document.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of this pipeline like building with LEGO. Phonology gives you the raw plastic. Morphology molds it into individual bricks (words). Syntax is the instruction manual for connecting bricks into a valid structure (a sentence). Semantics tells you what that structure represents. Pragmatics is understanding why someone built it and what they meant to show you.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Language is understood in stages: phonology (sounds) → morphology (word structure) → syntax (sentence structure) → semantics (literal meaning) → pragmatics/discourse (contextual meaning). Different NLP tasks focus on different stages of this pipeline.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="stages-ar" dir="rtl">
+        <h3>الـ Pipeline اللغوي</h3>
+        <p>عشان نوصل من الصوت أو النص الخام لفهم كامل، اللغة بتتحلل تقليدياً على مجموعة مراحل، من أصغر وحدات اللغة لأكبرها. كل مرحلة بتجاوب على سؤال مختلف عن الـ input.</p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:Sora,sans-serif;">
+            <defs>
+              <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 Z" fill="var(--muted)"/>
+              </marker>
+            </defs>
+            <g font-size="10.5" font-weight="700">
+              <rect x="10"  y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="62" y="56" text-anchor="middle" fill="var(--c-teal)">Phonology</text>
+              <text x="62" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">أصوات</text>
+
+              <rect x="130" y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="182" y="56" text-anchor="middle" fill="var(--c-teal)">Morphology</text>
+              <text x="182" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">صيغ الكلمة</text>
+
+              <rect x="250" y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="302" y="56" text-anchor="middle" fill="var(--c-teal)">Syntax</text>
+              <text x="302" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">تركيب الجملة</text>
+
+              <rect x="370" y="35" width="105" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="422" y="56" text-anchor="middle" fill="var(--c-teal)">Semantics</text>
+              <text x="422" y="70" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">المعنى الحرفي</text>
+
+              <rect x="490" y="35" width="140" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)"/>
+              <text x="560" y="56" text-anchor="middle" fill="var(--c-teal)">Pragmatics /</text>
+              <text x="560" y="68" text-anchor="middle" fill="var(--c-teal)">Discourse</text>
+              <text x="560" y="80" text-anchor="middle" fill="var(--muted)" font-size="9" font-weight="400">سياق، نية</text>
+            </g>
+            <line x1="115" y1="60" x2="128" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+            <line x1="235" y1="60" x2="248" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+            <line x1="355" y1="60" x2="368" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+            <line x1="475" y1="60" x2="488" y2="60" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+          </svg>
+          <div class="diagram-caption">الـ pipeline الكلاسيكي في NLP: من الأصوات الخام لحد المعنى المرتبط بالسياق.</div>
+        </div>
+
+        <h3>كل مرحلة بتعمل إيه</h3>
+        <ul>
+          <li><span class="term">Phonology (الصوتيات)</span> — بتدرس إزاي الأصوات متنظمة في اللغة (مهم في speech recognition و text-to-speech).</li>
+          <li><span class="term">Morphology (الصرف)</span> — بتدرس التركيب الداخلي للكلمة: جذر، سابقة، لاحقة (مثلاً "unhappiness" = un + happy + ness).</li>
+          <li><span class="term">Syntax (النحو)</span> — بتدرس إزاي الكلمات بتتجمّع في جمل صحيحة نحوياً (تركيب الجملة، قواعد الجرامر).</li>
+          <li><span class="term">Semantics (الدلالة)</span> — بتدرس المعنى الحرفي للكلمات والجمل، بمعزل عن الـ context.</li>
+          <li><span class="term">Pragmatics / Discourse</span> — بتدرس المعنى في السياق: إيه اللي المتكلم فعلاً قصده، وإزاي الجمل مرتبطة ببعض في محادثة أو مستند كامل.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في الـ pipeline ده زي بناء بـ LEGO. الـ Phonology بيدّيك البلاستيك الخام. الـ Morphology بيشكّله لقطع فردية (كلمات). الـ Syntax هو دليل التعليمات لتوصيل القطع ببعض بشكل صحيح (جملة). الـ Semantics بيقولك القطعة دي بتمثل إيه. والـ Pragmatics هو فهم ليه الشخص بنى الشكل ده وإيه اللي كان يقصد يوريهولك.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          فهم اللغة بيمر بمراحل: phonology (أصوات) ← morphology (تركيب الكلمة) ← syntax (تركيب الجملة) ← semantics (المعنى الحرفي) ← pragmatics/discourse (المعنى في السياق). كل مهمة NLP بتركّز على مرحلة مختلفة من الـ pipeline ده.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Fields Connected to NLP -->
+  <div class="section" id="fields">
+    <div class="section-header" onclick="toggle('fields')">
+      <div class="section-icon">04</div>
+      <div class="section-title">Fields with Connections to NLP</div>
+      <div class="section-toggle" id="toggle-fields">▼</div>
+    </div>
+    <div class="section-body" id="body-fields">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('fields','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('fields','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="fields-en">
+        <h3>NLP is inherently interdisciplinary</h3>
+        <p>NLP does not exist in isolation. It borrows tools, theory, and questions from many other fields, and it feeds insights back into them. Understanding these connections helps you see why an NLP course covers such a wide range of topics — statistics, linguistics theory, programming, even psychology.</p>
+
+        <table class="compare-table">
+          <tr><th>Field</th><th>What it contributes to NLP</th></tr>
+          <tr><td>Linguistics</td><td>Theories of grammar, meaning, and language structure that NLP formalizes into rules and models</td></tr>
+          <tr><td>Machine & Deep Learning</td><td>The statistical/algorithmic engines (e.g., neural networks) that power modern NLP systems</td></tr>
+          <tr><td>Cognitive Science</td><td>Insights into how the human mind processes and produces language</td></tr>
+          <tr><td>Information Theory</td><td>Concepts like entropy and probability used in language modeling</td></tr>
+          <tr><td>Logic</td><td>Formal reasoning used for representing meaning and inference in text</td></tr>
+          <tr><td>Data Science</td><td>Techniques for extracting patterns and insight from large text datasets</td></tr>
+          <tr><td>Psychology</td><td>Understanding of human communication, sentiment, and behavior in text</td></tr>
+          <tr><td>Economics</td><td>Modeling decision-making language, e.g., in financial or market text analysis</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of NLP as a busy intersection in a city. Traffic (ideas and methods) flows in from linguistics, computer science, psychology, and more — and NLP itself sends traffic back out to power search engines, translators, and assistants. It is a meeting point, not a single, isolated road.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          NLP sits at the crossroads of linguistics, computer science (ML/DL), cognitive science, information theory, logic, data science, psychology, and economics. This is why NLP practitioners need both technical (coding, math) and humanistic (language, communication) skills.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="fields-ar" dir="rtl">
+        <h3>NLP مجال متعدد التخصصات بطبيعته</h3>
+        <p>NLP مش موجود لوحده — بياخد أدوات ونظريات وأسئلة من مجالات كتير تانية، وبيرجّع رؤى (insights) ليهم كمان. فهم الروابط دي بيوضّحلك ليه كورس NLP بيغطي مواضيع متنوعة: إحصاء، نظريات لغوية، برمجة، وحتى علم نفس.</p>
+
+        <table class="compare-table">
+          <tr><th>المجال</th><th>إيه اللي بيضيفه لـ NLP</th></tr>
+          <tr><td>Linguistics (اللسانيات)</td><td>نظريات القواعد والمعنى وتركيب اللغة اللي NLP بيحوّلها لـ rules وmodels</td></tr>
+          <tr><td>Machine & Deep Learning</td><td>المحركات الإحصائية/الخوارزمية (زي neural networks) اللي بتشغّل أنظمة NLP الحديثة</td></tr>
+          <tr><td>Cognitive Science</td><td>رؤى عن إزاي عقل الإنسان بيعالج وينتج اللغة</td></tr>
+          <tr><td>Information Theory</td><td>مفاهيم زي entropy والاحتمالات المستخدمة في language modeling</td></tr>
+          <tr><td>Logic (المنطق)</td><td>استدلال شكلي (formal reasoning) لتمثيل المعنى والاستنتاج في النص</td></tr>
+          <tr><td>Data Science</td><td>تقنيات استخراج الأنماط والمعرفة من مجموعات نصوص ضخمة</td></tr>
+          <tr><td>Psychology</td><td>فهم التواصل البشري والـ sentiment والسلوك في النص</td></tr>
+          <tr><td>Economics</td><td>نمذجة لغة اتخاذ القرار، مثلاً في تحليل النصوص المالية أو السوقية</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في NLP كتقاطع مزدحم في مدينة. الحركة (الأفكار والطرق) بتيجي من linguistics، computer science، psychology، وغيرهم — وNLP نفسه بيرجّع حركة لبرّه عشان يشغّل محركات البحث والمترجمين والمساعدين. هو نقطة التقاء، مش طريق واحد معزول.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          NLP في تقاطع اللسانيات، علوم الحاسب (ML/DL)، علم النفس المعرفي، نظرية المعلومات، المنطق، Data Science، علم النفس، والاقتصاد. عشان كده ممارس NLP محتاج مهارات تقنية (برمجة، رياضيات) ومهارات إنسانية (لغة، تواصل) مع بعض.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: NLP Applications -->
+  <div class="section" id="applications">
+    <div class="section-header" onclick="toggle('applications')">
+      <div class="section-icon">05</div>
+      <div class="section-title">NLP Applications</div>
+      <div class="section-toggle" id="toggle-applications">▼</div>
+    </div>
+    <div class="section-body" id="body-applications">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('applications','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('applications','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="applications-en">
+        <h3>Common real-world applications</h3>
+        <p>NLP powers a huge range of products you already use: machine translation (Google Translate), sentiment analysis (understanding if a review is positive or negative), chatbots and virtual assistants (Siri, ELIZA's descendants), text summarization, question answering systems, and speech recognition (converting spoken audio to text).</p>
+
+        <h3>Three important distinctions the slides ask about</h3>
+
+        <div class="example-box">
+          <div class="label">1. Essay Scoring vs. Short Answer Grading</div>
+          <p><span class="term">Automated Essay Scoring</span> evaluates long, free-form writing — it must judge structure, coherence, argument flow, grammar, and style across paragraphs. <span class="term">Short Answer Grading</span> evaluates brief responses (a sentence or two) against a specific expected answer — it is closer to a semantic similarity or fact-checking task than a writing-quality task.</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">2. Question Answering vs. Question Generation</div>
+          <p><span class="term">Question Answering (QA)</span> takes a question (and often a passage of text) and produces an answer — this is what search engines and assistants do. <span class="term">Question Generation</span> is the reverse task: given a passage of text (or an answer), automatically generate a sensible question about it — useful for building quizzes, study material, and training data for QA systems.</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">3. Extractive vs. Abstractive Summarization</div>
+          <p><span class="term">Extractive summarization</span> selects and stitches together the most important existing sentences or phrases directly from the source text — nothing new is written. <span class="term">Abstractive summarization</span> generates new sentences that capture the meaning of the source, similar to how a human would paraphrase — this is harder and requires true language generation, not just selection.</p>
+        </div>
+
+        <table class="compare-table">
+          <tr><th>Task A</th><th>Task B</th><th>Key difference</th></tr>
+          <tr><td>Essay scoring</td><td>Short answer grading</td><td>Long free-form writing quality vs. brief factual correctness</td></tr>
+          <tr><td>Question answering</td><td>Question generation</td><td>Producing an answer vs. producing a question</td></tr>
+          <tr><td>Extractive summary</td><td>Abstractive summary</td><td>Copies existing text vs. generates new paraphrased text</td></tr>
+        </table>
+
+        <h3>Is OCR a natural language processing application?</h3>
+        <p><span class="term">Optical Character Recognition (OCR)</span> converts images of text (scanned documents, photos) into machine-readable text. Strictly speaking, OCR itself is a <span class="highlight">computer vision</span> problem — it recognizes shapes of characters, not meaning. However, OCR is often considered part of the broader NLP pipeline because: (1) it is frequently the first step that feeds raw text into downstream NLP tasks (like parsing scanned invoices or digitizing books), and (2) modern OCR systems increasingly use language models to correct recognition errors using linguistic context (e.g., knowing "the" is far more likely than "tha"). So OCR is best described as an NLP-adjacent or NLP-supporting technology rather than a core NLP task itself.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          NLP applications span translation, sentiment analysis, chatbots, summarization, and QA. Key distinctions to remember: essay scoring (long writing quality) vs short answer grading (factual correctness); QA (answering) vs question generation (asking); extractive (copy) vs abstractive (paraphrase) summarization. OCR is a vision task that feeds into NLP pipelines rather than being NLP itself.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="applications-ar" dir="rtl">
+        <h3>تطبيقات شائعة في الحياة الواقعية</h3>
+        <p>NLP بيشغّل مجموعة ضخمة من المنتجات اللي إحنا مستخدمينها فعلاً: machine translation (زي Google Translate)، sentiment analysis (تحديد لو الـ review إيجابي أو سلبي)، chatbots وvirtual assistants (Siri، وأحفاد ELIZA)، text summarization، أنظمة question answering، وspeech recognition (تحويل الصوت المنطوق لنص).</p>
+
+        <h3>3 فروقات مهمة السلايدات بتسأل عنهم</h3>
+
+        <div class="example-box">
+          <div class="label">1. Essay Scoring vs. Short Answer Grading</div>
+          <p><span class="term">Automated Essay Scoring</span> بيقيّم كتابة طويلة وحرة — لازم يحكم على البنية، والترابط، وتسلسل الحجج، والجرامر، والأسلوب عبر فقرات كاملة. <span class="term">Short Answer Grading</span> بيقيّم إجابات قصيرة (جملة أو اتنين) مقابل إجابة متوقعة محددة — أقرب لمهمة semantic similarity أو fact-checking من مهمة تقييم جودة كتابة.</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">2. Question Answering vs. Question Generation</div>
+          <p><span class="term">Question Answering (QA)</span> بياخد سؤال (وغالباً فقرة نص) وينتج إجابة — ده اللي محركات البحث والمساعدين بيعملوه. <span class="term">Question Generation</span> هي المهمة العكسية: بتاخد فقرة نص (أو إجابة) وتولّد تلقائياً سؤال منطقي عنها — مفيد لعمل quizzes، مواد دراسية، وبيانات تدريب لأنظمة QA.</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">3. Extractive vs. Abstractive Summarization</div>
+          <p><span class="term">Extractive summarization</span> بيختار وبيلزّق أهم الجمل أو العبارات الموجودة فعلاً في النص الأصلي — مفيش حاجة جديدة بتتكتب. <span class="term">Abstractive summarization</span> بيولّد جمل جديدة تلخّص المعنى، زي ما إنسان يعيد الصياغة — ده أصعب ومحتاج language generation حقيقي مش مجرد اختيار.</p>
+        </div>
+
+        <table class="compare-table">
+          <tr><th>المهمة أ</th><th>المهمة ب</th><th>الفرق الأساسي</th></tr>
+          <tr><td>Essay scoring</td><td>Short answer grading</td><td>جودة كتابة طويلة حرة مقابل صحة واقعية لإجابة قصيرة</td></tr>
+          <tr><td>Question answering</td><td>Question generation</td><td>إنتاج إجابة مقابل إنتاج سؤال</td></tr>
+          <tr><td>Extractive summary</td><td>Abstractive summary</td><td>نسخ نص موجود مقابل توليد نص جديد معاد صياغته</td></tr>
+        </table>
+
+        <h3>هل OCR تطبيق من تطبيقات NLP؟</h3>
+        <p><span class="term">Optical Character Recognition (OCR)</span> بيحوّل صور النصوص (مستندات ممسوحة ضوئياً، صور) لنص تقدر الآلة تقرأه. من الناحية الدقيقة، OCR نفسه مشكلة <span class="highlight">computer vision</span> — بيتعرّف على أشكال الحروف، مش على المعنى. لكن غالباً بيتحسب جزء من الـ NLP pipeline الأوسع لأن: (1) غالباً هو أول خطوة بتغذي نص خام لمهام NLP بعده (زي تحليل فواتير ممسوحة ضوئياً أو رقمنة كتب)، و(2) أنظمة OCR الحديثة بتستخدم أكتر فأكتر language models لتصحيح أخطاء التعرّف باستخدام السياق اللغوي (مثلاً معرفة إن "the" أكتر احتمالاً بكتير من "tha"). فـ OCR أفضل ما يوصف كتكنولوجيا مرتبطة بـ NLP أو داعمة له، مش مهمة NLP أساسية في حد ذاتها.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          تطبيقات NLP بتغطي الترجمة، sentiment analysis، chatbots، summarization، وQA. الفروقات المهم تفتكرها: essay scoring (جودة كتابة طويلة) مقابل short answer grading (صحة واقعية)؛ QA (إجابة) مقابل question generation (سؤال)؛ extractive (نسخ) مقابل abstractive (إعادة صياغة) في الـ summarization. OCR مهمة رؤية (vision) بتغذي pipelines الـ NLP أكتر ما تكون NLP نفسها.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Factors Changing the NLP Landscape -->
+  <div class="section" id="landscape">
+    <div class="section-header" onclick="toggle('landscape')">
+      <div class="section-icon">06</div>
+      <div class="section-title">Factors Changing the NLP Landscape</div>
+      <div class="section-toggle" id="toggle-landscape">▼</div>
+    </div>
+    <div class="section-body" id="body-landscape">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('landscape','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('landscape','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="landscape-en">
+        <h3>Why NLP has exploded in recent years</h3>
+        <p>NLP existed for decades before it became the powerful, everyday technology it is today. Four major factors converged to accelerate this progress:</p>
+        <ul>
+          <li><span class="term">Increases in computing power</span> — GPUs and specialized hardware make it feasible to train enormous models on massive datasets in reasonable time.</li>
+          <li><span class="term">The rise of the web, then the social web</span> — the internet, and later platforms like Twitter/X, Facebook, and Reddit, created an unprecedented volume of real, informal, human-generated text to learn from.</li>
+          <li><span class="term">Advances in machine and deep learning</span> — new architectures (RNNs, then Transformers) made it possible to model long-range dependencies and context far better than older statistical methods.</li>
+          <li><span class="term">Advances in understanding language in social context</span> — better handling of sarcasm, slang, code-switching, and culturally specific expressions, which are essential for real-world social media and conversational text.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of these four factors as ingredients that all had to be ready at the same time to bake the modern NLP "cake": the oven (compute power) got powerful enough, the ingredients (data from the web) became abundant, the recipe (deep learning architectures) improved dramatically, and the chef (our understanding of language-in-context) got much better at reading the room.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          NLP's rapid modern progress is driven by four converging factors: more compute power, an explosion of web/social text data, breakthroughs in ML/DL architectures, and a better understanding of language in social context. None of these alone would have been enough.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="landscape-ar" dir="rtl">
+        <h3>ليش NLP انفجر في السنين الأخيرة</h3>
+        <p>NLP كان موجود لعقود قبل ما يبقى التكنولوجيا القوية اليومية اللي إحنا شايفينها دلوقتي. أربع عوامل رئيسية اتجمعت مع بعض عشان تسرّع التقدم ده:</p>
+        <ul>
+          <li><span class="term">زيادة قوة الحوسبة (computing power)</span> — الـ GPUs والهاردوير المتخصص خلّى ممكن تدرّب models ضخمة على datasets هائلة في وقت معقول.</li>
+          <li><span class="term">ظهور الويب، وبعدين الـ social web</span> — الإنترنت، وبعدها منصات زي Twitter/X وFacebook وReddit، خلقت كمية ضخمة غير مسبوقة من النص البشري الحقيقي وغير الرسمي عشان الـ models تتعلم منه.</li>
+          <li><span class="term">تطور الـ machine وdeep learning</span> — architectures جديدة (RNNs، وبعدين Transformers) خلّت ممكن نمذجة العلاقات بعيدة المدى والـ context بشكل أحسن بكتير من الطرق الإحصائية القديمة.</li>
+          <li><span class="term">تطور فهم اللغة في السياق الاجتماعي</span> — تعامل أفضل مع السخرية، والـ slang، وتبديل اللغات (code-switching)، والتعبيرات الثقافية الخاصة، وده أساسي في نصوص السوشيال ميديا والمحادثات الحقيقية.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في العوامل الأربعة دي كمكوّنات كان لازم تكون جاهزة كلها في نفس الوقت عشان نخبز "كيكة" NLP الحديثة: الفرن (قوة الحوسبة) بقى قوي بما فيه الكفاية، المكوّنات (بيانات الويب) بقت وفيرة، الوصفة (deep learning architectures) اتحسّنت بشكل كبير، والشيف (فهمنا للغة في السياق) بقى أحسن بكتير في "قراءة الموقف".
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          التقدم السريع لـ NLP الحديث مدفوع بأربع عوامل متزامنة: قوة حوسبة أكبر، انفجار بيانات نصية من الويب/السوشيال ميديا، اختراقات في architectures الـ ML/DL، وفهم أفضل للغة في السياق الاجتماعي. ولا واحد من العوامل دي كان كافي لوحده.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Course Roadmap -->
+  <div class="section" id="roadmap">
+    <div class="section-header" onclick="toggle('roadmap')">
+      <div class="section-icon">07</div>
+      <div class="section-title">Course Roadmap: Topics to Be Covered</div>
+      <div class="section-toggle" id="toggle-roadmap">▼</div>
+    </div>
+    <div class="section-body" id="body-roadmap">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('roadmap','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('roadmap','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="roadmap-en">
+        <h3>Where this course is heading</h3>
+        <p>This first lecture is an overview. The rest of the course builds up, layer by layer, from basic text cleaning to state-of-the-art deep learning architectures. Here is the roadmap:</p>
+
+        <table class="compare-table">
+          <tr><th>#</th><th>Topic</th><th>What you'll learn</th></tr>
+          <tr><td>1</td><td>Text Pre-Processing</td><td>Tokenization, stop-word removal, normalization, stemming, POS tagging, parsing — cleaning raw text into usable form</td></tr>
+          <tr><td>2</td><td>Computational Morphology, Syntax & Semantics</td><td>Formal, algorithmic ways to analyze word structure, sentence grammar, and meaning</td></tr>
+          <tr><td>3</td><td>Language Models</td><td>Statistical and neural models that predict the likelihood of word sequences</td></tr>
+          <tr><td>4</td><td>NLP with Machine Learning</td><td>Classic ML algorithms (e.g., Naive Bayes, SVM) applied to text classification and similar tasks</td></tr>
+          <tr><td>5</td><td>NLP with Deep Learning</td><td>Neural network approaches (RNNs, CNNs) applied to language tasks</td></tr>
+          <tr><td>6</td><td>Word, Sentence & Document Embeddings</td><td>Representing text as dense numerical vectors that capture meaning (e.g., Word2Vec)</td></tr>
+          <tr><td>7</td><td>Seq2Seq and Attention Models</td><td>Encoder-decoder architectures for tasks like translation and summarization</td></tr>
+          <tr><td>8</td><td>Transformers</td><td>The architecture behind modern large language models (BERT, GPT, etc.)</td></tr>
+          <tr><td>9</td><td>Advanced NLP Applications & Tools</td><td>Real-world systems and practical tools built on everything above</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">Zooming into Text Pre-Processing (next lecture)</div>
+          <p>The very next topic — Text Pre-Processing — covers: tokenization (splitting text into words/tokens), stop-word removal (dropping common low-information words), normalization (standardizing text form), stemming (reducing words to root forms), part-of-speech tagging, and parsing (analyzing grammatical structure).</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Practical tools</div>
+          Alongside the theory, the course also introduces practical tools (libraries and frameworks commonly used in industry, such as NLTK, spaCy, and modern deep learning frameworks) so you can apply these concepts to real projects, not just theory.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          The course moves from foundational text pre-processing, through morphology/syntax/semantics and language models, into ML and deep learning approaches, embeddings, sequence-to-sequence and attention models, and finally Transformers and advanced applications — building from basics to the cutting edge.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="roadmap-ar" dir="rtl">
+        <h3>الكورس رايح على فين</h3>
+        <p>المحاضرة الأولى دي هي overview عام. باقي الكورس هيبني، طبقة فوق طبقة، بدايةً من تنظيف النص الأساسي لحد أحدث architectures الـ deep learning. دي خريطة الطريق:</p>
+
+        <table class="compare-table">
+          <tr><th>#</th><th>الموضوع</th><th>هتتعلم إيه</th></tr>
+          <tr><td>1</td><td>Text Pre-Processing</td><td>Tokenization، إزالة stop words، normalization، stemming، POS tagging، parsing — تنظيف النص الخام لشكل قابل للاستخدام</td></tr>
+          <tr><td>2</td><td>Computational Morphology, Syntax & Semantics</td><td>طرق شكلية وخوارزمية لتحليل تركيب الكلمة وقواعد الجملة والمعنى</td></tr>
+          <tr><td>3</td><td>Language Models</td><td>Models إحصائية وneural بتتنبأ باحتمالية تسلسل الكلمات</td></tr>
+          <tr><td>4</td><td>NLP with Machine Learning</td><td>خوارزميات ML كلاسيكية (Naive Bayes، SVM) مطبّقة على تصنيف النصوص ومهام مشابهة</td></tr>
+          <tr><td>5</td><td>NLP with Deep Learning</td><td>مناهج neural networks (RNNs، CNNs) مطبّقة على مهام اللغة</td></tr>
+          <tr><td>6</td><td>Word, Sentence & Document Embeddings</td><td>تمثيل النص كـ vectors عددية كثيفة تعبّر عن المعنى (زي Word2Vec)</td></tr>
+          <tr><td>7</td><td>Seq2Seq and Attention Models</td><td>architectures من نوع encoder-decoder لمهام زي الترجمة والتلخيص</td></tr>
+          <tr><td>8</td><td>Transformers</td><td>الـ architecture اللي وراء الـ large language models الحديثة (BERT، GPT، إلخ)</td></tr>
+          <tr><td>9</td><td>Advanced NLP Applications & Tools</td><td>أنظمة حقيقية وأدوات عملية مبنية على كل اللي فات</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">تركيز على Text Pre-Processing (المحاضرة الجاية)</div>
+          <p>الموضوع الجاي مباشرة — Text Pre-Processing — بيغطي: tokenization (تقسيم النص لكلمات/tokens)، إزالة stop words (شيل الكلمات الشائعة قليلة المعلومة)، normalization (توحيد شكل النص)، stemming (اختزال الكلمة لجذرها)، part-of-speech tagging، وparsing (تحليل التركيب النحوي).</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">أدوات عملية</div>
+          جنب النظرية، الكورس كمان بيقدّم أدوات عملية (مكتبات وframeworks شائعة في الصناعة زي NLTK وspaCy وframeworks الـ deep learning الحديثة) عشان تقدر تطبّق المفاهيم دي على مشاريع حقيقية، مش نظرية بس.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الكورس بيتحرك من Text Pre-Processing الأساسي، لـ morphology/syntax/semantics وlanguage models، لمناهج ML وdeep learning، وembeddings، وseq2seq وattention models، ولحد Transformers والتطبيقات المتقدمة — بناء من الأساسيات لأحدث ما في المجال.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

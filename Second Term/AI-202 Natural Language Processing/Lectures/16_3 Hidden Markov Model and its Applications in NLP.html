@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Hidden Markov Model and its Applications in NLP — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #intro         .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #probabilities .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #example       .section-icon { background: var(--c-teal-bg);    color: var(--c-teal);    border: 1.5px solid var(--c-teal-mid); }
+  #tagging       .section-icon { background: var(--c-purple-bg);  color: var(--c-purple);  border: 1.5px solid var(--c-purple-mid); }
+  #scaling       .section-icon { background: var(--c-rose-bg);    color: var(--c-rose);    border: 1.5px solid var(--c-rose-mid); }
+  #viterbi       .section-icon { background: var(--c-emerald-bg);color: var(--c-emerald); border: 1.5px solid var(--c-emerald-mid); }
+  #applications  .section-icon { background: var(--c-indigo-bg); color: var(--c-indigo); border: 1.5px solid var(--c-indigo-mid); }
+
+  /* Section left-border accent stripe */
+  #intro         { border-left: 4px solid var(--c-blue); }
+  #probabilities { border-left: 4px solid var(--c-amber); }
+  #example       { border-left: 4px solid var(--c-teal); }
+  #tagging       { border-left: 4px solid var(--c-purple); }
+  #scaling       { border-left: 4px solid var(--c-rose); }
+  #viterbi       { border-left: 4px solid var(--c-emerald); }
+  #applications  { border-left: 4px solid var(--c-indigo); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+
+  /* ── Trellis diagram (custom addition, built from the same CSS variables) ── */
+  .trellis-wrap { overflow-x: auto; margin: 16px 0; }
+  .trellis {
+    display: flex; align-items: center; gap: 8px;
+    min-width: 560px; padding: 18px 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  }
+  .trellis-col { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .trellis-word {
+    font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13px;
+    color: var(--muted);
+  }
+  .trellis-node {
+    background: var(--c-purple-bg); color: var(--c-purple);
+    border: 1.5px solid var(--c-purple-mid);
+    border-radius: 8px; padding: 6px 12px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .trellis-emit {
+    font-size: 10.5px; color: var(--c-blue);
+    background: var(--c-blue-bg); border: 1px solid var(--c-blue-mid);
+    border-radius: 5px; padding: 1px 6px;
+  }
+  .trellis-arrow {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    color: var(--c-teal); font-size: 10.5px; flex-shrink: 0;
+  }
+  .trellis-arrow .line { width: 34px; height: 2px; background: var(--c-teal); position: relative; }
+  .trellis-arrow .line::after {
+    content: ''; position: absolute; right: -1px; top: -3px;
+    border: 4px solid transparent; border-left-color: var(--c-teal);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: Hidden Markov Model and its Applications in NLP</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('intro')">Introduction</button>
+      <button class="toc-chip" onclick="scrollTo('probabilities')">Transition &amp; Emission</button>
+      <button class="toc-chip" onclick="scrollTo('example')">Worked Example</button>
+      <button class="toc-chip" onclick="scrollTo('tagging')">Tagging a Sentence</button>
+      <button class="toc-chip" onclick="scrollTo('scaling')">Scaling to Reality</button>
+      <button class="toc-chip" onclick="scrollTo('viterbi')">Viterbi Algorithm</button>
+      <button class="toc-chip" onclick="scrollTo('applications')">Applications</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Introduction -->
+  <div class="section" id="intro">
+    <div class="section-header" onclick="toggle('intro')">
+      <div class="section-icon">01</div>
+      <div class="section-title">Introduction — Why HMM for POS Tagging</div>
+      <div class="section-toggle open" id="toggle-intro">▼</div>
+    </div>
+    <div class="section-body open" id="body-intro">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('intro','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('intro','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="intro-en">
+        <h3>What is a Hidden Markov Model?</h3>
+        <p>A <span class="term">Hidden Markov Model (HMM)</span> is a statistical model, also used heavily in machine learning, that describes the evolution of <span class="highlight">observable events</span> that depend on some <span class="highlight">internal, hidden factors</span> which cannot be observed directly.</p>
+        <p>In <span class="term">Part-of-Speech (POS) tagging</span>, the words you actually see in a sentence are the <span class="highlight">observations</span>. The grammatical category behind each word — noun, verb, modal, adjective, and so on — is the <span class="highlight">hidden state</span> we are trying to recover. We never see the tag written on the page; we only see the word, and we must infer the tag.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine you cannot see the weather outside, but you can see whether your colleague brings an umbrella to the office. The umbrella is the observable event; the weather (rainy or sunny) is the hidden state. Over time, by watching the pattern of umbrellas, you can guess the weather with good confidence. POS tagging works the same way: words are the "umbrellas," and POS tags are the hidden "weather."
+        </div>
+
+        <h3>What is POS tagging?</h3>
+        <p>There are commonly nine broad parts of speech: noun, pronoun, verb, adverb, article, adjective, preposition, conjunction, and interjection. Every word in a sentence must be fit into the correct part of speech for the sentence to make grammatical sense. <span class="term">POS tagging</span> is the automatic process of assigning one of these categories to every word.</p>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Take the sentence <span class="highlight">"Anthony will eat food."</span> Here, <span class="code-inline">Anthony</span> is a noun, <span class="code-inline">will</span> is a modal, <span class="code-inline">eat</span> is a verb, and <span class="code-inline">food</span> is a noun again. A human reads this instantly; an HMM has to calculate it from probabilities.</p>
+        </div>
+
+        <p>Why not just use a fixed dictionary of "this word = this tag"? Because many words are ambiguous — <span class="code-inline">will</span> can be a modal verb ("I will go") or a person's name, <span class="code-inline">spot</span> can be a verb ("to spot something") or a noun (a place, or a dog's name). A dictionary lookup cannot resolve this; a probabilistic model that looks at context can.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          HMM is a statistical model where hidden states (POS tags) generate observable events (words). POS tagging needs a probabilistic approach because the same word can belong to different tags depending on context.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="intro-ar" dir="rtl">
+        <h3>ما هو Hidden Markov Model؟</h3>
+        <p><span class="term">Hidden Markov Model (HMM)</span> هو نموذج إحصائي، بيُستخدم كمان بكثرة في machine learning، بيوصف كيف تتطور <span class="highlight">أحداث ملاحَظة (observable events)</span> بتعتمد على <span class="highlight">عوامل داخلية مخفية</span> ما نقدر نشوفها مباشرة.</p>
+        <p>في <span class="term">POS tagging</span> (تحديد جزء الكلام)، الكلمات اللي نشوفها فعلاً في الجملة هي الـ <span class="highlight">observations</span>. التصنيف النحوي وراء كل كلمة — اسم، فعل، modal، صفة... إلخ — هو الـ <span class="highlight">hidden state</span> اللي نحاول نكتشفه. إحنا ما نشوف الـ tag مكتوب على الصفحة؛ بس نشوف الكلمة، ولازم نستنتج الـ tag.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل إنك ما تقدر تشوف الطقس بره، بس تقدر تشوف إذا زميلك جاب مظلة معاه للمكتب. المظلة هي الحدث الملاحَظ؛ الطقس (ممطر أو مشمس) هو الـ hidden state. مع الوقت، من نمط المظلات، تقدر تخمّن الطقس بثقة كويسة. POS tagging بيشتغل بنفس الطريقة: الكلمات هي "المظلات"، وتاجات POS هي "الطقس" المخفي.
+        </div>
+
+        <h3>ما هو POS Tagging؟</h3>
+        <p>فيه عادة تسعة أنواع رئيسية لأجزاء الكلام: اسم (noun)، ضمير (pronoun)، فعل (verb)، ظرف (adverb)، أداة تعريف (article)، صفة (adjective)، حرف جر (preposition)، حرف عطف (conjunction)، وحرف تعجب (interjection). كل كلمة في الجملة لازم تتحدد لها الفئة الصحيحة عشان الجملة تكون منطقية نحوياً. <span class="term">POS Tagging</span> هي العملية الآلية اللي بتحدد لكل كلمة الفئة المناسبة.</p>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>خذ الجملة <span class="highlight">"Anthony will eat food."</span> هنا، <span class="code-inline">Anthony</span> اسم، <span class="code-inline">will</span> modal، <span class="code-inline">eat</span> فعل، و<span class="code-inline">food</span> اسم كمان. الإنسان يقرأ هذا فوراً؛ الـ HMM لازم يحسبه من الاحتمالات.</p>
+        </div>
+
+        <p>ليش ما نستخدم قاموس ثابت "هذه الكلمة = هذا التاج"؟ لأن كثير من الكلمات غامضة (ambiguous) — <span class="code-inline">will</span> ممكن تكون modal ("I will go") أو اسم شخص، و<span class="code-inline">spot</span> ممكن تكون فعل ("to spot something") أو اسم (مكان، أو اسم كلب). البحث في قاموس ما يقدر يحل هذا الغموض؛ نموذج احتمالي بيشوف السياق يقدر.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          HMM نموذج إحصائي فيه hidden states (تاجات POS) بتولّد أحداث ملاحَظة (كلمات). POS tagging محتاج طريقة احتمالية لأن نفس الكلمة ممكن تنتمي لتاجات مختلفة حسب السياق.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Transition vs Emission -->
+  <div class="section" id="probabilities">
+    <div class="section-header" onclick="toggle('probabilities')">
+      <div class="section-icon">02</div>
+      <div class="section-title">The Two Probabilities: Transition &amp; Emission</div>
+      <div class="section-toggle open" id="toggle-probabilities">▼</div>
+    </div>
+    <div class="section-body open" id="body-probabilities">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('probabilities','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('probabilities','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="probabilities-en">
+        <p>An HMM-based POS tagger needs exactly two kinds of probability, and understanding the difference between them is the key to understanding the whole method.</p>
+
+        <table class="compare-table">
+          <tr><th>Probability</th><th>Question it answers</th><th>Notation</th></tr>
+          <tr><td><span class="highlight">Emission probability</span></td><td>Given a POS tag, how likely is this exact word?</td><td>P(word | tag)</td></tr>
+          <tr><td><span class="highlight">Transition probability</span></td><td>Given the previous tag, how likely is this next tag?</td><td>P(tag<sub>i</sub> | tag<sub>i−1</sub>)</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of a relay race. <span class="term">Emission probability</span> is "how likely is this specific runner to be wearing this specific jersey number" — it connects a hidden category (tag) to a visible detail (word). <span class="term">Transition probability</span> is "how likely is runner B to take the baton right after runner A" — it connects one hidden state to the next hidden state, ignoring the words entirely.
+        </div>
+
+        <h3>Emission probability, in the example from the deck</h3>
+        <p>Take the sentence <span class="highlight">"Anthony will eat food."</span> <span class="code-inline">Anthony</span> is a noun and <span class="code-inline">food</span> is also a noun, while <span class="code-inline">will</span> is a modal and <span class="code-inline">eat</span> is a verb. The probability that a randomly chosen "noun slot" produces the word "Anthony" — as opposed to "food" or any other noun — is exactly what emission probability measures.</p>
+
+        <h3>Transition probability, in the example from the deck</h3>
+        <p>The transition probability is the likelihood of any tag-to-tag sequence — for example, what are the chances that a noun follows a modal, or that a modal follows a verb, or that a verb follows a noun? It is purely about the grammar skeleton (N → M → V → N), independent of which specific words fill those slots.</p>
+
+        <div class="warning-box">
+          <div class="label">Do not confuse the two</div>
+          Emission probability looks <span class="highlight">downward</span>, from a tag to the word underneath it. Transition probability looks <span class="highlight">sideways</span>, from one tag to the next tag in the sequence. An HMM tagger needs both matrices — traditionally called the <span class="code-inline">B</span> matrix (emissions) and the <span class="code-inline">A</span> matrix (transitions) — to reconstruct the full picture.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Emission probability = P(word | tag), how likely a tag produces a given word. Transition probability = P(tag | previous tag), how likely one tag follows another. Both are estimated from counts in a tagged training corpus.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="probabilities-ar" dir="rtl">
+        <p>الـ HMM tagger محتاج بالضبط نوعين من الاحتمالات، وفهم الفرق بينهم هو مفتاح فهم الطريقة كلها.</p>
+
+        <table class="compare-table">
+          <tr><th>الاحتمال</th><th>السؤال اللي بيجاوب عليه</th><th>الرمز</th></tr>
+          <tr><td><span class="highlight">Emission probability</span></td><td>بمعرفة التاج، إيش احتمال ظهور هذه الكلمة بالذات؟</td><td>P(word | tag)</td></tr>
+          <tr><td><span class="highlight">Transition probability</span></td><td>بمعرفة التاج السابق، إيش احتمال هذا التاج التالي؟</td><td>P(tag<sub>i</sub> | tag<sub>i−1</sub>)</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في سباق تتابع (relay race). <span class="term">Emission probability</span> هي "إيش احتمال إن هذا العدّاء بالذات يلبس رقم القميص ده" — بتربط فئة مخفية (التاج) بتفصيلة ظاهرة (الكلمة). <span class="term">Transition probability</span> هي "إيش احتمال إن العدّاء B ياخد العصا مباشرة بعد العدّاء A" — بتربط hidden state بالـ hidden state اللي بعده، بدون أي علاقة بالكلمات نفسها.
+        </div>
+
+        <h3>Emission probability في مثال العرض</h3>
+        <p>خذ الجملة <span class="highlight">"Anthony will eat food."</span> <span class="code-inline">Anthony</span> اسم و<span class="code-inline">food</span> اسم كمان، بينما <span class="code-inline">will</span> modal و<span class="code-inline">eat</span> فعل. احتمال إن "خانة الاسم" العشوائية تنتج كلمة "Anthony" — بدل "food" أو أي اسم تاني — هو بالضبط اللي بتقيسه emission probability.</p>
+
+        <h3>Transition probability في مثال العرض</h3>
+        <p>الـ transition probability هي احتمالية أي تتابع تاجات — مثلاً، إيش احتمال إن اسم ييجي بعد modal، أو modal ييجي بعد فعل، أو فعل ييجي بعد اسم؟ الموضوع كله عن الهيكل النحوي (N ← M ← V ← N) بغض النظر عن الكلمات المحددة اللي بتملأ الخانات.</p>
+
+        <div class="warning-box">
+          <div class="label">لا تخلط بينهم</div>
+          Emission probability بتنظر <span class="highlight">للأسفل</span>، من التاج للكلمة تحته. Transition probability بتنظر <span class="highlight">جانبياً</span>، من تاج للتاج اللي بعده في التتابع. الـ HMM tagger محتاج المصفوفتين — تقليدياً تُسمّى مصفوفة <span class="code-inline">B</span> (emissions) ومصفوفة <span class="code-inline">A</span> (transitions) — عشان يبني الصورة الكاملة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Emission probability = P(word | tag)، احتمال إن التاج ينتج كلمة معينة. Transition probability = P(tag | previous tag)، احتمال إن تاج ييجي بعد تاج تاني. الاثنين يُحسبوا من عدّات في corpus مُصنَّف (tagged).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Worked example -->
+  <div class="section" id="example">
+    <div class="section-header" onclick="toggle('example')">
+      <div class="section-icon">03</div>
+      <div class="section-title">Worked Example — Counting Tableau to Probabilities</div>
+      <div class="section-toggle open" id="toggle-example">▼</div>
+    </div>
+    <div class="section-body open" id="body-example">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('example','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('example','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="example-en">
+        <h3>Step 1 — a small tagged corpus</h3>
+        <p>The lecture deck builds its example from four tagged sentences using only three tags — <span class="code-inline">N</span> (noun), <span class="code-inline">M</span> (modal), <span class="code-inline">V</span> (verb) — with words like "Mary", "Jane", "can", "see", "will", "spot", "pat". To walk through the mechanics with fresh numbers, here is an illustrative corpus built the same way with a different vocabulary:</p>
+
+        <ul>
+          <li><span class="code-inline">Ali/N can/M swim/V</span></li>
+          <li><span class="code-inline">Sara/N will/M sing/V</span></li>
+          <li><span class="code-inline">Can/M Ali/N dive/V</span></li>
+          <li><span class="code-inline">Sara/N can/M dive/V</span></li>
+        </ul>
+
+        <p>Notice that <span class="code-inline">can</span> and <span class="code-inline">will</span> are always modals here, and every sentence ends in a verb — but the tag <span class="highlight">order</span> is not always the same (sentence 3 starts with the modal "Can"). That small twist is enough to make the transition table non-trivial, exactly like the "will / spot / Mary" ambiguity in the original deck.</p>
+
+        <h3>Step 2 — the counting tableau</h3>
+        <p>First we build a raw counting tableau: for each word, how many times did it appear under each tag?</p>
+        <table class="compare-table">
+          <tr><th>Word</th><th>as N</th><th>as M</th><th>as V</th></tr>
+          <tr><td>Ali</td><td>2</td><td>0</td><td>0</td></tr>
+          <tr><td>Sara</td><td>2</td><td>0</td><td>0</td></tr>
+          <tr><td>can / Can</td><td>0</td><td>3</td><td>0</td></tr>
+          <tr><td>will</td><td>0</td><td>1</td><td>0</td></tr>
+          <tr><td>swim</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>sing</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>dive</td><td>0</td><td>0</td><td>2</td></tr>
+          <tr><td><b>Tag totals</b></td><td><b>4</b></td><td><b>4</b></td><td><b>4</b></td></tr>
+        </table>
+
+        <h3>Step 3 — divide by the tag total to get emission probabilities</h3>
+        <p>Emission probability = (times word w appeared with tag t) ÷ (total times tag t appeared).</p>
+        <table class="compare-table">
+          <tr><th>P(word | tag)</th><th>Calculation</th><th>Result</th></tr>
+          <tr><td>P(Ali | N)</td><td>2 ÷ 4</td><td>1/2</td></tr>
+          <tr><td>P(Sara | N)</td><td>2 ÷ 4</td><td>1/2</td></tr>
+          <tr><td>P(can | M)</td><td>3 ÷ 4</td><td>3/4</td></tr>
+          <tr><td>P(will | M)</td><td>1 ÷ 4</td><td>1/4</td></tr>
+          <tr><td>P(dive | V)</td><td>2 ÷ 4</td><td>1/2</td></tr>
+          <tr><td>P(swim | V)</td><td>1 ÷ 4</td><td>1/4</td></tr>
+        </table>
+
+        <h3>Step 4 — divide by the source-tag total to get transition probabilities</h3>
+        <p>For transitions, add a <span class="code-inline">start</span> marker before each sentence and an <span class="code-inline">end</span> marker after it, then count tag-to-tag jumps (including start/end) and normalize by how many times the source tag occurred.</p>
+        <div class="formula code-inline" style="display:block;padding:12px 16px;margin:12px 0;">P(tag_i | tag_i-1) = count(tag_i-1 → tag_i) / total transitions out of tag_i-1</div>
+        <table class="compare-table">
+          <tr><th>From \ To</th><th>N</th><th>M</th><th>V</th><th>end</th></tr>
+          <tr><td>start</td><td>3/4</td><td>1/4</td><td>0</td><td>—</td></tr>
+          <tr><td>N</td><td>0</td><td>3/4</td><td>1/4</td><td>0</td></tr>
+          <tr><td>M</td><td>1/4</td><td>0</td><td>3/4</td><td>0</td></tr>
+          <tr><td>V</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+        </table>
+        <p>Reading the M row: out of the four times a modal occurred, it was followed by N once (sentence 3: M → N → V) and by V three times (sentences 1, 2, 4: N → M → V) — giving P(N|M) = 1/4 and P(V|M) = 3/4.</p>
+
+        <div class="example-box">
+          <div class="label">Code Example — building counts with Python</div>
+          <div class="code-block">
+<span class="kw">from</span> collections <span class="kw">import</span> Counter, defaultdict
+
+tagged_sents = [
+    [(<span class="str">"Ali"</span>,<span class="str">"N"</span>), (<span class="str">"can"</span>,<span class="str">"M"</span>), (<span class="str">"swim"</span>,<span class="str">"V"</span>)],
+    [(<span class="str">"Sara"</span>,<span class="str">"N"</span>), (<span class="str">"will"</span>,<span class="str">"M"</span>), (<span class="str">"sing"</span>,<span class="str">"V"</span>)],
+    [(<span class="str">"Can"</span>,<span class="str">"M"</span>), (<span class="str">"Ali"</span>,<span class="str">"N"</span>), (<span class="str">"dive"</span>,<span class="str">"V"</span>)],
+    [(<span class="str">"Sara"</span>,<span class="str">"N"</span>), (<span class="str">"can"</span>,<span class="str">"M"</span>), (<span class="str">"dive"</span>,<span class="str">"V"</span>)],
+]
+
+emit_counts = defaultdict(Counter)   <span class="cm"># tag -> word -> count</span>
+tag_totals   = Counter()
+trans_counts = defaultdict(Counter)  <span class="cm"># prev_tag -> tag -> count</span>
+
+<span class="kw">for</span> sent <span class="kw">in</span> tagged_sents:
+    prev = <span class="str">"start"</span>
+    <span class="kw">for</span> word, tag <span class="kw">in</span> sent:
+        emit_counts[tag][word.lower()] += 1
+        tag_totals[tag] += 1
+        trans_counts[prev][tag] += 1
+        prev = tag
+    trans_counts[prev][<span class="str">"end"</span>] += 1
+
+<span class="cm"># P(word | tag) = emit_counts[tag][word] / tag_totals[tag]</span>
+<span class="cm"># P(tag | prev)  = trans_counts[prev][tag] / sum(trans_counts[prev].values())</span>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Build a counting tableau of word-tag pairs and tag-to-tag pairs from a tagged corpus. Dividing each word count by its tag's total gives emission probabilities. Dividing each tag-transition count by the source tag's total gives transition probabilities.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="example-ar" dir="rtl">
+        <h3>الخطوة 1 — corpus صغير مُصنَّف</h3>
+        <p>عرض المحاضرة بيبني مثاله من أربع جمل مُصنَّفة باستخدام بس ثلاث تاجات — <span class="code-inline">N</span> (اسم)، <span class="code-inline">M</span> (modal)، <span class="code-inline">V</span> (فعل) — بكلمات زي "Mary"، "Jane"، "can"، "see"، "will"، "spot"، "pat". عشان نمشي على نفس الآلية بأرقام مختلفة، هذا corpus توضيحي مبني بنفس الطريقة بمفردات مختلفة:</p>
+
+        <ul>
+          <li><span class="code-inline">Ali/N can/M swim/V</span></li>
+          <li><span class="code-inline">Sara/N will/M sing/V</span></li>
+          <li><span class="code-inline">Can/M Ali/N dive/V</span></li>
+          <li><span class="code-inline">Sara/N can/M dive/V</span></li>
+        </ul>
+
+        <p>لاحظ إن <span class="code-inline">can</span> و<span class="code-inline">will</span> دائماً modal هنا، وكل جملة بتنتهي بفعل — لكن <span class="highlight">ترتيب</span> التاجات مش دائماً نفسه (الجملة 3 بتبدأ بالـ modal "Can"). هذا التنويع الصغير كافي عشان يخلي جدول الـ transition غير بديهي، بالضبط زي غموض "will / spot / Mary" في العرض الأصلي.</p>
+
+        <h3>الخطوة 2 — جدول العدّ (counting tableau)</h3>
+        <p>أول شي نبني جدول عدّ خام: لكل كلمة، كم مرة ظهرت تحت كل تاج؟</p>
+        <table class="compare-table">
+          <tr><th>الكلمة</th><th>كـ N</th><th>كـ M</th><th>كـ V</th></tr>
+          <tr><td>Ali</td><td>2</td><td>0</td><td>0</td></tr>
+          <tr><td>Sara</td><td>2</td><td>0</td><td>0</td></tr>
+          <tr><td>can / Can</td><td>0</td><td>3</td><td>0</td></tr>
+          <tr><td>will</td><td>0</td><td>1</td><td>0</td></tr>
+          <tr><td>swim</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>sing</td><td>0</td><td>0</td><td>1</td></tr>
+          <tr><td>dive</td><td>0</td><td>0</td><td>2</td></tr>
+          <tr><td><b>إجمالي التاج</b></td><td><b>4</b></td><td><b>4</b></td><td><b>4</b></td></tr>
+        </table>
+
+        <h3>الخطوة 3 — القسمة على إجمالي التاج لإيجاد emission probabilities</h3>
+        <p>Emission probability = (عدد مرات ظهور الكلمة w مع التاج t) ÷ (إجمالي مرات ظهور التاج t).</p>
+        <table class="compare-table">
+          <tr><th>P(word | tag)</th><th>الحساب</th><th>النتيجة</th></tr>
+          <tr><td>P(Ali | N)</td><td>2 ÷ 4</td><td>1/2</td></tr>
+          <tr><td>P(Sara | N)</td><td>2 ÷ 4</td><td>1/2</td></tr>
+          <tr><td>P(can | M)</td><td>3 ÷ 4</td><td>3/4</td></tr>
+          <tr><td>P(will | M)</td><td>1 ÷ 4</td><td>1/4</td></tr>
+          <tr><td>P(dive | V)</td><td>2 ÷ 4</td><td>1/2</td></tr>
+          <tr><td>P(swim | V)</td><td>1 ÷ 4</td><td>1/4</td></tr>
+        </table>
+
+        <h3>الخطوة 4 — القسمة على إجمالي التاج المصدر لإيجاد transition probabilities</h3>
+        <p>بالنسبة للـ transitions، بنضيف علامة <span class="code-inline">start</span> قبل كل جملة وعلامة <span class="code-inline">end</span> بعدها، ثم نعدّ القفزات من تاج لتاج (بما فيها start/end) ونقسمها على عدد مرات ظهور التاج المصدر.</p>
+        <table class="compare-table">
+          <tr><th>من \ إلى</th><th>N</th><th>M</th><th>V</th><th>end</th></tr>
+          <tr><td>start</td><td>3/4</td><td>1/4</td><td>0</td><td>—</td></tr>
+          <tr><td>N</td><td>0</td><td>3/4</td><td>1/4</td><td>0</td></tr>
+          <tr><td>M</td><td>1/4</td><td>0</td><td>3/4</td><td>0</td></tr>
+          <tr><td>V</td><td>0</td><td>0</td><td>0</td><td>1</td></tr>
+        </table>
+        <p>لو قرأنا صف M: من أصل أربع مرات ظهر فيها modal، اتبعه اسم مرة وحدة (الجملة 3: M ← N ← V) واتبعه فعل ثلاث مرات (الجمل 1، 2، 4: N ← M ← V) — يعني P(N|M) = 1/4 وP(V|M) = 3/4.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          نبني جدول عدّ لأزواج (كلمة، تاج) وأزواج (تاج، تاج) من corpus مُصنَّف. قسمة عدّ كل كلمة على إجمالي تاجها بيعطي emission probabilities. قسمة عدّ كل انتقال على إجمالي التاج المصدر بيعطي transition probabilities.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Tagging a new sentence -->
+  <div class="section" id="tagging">
+    <div class="section-header" onclick="toggle('tagging')">
+      <div class="section-icon">04</div>
+      <div class="section-title">Tagging a New Sentence — Sequence Likelihood</div>
+      <div class="section-toggle open" id="toggle-tagging">▼</div>
+    </div>
+    <div class="section-body open" id="body-tagging">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('tagging','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('tagging','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="tagging-en">
+        <h3>The idea</h3>
+        <p>Once we have emission and transition tables, we can score any candidate tag sequence for a sentence. Each word contributes its emission probability (word given its proposed tag), and each step between tags contributes its transition probability (tag given the previous tag). <span class="term">Multiplying all of these together along one path</span> gives the overall likelihood that this exact tag sequence is the correct one.</p>
+
+        <p>In the lecture's own worked example, the held-out sentence <span class="highlight">"Will Jane spot Mary?"</span> is scored this way, and the chain of nine probabilities multiplies out to about <span class="code-inline">5.7 × 10⁻⁵</span> — small in absolute terms, but crucially non-zero, which is what matters for comparing candidate sequences against each other.</p>
+
+        <h3>Applying it to our own corpus</h3>
+        <p>Take a sentence built from words in our training vocabulary but not seen as a whole sentence before: <span class="highlight">"Ali will dive"</span>. We propose the tag sequence N → M → V and walk the path:</p>
+
+        <div class="trellis-wrap">
+          <div class="trellis">
+            <div class="trellis-col">
+              <div class="trellis-emit">start</div>
+            </div>
+            <div class="trellis-arrow"><span>3/4</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-word">"Ali"</div>
+              <div class="trellis-node">N</div>
+              <div class="trellis-emit">P(Ali|N)=1/2</div>
+            </div>
+            <div class="trellis-arrow"><span>3/4</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-word">"will"</div>
+              <div class="trellis-node">M</div>
+              <div class="trellis-emit">P(will|M)=1/4</div>
+            </div>
+            <div class="trellis-arrow"><span>3/4</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-word">"dive"</div>
+              <div class="trellis-node">V</div>
+              <div class="trellis-emit">P(dive|V)=1/2</div>
+            </div>
+            <div class="trellis-arrow"><span>1</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-emit">end</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula code-inline" style="display:block;padding:12px 16px;margin:12px 0;">
+          P(N|start)·P(Ali|N)·P(M|N)·P(will|M)·P(V|M)·P(dive|V)·P(end|V)<br>
+          = 3/4 · 1/2 · 3/4 · 1/4 · 3/4 · 1/2 · 1 = 27/1024 ≈ 0.0264
+        </div>
+
+        <p>The result is small but clearly <span class="highlight">non-zero</span>, so the tag sequence N → M → V for "Ali will dive" is a plausible tagging under this trained model. If we had instead tried V → N → M for the same three words, the path would hit a transition or emission that never occurred in training (probability 0), and the whole product would collapse to zero — telling us that sequence is essentially impossible under this model.</p>
+
+        <div class="warning-box">
+          <div class="label">Why a product, not a sum?</div>
+          We multiply because we need <span class="highlight">all</span> of these independent events to happen together along one specific path — this word with this tag, and this tag right after that tag, and so on. In probability, "and" across independent-ish steps means multiplication, not addition. A single zero anywhere in the chain makes the whole sequence's probability zero.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          To score a candidate tag sequence, multiply the emission probability of each word given its tag by the transition probability of each tag given the previous tag. A non-zero product means the sequence is plausible; a zero anywhere in the chain rules the sequence out.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="tagging-ar" dir="rtl">
+        <h3>الفكرة</h3>
+        <p>بعد ما يكون عندنا جدولي emission وtransition، نقدر نقيّم أي تتابع تاجات مرشّح لجملة. كل كلمة بتساهم بـ emission probability بتاعتها (الكلمة بمعرفة التاج المقترح)، وكل خطوة بين تاجين بتساهم بـ transition probability بتاعتها (التاج بمعرفة التاج السابق). <span class="term">ضرب كل هذه القيم مع بعض على طول مسار واحد</span> بيعطينا الاحتمالية الكلية إن هذا التتابع بالذات هو الصحيح.</p>
+
+        <p>في مثال المحاضرة نفسه، الجملة المستبعدة <span class="highlight">"Will Jane spot Mary?"</span> اتقيّمت بهذه الطريقة، وسلسلة التسع احتمالات ضُربت لتعطي تقريباً <span class="code-inline">5.7 × 10⁻⁵</span> — رقم صغير من ناحية القيمة المطلقة، لكن المهم إنه غير صفري، وهذا اللي بيهمنا لما نقارن تتابعات مرشّحة ببعض.</p>
+
+        <h3>تطبيقها على الـ corpus بتاعنا</h3>
+        <p>خذ جملة مبنية من كلمات موجودة في المفردات التدريبية بس ما شفناها كجملة كاملة من قبل: <span class="highlight">"Ali will dive"</span>. نقترح تتابع التاجات N ← M ← V ونمشي على المسار:</p>
+
+        <div class="trellis-wrap">
+          <div class="trellis">
+            <div class="trellis-col">
+              <div class="trellis-emit">start</div>
+            </div>
+            <div class="trellis-arrow"><span>3/4</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-word">"Ali"</div>
+              <div class="trellis-node">N</div>
+              <div class="trellis-emit">P(Ali|N)=1/2</div>
+            </div>
+            <div class="trellis-arrow"><span>3/4</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-word">"will"</div>
+              <div class="trellis-node">M</div>
+              <div class="trellis-emit">P(will|M)=1/4</div>
+            </div>
+            <div class="trellis-arrow"><span>3/4</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-word">"dive"</div>
+              <div class="trellis-node">V</div>
+              <div class="trellis-emit">P(dive|V)=1/2</div>
+            </div>
+            <div class="trellis-arrow"><span>1</span><div class="line"></div></div>
+            <div class="trellis-col">
+              <div class="trellis-emit">end</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula code-inline" style="display:block;padding:12px 16px;margin:12px 0;">
+          P(N|start)·P(Ali|N)·P(M|N)·P(will|M)·P(V|M)·P(dive|V)·P(end|V)<br>
+          = 3/4 · 1/2 · 3/4 · 1/4 · 3/4 · 1/2 · 1 = 27/1024 ≈ 0.0264
+        </div>
+
+        <p>النتيجة صغيرة لكن واضح إنها <span class="highlight">غير صفرية</span>، يعني تتابع التاجات N ← M ← V لجملة "Ali will dive" هو تصنيف محتمل تحت هذا الموديل المدرَّب. لو جربنا بدلاً منه V ← N ← M لنفس الكلمات الثلاث، المسار كان بيصادف انتقال أو emission ما حصل أبداً في التدريب (احتمال 0)، والناتج الكلي كان بينهار لصفر — وده بيخبرنا إن هذا التتابع مستحيل تقريباً تحت هذا الموديل.</p>
+
+        <div class="warning-box">
+          <div class="label">ليش ضرب مش جمع؟</div>
+          بنضرب لأننا محتاجين <span class="highlight">كل</span> هذه الأحداث المستقلة تحصل مع بعض على مسار واحد محدد — هذه الكلمة مع هذا التاج، وهذا التاج مباشرة بعد ذاك التاج، وهكذا. في الاحتمالات، "و" بين خطوات شبه مستقلة معناها ضرب، مش جمع. صفر واحد في أي مكان بالسلسلة بيخلي احتمالية التتابع كله صفر.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          لتقييم تتابع تاجات مرشّح، اضرب emission probability لكل كلمة بمعرفة تاجها في transition probability لكل تاج بمعرفة التاج السابق. ناتج غير صفري يعني التتابع محتمل؛ صفر في أي مكان بالسلسلة يستبعد التتابع.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Scaling to reality -->
+  <div class="section" id="scaling">
+    <div class="section-header" onclick="toggle('scaling')">
+      <div class="section-icon">05</div>
+      <div class="section-title">From Toy Example to Reality — 81 Tags</div>
+      <div class="section-toggle open" id="toggle-scaling">▼</div>
+    </div>
+    <div class="section-body open" id="body-scaling">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('scaling','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('scaling','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="scaling-en">
+        <h3>The toy example was deliberately tiny</h3>
+        <p>Everything so far used only three tags — N, M, V — to make the arithmetic visible by hand. Real-world POS tagsets are far larger: the lecture notes that there are <span class="highlight">81 different kinds of POS tags</span> in common use (fine-grained tagsets distinguish, for example, singular nouns from plural nouns, past-tense verbs from present-tense verbs, and so on).</p>
+
+        <p>A more moderate, commonly used tagset condenses this down to around <span class="highlight">12 unified tags</span> (noun, verb, adjective, adverb, pronoun, determiner, adposition, conjunction, numeral, particle, punctuation, other) — still far more than our toy N/M/V, and enough to make the transition table considerably richer.</p>
+
+        <h3>Why brute force breaks down</h3>
+        <p>The tagging method from the previous section — propose a full tag sequence, multiply emission and transition probabilities along it — technically still works with 12 or 81 tags. The problem is <span class="highlight">how many sequences you would have to try</span>.</p>
+
+        <div class="example-box">
+          <div class="label">The combinatorial explosion</div>
+          <p>For a sentence of length <span class="code-inline">n</span> words and a tagset of size <span class="code-inline">T</span>, the number of possible tag sequences is <span class="code-inline">T^n</span>. With our toy 3-tag set and a 4-word sentence, that is only 3⁴ = 81 sequences — checkable by hand. With a realistic 12-tag set and a 20-word sentence, that becomes 12²⁰ ≈ 3.8 × 10²¹ sequences. Even at a billion sequences per second, evaluating them all would take over a hundred thousand years.</p>
+        </div>
+
+        <table class="compare-table">
+          <tr><th>Tagset size</th><th>Sentence length</th><th>Sequences to check (T^n)</th></tr>
+          <tr><td>3 (toy)</td><td>4 words</td><td>81</td></tr>
+          <tr><td>12 (common)</td><td>10 words</td><td>≈ 6.2 × 10¹⁰</td></tr>
+          <tr><td>81 (fine-grained)</td><td>10 words</td><td>≈ 1.2 × 10¹⁹</td></tr>
+        </table>
+
+        <p>The lecture data set — ten sentences tagged with the 12-tag scheme — produced a full <span class="highlight">transition probability table with almost no zero values</span>, meaning the model has seen enough data to have some estimate for nearly every tag-to-tag pair. That richness is good for accuracy (the lecture reports around <span class="highlight">94% tagging accuracy</span> on this dataset), but it makes brute-force enumeration of tag sequences completely impractical. We need a smarter algorithm — which is exactly what the next section covers.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Real tagsets have up to 81 tags (often reduced to about 12 in practice). The number of candidate tag sequences grows exponentially with sentence length, making brute-force multiplication of every possible path computationally infeasible for anything but toy examples.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="scaling-ar" dir="rtl">
+        <h3>المثال البسيط كان صغيراً بالقصد</h3>
+        <p>كل اللي عملناه لحد الآن استخدم بس ثلاث تاجات — N، M، V — عشان الحساب يكون واضح باليد. الـ tagsets الحقيقية أكبر بكثير: المحاضرة بتذكر إن فيه <span class="highlight">81 نوع مختلف من تاجات POS</span> مستخدمة عادةً (الـ tagsets الدقيقة بتفرّق مثلاً بين الاسم المفرد والجمع، والفعل الماضي والمضارع، وهكذا).</p>
+
+        <p>فيه tagset أكثر اعتدالاً وشائع الاستخدام بيلخّص هذا لحوالي <span class="highlight">12 تاج موحّد</span> (اسم، فعل، صفة، ظرف، ضمير، أداة تعريف، حرف جر، حرف عطف، عدد، أداة، علامة ترقيم، أخرى) — لسه أكبر بكثير من N/M/V البسيطة بتاعتنا، وكافي عشان يخلي جدول الـ transition أغنى بكثير.</p>
+
+        <h3>ليش الحل الشامل (brute force) بينهار؟</h3>
+        <p>طريقة التصنيف من القسم السابق — اقترح تتابع تاجات كامل، اضرب emission وtransition على طوله — تقنياً لسه شغالة مع 12 أو 81 تاج. المشكلة هي <span class="highlight">كم عدد التتابعات اللي لازم تجربها</span>.</p>
+
+        <div class="example-box">
+          <div class="label">الانفجار التوافقي (combinatorial explosion)</div>
+          <p>لجملة طولها <span class="code-inline">n</span> كلمة وtagset حجمه <span class="code-inline">T</span>، عدد تتابعات التاجات الممكنة هو <span class="code-inline">T^n</span>. مع الـ 3 تاجات البسيطة بتاعتنا وجملة من 4 كلمات، ده بس 3⁴ = 81 تتابع — ممكن تتحقق منه باليد. مع tagset واقعي من 12 تاج وجملة من 20 كلمة، الرقم بيصير 12²⁰ ≈ 3.8 × 10²¹ تتابع. حتى بمعدل مليار تتابع في الثانية، تقييمهم كلهم بياخد أكثر من مئة ألف سنة.</p>
+        </div>
+
+        <table class="compare-table">
+          <tr><th>حجم Tagset</th><th>طول الجملة</th><th>تتابعات للتحقق (T^n)</th></tr>
+          <tr><td>3 (بسيط)</td><td>4 كلمات</td><td>81</td></tr>
+          <tr><td>12 (شائع)</td><td>10 كلمات</td><td>≈ 6.2 × 10¹⁰</td></tr>
+          <tr><td>81 (دقيق)</td><td>10 كلمات</td><td>≈ 1.2 × 10¹⁹</td></tr>
+        </table>
+
+        <p>مجموعة بيانات المحاضرة — عشر جمل مُصنَّفة بنظام الـ 12 تاج — أنتجت جدول <span class="highlight">transition probability كامل تقريباً بدون قيم صفرية</span>، يعني الموديل شاف بيانات كافية عشان يكون عنده تقدير لكل زوج تاجات تقريباً. هذا الثراء كويس للدقة (المحاضرة بتذكر حوالي <span class="highlight">94% دقة تصنيف</span> على هذه البيانات)، لكنه بيخلي التعداد الشامل لتتابعات التاجات غير عملي أبداً. محتاجين خوارزمية أذكى — وهذا بالضبط موضوع القسم الجاي.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ tagsets الحقيقية فيها لغاية 81 تاج (غالباً تُختصر لحوالي 12 في الممارسة). عدد تتابعات التاجات المرشّحة بينمو أُسّياً مع طول الجملة، مما يخلي ضرب كل مسار ممكن بشكل شامل غير عملي حسابياً إلا للأمثلة البسيطة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Viterbi -->
+  <div class="section" id="viterbi">
+    <div class="section-header" onclick="toggle('viterbi')">
+      <div class="section-icon">06</div>
+      <div class="section-title">The Viterbi Algorithm — The Efficient Solution</div>
+      <div class="section-toggle open" id="toggle-viterbi">▼</div>
+    </div>
+    <div class="section-body open" id="body-viterbi">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('viterbi','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('viterbi','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="viterbi-en">
+        <h3>What Viterbi does differently</h3>
+        <p>The <span class="term">Viterbi algorithm</span> finds the single best tag sequence for a sentence without ever enumerating all T^n candidate sequences. It uses <span class="highlight">dynamic programming</span>: instead of scoring complete paths from scratch, it builds up the best partial path ending at each tag, one word at a time, and reuses those partial results.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine planning the cheapest route across a city with many intersections. You do not need to evaluate every possible full route from start to finish. Instead, at each intersection, you only need to remember the cheapest way to have arrived there so far. Viterbi does exactly this for tag sequences: at each word, for each candidate tag, it keeps only the best score of any path that could have reached that tag — and throws away the rest.
+        </div>
+
+        <h3>The core idea, step by step</h3>
+        <ul>
+          <li>Process the sentence one word at a time, left to right.</li>
+          <li>At each word, for each possible tag, compute the best score of reaching that tag: the best score at the previous word's tag, times the transition probability into this tag, times the emission probability of this word given this tag.</li>
+          <li>Keep only the single best incoming path per tag (this is the key saving — we never carry forward a path we already know is worse than another).</li>
+          <li>At the end of the sentence, trace back from the tag with the highest final score to recover the full best tag sequence.</li>
+        </ul>
+
+        <table class="compare-table">
+          <tr><th>Approach</th><th>Sequences evaluated</th><th>Time complexity</th></tr>
+          <tr><td>Brute force</td><td>Every possible tag sequence</td><td>O(T<sup>n</sup>)</td></tr>
+          <tr><td>Viterbi</td><td>One best partial path per tag, per word</td><td>O(n · T²)</td></tr>
+        </table>
+
+        <p>For a 20-word sentence with a 12-tag set, brute force needs about 12²⁰ ≈ 3.8 × 10²¹ evaluations, while Viterbi needs only about 20 × 12² = 2,880 — a difference of roughly eighteen orders of magnitude, and the reason Viterbi is what real POS taggers actually run.</p>
+
+        <div class="example-box">
+          <div class="label">Code Example — POS tagging in practice with NLTK</div>
+          <div class="code-block">
+<span class="kw">import</span> nltk
+nltk.download(<span class="str">'averaged_perceptron_tagger'</span>)
+
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> word_tokenize
+<span class="kw">from</span> nltk <span class="kw">import</span> pos_tag
+
+sentence = <span class="str">"Ali will dive into the lake"</span>
+tokens = <span class="fn">word_tokenize</span>(sentence)
+
+tags = <span class="fn">pos_tag</span>(tokens)
+<span class="cm"># [('Ali','NNP'), ('will','MD'), ('dive','VB'), ('into','IN'), ('the','DT'), ('lake','NN')]</span>
+<span class="cm"># Under the hood, statistical taggers like this use HMM/Viterbi-style</span>
+<span class="cm"># decoding rather than checking every possible tag sequence.</span>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Viterbi replaces exhaustive enumeration with dynamic programming: it keeps only the best path into each tag at each step, instead of tracking every possible path. This turns an exponential problem into one that scales linearly with sentence length, making HMM-based POS tagging practical at real vocabulary and tagset sizes.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="viterbi-ar" dir="rtl">
+        <h3>إيش الفرق اللي بتعمله Viterbi</h3>
+        <p>خوارزمية <span class="term">Viterbi</span> بتلاقي أفضل تتابع تاجات واحد للجملة من غير ما تعدّد كل الـ T^n تتابع مرشّح. بتستخدم <span class="highlight">dynamic programming</span>: بدل ما تقيّم مسارات كاملة من الصفر، بتبني أفضل مسار جزئي ينتهي عند كل تاج، كلمة كلمة، وبتعيد استخدام النتائج الجزئية دي.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل إنك بتخطط لأرخص طريق عبر مدينة فيها تقاطعات كثيرة. مش لازم تقيّم كل طريق كامل ممكن من البداية للنهاية. بدل كده، عند كل تقاطع، بس محتاج تفتكر أرخص طريقة وصلت بيها لحد هنا. Viterbi بتعمل بالضبط كده لتتابعات التاجات: عند كل كلمة، لكل تاج مرشّح، بتحتفظ بس بأفضل نتيجة لأي مسار وصل لهذا التاج — وترمي الباقي.
+        </div>
+
+        <h3>الفكرة الأساسية، خطوة بخطوة</h3>
+        <ul>
+          <li>عالج الجملة كلمة كلمة، من اليسار لليمين.</li>
+          <li>عند كل كلمة، لكل تاج ممكن، احسب أفضل نتيجة للوصول لهذا التاج: أفضل نتيجة عند تاج الكلمة السابقة، مضروبة في transition probability للانتقال لهذا التاج، مضروبة في emission probability لهذه الكلمة بمعرفة هذا التاج.</li>
+          <li>احتفظ بس بأفضل مسار وارد واحد لكل تاج (هذا هو التوفير الأساسي — أبداً ما بنكمّل مسار نعرف مسبقاً إنه أسوأ من مسار تاني).</li>
+          <li>في نهاية الجملة، ارجع للخلف من التاج صاحب أعلى نتيجة نهائية عشان تستعيد تتابع التاجات الأفضل كامل.</li>
+        </ul>
+
+        <table class="compare-table">
+          <tr><th>الطريقة</th><th>التتابعات المُقيَّمة</th><th>التعقيد الزمني</th></tr>
+          <tr><td>Brute force</td><td>كل تتابع تاجات ممكن</td><td>O(T<sup>n</sup>)</td></tr>
+          <tr><td>Viterbi</td><td>أفضل مسار جزئي واحد لكل تاج، لكل كلمة</td><td>O(n · T²)</td></tr>
+        </table>
+
+        <p>لجملة من 20 كلمة بـ tagset من 12 تاج، الـ brute force محتاج حوالي 12²⁰ ≈ 3.8 × 10²¹ عملية تقييم، بينما Viterbi محتاج بس حوالي 20 × 12² = 2,880 — فرق حوالي ثمانية عشر رتبة من الحجم، وهذا سبب إن Viterbi هي اللي فعلاً بتشتغل بيها تطبيقات POS tagging الحقيقية.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          Viterbi بتستبدل التعداد الشامل بـ dynamic programming: بتحتفظ بس بأفضل مسار لكل تاج عند كل خطوة، بدل ما تتابع كل مسار ممكن. هذا بيحوّل مشكلة أُسّية لمشكلة تتوسّع خطياً مع طول الجملة، مما يخلي POS tagging باستخدام HMM عملي مع مفردات وtagsets حقيقية الحجم.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Applications and takeaways -->
+  <div class="section" id="applications">
+    <div class="section-header" onclick="toggle('applications')">
+      <div class="section-icon">07</div>
+      <div class="section-title">Applications &amp; Takeaways</div>
+      <div class="section-toggle open" id="toggle-applications">▼</div>
+    </div>
+    <div class="section-body open" id="body-applications">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('applications','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('applications','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="applications-en">
+        <h3>Where HMM-based POS tagging is used</h3>
+        <ul>
+          <li><span class="highlight">Downstream NLP features</span> — POS tags feed into parsing, named entity recognition, and lemmatization (recall from earlier lectures that lemmatization needs a correct POS tag to find the right dictionary root).</li>
+          <li><span class="highlight">Information extraction</span> — knowing which words are verbs vs. nouns helps identify actions and entities in unstructured text.</li>
+          <li><span class="highlight">Speech recognition and other sequence-labeling tasks</span> — the same HMM + Viterbi pattern (hidden states generate observable events, and the best hidden sequence is decoded efficiently) is reused far beyond POS tagging, including in speech recognition and named entity tagging.</li>
+          <li><span class="highlight">Grammar and style checking</span> — spotting a verb where a noun is grammatically expected is a first step toward flagging likely errors.</li>
+        </ul>
+
+        <table class="compare-table">
+          <tr><th>Concept</th><th>One-line takeaway</th></tr>
+          <tr><td>HMM</td><td>Hidden states (tags) generate observable events (words); we must infer the hidden states.</td></tr>
+          <tr><td>Emission probability</td><td>P(word | tag) — how likely a tag produces this exact word.</td></tr>
+          <tr><td>Transition probability</td><td>P(tag | previous tag) — how likely one tag follows another.</td></tr>
+          <tr><td>Sequence likelihood</td><td>Multiply emissions and transitions along one candidate path; zero anywhere rules the path out.</td></tr>
+          <tr><td>Real tagsets</td><td>Up to 81 tags (often ~12 in practice) — brute force becomes infeasible.</td></tr>
+          <tr><td>Viterbi</td><td>Dynamic programming finds the best tag sequence in O(n·T²) instead of O(T^n).</td></tr>
+        </table>
+
+        <div class="warning-box">
+          <div class="label">A model is only as good as its training data</div>
+          The lecture's 12-tag, 10-sentence dataset reached around 94% accuracy with a transition table that had almost no zero entries. With very small or narrow training data, many valid tag transitions will never have been observed, producing hard zeros for sequences that are actually grammatically fine — this is why production-grade HMM taggers use smoothing techniques to avoid assigning exactly zero probability to unseen but plausible transitions.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          HMM-based POS tagging turns grammar into probabilities: emission probabilities connect tags to words, transition probabilities connect tags to each other, and multiplying along a path scores a candidate tagging. The Viterbi algorithm makes this practical at real-world scale by using dynamic programming instead of brute-force search.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="applications-ar" dir="rtl">
+        <h3>وين بيُستخدم HMM-based POS tagging</h3>
+        <ul>
+          <li><span class="highlight">مزايا NLP اللاحقة</span> — تاجات POS بتدخل في الـ parsing، وNamed Entity Recognition، وLemmatization (فاكرين من محاضرات سابقة إن Lemmatization محتاج POS tag صحيح عشان يلاقي الجذر الصحيح في القاموس).</li>
+          <li><span class="highlight">استخراج المعلومات (Information extraction)</span> — معرفة أي الكلمات أفعال وأيها أسماء بيساعد في تحديد الأفعال والكيانات في النص غير المنظّم.</li>
+          <li><span class="highlight">التعرّف على الكلام ومهام تصنيف التتابعات الأخرى</span> — نفس نمط HMM + Viterbi (hidden states بتولّد أحداث ملاحَظة، وأفضل تتابع hidden states بيتحلّ بكفاءة) بيتكرر استخدامه بعيداً عن POS tagging، بما في ذلك التعرّف على الكلام وNamed Entity tagging.</li>
+          <li><span class="highlight">فحص القواعد والأسلوب</span> — اكتشاف فعل في مكان متوقَّع فيه اسم نحوياً هي خطوة أولى نحو رصد الأخطاء المحتملة.</li>
+        </ul>
+
+        <table class="compare-table">
+          <tr><th>المفهوم</th><th>الخلاصة بسطر واحد</th></tr>
+          <tr><td>HMM</td><td>hidden states (التاجات) بتولّد أحداث ملاحَظة (الكلمات)؛ لازم نستنتج الـ hidden states.</td></tr>
+          <tr><td>Emission probability</td><td>P(word | tag) — إيش احتمال إن التاج ينتج هذه الكلمة بالذات.</td></tr>
+          <tr><td>Transition probability</td><td>P(tag | previous tag) — إيش احتمال إن تاج ييجي بعد تاج تاني.</td></tr>
+          <tr><td>احتمالية التتابع</td><td>اضرب الـ emissions والـ transitions على طول مسار مرشّح واحد؛ صفر في أي مكان يستبعد المسار.</td></tr>
+          <tr><td>الـ tagsets الحقيقية</td><td>لغاية 81 تاج (غالباً ~12 في الممارسة) — الـ brute force بيصير غير عملي.</td></tr>
+          <tr><td>Viterbi</td><td>dynamic programming بتلاقي أفضل تتابع تاجات في O(n·T²) بدل O(T^n).</td></tr>
+        </table>
+
+        <div class="warning-box">
+          <div class="label">الموديل بجودة بيانات تدريبه بس</div>
+          مجموعة بيانات المحاضرة (12 تاج، 10 جمل) وصلت لحوالي 94% دقة مع جدول transition تقريباً بدون قيم صفرية. مع بيانات تدريب صغيرة أو ضيقة، كثير من انتقالات التاجات الصحيحة ممكن ما تكون اتلاحظت أبداً، مما ينتج أصفار صارمة لتتابعات هي فعلياً سليمة نحوياً — لهذا السبب taggers الـ HMM في الإنتاج الفعلي بتستخدم تقنيات smoothing عشان تتجنب إعطاء احتمال صفر بالضبط لانتقالات ما اتشافت لكنها محتملة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          POS tagging باستخدام HMM بيحوّل القواعد لاحتمالات: emission probabilities بتربط التاجات بالكلمات، وtransition probabilities بتربط التاجات ببعضها، وضرب القيم على طول مسار بيقيّم تصنيف مرشّح. خوارزمية Viterbi بتخلي هذا عملياً على نطاق واقعي باستخدام dynamic programming بدل البحث الشامل.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

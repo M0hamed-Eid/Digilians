@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Understanding BLEU and ROUGE Score — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #intro    .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #bleu-concept .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #bleu-example .section-icon { background: var(--c-teal-bg);  color: var(--c-teal);  border: 1.5px solid var(--c-teal-mid); }
+  #bleu-interp .section-icon { background: var(--c-purple-bg); color: var(--c-purple); border: 1.5px solid var(--c-purple-mid); }
+  #rouge-concept  .section-icon { background: var(--c-rose-bg);   color: var(--c-rose);   border: 1.5px solid var(--c-rose-mid); }
+  #rouge-variants .section-icon { background: var(--c-emerald-bg);color: var(--c-emerald);border: 1.5px solid var(--c-emerald-mid); }
+  #comparison .section-icon { background: var(--c-indigo-bg); color: var(--c-indigo); border: 1.5px solid var(--c-indigo-mid); }
+  #limitations .section-icon { background: var(--c-orange-bg);color: var(--c-orange);border: 1.5px solid var(--c-orange-mid); }
+
+  /* Section left-border accent stripe */
+  #intro       { border-left: 4px solid var(--c-blue); }
+  #bleu-concept { border-left: 4px solid var(--c-amber); }
+  #bleu-example { border-left: 4px solid var(--c-teal); }
+  #bleu-interp { border-left: 4px solid var(--c-purple); }
+  #rouge-concept { border-left: 4px solid var(--c-rose); }
+  #rouge-variants { border-left: 4px solid var(--c-emerald); }
+  #comparison  { border-left: 4px solid var(--c-indigo); }
+  #limitations { border-left: 4px solid var(--c-orange); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  /* ── N-gram overlap diagram ── */
+  .ngram-diagram { margin: 16px 0; padding: 16px; background: var(--bg2); border: 1.5px solid var(--border); border-radius: 10px; }
+  .ngram-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .ngram-row .row-label { width: 130px; flex-shrink: 0; font-weight: 700; color: var(--muted); font-size: 11px; text-transform: uppercase; }
+  .ngram-chip { padding: 4px 10px; border-radius: 6px; border: 1.5px solid var(--border); background: var(--card); }
+  .ngram-chip.match { background: var(--c-emerald-bg); color: var(--c-emerald); border-color: var(--c-emerald-mid); font-weight: 700; }
+  .ngram-chip.miss { background: var(--c-rose-bg); color: var(--c-rose); border-color: var(--c-rose-mid); font-weight: 700; text-decoration: line-through; }
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: Understanding BLEU and ROUGE Score for NLP Evaluation</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('intro')">Introduction</button>
+      <button class="toc-chip" onclick="scrollTo('bleu-concept')">BLEU — Concept</button>
+      <button class="toc-chip" onclick="scrollTo('bleu-example')">BLEU — Worked Example</button>
+      <button class="toc-chip" onclick="scrollTo('bleu-interp')">BLEU — Ranges & Code</button>
+      <button class="toc-chip" onclick="scrollTo('rouge-concept')">ROUGE — Concept</button>
+      <button class="toc-chip" onclick="scrollTo('rouge-variants')">ROUGE — Variants</button>
+      <button class="toc-chip" onclick="scrollTo('comparison')">BLEU vs ROUGE</button>
+      <button class="toc-chip" onclick="scrollTo('limitations')">Limitations & Beyond</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Introduction -->
+  <div class="section" id="intro">
+    <div class="section-header" onclick="toggle('intro')">
+      <div class="section-icon">01</div>
+      <div class="section-title">Why Do We Need Automatic Evaluation Metrics?</div>
+      <div class="section-toggle" id="toggle-intro">▼</div>
+    </div>
+    <div class="section-body open" id="body-intro">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('intro','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('intro','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="intro-en">
+        <h3>The Evaluation Problem</h3>
+        <p>As NLP models keep improving, we need a reliable way to answer a simple question: <span class="term">is this output good?</span> A human can read one machine translation and judge it in a few seconds, but that does not scale to thousands of sentences, and different humans may disagree.</p>
+        <p><span class="term">NLP evaluation metrics</span> give researchers and practitioners an objective, repeatable, automatic way to score model output and compare different models against each other — without needing a human to manually review every single result.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine grading thousands of student essays against a model answer. You cannot personally read every essay in detail, so you build a rubric: how many key phrases from the model answer appear in the student's essay, and is the essay roughly the right length? BLEU and ROUGE are exactly this kind of automated rubric for machine-generated text.
+        </div>
+
+        <h3>Two of the most common metrics</h3>
+        <ul>
+          <li><span class="highlight">BLEU</span> (Bilingual Evaluation Understudy) — built for <span class="term">machine translation</span>.</li>
+          <li><span class="highlight">ROUGE</span> (Recall-Oriented Understudy for Gisting Evaluation) — built for <span class="term">text summarization</span>.</li>
+        </ul>
+        <p>Both compare a machine-generated text (the <span class="term">candidate</span>) against one or more human-written <span class="term">reference</span> texts, and both are built around counting overlapping <span class="term">n-grams</span> (contiguous sequences of n words). The key difference is what they emphasize — precision vs recall — which later sections explain in detail.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Automatic metrics let us score NLP output objectively and at scale. BLEU targets translation quality, ROUGE targets summarization quality. Both compare candidate text to reference text using n-gram overlap.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="intro-ar" dir="rtl">
+        <h3>مشكلة التقييم</h3>
+        <p>مع تطور نماذج NLP باستمرار، نحتاج طريقة موثوقة نجاوب فيها على سؤال بسيط: <span class="term">هل هذا الناتج جيد؟</span> الإنسان يقدر يقرأ ترجمة واحدة ويحكم عليها بثوانٍ، لكن هذا ما ينفع مع آلاف الجمل، وممكن بشرين مختلفين يختلفوا بالحكم.</p>
+        <p><span class="term">مقاييس تقييم NLP</span> بتعطي الباحثين طريقة موضوعية وقابلة للتكرار وأوتوماتيكية لتقييم ناتج الـ model ومقارنة نماذج مختلفة ببعض — بدون ما يحتاج إنسان يراجع كل نتيجة يدوياً.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل إنك بتصحّح آلاف مقالات الطلاب مقابل إجابة نموذجية. ما تقدر تقرأ كل مقال بالتفصيل، فتبني rubric: كم عبارة رئيسية من الإجابة النموذجية موجودة في مقال الطالب، وهل طول المقال مناسب تقريباً؟ BLEU وROUGE هم بالضبط هذا النوع من الـ rubric الأوتوماتيكي للنص المولّد آلياً.
+        </div>
+
+        <h3>أشهر مقياسين</h3>
+        <ul>
+          <li><span class="highlight">BLEU</span> (Bilingual Evaluation Understudy) — مصمم لـ <span class="term">machine translation</span>.</li>
+          <li><span class="highlight">ROUGE</span> (Recall-Oriented Understudy for Gisting Evaluation) — مصمم لـ <span class="term">text summarization</span>.</li>
+        </ul>
+        <p>كلاهما يقارن النص المولّد آلياً (<span class="term">candidate</span>) مع واحد أو أكثر من النصوص المرجعية اللي كتبها بشر (<span class="term">reference</span>)، وكلاهما مبني على عدّ الـ <span class="term">n-grams</span> المتطابقة (تسلسلات متتالية من n كلمة). الفرق الأساسي هو وين بيركّز كل مقياس — precision أو recall — وهذا موضّح بالتفصيل بالأقسام اللاحقة.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          المقاييس الأوتوماتيكية بتخلينا نقيّم ناتج NLP بموضوعية وعلى نطاق واسع. BLEU يستهدف جودة الترجمة، وROUGE يستهدف جودة التلخيص. كلاهما يقارن النص المرشّح بالنص المرجعي باستخدام تداخل n-grams.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: BLEU Concept -->
+  <div class="section" id="bleu-concept">
+    <div class="section-header" onclick="toggle('bleu-concept')">
+      <div class="section-icon">02</div>
+      <div class="section-title">BLEU Score — Concept and Formula</div>
+      <div class="section-toggle" id="toggle-bleu-concept">▼</div>
+    </div>
+    <div class="section-body open" id="body-bleu-concept">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('bleu-concept','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('bleu-concept','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="bleu-concept-en">
+        <h3>What is BLEU?</h3>
+        <p><span class="term">BLEU (Bilingual Evaluation Understudy)</span> is a widely used metric for <span class="term">machine translation</span> tasks. It was proposed to assess machine-generated translations automatically by comparing them to one or more human-written reference translations, instead of needing a human judge for every sentence.</p>
+
+        <h3>How does BLEU work?</h3>
+        <p>BLEU measures similarity using <span class="term">n-grams</span> — contiguous sequences of n words. The most common orders are unigrams (1 word), bigrams (2 words), trigrams (3 words), and 4-grams. For each n, BLEU computes an <span class="term">n-gram precision</span>: how many of the candidate's n-grams also appear in the reference, divided by the total number of n-grams in the candidate.</p>
+        <p>Precision alone has a loophole: a very short candidate that only repeats "safe" words could score a high precision while missing most of the reference's content. To fix this, BLEU multiplies the combined precision by a <span class="term">brevity penalty (BP)</span> that punishes candidates shorter than the reference.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          BLEU asks: "Out of everything the candidate said, how much of it also appears in the reference?" — that's precision. But if the candidate just says one short, safe phrase, it could get 100% precision on very little content. So BLEU also checks: "Did the candidate say roughly as much as the reference?" — that's the brevity penalty, stopping the model from gaming the score by writing too little.
+        </div>
+
+        <h3>The formula</h3>
+        <div class="example-box">
+          <div class="label">BLEU Formula</div>
+          <p><span class="code-inline">BLEU = BP × exp( Σ w_n · log(p_n) )</span></p>
+          <p>In the common equal-weight form with n = 1..4 and w_n = 1/4, this becomes the geometric mean of the n-gram precisions multiplied by the brevity penalty:</p>
+          <p><span class="code-inline">BLEU = BP × (p1 × p2 × p3 × p4) ^ (1/4)</span></p>
+          <ul>
+            <li><span class="highlight">p_n</span> — precision of n-grams: (matching n-grams between candidate and reference) ÷ (total n-grams in candidate). Matches are <span class="term">clipped</span> so a repeated word cannot be counted more times than it appears in the reference.</li>
+            <li><span class="highlight">BP (Brevity Penalty)</span> — <span class="code-inline">BP = 1</span> if candidate length c ≥ reference length r; otherwise <span class="code-inline">BP = exp(1 − r/c)</span>. This penalizes translations that are too short.</li>
+          </ul>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Note on clipping</div>
+          Clipping matters: if the candidate says "the the the the" and the reference has "the" only twice, BLEU only counts 2 matches, not 4. Without clipping, a model could "cheat" by spamming common words.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          BLEU = brevity penalty × geometric mean of n-gram precisions (n=1..4). It rewards candidates whose word groups overlap with the reference, and penalizes candidates that are too short to be a fair translation.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="bleu-concept-ar" dir="rtl">
+        <h3>ما هو BLEU؟</h3>
+        <p><span class="term">BLEU (Bilingual Evaluation Understudy)</span> هو مقياس شائع جداً لمهام <span class="term">machine translation</span>. اقترحوه لتقييم الترجمات المولّدة آلياً بشكل أوتوماتيكي عن طريق مقارنتها بترجمة مرجعية (أو أكثر) كتبها إنسان، بدل ما نحتاج حكم بشري لكل جملة.</p>
+
+        <h3>كيف يعمل BLEU؟</h3>
+        <p>BLEU يقيس التشابه باستخدام <span class="term">n-grams</span> — تسلسلات متتالية من n كلمة. الأكثر شيوعاً: unigrams (كلمة واحدة)، bigrams (كلمتين)، trigrams (3 كلمات)، و4-grams. لكل n، يحسب BLEU <span class="term">n-gram precision</span>: كم من الـ n-grams في المرشّح (candidate) موجودة كمان بالمرجع (reference)، مقسومة على إجمالي n-grams بالمرشّح.</p>
+        <p>الـ precision لوحده فيه ثغرة: مرشّح قصير جداً بيكرر كلمات "آمنة" ممكن يحصل precision عالي رغم إنه فقد أغلب محتوى المرجع. لحل هذا، BLEU يضرب الـ precision المجمّع في <span class="term">brevity penalty (BP)</span> اللي يعاقب المرشّحات الأقصر من المرجع.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          BLEU يسأل: "من كل اللي قاله المرشّح، كم منه موجود بالمرجع كمان؟" — هذا هو الـ precision. لكن لو المرشّح قال بس عبارة قصيرة وآمنة، ممكن ياخذ precision 100% على محتوى قليل جداً. فـ BLEU كمان يتحقق: "هل المرشّح قال تقريباً نفس كمية المرجع؟" — هذا هو الـ brevity penalty، يمنع الـ model من التلاعب بالنتيجة بكتابة أقل مما يجب.
+        </div>
+
+        <h3>الصيغة الرياضية</h3>
+        <div class="example-box">
+          <div class="label">صيغة BLEU</div>
+          <p><span class="code-inline">BLEU = BP × exp( Σ w_n · log(p_n) )</span></p>
+          <p>بالشكل الشائع بأوزان متساوية لـ n = 1..4 وw_n = 1/4، تصبح المعادلة المتوسط الهندسي (geometric mean) للـ precisions مضروباً بالـ brevity penalty:</p>
+          <p><span class="code-inline">BLEU = BP × (p1 × p2 × p3 × p4) ^ (1/4)</span></p>
+          <ul>
+            <li><span class="highlight">p_n</span> — precision الـ n-grams: (n-grams المتطابقة بين المرشّح والمرجع) ÷ (إجمالي n-grams بالمرشّح). المطابقات تُحسب بطريقة <span class="term">clipping</span> بحيث كلمة مكررة ما تُحسب أكثر من عدد مرات ظهورها بالمرجع.</li>
+            <li><span class="highlight">BP (Brevity Penalty)</span> — <span class="code-inline">BP = 1</span> إذا طول المرشّح c ≥ طول المرجع r؛ وإلا <span class="code-inline">BP = exp(1 − r/c)</span>. يعاقب الترجمات القصيرة جداً.</li>
+          </ul>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة عن الـ Clipping</div>
+          الـ clipping مهم: لو المرشّح قال "the the the the" والمرجع فيه "the" مرتين بس، BLEU يحسب فقط 2 تطابق، مش 4. بدون clipping، الـ model ممكن "يغش" بتكرار كلمات شائعة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          BLEU = brevity penalty × المتوسط الهندسي لـ n-gram precisions (n=1..4). يكافئ المرشّحات اللي تتداخل مجموعات كلماتها مع المرجع، ويعاقب المرشّحات القصيرة جداً بحيث ما تكون ترجمة عادلة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: BLEU Worked Example -->
+  <div class="section" id="bleu-example">
+    <div class="section-header" onclick="toggle('bleu-example')">
+      <div class="section-icon">03</div>
+      <div class="section-title">BLEU — Full Step-by-Step Worked Example</div>
+      <div class="section-toggle" id="toggle-bleu-example">▼</div>
+    </div>
+    <div class="section-body open" id="body-bleu-example">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('bleu-example','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('bleu-example','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="bleu-example-en">
+        <h3>Illustrative worked example — a perfect match</h3>
+        <p><em>The exact figures below are a clear, textbook-style illustrative example (constructed to demonstrate the method precisely), following the standard BLEU procedure taught in the lecture.</em></p>
+        <p><span class="term">Reference (human):</span> "The cat sat on the mat" (r = 6 words)<br>
+        <span class="term">Candidate (model):</span> "The cat sat on the mat" (c = 6 words)</p>
+
+        <div class="example-box">
+          <div class="label">Step 1 — Unigram (1-gram) precision</div>
+          <p>All 6 candidate words ("The", "cat", "sat", "on", "the", "mat") appear in the reference.</p>
+          <p><span class="code-inline">p1 = 6 / 6 = 1.0</span></p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Step 2 — Bigram (2-gram) precision</div>
+          <p>Candidate bigrams: "The cat", "cat sat", "sat on", "on the", "the mat" — all 5 appear in the reference.</p>
+          <p><span class="code-inline">p2 = 5 / 5 = 1.0</span></p>
+        </div>
+
+        <div class="ngram-diagram">
+          <div class="ngram-row"><span class="row-label">Reference bigrams</span>
+            <span class="ngram-chip">The cat</span><span class="ngram-chip">cat sat</span><span class="ngram-chip">sat on</span><span class="ngram-chip">on the</span><span class="ngram-chip">the mat</span>
+          </div>
+          <div class="ngram-row"><span class="row-label">Candidate bigrams</span>
+            <span class="ngram-chip match">The cat</span><span class="ngram-chip match">cat sat</span><span class="ngram-chip match">sat on</span><span class="ngram-chip match">on the</span><span class="ngram-chip match">the mat</span>
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Step 3 — Brevity penalty</div>
+          <p>Candidate length c = 6, reference length r = 6. Since c ≥ r, <span class="code-inline">BP = 1</span> (no penalty).</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Step 4 — Final BLEU score</div>
+          <p>Using p1 = p2 = 1.0 (and, by construction, p3 = p4 = 1.0 for this perfect match):</p>
+          <p><span class="code-inline">BLEU = BP × (p1 × p2 × p3 × p4)^(1/4) = 1 × (1×1×1×1)^(1/4) = 1.0</span></p>
+          <p>A perfect candidate that exactly matches the reference scores the maximum BLEU of 1.0.</p>
+        </div>
+
+        <h3>What happens with a bad / different translation?</h3>
+        <p><span class="term">Reference:</span> "The cat sat on the mat" (r = 6)<br>
+        <span class="term">Candidate:</span> "The cat on the mat" (c = 5) — the word "sat" is missing.</p>
+
+        <div class="ngram-diagram">
+          <div class="ngram-row"><span class="row-label">Reference bigrams (5)</span>
+            <span class="ngram-chip">The cat</span><span class="ngram-chip">cat sat</span><span class="ngram-chip">sat on</span><span class="ngram-chip">on the</span><span class="ngram-chip">the mat</span>
+          </div>
+          <div class="ngram-row"><span class="row-label">Candidate bigrams (4)</span>
+            <span class="ngram-chip match">The cat</span><span class="ngram-chip miss">cat on</span><span class="ngram-chip match">on the</span><span class="ngram-chip match">the mat</span>
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Recalculating</div>
+          <p><span class="highlight">Unigram precision:</span> 5 of 6 candidate words match → <span class="code-inline">p1 = 0.83</span></p>
+          <p><span class="highlight">Bigram precision:</span> candidate has 4 bigrams ("The cat", "cat on", "on the", "the mat"); 3 of them ("The cat", "on the", "the mat") match the reference → <span class="code-inline">p2 = 3/4 = 0.75</span></p>
+          <p><span class="highlight">Brevity penalty:</span> c = 5 &lt; r = 6, so <span class="code-inline">BP = exp(1 − 6/5) = exp(−0.2) ≈ 0.819</span></p>
+          <p><span class="highlight">Result:</span> combining the lower precisions with BP &lt; 1 pulls the overall BLEU score down substantially (well below 1.0) — reflecting both the missing word and the incorrect phrasing.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Key takeaway</div>
+          Dropping even one word can lower unigram precision, break multiple n-gram matches at once (a single missing word disrupts every n-gram that crosses it), and trigger the brevity penalty — so BLEU drops sharply for translations that look "almost right" to a human but differ structurally.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          A perfect match gives BLEU = 1.0 (p1..p4 = 1, BP = 1). A single missing word can lower every n-gram precision and trigger the brevity penalty, dropping the score noticeably — this is exactly how BLEU is designed to catch errors.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="bleu-example-ar" dir="rtl">
+        <h3>مثال توضيحي محلول — تطابق تام</h3>
+        <p><em>الأرقام أدناه مثال توضيحي واضح بأسلوب تعليمي (مُصمَّم لتوضيح الطريقة بدقة)، ويتبع نفس إجراء BLEU القياسي الموضّح بالمحاضرة.</em></p>
+        <p><span class="term">المرجع (إنسان):</span> "The cat sat on the mat" (r = 6 كلمات)<br>
+        <span class="term">المرشّح (model):</span> "The cat sat on the mat" (c = 6 كلمات)</p>
+
+        <div class="example-box">
+          <div class="label">الخطوة 1 — Unigram precision</div>
+          <p>كل الكلمات الست بالمرشّح ("The"، "cat"، "sat"، "on"، "the"، "mat") موجودة بالمرجع.</p>
+          <p><span class="code-inline">p1 = 6 / 6 = 1.0</span></p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">الخطوة 2 — Bigram precision</div>
+          <p>بيغرامات المرشّح: "The cat"، "cat sat"، "sat on"، "on the"، "the mat" — كلها الـ 5 موجودة بالمرجع.</p>
+          <p><span class="code-inline">p2 = 5 / 5 = 1.0</span></p>
+        </div>
+
+        <div class="ngram-diagram">
+          <div class="ngram-row"><span class="row-label">Bigrams المرجع</span>
+            <span class="ngram-chip">The cat</span><span class="ngram-chip">cat sat</span><span class="ngram-chip">sat on</span><span class="ngram-chip">on the</span><span class="ngram-chip">the mat</span>
+          </div>
+          <div class="ngram-row"><span class="row-label">Bigrams المرشّح</span>
+            <span class="ngram-chip match">The cat</span><span class="ngram-chip match">cat sat</span><span class="ngram-chip match">sat on</span><span class="ngram-chip match">on the</span><span class="ngram-chip match">the mat</span>
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="label">الخطوة 3 — Brevity Penalty</div>
+          <p>طول المرشّح c = 6، طول المرجع r = 6. بما أن c ≥ r، فـ <span class="code-inline">BP = 1</span> (بدون عقوبة).</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">الخطوة 4 — النتيجة النهائية</div>
+          <p>باستخدام p1 = p2 = 1.0 (وبنفس المنطق p3 = p4 = 1.0 لهذا التطابق التام):</p>
+          <p><span class="code-inline">BLEU = BP × (p1 × p2 × p3 × p4)^(1/4) = 1 × (1×1×1×1)^(1/4) = 1.0</span></p>
+          <p>مرشّح مطابق تماماً للمرجع يحصل على أعلى قيمة BLEU وهي 1.0.</p>
+        </div>
+
+        <h3>ماذا يحدث مع ترجمة سيئة / مختلفة؟</h3>
+        <p><span class="term">المرجع:</span> "The cat sat on the mat" (r = 6)<br>
+        <span class="term">المرشّح:</span> "The cat on the mat" (c = 5) — كلمة "sat" مفقودة.</p>
+
+        <div class="ngram-diagram">
+          <div class="ngram-row"><span class="row-label">Bigrams المرجع (5)</span>
+            <span class="ngram-chip">The cat</span><span class="ngram-chip">cat sat</span><span class="ngram-chip">sat on</span><span class="ngram-chip">on the</span><span class="ngram-chip">the mat</span>
+          </div>
+          <div class="ngram-row"><span class="row-label">Bigrams المرشّح (4)</span>
+            <span class="ngram-chip match">The cat</span><span class="ngram-chip miss">cat on</span><span class="ngram-chip match">on the</span><span class="ngram-chip match">the mat</span>
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="label">إعادة الحساب</div>
+          <p><span class="highlight">Unigram precision:</span> 5 من 6 كلمات بالمرشّح متطابقة → <span class="code-inline">p1 = 0.83</span></p>
+          <p><span class="highlight">Bigram precision:</span> عند المرشّح 4 bigrams ("The cat"، "cat on"، "on the"، "the mat")؛ 3 منها ("The cat"، "on the"، "the mat") متطابقة مع المرجع → <span class="code-inline">p2 = 3/4 = 0.75</span></p>
+          <p><span class="highlight">Brevity Penalty:</span> c = 5 &lt; r = 6، فـ <span class="code-inline">BP = exp(1 − 6/5) = exp(−0.2) ≈ 0.819</span></p>
+          <p><span class="highlight">النتيجة:</span> دمج الـ precisions المنخفضة مع BP أقل من 1 يخفّض قيمة BLEU الإجمالية بشكل ملحوظ (أقل من 1.0 بكثير) — انعكاساً للكلمة المفقودة والصياغة غير الصحيحة.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">أهم نقطة</div>
+          فقدان كلمة واحدة فقط ممكن يخفّض unigram precision، ويكسر عدة تطابقات n-gram دفعة وحدة (كلمة واحدة مفقودة تعطّل كل n-gram يمر بها)، ويفعّل brevity penalty — فتنخفض BLEU بشكل ملحوظ لترجمات تبدو "شبه صحيحة" للإنسان لكنها مختلفة هيكلياً.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          التطابق التام يعطي BLEU = 1.0 (p1..p4 = 1، BP = 1). كلمة واحدة مفقودة ممكن تخفّض كل n-gram precision وتفعّل brevity penalty، فتنخفض النتيجة بشكل ملحوظ — وهذا بالضبط كيف صُمم BLEU ليرصد الأخطاء.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: BLEU interpretation, ranges, code -->
+  <div class="section" id="bleu-interp">
+    <div class="section-header" onclick="toggle('bleu-interp')">
+      <div class="section-icon">04</div>
+      <div class="section-title">BLEU — Score Ranges, Significance, and Code</div>
+      <div class="section-toggle" id="toggle-bleu-interp">▼</div>
+    </div>
+    <div class="section-body open" id="body-bleu-interp">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('bleu-interp','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('bleu-interp','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="bleu-interp-en">
+        <h3>Score ranges</h3>
+        <p>BLEU ranges from <span class="term">0 to 1</span> (sometimes reported on a 0–100 scale by multiplying by 100). Higher is better: a perfect translation scores 1.0 (100), and a completely wrong translation scores close to 0.</p>
+        <table class="compare-table">
+          <tr><th>BLEU range</th><th>Rough interpretation</th></tr>
+          <tr><td>0.0 – 0.1 (0–10)</td><td>Almost no overlap — very poor translation</td></tr>
+          <tr><td>0.1 – 0.3 (10–30)</td><td>Weak, hard to understand without the source</td></tr>
+          <tr><td>0.3 – 0.5 (30–50)</td><td>Understandable but noticeably imperfect</td></tr>
+          <tr><td>0.5 – 0.7 (50–70)</td><td>Good to very good translation quality</td></tr>
+          <tr><td>0.7 – 1.0 (70–100)</td><td>High quality, often close to human-level</td></tr>
+        </table>
+
+        <h3>Significance of BLEU</h3>
+        <p>BLEU is popular because it is simple, fast, cheap to compute, and correlates reasonably well with human judgment on average, across large test sets. This makes it a practical default for comparing machine translation systems.</p>
+
+        <div class="warning-box">
+          <div class="label">Limitations</div>
+          BLEU relies purely on surface-level n-gram overlap — it does not understand meaning. A fluent, correct translation that uses different words than the reference (a valid paraphrase) can score poorly. It can also unfairly penalize translations that are longer than the reference, even when the extra words are legitimate.
+        </div>
+
+        <h3>Calculating BLEU in Python</h3>
+        <div class="example-box">
+          <div class="label">Code Example (using the <span class="code-inline">evaluate</span> library)</div>
+          <div class="code-block">
+<span class="kw">import</span> evaluate
+
+<span class="cm"># predictions: candidate sentences generated by the model</span>
+predictions = [<span class="str">"The cat sat on the mat"</span>]
+
+<span class="cm"># references: ground-truth / gold-standard sentence(s) per prediction</span>
+references = [[<span class="str">"The cat sat on the mat"</span>]]
+
+<span class="cm"># Load the BLEU metric</span>
+bleu = evaluate.<span class="fn">load</span>(<span class="str">"bleu"</span>)
+
+results = bleu.<span class="fn">compute</span>(predictions=predictions, references=references)
+<span class="cm"># {'bleu': 1.0, 'precisions': [1.0, 1.0, 1.0, 1.0], 'brevity_penalty': 1.0, ...}</span>
+print(results)
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Alternative: NLTK</div>
+          <div class="code-block">
+<span class="kw">from</span> nltk.translate.bleu_score <span class="kw">import</span> sentence_bleu
+
+reference = [<span class="str">"the"</span>, <span class="str">"cat"</span>, <span class="str">"sat"</span>, <span class="str">"on"</span>, <span class="str">"the"</span>, <span class="str">"mat"</span>]
+candidate = [<span class="str">"the"</span>, <span class="str">"cat"</span>, <span class="str">"on"</span>, <span class="str">"the"</span>, <span class="str">"mat"</span>]
+
+score = <span class="fn">sentence_bleu</span>([reference], candidate)
+<span class="cm"># score ≈ 0.67 for the "bad translation" example above</span>
+print(score)
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          BLEU ranges 0 to 1 (or 0–100); higher means closer to the reference. It is fast and widely adopted but ignores meaning and can penalize valid paraphrases. Compute it easily with <span class="code-inline">evaluate.load("bleu")</span> or NLTK's <span class="code-inline">sentence_bleu</span>.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="bleu-interp-ar" dir="rtl">
+        <h3>مدى القيم (Score ranges)</h3>
+        <p>BLEU يتراوح من <span class="term">0 إلى 1</span> (أحياناً يُعرض بمقياس 0–100 بضربه بـ100). كلما ارتفعت القيمة كان أفضل: الترجمة المثالية تحصل على 1.0 (100)، والترجمة الخاطئة تماماً تقترب من 0.</p>
+        <table class="compare-table">
+          <tr><th>مدى BLEU</th><th>التفسير التقريبي</th></tr>
+          <tr><td>0.0 – 0.1 (0–10)</td><td>لا يوجد تداخل تقريباً — ترجمة ضعيفة جداً</td></tr>
+          <tr><td>0.1 – 0.3 (10–30)</td><td>ضعيفة، يصعب فهمها بدون النص الأصلي</td></tr>
+          <tr><td>0.3 – 0.5 (30–50)</td><td>مفهومة لكن فيها عيوب ملحوظة</td></tr>
+          <tr><td>0.5 – 0.7 (50–70)</td><td>جودة ترجمة جيدة إلى جيدة جداً</td></tr>
+          <tr><td>0.7 – 1.0 (70–100)</td><td>جودة عالية، غالباً قريبة من مستوى الإنسان</td></tr>
+        </table>
+
+        <h3>أهمية BLEU</h3>
+        <p>BLEU مشهور لأنه بسيط وسريع ورخيص بالحساب، ويتوافق بشكل معقول مع تقييم البشر بالمتوسط عبر مجموعات اختبار كبيرة. هذا يخليه خياراً افتراضياً عملياً لمقارنة أنظمة الترجمة الآلية.</p>
+
+        <div class="warning-box">
+          <div class="label">القيود</div>
+          BLEU يعتمد فقط على تداخل n-grams السطحي — ما يفهم المعنى. ترجمة صحيحة وسليمة لكن تستخدم كلمات مختلفة عن المرجع (إعادة صياغة صحيحة/paraphrase) ممكن تحصل على نتيجة ضعيفة. كمان ممكن يعاقب بشكل غير عادل الترجمات الأطول من المرجع، حتى لو الكلمات الإضافية مشروعة.
+        </div>
+
+        <h3>حساب BLEU في Python</h3>
+        <div class="example-box">
+          <div class="label">مثال كود (باستخدام مكتبة <span class="code-inline">evaluate</span>)</div>
+          <div class="code-block">
+<span class="kw">import</span> evaluate
+
+<span class="cm"># predictions: الجمل المرشّحة اللي ولّدها الـ model</span>
+predictions = [<span class="str">"The cat sat on the mat"</span>]
+
+<span class="cm"># references: الجملة/الجمل المرجعية الصحيحة لكل prediction</span>
+references = [[<span class="str">"The cat sat on the mat"</span>]]
+
+<span class="cm"># تحميل مقياس BLEU</span>
+bleu = evaluate.<span class="fn">load</span>(<span class="str">"bleu"</span>)
+
+results = bleu.<span class="fn">compute</span>(predictions=predictions, references=references)
+<span class="cm"># {'bleu': 1.0, 'precisions': [1.0, 1.0, 1.0, 1.0], 'brevity_penalty': 1.0, ...}</span>
+print(results)
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="label">بديل: NLTK</div>
+          <div class="code-block">
+<span class="kw">from</span> nltk.translate.bleu_score <span class="kw">import</span> sentence_bleu
+
+reference = [<span class="str">"the"</span>, <span class="str">"cat"</span>, <span class="str">"sat"</span>, <span class="str">"on"</span>, <span class="str">"the"</span>, <span class="str">"mat"</span>]
+candidate = [<span class="str">"the"</span>, <span class="str">"cat"</span>, <span class="str">"on"</span>, <span class="str">"the"</span>, <span class="str">"mat"</span>]
+
+score = <span class="fn">sentence_bleu</span>([reference], candidate)
+<span class="cm"># score ≈ 0.67 لمثال "الترجمة السيئة" أعلاه</span>
+print(score)
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          BLEU يتراوح 0 إلى 1 (أو 0–100)؛ القيمة الأعلى تعني قرب أكبر من المرجع. سريع ومنتشر بكثرة لكنه يتجاهل المعنى وممكن يعاقب إعادة الصياغة الصحيحة. احسبه بسهولة عبر <span class="code-inline">evaluate.load("bleu")</span> أو <span class="code-inline">sentence_bleu</span> من NLTK.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: ROUGE Concept -->
+  <div class="section" id="rouge-concept">
+    <div class="section-header" onclick="toggle('rouge-concept')">
+      <div class="section-icon">05</div>
+      <div class="section-title">ROUGE Score — Concept and Formula</div>
+      <div class="section-toggle" id="toggle-rouge-concept">▼</div>
+    </div>
+    <div class="section-body open" id="body-rouge-concept">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('rouge-concept','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('rouge-concept','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="rouge-concept-en">
+        <h3>What is ROUGE?</h3>
+        <p><span class="term">ROUGE (Recall-Oriented Understudy for Gisting Evaluation)</span> is a set of metrics commonly used for <span class="term">text summarization</span> tasks, where the goal is to automatically generate a concise summary of a longer text. ROUGE evaluates machine-generated summaries by comparing them to reference summaries written by humans.</p>
+
+        <h3>How does ROUGE work?</h3>
+        <p>Like BLEU, ROUGE measures overlapping n-grams between the candidate (machine summary) and the reference (human summary). But instead of precision, ROUGE is built around <span class="term">recall</span>: how much of the reference's content was successfully captured by the candidate.</p>
+
+        <div class="example-box">
+          <div class="label">ROUGE Formula</div>
+          <p><span class="code-inline">ROUGE-N = (number of matching n-grams) / (total n-grams in the reference)</span></p>
+          <p>This is recall of n-grams: out of everything the reference summary contains, how much did the candidate manage to reproduce? (In practice, most modern implementations, e.g. the <span class="code-inline">rouge_score</span> library, also report precision and an F1-score alongside recall.)</p>
+        </div>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          If BLEU asks "how much of what the candidate said is correct?" (precision), ROUGE asks the opposite question: "how much of what the reference said did the candidate manage to capture?" (recall). BLEU checks the candidate against the reference; ROUGE checks the reference's coverage by the candidate. This fits summarization well — a good summary should not miss the important points of the source.
+        </div>
+
+        <h3>Score range</h3>
+        <p>ROUGE ranges from <span class="term">0 to 1</span>, with higher values meaning better summary quality. A perfect summary (capturing 100% of reference n-grams) scores 1.0; a completely unrelated summary scores 0.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          ROUGE evaluates summaries by measuring n-gram recall against a human reference: how much of the reference content is covered by the candidate. It ranges 0 to 1, higher is better.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="rouge-concept-ar" dir="rtl">
+        <h3>ما هو ROUGE؟</h3>
+        <p><span class="term">ROUGE (Recall-Oriented Understudy for Gisting Evaluation)</span> هو مجموعة مقاييس تُستخدم غالباً لمهام <span class="term">text summarization</span>، حيث الهدف توليد ملخص مختصر لنص أطول بشكل أوتوماتيكي. ROUGE يقيّم الملخصات المولّدة آلياً بمقارنتها مع ملخصات مرجعية كتبها بشر.</p>
+
+        <h3>كيف يعمل ROUGE؟</h3>
+        <p>مثل BLEU، ROUGE يقيس تداخل n-grams بين المرشّح (ملخص الآلة) والمرجع (ملخص الإنسان). لكن بدل الـ precision، ROUGE مبني حول <span class="term">recall</span>: كم من محتوى المرجع نجح المرشّح بالتقاطه.</p>
+
+        <div class="example-box">
+          <div class="label">صيغة ROUGE</div>
+          <p><span class="code-inline">ROUGE-N = (عدد n-grams المتطابقة) / (إجمالي n-grams بالمرجع)</span></p>
+          <p>هذا هو recall الـ n-grams: من كل اللي يحتويه ملخص المرجع، كم منه استطاع المرشّح إعادة إنتاجه؟ (عملياً، أغلب المكتبات الحديثة، مثل <span class="code-inline">rouge_score</span>، تعرض أيضاً precision وF1-score بجانب recall.)</p>
+        </div>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          إذا BLEU يسأل "كم من كلام المرشّح صحيح؟" (precision)، فـ ROUGE يسأل السؤال المعاكس: "كم من كلام المرجع نجح المرشّح بتغطيته؟" (recall). BLEU يفحص المرشّح مقابل المرجع؛ ROUGE يفحص تغطية المرجع من قبل المرشّح. هذا يناسب التلخيص جداً — الملخص الجيد ما يجب يفوّت النقاط المهمة من المصدر.
+        </div>
+
+        <h3>مدى القيم</h3>
+        <p>ROUGE يتراوح من <span class="term">0 إلى 1</span>، والقيم الأعلى تعني جودة ملخص أفضل. الملخص المثالي (يغطي 100% من n-grams المرجع) يحصل على 1.0؛ ملخص غير مرتبط تماماً يحصل على 0.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          ROUGE يقيّم الملخصات بقياس recall الخاص بـ n-grams مقابل مرجع بشري: كم من محتوى المرجع مغطّى بالمرشّح. يتراوح من 0 إلى 1، والأعلى أفضل.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: ROUGE Variants -->
+  <div class="section" id="rouge-variants">
+    <div class="section-header" onclick="toggle('rouge-variants')">
+      <div class="section-icon">06</div>
+      <div class="section-title">ROUGE Variants — ROUGE-N, ROUGE-L, ROUGE-S</div>
+      <div class="section-toggle" id="toggle-rouge-variants">▼</div>
+    </div>
+    <div class="section-body open" id="body-rouge-variants">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('rouge-variants','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('rouge-variants','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="rouge-variants-en">
+        <h3>Three main ROUGE variants</h3>
+        <table class="compare-table">
+          <tr><th>Variant</th><th>What it measures</th><th>Best for</th></tr>
+          <tr><td><span class="highlight">ROUGE-N</span></td><td>Overlap of contiguous n-grams (ROUGE-1 = unigrams, ROUGE-2 = bigrams, ...)</td><td>Grammatical correctness and fluency of generated text</td></tr>
+          <tr><td><span class="highlight">ROUGE-L</span></td><td>Longest Common Subsequence (LCS) between candidate and reference</td><td>Semantic similarity / content coverage, regardless of word order</td></tr>
+          <tr><td><span class="highlight">ROUGE-S</span></td><td>Skip-bigram overlap — bigrams with at most one word allowed in between</td><td>Coherence and local cohesion between nearby words</td></tr>
+        </table>
+
+        <h3>Mini worked example</h3>
+        <p><span class="term">Reference:</span> "the fast fox jumps" &nbsp;&nbsp; <span class="term">Candidate:</span> "the fox jumps fast"</p>
+        <div class="example-box">
+          <div class="label">ROUGE-1 (unigram recall)</div>
+          <p>All 4 reference words ("the", "fast", "fox", "jumps") appear in the candidate → <span class="code-inline">ROUGE-1 recall = 4/4 = 1.0</span></p>
+        </div>
+        <div class="example-box">
+          <div class="label">ROUGE-L (longest common subsequence)</div>
+          <p>The longest subsequence common to both (in order) is "the fox jumps" — length 3 out of 4 reference words → <span class="code-inline">ROUGE-L recall = 3/4 = 0.75</span></p>
+          <p>Notice ROUGE-L drops even though every word matched — because the word order changed ("fast" moved), showing ROUGE-L's sensitivity to sequence/structure.</p>
+        </div>
+
+        <h3>Significance of ROUGE</h3>
+        <p>ROUGE is widely used for summarization because it objectively captures how much of the important reference content survives in the candidate summary, and it is flexible — you can choose N, L, or S depending on what aspect (fluency, coverage, cohesion) matters most for your task.</p>
+
+        <div class="warning-box">
+          <div class="label">Limitations</div>
+          Like BLEU, ROUGE relies purely on lexical (word-level) overlap. It does not fully capture semantic meaning or coherence — a summary that paraphrases the reference well could still score low, and a summary that copies reference phrases verbatim but loses coherence could score artificially high.
+        </div>
+
+        <h3>Calculating ROUGE in Python</h3>
+        <div class="example-box">
+          <div class="label">Code Example (<span class="code-inline">rouge_score</span> library)</div>
+          <div class="code-block">
+<span class="kw">from</span> rouge_score <span class="kw">import</span> rouge_scorer
+
+scorer = rouge_scorer.<span class="fn">RougeScorer</span>([<span class="str">'rouge1'</span>, <span class="str">'rouge2'</span>, <span class="str">'rougeL'</span>], use_stemmer=<span class="kw">True</span>)
+
+reference = <span class="str">"the fast fox jumps"</span>
+candidate = <span class="str">"the fox jumps fast"</span>
+
+scores = scorer.<span class="fn">score</span>(reference, candidate)
+<span class="cm"># {'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0),</span>
+<span class="cm">#  'rouge2': Score(precision=0.33, recall=0.33, fmeasure=0.33),</span>
+<span class="cm">#  'rougeL': Score(precision=0.75, recall=0.75, fmeasure=0.75)}</span>
+print(scores)
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          ROUGE-N measures n-gram overlap (fluency), ROUGE-L measures longest common subsequence (content coverage, order-sensitive), ROUGE-S measures skip-bigram overlap (local cohesion). Use the <span class="code-inline">rouge_score</span> library to compute all three easily.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="rouge-variants-ar" dir="rtl">
+        <h3>ثلاثة أنواع رئيسية من ROUGE</h3>
+        <table class="compare-table">
+          <tr><th>النوع</th><th>ماذا يقيس</th><th>الأنسب لـ</th></tr>
+          <tr><td><span class="highlight">ROUGE-N</span></td><td>تداخل n-grams المتتالية (ROUGE-1 = unigrams، ROUGE-2 = bigrams، ...)</td><td>الصحة النحوية وطلاقة النص المولّد</td></tr>
+          <tr><td><span class="highlight">ROUGE-L</span></td><td>أطول تسلسل فرعي مشترك (LCS) بين المرشّح والمرجع</td><td>التشابه الدلالي / تغطية المحتوى بغضّ النظر عن ترتيب الكلمات</td></tr>
+          <tr><td><span class="highlight">ROUGE-S</span></td><td>تداخل skip-bigram — bigrams تسمح بكلمة واحدة كحد أقصى بينها</td><td>التماسك والترابط المحلي بين الكلمات المتقاربة</td></tr>
+        </table>
+
+        <h3>مثال مصغّر محلول</h3>
+        <p><span class="term">المرجع:</span> "the fast fox jumps" &nbsp;&nbsp; <span class="term">المرشّح:</span> "the fox jumps fast"</p>
+        <div class="example-box">
+          <div class="label">ROUGE-1 (unigram recall)</div>
+          <p>كل الكلمات الأربع بالمرجع ("the"، "fast"، "fox"، "jumps") موجودة بالمرشّح → <span class="code-inline">ROUGE-1 recall = 4/4 = 1.0</span></p>
+        </div>
+        <div class="example-box">
+          <div class="label">ROUGE-L (أطول تسلسل فرعي مشترك)</div>
+          <p>أطول تسلسل فرعي مشترك (بنفس الترتيب) هو "the fox jumps" — طوله 3 من أصل 4 كلمات بالمرجع → <span class="code-inline">ROUGE-L recall = 3/4 = 0.75</span></p>
+          <p>لاحظ إن ROUGE-L انخفض رغم إن كل الكلمات متطابقة — لأن ترتيب الكلمات تغيّر ("fast" تحرّكت)، وهذا يوضّح حساسية ROUGE-L للتسلسل/البنية.</p>
+        </div>
+
+        <h3>أهمية ROUGE</h3>
+        <p>ROUGE منتشر جداً بالتلخيص لأنه يقيس بموضوعية كم من محتوى المرجع المهم نجا بالملخص المرشّح، وهو مرن — تقدر تختار N أو L أو S حسب أي جانب (الطلاقة، التغطية، التماسك) الأهم لمهمتك.</p>
+
+        <div class="warning-box">
+          <div class="label">القيود</div>
+          مثل BLEU، ROUGE يعتمد فقط على التداخل اللفظي (مستوى الكلمات). ما يلتقط المعنى الدلالي أو التماسك بالكامل — ملخص يعيد الصياغة بشكل جيد ممكن يحصل على نتيجة منخفضة، وملخص ينسخ عبارات المرجع حرفياً لكن يفقد التماسك ممكن يحصل على نتيجة عالية بشكل مصطنع.
+        </div>
+
+        <h3>حساب ROUGE في Python</h3>
+        <div class="example-box">
+          <div class="label">مثال كود (مكتبة <span class="code-inline">rouge_score</span>)</div>
+          <div class="code-block">
+<span class="kw">from</span> rouge_score <span class="kw">import</span> rouge_scorer
+
+scorer = rouge_scorer.<span class="fn">RougeScorer</span>([<span class="str">'rouge1'</span>, <span class="str">'rouge2'</span>, <span class="str">'rougeL'</span>], use_stemmer=<span class="kw">True</span>)
+
+reference = <span class="str">"the fast fox jumps"</span>
+candidate = <span class="str">"the fox jumps fast"</span>
+
+scores = scorer.<span class="fn">score</span>(reference, candidate)
+<span class="cm"># {'rouge1': Score(precision=1.0, recall=1.0, fmeasure=1.0),</span>
+<span class="cm">#  'rouge2': Score(precision=0.33, recall=0.33, fmeasure=0.33),</span>
+<span class="cm">#  'rougeL': Score(precision=0.75, recall=0.75, fmeasure=0.75)}</span>
+print(scores)
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          ROUGE-N يقيس تداخل n-grams (الطلاقة)، ROUGE-L يقيس أطول تسلسل فرعي مشترك (تغطية المحتوى، حسّاس للترتيب)، ROUGE-S يقيس تداخل skip-bigram (التماسك المحلي). استخدم مكتبة <span class="code-inline">rouge_score</span> لحساب الثلاثة بسهولة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Comparison -->
+  <div class="section" id="comparison">
+    <div class="section-header" onclick="toggle('comparison')">
+      <div class="section-icon">07</div>
+      <div class="section-title">BLEU vs ROUGE — Key Differences</div>
+      <div class="section-toggle" id="toggle-comparison">▼</div>
+    </div>
+    <div class="section-body open" id="body-comparison">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('comparison','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('comparison','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="comparison-en">
+        <h3>Conclusion</h3>
+        <p>In the field of NLP evaluation, BLEU and ROUGE are commonly used metrics to assess the quality of machine-generated translations and summaries, respectively. Both rely on n-gram overlap to measure similarity between machine output and reference text, and both provide a simple, effective way to evaluate NLP models — but both have limitations in capturing overall meaning, fluency, and coherence.</p>
+
+        <h3>Key differences</h3>
+        <table class="compare-table">
+          <tr><th>Aspect</th><th>BLEU</th><th>ROUGE</th></tr>
+          <tr><td>Primary task</td><td>Machine translation</td><td>Text summarization</td></tr>
+          <tr><td>Core focus</td><td>Precision-oriented</td><td>Recall-oriented</td></tr>
+          <tr><td>Main question</td><td>"How much of the candidate is correct?"</td><td>"How much of the reference is covered?"</td></tr>
+          <tr><td>Extra adjustment</td><td>Brevity penalty (punishes short output)</td><td>No brevity penalty by default</td></tr>
+          <tr><td>Common variants</td><td>BLEU-1 to BLEU-4 (n-gram order)</td><td>ROUGE-N, ROUGE-L, ROUGE-S</td></tr>
+          <tr><td>Typical library</td><td><span class="code-inline">evaluate</span> / <span class="code-inline">sacrebleu</span> / NLTK</td><td><span class="code-inline">rouge_score</span></td></tr>
+          <tr><td>Risk of gaming</td><td>Being too short is directly penalized</td><td>Being too long can inflate recall</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of grading a translation exam vs a summary exam. For translation, the teacher checks every word the student wrote against the answer key (precision) and wants the answer to be a fair length (brevity penalty) — that's BLEU. For a summary exam, the teacher instead checks how many key points from the ideal answer the student managed to mention (recall) — that's ROUGE.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          BLEU (precision + brevity penalty) suits machine translation; ROUGE (recall-based, with N/L/S variants) suits summarization. Choose the metric that matches whether you care more about "is everything said correct" or "was everything important said."
+        </div>
+      </div>
+
+      <div class="lang-panel" id="comparison-ar" dir="rtl">
+        <h3>الخلاصة</h3>
+        <p>في مجال تقييم NLP، BLEU وROUGE مقاييس شائعة الاستخدام لتقييم جودة الترجمات والملخصات المولّدة آلياً على التوالي. كلاهما يعتمد على تداخل n-grams لقياس التشابه بين ناتج الآلة والنص المرجعي، وكلاهما يوفّر طريقة بسيطة وفعّالة لتقييم نماذج NLP — لكن كلاهما له قيود في التقاط المعنى الكامل والطلاقة والتماسك.</p>
+
+        <h3>الفروقات الرئيسية</h3>
+        <table class="compare-table">
+          <tr><th>الجانب</th><th>BLEU</th><th>ROUGE</th></tr>
+          <tr><td>المهمة الأساسية</td><td>Machine Translation</td><td>Text Summarization</td></tr>
+          <tr><td>التركيز الأساسي</td><td>موجّه لـ precision</td><td>موجّه لـ recall</td></tr>
+          <tr><td>السؤال الأساسي</td><td>"كم من كلام المرشّح صحيح؟"</td><td>"كم من المرجع تمت تغطيته؟"</td></tr>
+          <tr><td>تعديل إضافي</td><td>Brevity Penalty (يعاقب الناتج القصير)</td><td>لا يوجد brevity penalty افتراضياً</td></tr>
+          <tr><td>الأنواع الشائعة</td><td>BLEU-1 إلى BLEU-4 (رتبة n-gram)</td><td>ROUGE-N، ROUGE-L، ROUGE-S</td></tr>
+          <tr><td>المكتبة الشائعة</td><td><span class="code-inline">evaluate</span> / <span class="code-inline">sacrebleu</span> / NLTK</td><td><span class="code-inline">rouge_score</span></td></tr>
+          <tr><td>خطر التلاعب</td><td>القصر الزائد يُعاقب مباشرة</td><td>الطول الزائد ممكن يضخّم الـ recall</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل تصحيح امتحان ترجمة مقابل امتحان تلخيص. بامتحان الترجمة، المعلّم يتحقق من كل كلمة كتبها الطالب مقابل الإجابة النموذجية (precision) ويريد الإجابة بطول عادل (brevity penalty) — هذا هو BLEU. بامتحان التلخيص، المعلّم بالمقابل يتحقق كم نقطة رئيسية من الإجابة المثالية استطاع الطالب ذكرها (recall) — هذا هو ROUGE.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          BLEU (precision + brevity penalty) يناسب Machine Translation؛ ROUGE (مبني على recall، بأنواعه N/L/S) يناسب Summarization. اختر المقياس المناسب حسب ما يهمك أكثر: "هل كل ما قيل صحيح" أم "هل كل ما هو مهم قيل".
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Limitations and beyond -->
+  <div class="section" id="limitations">
+    <div class="section-header" onclick="toggle('limitations')">
+      <div class="section-icon">08</div>
+      <div class="section-title">Limitations and What Comes Next</div>
+      <div class="section-toggle" id="toggle-limitations">▼</div>
+    </div>
+    <div class="section-body open" id="body-limitations">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('limitations','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('limitations','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="limitations-en">
+        <h3>Shared limitations of BLEU and ROUGE</h3>
+        <ul>
+          <li>Both are purely <span class="term">lexical</span> (word-overlap) metrics — they cannot recognize that "big" and "large" mean the same thing, or that a reordered sentence can be equally correct.</li>
+          <li>Neither reliably captures <span class="term">fluency</span> or <span class="term">grammatical correctness</span> beyond n-gram patterns.</li>
+          <li>Both are vulnerable to "gaming" — e.g. repeating safe, common words/phrases, or producing text engineered to maximize overlap rather than genuine quality.</li>
+          <li>They require good-quality reference text(s); a single reference may not capture all valid ways of translating or summarizing something.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">Gaming the metric</div>
+          A model could learn to copy long chunks verbatim from the reference (if leaked) to inflate both BLEU and ROUGE without actually understanding the content — a reminder that automatic metrics are a proxy for quality, not a guarantee of it.
+        </div>
+
+        <h3>What comes after BLEU/ROUGE?</h3>
+        <p>Modern NLP evaluation increasingly supplements or replaces these with:</p>
+        <ul>
+          <li><span class="highlight">BERTScore</span> — uses contextual embeddings (from models like BERT) to compare meaning rather than exact word overlap, so valid paraphrases score well.</li>
+          <li><span class="highlight">METEOR</span> — adds synonym matching and stemming on top of the BLEU-style idea.</li>
+          <li><span class="highlight">Human evaluation</span> — still the gold standard for fluency, adequacy, and coherence, often used alongside automatic metrics rather than instead of them.</li>
+          <li><span class="highlight">LLM-as-judge</span> approaches — using a strong language model to score outputs against criteria, increasingly common for open-ended generation tasks.</li>
+        </ul>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          BLEU and ROUGE remain fast, cheap, and widely used, but they only see word overlap, not meaning. For deeper quality assessment, combine them with meaning-aware metrics like BERTScore and, where possible, human evaluation.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="limitations-ar" dir="rtl">
+        <h3>القيود المشتركة بين BLEU وROUGE</h3>
+        <ul>
+          <li>كلاهما مقاييس <span class="term">لفظية</span> بحتة (تداخل كلمات) — ما تقدر تعرف إن "big" و"large" لهما نفس المعنى، أو إن جملة معاد ترتيبها ممكن تكون صحيحة بنفس الدرجة.</li>
+          <li>ولا واحد منهما يلتقط <span class="term">الطلاقة</span> أو <span class="term">الصحة النحوية</span> بشكل موثوق بعيداً عن أنماط n-gram.</li>
+          <li>كلاهما عرضة لـ"التلاعب" — مثلاً تكرار كلمات/عبارات شائعة آمنة، أو توليد نص مصمم لزيادة التداخل بدل الجودة الحقيقية.</li>
+          <li>يحتاجان نص مرجعي جيد الجودة؛ مرجع واحد ممكن ما يغطي كل الطرق الصحيحة للترجمة أو التلخيص.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">التلاعب بالمقياس</div>
+          الـ model ممكن يتعلم نسخ أجزاء طويلة حرفياً من المرجع (لو تسرّب) لرفع BLEU وROUGE بدون فهم حقيقي للمحتوى — تذكير بأن المقاييس الأوتوماتيكية مؤشر تقريبي للجودة، مش ضمانة لها.
+        </div>
+
+        <h3>ماذا بعد BLEU/ROUGE؟</h3>
+        <p>تقييم NLP الحديث بشكل متزايد يكمّل أو يستبدل هذه المقاييس بـ:</p>
+        <ul>
+          <li><span class="highlight">BERTScore</span> — يستخدم contextual embeddings (من نماذج مثل BERT) لمقارنة المعنى بدل التداخل اللفظي الدقيق، فإعادة الصياغة الصحيحة تحصل على نتيجة جيدة.</li>
+          <li><span class="highlight">METEOR</span> — يضيف مطابقة المرادفات والـ stemming فوق فكرة BLEU الأساسية.</li>
+          <li><span class="highlight">التقييم البشري</span> — لا يزال المعيار الذهبي للطلاقة والدقة والتماسك، غالباً يُستخدم بجانب المقاييس الأوتوماتيكية وليس بدلاً عنها.</li>
+          <li><span class="highlight">LLM-as-judge</span> — استخدام نموذج لغوي قوي لتقييم النتائج مقابل معايير محددة، أصبح شائعاً بشكل متزايد لمهام التوليد المفتوحة.</li>
+        </ul>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          BLEU وROUGE يبقيان سريعين ورخيصين ومنتشرين، لكنهما يريان فقط تداخل الكلمات، لا المعنى. لتقييم أعمق للجودة، ادمجهما مع مقاييس واعية بالمعنى مثل BERTScore، وعند الإمكان مع التقييم البشري.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

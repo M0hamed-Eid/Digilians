@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Transformers — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #motivation  .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #attention   .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #multihead   .section-icon { background: var(--c-teal-bg);    color: var(--c-teal);    border: 1.5px solid var(--c-teal-mid); }
+  #posenc      .section-icon { background: var(--c-purple-bg);  color: var(--c-purple);  border: 1.5px solid var(--c-purple-mid); }
+  #architecture .section-icon { background: var(--c-rose-bg);   color: var(--c-rose);    border: 1.5px solid var(--c-rose-mid); }
+  #pipeline    .section-icon { background: var(--c-emerald-bg); color: var(--c-emerald); border: 1.5px solid var(--c-emerald-mid); }
+  #variants    .section-icon { background: var(--c-indigo-bg);  color: var(--c-indigo);  border: 1.5px solid var(--c-indigo-mid); }
+  #tradeoffs   .section-icon { background: var(--c-orange-bg);  color: var(--c-orange);  border: 1.5px solid var(--c-orange-mid); }
+  #applications .section-icon { background: var(--c-sky-bg);    color: var(--c-sky);     border: 1.5px solid var(--c-sky-mid); }
+
+  /* Section left-border accent stripe */
+  #motivation   { border-left: 4px solid var(--c-blue); }
+  #attention    { border-left: 4px solid var(--c-amber); }
+  #multihead    { border-left: 4px solid var(--c-teal); }
+  #posenc       { border-left: 4px solid var(--c-purple); }
+  #architecture { border-left: 4px solid var(--c-rose); }
+  #pipeline     { border-left: 4px solid var(--c-emerald); }
+  #variants     { border-left: 4px solid var(--c-indigo); }
+  #tradeoffs    { border-left: 4px solid var(--c-orange); }
+  #applications { border-left: 4px solid var(--c-sky); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+
+  /* ── Diagrams ── */
+  .diagram-wrap { margin: 18px 0; }
+  .diagram-wrap svg { width: 100%; height: auto; display: block; }
+  .diagram-caption {
+    text-align: center; font-size: 11.5px; color: var(--muted);
+    margin-top: 8px; font-family: 'IBM Plex Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: Transformers</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('motivation')">Motivation</button>
+      <button class="toc-chip" onclick="scrollTo('attention')">Self-Attention</button>
+      <button class="toc-chip" onclick="scrollTo('multihead')">Multi-Head Attention</button>
+      <button class="toc-chip" onclick="scrollTo('posenc')">Positional Encoding</button>
+      <button class="toc-chip" onclick="scrollTo('architecture')">Architecture</button>
+      <button class="toc-chip" onclick="scrollTo('pipeline')">Encoder-Decoder Flow</button>
+      <button class="toc-chip" onclick="scrollTo('variants')">Model Families</button>
+      <button class="toc-chip" onclick="scrollTo('tradeoffs')">Advantages &amp; Limits</button>
+      <button class="toc-chip" onclick="scrollTo('applications')">Applications</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Motivation -->
+  <div class="section" id="motivation">
+    <div class="section-header" onclick="toggle('motivation')">
+      <div class="section-icon">01</div>
+      <div class="section-title">Motivation — Why Transformers?</div>
+      <div class="section-toggle" id="toggle-motivation">▼</div>
+    </div>
+    <div class="section-body open" id="body-motivation">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('motivation','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('motivation','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="motivation-en">
+        <h3>The problem with RNNs and LSTMs</h3>
+        <p>You already know that <span class="term">RNNs</span> and <span class="term">LSTMs</span> process a sequence one token at a time, carrying information forward through a <span class="code-inline">hidden state</span>. This works, but it has three deep structural problems:</p>
+        <ul>
+          <li><span class="highlight">Sequential computation</span> — step <span class="code-inline">t</span> cannot start until step <span class="code-inline">t-1</span> finishes. You cannot parallelize across the sequence, so training on long documents or huge corpora is slow, even on a GPU.</li>
+          <li><span class="highlight">Vanishing / exploding gradients</span> — even with LSTM gates, information from far-away tokens has to survive many multiplications as it travels through the chain of hidden states. The longer the sequence, the more that signal degrades.</li>
+          <li><span class="highlight">Long-range dependency bottleneck</span> — everything the model knows about token 1 by the time it reaches token 500 is squeezed through a single fixed-size hidden state vector. It's an information bottleneck, no matter how big you make the hidden state.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          An RNN reading a paragraph is like a person passing a whispered message down a long line of people (the "telephone game"). By the time the message reaches the last person, a lot of the original detail from the first person is lost or distorted — especially if the line is long. A Transformer instead lets every person in the line talk directly to every other person at once, so nothing has to survive a long chain of whispers.
+        </div>
+
+        <h3>The core idea</h3>
+        <p>The 2017 paper "Attention Is All You Need" proposed removing recurrence entirely. Instead of passing information step-by-step through a hidden state, every token directly looks at every other token in the sequence using a mechanism called <span class="term">self-attention</span>. This solves all three problems at once: computation across positions can happen in parallel, gradients travel directly (not through hundreds of sequential steps), and every pair of tokens — however far apart — is one computation away from each other.</p>
+
+        <table class="compare-table">
+          <tr><th>Property</th><th>RNN / LSTM</th><th>Transformer</th></tr>
+          <tr><td>Processing order</td><td>Sequential (token by token)</td><td>Parallel (all tokens at once)</td></tr>
+          <tr><td>Long-range dependencies</td><td>Weak — signal decays over distance</td><td>Strong — every token connects directly to every other</td></tr>
+          <tr><td>Training speed</td><td>Slow (cannot parallelize over sequence)</td><td>Fast on GPU/TPU (matrix multiplications)</td></tr>
+          <tr><td>Sense of word order</td><td>Built-in (via recurrence)</td><td>Must be added explicitly (positional encoding)</td></tr>
+          <tr><td>Compute cost per layer</td><td>O(sequence length)</td><td>O(sequence length²) — attention is quadratic</td></tr>
+        </table>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          RNNs/LSTMs process text sequentially, which is slow to train and struggles to preserve information across long distances. Transformers replace recurrence with self-attention, letting every token connect to every other token directly and in parallel — at the cost of quadratic compute in sequence length.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="motivation-ar" dir="rtl">
+        <h3>مشكلة RNN وLSTM</h3>
+        <p>زي ما تعرف، الـ <span class="term">RNN</span> والـ <span class="term">LSTM</span> بيعالجوا الجملة token بعد token، وبينقلوا المعلومة عبر <span class="code-inline">hidden state</span>. الطريقة دي شغالة، لكن فيها 3 مشاكل جوهرية:</p>
+        <ul>
+          <li><span class="highlight">Sequential computation</span> — الخطوة <span class="code-inline">t</span> لازم تستنى الخطوة <span class="code-inline">t-1</span> تخلص. ما تقدرش توازي (parallelize) عبر الجملة، فالتدريب على نصوص طويلة أو corpora ضخمة بطيء حتى لو عندك GPU قوي.</li>
+          <li><span class="highlight">Vanishing / exploding gradients</span> — حتى مع بوابات LSTM، المعلومة من tokens بعيدة لازم "تعيش" عبر ضربات كتير وهي بتنتقل عبر سلسلة الـ hidden states. كل ما الجملة أطول، كل ما الإشارة بتضعف.</li>
+          <li><span class="highlight">Long-range dependency bottleneck</span> — كل اللي الموديل يعرفه عن token رقم 1 لما يوصل لـ token رقم 500 بيتكدّس في vector واحد ثابت الحجم (hidden state). ده اختناق معلوماتي (bottleneck) مهما كبّرت حجم الـ hidden state.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ RNN وهو بيقرأ فقرة زي شخص بينقل رسالة همس على طول صف طويل من الناس (لعبة "التليفون المكسور"). لما الرسالة توصل لآخر واحد، جزء كبير من التفاصيل الأصلية بيكون ضاع أو اتغيّر — خصوصاً لو الصف طويل. الـ Transformer بالعكس بيخلي كل شخص في الصف يتكلم مباشرة مع كل شخص تاني في نفس اللحظة، فمفيش معلومة لازم تعدّي على سلسلة طويلة من الهمس.
+        </div>
+
+        <h3>الفكرة الأساسية</h3>
+        <p>ورقة 2017 الشهيرة "Attention Is All You Need" اقترحت إزالة الـ recurrence بالكامل. بدل ما المعلومة تنتقل خطوة بخطوة عبر hidden state، كل token بيبص مباشرة على كل الـ tokens التانية في الجملة باستخدام آلية اسمها <span class="term">self-attention</span>. الحل ده بيعالج المشاكل التلاتة مرة واحدة: الحساب عبر المواضع بيصير متوازي (parallel)، والـ gradients بتنتقل مباشرة (مش عبر مئات الخطوات المتتالية)، وأي زوج tokens — مهما كانوا بعيدين — بيبقوا محسوبين ببعض بعملية واحدة.</p>
+
+        <table class="compare-table">
+          <tr><th>الخاصية</th><th>RNN / LSTM</th><th>Transformer</th></tr>
+          <tr><td>ترتيب المعالجة</td><td>متتالي (token بعد token)</td><td>متوازي (كل الـ tokens مرة واحدة)</td></tr>
+          <tr><td>Long-range dependencies</td><td>ضعيف — الإشارة بتضعف مع المسافة</td><td>قوي — كل token متصل مباشرة بالباقي</td></tr>
+          <tr><td>سرعة التدريب</td><td>بطيء (ما ينفعش توازي عبر الجملة)</td><td>سريع على GPU/TPU (ضرب مصفوفات)</td></tr>
+          <tr><td>ترتيب الكلمات</td><td>مدمج (عن طريق recurrence)</td><td>لازم يتضاف يدوياً (positional encoding)</td></tr>
+          <tr><td>تكلفة الحساب لكل طبقة</td><td>O(طول الجملة)</td><td>O(طول الجملة²) — attention تربيعية</td></tr>
+        </table>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          RNN/LSTM بتعالج النص بالتتابع، وده بطيء في التدريب وبيصعب عليه الحفاظ على المعلومة عبر مسافات طويلة. الـ Transformer بيستبدل الـ recurrence بـ self-attention، فكل token بيتصل مباشرة بكل token تاني وبالتوازي — بس التكلفة هي حساب تربيعي بالنسبة لطول الجملة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Self-Attention -->
+  <div class="section" id="attention">
+    <div class="section-header" onclick="toggle('attention')">
+      <div class="section-icon">02</div>
+      <div class="section-title">Self-Attention — Query, Key, Value</div>
+      <div class="section-toggle" id="toggle-attention">▼</div>
+    </div>
+    <div class="section-body open" id="body-attention">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('attention','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('attention','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="attention-en">
+        <h3>What "self" means</h3>
+        <p><span class="term">Self-attention</span> means every token in a sequence attends to (looks at) every other token in the <em>same</em> sequence — including itself — to build a new, context-aware representation of itself. This is different from the older "attention" you saw between an encoder and decoder in seq2seq RNN models, where the decoder attended to the encoder's outputs (a different sequence).</p>
+
+        <h3>Query, Key, Value vectors</h3>
+        <p>Every input token embedding is projected (via three separate learned weight matrices) into three different vectors:</p>
+        <ul>
+          <li><span class="highlight">Query (Q)</span> — represents "what am I looking for?" for this token.</li>
+          <li><span class="highlight">Key (K)</span> — represents "what do I contain?" for every token, used to be matched against queries.</li>
+          <li><span class="highlight">Value (V)</span> — represents "what information do I actually pass on?" once a token has been matched.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of a library search. Your <span class="term">Query</span> is the search term you type in. Every book on the shelf has a <span class="term">Key</span> — like a catalog tag describing what it's about. The search engine compares your query against every book's key to score relevance. Then, for the books that score high, you actually read their <span class="term">Value</span> — the real content inside. Attention is exactly this: compare query against all keys, then take a weighted blend of all values based on those relevance scores.
+        </div>
+
+        <h3>Scaled dot-product attention formula</h3>
+        <p>The output of self-attention for a whole sequence is computed as:</p>
+        <div class="code-block">Attention(Q, K, V) = softmax( Q·K<span class="cm">ᵀ</span> / √d<span class="cm">k</span> ) · V</div>
+        <p>Reading it step by step:</p>
+        <ol>
+          <li><span class="code-inline">Q·Kᵀ</span> — for every query, take its dot product with every key. This gives a raw similarity score between every pair of tokens (a score matrix of shape sequence_length × sequence_length).</li>
+          <li><span class="code-inline">/ √dk</span> — divide by the square root of the key dimension. This keeps the dot products from growing too large as dimensionality increases, which would otherwise push softmax into regions with tiny gradients.</li>
+          <li><span class="code-inline">softmax(...)</span> — turn the scores for each query into a probability distribution over all tokens (they sum to 1). High similarity → high weight.</li>
+          <li><span class="code-inline">· V</span> — use these weights to compute a weighted sum of all Value vectors. The result is a new vector for each token that blends in information from the whole sequence, weighted by relevance.</li>
+        </ol>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Sentence: "The animal didn't cross the street because <b>it</b> was too tired."</p>
+          <p>When computing the new representation for the token "it", self-attention lets "it" query all other tokens. The word "animal" will receive a high attention weight (high Q·K similarity) because grammatically and semantically "it" most likely refers to "animal", not "street". The final vector for "it" therefore blends in a lot of the meaning of "animal".</p>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Simplified pseudocode (PyTorch-style)</div>
+          <div class="code-block">
+<span class="kw">import</span> torch, math
+
+<span class="cm"># x: (seq_len, d_model) token embeddings for one sequence</span>
+Q = x @ W_q   <span class="cm"># (seq_len, d_k)</span>
+K = x @ W_k   <span class="cm"># (seq_len, d_k)</span>
+V = x @ W_v   <span class="cm"># (seq_len, d_v)</span>
+
+scores = (Q @ K.T) / math.<span class="fn">sqrt</span>(d_k)     <span class="cm"># (seq_len, seq_len)</span>
+weights = torch.softmax(scores, dim=<span class="str">-1</span>)   <span class="cm"># rows sum to 1</span>
+output  = weights @ V                        <span class="cm"># (seq_len, d_v)</span>
+          </div>
+        </div>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arwA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <text x="380" y="20" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="'IBM Plex Mono',monospace">Self-Attention: Query · Key · Value flow</text>
+
+            <rect x="30" y="45" width="120" height="36" rx="8" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1"/>
+            <text x="90" y="68" text-anchor="middle" font-size="12" fill="var(--c-blue)" font-weight="600">token embedding x</text>
+
+            <line x1="150" y1="63" x2="230" y2="63" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+
+            <rect x="230" y="20" width="90" height="34" rx="7" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1"/>
+            <text x="275" y="42" text-anchor="middle" font-size="12" fill="var(--c-amber)" font-weight="600">Q = x·Wq</text>
+
+            <rect x="230" y="64" width="90" height="34" rx="7" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1"/>
+            <text x="275" y="86" text-anchor="middle" font-size="12" fill="var(--c-teal)" font-weight="600">K = x·Wk</text>
+
+            <rect x="230" y="108" width="90" height="34" rx="7" fill="var(--c-purple-bg)" stroke="var(--c-purple)" stroke-width="1"/>
+            <text x="275" y="130" text-anchor="middle" font-size="12" fill="var(--c-purple)" font-weight="600">V = x·Wv</text>
+
+            <line x1="320" y1="37" x2="400" y2="60" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+            <line x1="320" y1="81" x2="400" y2="65" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+
+            <rect x="400" y="45" width="130" height="36" rx="8" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1"/>
+            <text x="465" y="68" text-anchor="middle" font-size="12" fill="var(--c-rose)" font-weight="600">Q·Kᵀ / √dk</text>
+
+            <line x1="530" y1="63" x2="600" y2="63" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+
+            <rect x="600" y="45" width="120" height="36" rx="8" fill="var(--c-emerald-bg)" stroke="var(--c-emerald)" stroke-width="1"/>
+            <text x="660" y="68" text-anchor="middle" font-size="12" fill="var(--c-emerald)" font-weight="600">softmax scores</text>
+
+            <line x1="660" y1="81" x2="660" y2="150" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="660" y1="150" x2="490" y2="150" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+            <line x1="320" y1="125" x2="410" y2="150" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+
+            <rect x="410" y="132" width="90" height="34" rx="7" fill="var(--c-indigo-bg)" stroke="var(--c-indigo)" stroke-width="1"/>
+            <text x="455" y="154" text-anchor="middle" font-size="12" fill="var(--c-indigo)" font-weight="600">weighted sum</text>
+
+            <line x1="455" y1="166" x2="455" y2="210" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA)"/>
+
+            <rect x="365" y="212" width="180" height="40" rx="8" fill="var(--c-sky-bg)" stroke="var(--c-sky)" stroke-width="1.2"/>
+            <text x="455" y="237" text-anchor="middle" font-size="12.5" fill="var(--c-sky)" font-weight="700">context-aware output vector</text>
+
+            <text x="90" y="280" text-anchor="middle" font-size="11" fill="var(--muted)">1 vector per token, in</text>
+            <text x="455" y="280" text-anchor="middle" font-size="11" fill="var(--muted)">1 blended vector per token, out — same shape</text>
+          </svg>
+          <div class="diagram-caption">Figure 1 — How Q, K, V combine into a self-attention output</div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Note on terminology</div>
+          Q, K, V are all computed from the <em>same</em> input sequence in self-attention (that's what makes it "self"). In the decoder's cross-attention (Section 5), Q comes from the decoder while K and V come from the encoder's output — a different sequence.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Self-attention lets each token build a query, compare it against every token's key, and pull in a weighted blend of every token's value. The formula softmax(QKᵀ/√dk)V computes this for the whole sequence in one shot, letting distant tokens interact directly.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="attention-ar" dir="rtl">
+        <h3>معنى كلمة "Self"</h3>
+        <p><span class="term">Self-attention</span> معناها إن كل token في الجملة بيعمل attend (يبص) على كل الـ tokens التانية في <em>نفس</em> الجملة — بما فيها هو نفسه — عشان يبني تمثيل جديد لنفسه واعي بالسياق (context-aware). ده مختلف عن الـ attention القديمة اللي شفتها بين encoder وdecoder في نماذج seq2seq المبنية على RNN، واللي فيها الـ decoder كان بيعمل attend على مخرجات الـ encoder (جملة مختلفة).</p>
+
+        <h3>Query, Key, Value vectors</h3>
+        <p>كل embedding لـ token بيتحوّل (عن طريق 3 مصفوفات أوزان متعلَّمة منفصلة) لـ 3 vectors مختلفة:</p>
+        <ul>
+          <li><span class="highlight">Query (Q)</span> — بتمثّل "أنا بدوّر على إيه؟" بالنسبة لهذا الـ token.</li>
+          <li><span class="highlight">Key (K)</span> — بتمثّل "أنا محتوي على إيه؟" لكل token، وبتُستخدم للمقارنة مع الـ queries.</li>
+          <li><span class="highlight">Value (V)</span> — بتمثّل "أنا فعلياً هبعت أي معلومة؟" بعد ما يتحدد إن فيه تطابق.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في بحث بمكتبة. الـ <span class="term">Query</span> بتاعك هو كلمة البحث اللي كتبتها. كل كتاب على الرف عنده <span class="term">Key</span> — زي بطاقة فهرسة بتوصف موضوعه. محرك البحث بيقارن الـ query بتاعك مع الـ key لكل كتاب عشان يحسب مدى الصلة. بعدين، للكتب اللي جابت درجة عالية، أنت فعلياً بتقرا الـ <span class="term">Value</span> بتاعتها — المحتوى الحقيقي جوه. الـ Attention هي بالضبط كده: قارن الـ query مع كل الـ keys، وبعدين اخد مزيج مرجّح (weighted) من كل الـ values حسب درجات الصلة دي.
+        </div>
+
+        <h3>معادلة Scaled Dot-Product Attention</h3>
+        <p>مخرجات self-attention لجملة كاملة بتُحسب كالتالي:</p>
+        <div class="code-block">Attention(Q, K, V) = softmax( Q·K<span class="cm">ᵀ</span> / √d<span class="cm">k</span> ) · V</div>
+        <p>خطوة بخطوة:</p>
+        <ol>
+          <li><span class="code-inline">Q·Kᵀ</span> — لكل query، اعمل dot product بينها وبين كل key. ده بيدّي درجة تشابه خام بين كل زوج tokens (مصفوفة درجات بحجم طول الجملة × طول الجملة).</li>
+          <li><span class="code-inline">/ √dk</span> — اقسم على الجذر التربيعي لبعد الـ key. ده بيمنع قيم الـ dot product من إنها تكبر أوي مع زيادة الأبعاد، لأن ده كان هيدفع الـ softmax لمناطق ذات gradients صغيرة جداً.</li>
+          <li><span class="code-inline">softmax(...)</span> — حوّل الدرجات لكل query لتوزيع احتمالي على كل الـ tokens (مجموعها = 1). تشابه عالي ← وزن عالي.</li>
+          <li><span class="code-inline">· V</span> — استخدم الأوزان دي عشان تحسب مجموع مرجّح لكل الـ Value vectors. الناتج هو vector جديد لكل token بيمزج معلومات من الجملة كلها، حسب الأهمية.</li>
+        </ol>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>الجملة: "The animal didn't cross the street because <b>it</b> was too tired."</p>
+          <p>لما نحسب التمثيل الجديد لكلمة "it"، الـ self-attention بيخلي "it" تعمل query على كل الـ tokens التانية. كلمة "animal" هتاخد وزن attention عالي (تشابه Q·K عالي) لأن نحوياً ومعنوياً "it" غالباً بترجع على "animal" مش "street". فالـ vector النهائي لـ "it" بيمزج فيه جزء كبير من معنى "animal".</p>
+        </div>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arwA2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <text x="380" y="20" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="'IBM Plex Mono',monospace">Self-Attention: تدفق Query · Key · Value</text>
+
+            <rect x="30" y="45" width="120" height="36" rx="8" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1"/>
+            <text x="90" y="68" text-anchor="middle" font-size="12" fill="var(--c-blue)" font-weight="600">token embedding x</text>
+
+            <line x1="150" y1="63" x2="230" y2="63" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+
+            <rect x="230" y="20" width="90" height="34" rx="7" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1"/>
+            <text x="275" y="42" text-anchor="middle" font-size="12" fill="var(--c-amber)" font-weight="600">Q = x·Wq</text>
+
+            <rect x="230" y="64" width="90" height="34" rx="7" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1"/>
+            <text x="275" y="86" text-anchor="middle" font-size="12" fill="var(--c-teal)" font-weight="600">K = x·Wk</text>
+
+            <rect x="230" y="108" width="90" height="34" rx="7" fill="var(--c-purple-bg)" stroke="var(--c-purple)" stroke-width="1"/>
+            <text x="275" y="130" text-anchor="middle" font-size="12" fill="var(--c-purple)" font-weight="600">V = x·Wv</text>
+
+            <line x1="320" y1="37" x2="400" y2="60" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+            <line x1="320" y1="81" x2="400" y2="65" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+
+            <rect x="400" y="45" width="130" height="36" rx="8" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1"/>
+            <text x="465" y="68" text-anchor="middle" font-size="12" fill="var(--c-rose)" font-weight="600">Q·Kᵀ / √dk</text>
+
+            <line x1="530" y1="63" x2="600" y2="63" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+
+            <rect x="600" y="45" width="120" height="36" rx="8" fill="var(--c-emerald-bg)" stroke="var(--c-emerald)" stroke-width="1"/>
+            <text x="660" y="68" text-anchor="middle" font-size="12" fill="var(--c-emerald)" font-weight="600">softmax scores</text>
+
+            <line x1="660" y1="81" x2="660" y2="150" stroke="var(--muted)" stroke-width="1.3"/>
+            <line x1="660" y1="150" x2="490" y2="150" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+            <line x1="320" y1="125" x2="410" y2="150" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+
+            <rect x="410" y="132" width="90" height="34" rx="7" fill="var(--c-indigo-bg)" stroke="var(--c-indigo)" stroke-width="1"/>
+            <text x="455" y="154" text-anchor="middle" font-size="12" fill="var(--c-indigo)" font-weight="600">مجموع مرجّح</text>
+
+            <line x1="455" y1="166" x2="455" y2="210" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arwA2)"/>
+
+            <rect x="365" y="212" width="180" height="40" rx="8" fill="var(--c-sky-bg)" stroke="var(--c-sky)" stroke-width="1.2"/>
+            <text x="455" y="237" text-anchor="middle" font-size="12.5" fill="var(--c-sky)" font-weight="700">vector مخرج واعٍ بالسياق</text>
+          </svg>
+          <div class="diagram-caption">شكل 1 — كيف تتحد Q وK وV لتكوين مخرج self-attention</div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة مصطلحات</div>
+          Q وK وV كلهم بيتحسبوا من <em>نفس</em> جملة الإدخال في self-attention (ده اللي بيخلّيها "self"). في cross-attention الخاصة بالـ decoder (القسم 5)، الـ Q بييجي من الـ decoder بينما K وV بييجوا من مخرجات الـ encoder — جملة مختلفة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ Self-attention بتخلي كل token يبني query، يقارنها بكل key، ويسحب مزيج مرجّح من كل value. معادلة softmax(QKᵀ/√dk)V بتحسب هذا لكل الجملة دفعة واحدة، وبتخلي الـ tokens البعيدة تتفاعل مباشرة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Multi-Head Attention -->
+  <div class="section" id="multihead">
+    <div class="section-header" onclick="toggle('multihead')">
+      <div class="section-icon">03</div>
+      <div class="section-title">Multi-Head Attention</div>
+      <div class="section-toggle" id="toggle-multihead">▼</div>
+    </div>
+    <div class="section-body open" id="body-multihead">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('multihead','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('multihead','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="multihead-en">
+        <h3>Why a single attention isn't enough</h3>
+        <p>One attention computation gives one specific "view" of how tokens relate — it collapses all types of relationships into a single weighted average. But language has many simultaneous relationships: subject-verb agreement, coreference ("it" → "animal"), adjective-noun pairing, long-range topic relevance, etc. A single attention head has to compromise across all of them.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine analyzing a crime scene with only one detective who tries to notice everything at once — fingerprints, timeline, motive, alibi — all through one lens. It's more effective to send several detectives, each specialized in one aspect. Multi-head attention is like having <span class="term">h</span> detectives (heads), each independently learning to notice a different kind of relationship, then combining their reports.
+        </div>
+
+        <h3>How it works</h3>
+        <ol>
+          <li>Instead of one set of Q, K, V projection matrices, the model learns <span class="term">h</span> separate sets (e.g. h = 8 in the original paper), each with smaller dimension <span class="code-inline">d_model / h</span>.</li>
+          <li>Each head independently computes scaled dot-product attention on its own smaller Q, K, V — so each head can specialize (one head might learn syntax, another might learn coreference).</li>
+          <li>The h output vectors are <span class="highlight">concatenated</span> back together into one vector of the original size <span class="code-inline">d_model</span>.</li>
+          <li>The concatenated vector is passed through one more learned linear projection <span class="code-inline">W_O</span> to mix information across heads into the final output.</li>
+        </ol>
+
+        <div class="example-box">
+          <div class="label">Simplified pseudocode</div>
+          <div class="code-block">
+<span class="cm"># h heads, each of dimension d_model / h</span>
+heads = []
+<span class="kw">for</span> i <span class="kw">in</span> range(h):
+    Qi = x @ Wq[i]; Ki = x @ Wk[i]; Vi = x @ Wv[i]
+    head_i = <span class="fn">attention</span>(Qi, Ki, Vi)   <span class="cm"># softmax(QiKiᵀ/√dk)Vi</span>
+    heads.append(head_i)
+
+concat  = torch.cat(heads, dim=<span class="str">-1</span>)   <span class="cm"># back to d_model width</span>
+output  = concat @ W_O               <span class="cm"># mix information across heads</span>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Important</div>
+          Multi-head attention does not cost h times more computation than single-head attention with the full dimension — each head works on a proportionally smaller dimension (d_model / h), so the total compute is comparable, but you gain h different "representation subspaces" instead of one.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Multi-head attention runs several smaller self-attention computations ("heads") in parallel, each free to specialize on a different kind of relationship, then concatenates and projects their outputs back together. This gives richer representations than a single attention computation.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="multihead-ar" dir="rtl">
+        <h3>ليه attention واحدة مش كافية</h3>
+        <p>حساب attention واحد بيدّيك "منظور" واحد محدد لعلاقة الـ tokens ببعض — بيدمج كل أنواع العلاقات في متوسط مرجّح واحد. لكن اللغة فيها علاقات متزامنة كتير: توافق الفاعل والفعل، الإحالة المرجعية (coreference) زي "it" ← "animal"، ارتباط الصفة بالاسم، صلة الموضوع البعيدة، إلخ. الـ head الواحدة مضطرة توفّق بين كل ده.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل بتحلل مسرح جريمة بمحقق واحد بس بيحاول يلاحظ كل حاجة مرة واحدة — بصمات، تايم لاين، دافع، حجة غياب — كله من عدسة واحدة. أفضل بكتير إنك تبعت كذا محقق، كل واحد متخصص في جانب. الـ multi-head attention زي ما يكون عندك <span class="term">h</span> محققين (heads)، كل واحد بيتعلم بشكل مستقل إنه يلاحظ نوع مختلف من العلاقات، وبعدين بتجمع تقاريرهم.
+        </div>
+
+        <h3>إزاي بتشتغل</h3>
+        <ol>
+          <li>بدل ما يكون عندك مجموعة واحدة من مصفوفات Q, K, V، الموديل بيتعلم <span class="term">h</span> مجموعات منفصلة (مثلاً h = 8 في الورقة الأصلية)، كل واحدة بأبعاد أصغر <span class="code-inline">d_model / h</span>.</li>
+          <li>كل head بتحسب scaled dot-product attention بشكل مستقل على Q, K, V الأصغر بتاعتها — فكل head ممكن تتخصص (head ممكن تتعلم النحو، وواحدة تانية تتعلم الإحالة المرجعية).</li>
+          <li>الـ h vectors الناتجة بيتم <span class="highlight">دمجها (concatenate)</span> مرة تانية في vector واحد بالحجم الأصلي <span class="code-inline">d_model</span>.</li>
+          <li>الـ vector المدموج بيمر على إسقاط خطي متعلَّم إضافي <span class="code-inline">W_O</span> عشان يمزج المعلومات بين الـ heads في المخرج النهائي.</li>
+        </ol>
+
+        <div class="warning-box">
+          <div class="label">مهم</div>
+          الـ multi-head attention مش بتكلف h ضعف الحساب مقارنة بـ attention واحدة بالبعد الكامل — كل head بتشتغل على بُعد أصغر تناسبياً (d_model / h)، فالتكلفة الإجمالية متقاربة، لكن بتكسب h "فضاءات تمثيل" مختلفة بدل واحد بس.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ multi-head attention بتشغّل عدة حسابات self-attention أصغر ("heads") بالتوازي، كل واحدة حرة تتخصص في نوع مختلف من العلاقات، وبعدين بتدمج وتسقط مخرجاتهم مع بعض. ده بيدّي تمثيلات أغنى من حساب attention واحد.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Positional Encoding -->
+  <div class="section" id="posenc">
+    <div class="section-header" onclick="toggle('posenc')">
+      <div class="section-icon">04</div>
+      <div class="section-title">Positional Encoding</div>
+      <div class="section-toggle" id="toggle-posenc">▼</div>
+    </div>
+    <div class="section-body open" id="body-posenc">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('posenc','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('posenc','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="posenc-en">
+        <h3>Why Transformers need this at all</h3>
+        <p>Self-attention treats the input as a <em>set</em> of tokens, not a <em>sequence</em>. If you shuffled the words in a sentence, the raw self-attention computation would produce the same set of pairwise scores — it has no built-in notion of order. This is very different from an RNN, where order is automatically encoded by the fact that processing happens step by step.</p>
+        <p>Since word order carries meaning ("dog bites man" ≠ "man bites dog"), the model needs an explicit way to inject position information into each token's embedding before it enters the attention layers.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Self-attention alone is like handing someone a bag of shuffled Scrabble tiles — they can see which letters exist and how they relate, but not the order they were originally in. Positional encoding is like stamping a small number on each tile before putting it in the bag, so even after shuffling, you can still reconstruct "tile 1, tile 2, tile 3...".
+        </div>
+
+        <h3>Sinusoidal positional encoding</h3>
+        <p>The original Transformer paper adds a fixed (not learned) vector to each token embedding, built from sine and cosine functions of different frequencies:</p>
+        <div class="code-block">PE(pos, 2i)   = sin( pos / 10000<span class="cm">^(2i/d_model)</span> )
+PE(pos, 2i+1) = cos( pos / 10000<span class="cm">^(2i/d_model)</span> )</div>
+        <p>Where <span class="code-inline">pos</span> is the token's position in the sequence and <span class="code-inline">i</span> indexes the embedding dimension. Even dimensions use sine, odd dimensions use cosine, and the wavelength increases across dimensions — some dimensions oscillate fast (encode fine-grained local position), others oscillate slowly (encode coarse, long-range position).</p>
+        <p>The positional encoding vector is simply <span class="highlight">added</span> (element-wise) to the token's embedding before the first layer:</p>
+        <div class="code-block">input_to_encoder = token_embedding + positional_encoding</div>
+
+        <h3>Why sine/cosine specifically?</h3>
+        <ul>
+          <li>They produce a unique pattern for every position, even for very long sequences.</li>
+          <li>They are bounded between -1 and 1, so they don't dominate or destabilize the token embedding's own scale.</li>
+          <li>Because of trigonometric identities, the encoding for position <span class="code-inline">pos + k</span> can be expressed as a simple linear function of the encoding for position <span class="code-inline">pos</span> — this makes it easier for the model to learn to attend by <em>relative</em> position.</li>
+          <li>Being fixed (not learned), they generalize to sequence lengths longer than anything seen during training.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">Note</div>
+          Many modern Transformer variants (e.g. BERT) instead use <span class="term">learned</span> positional embeddings — a trainable lookup table indexed by position, just like a regular embedding layer. Both approaches are common in practice.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Self-attention has no inherent sense of order, so Transformers add a positional encoding vector to each token embedding. The original paper uses fixed sine/cosine functions of varying frequency, giving every position a unique, bounded signature that generalizes to unseen lengths.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="posenc-ar" dir="rtl">
+        <h3>ليه الـ Transformer محتاج ده أصلاً</h3>
+        <p>الـ Self-attention بتعامل الإدخال كـ <em>مجموعة (set)</em> من الـ tokens، مش <em>تسلسل (sequence)</em>. لو خلطت ترتيب الكلمات في جملة، حساب self-attention الخام هيطلع نفس مجموعة الدرجات الثنائية — مفيش مفهوم مدمج للترتيب. ده مختلف تماماً عن RNN، اللي فيها الترتيب متضمّن تلقائياً لأن المعالجة بتحصل خطوة بخطوة.</p>
+        <p>وبما إن ترتيب الكلمات بيحمل معنى ("dog bites man" ≠ "man bites dog")، الموديل محتاج طريقة صريحة لحقن معلومة الموضع في embedding كل token قبل ما تدخل طبقات الـ attention.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ self-attention لوحدها زي إنك تدّي حد كيس من قطع Scrabble متخلطة — يقدر يشوف الحروف الموجودة وعلاقتها ببعض، لكن مش الترتيب الأصلي اللي كانوا فيه. الـ positional encoding زي إنك تحط رقم صغير على كل قطعة قبل ما تحطها في الكيس، فحتى بعد الخلط، تقدر ترجّع "قطعة 1، قطعة 2، قطعة 3...".
+        </div>
+
+        <h3>Sinusoidal Positional Encoding</h3>
+        <p>ورقة الـ Transformer الأصلية بتضيف vector ثابت (مش متعلَّم) لكل embedding بتاع token، مبني على دوال sine وcosine بترددات مختلفة:</p>
+        <div class="code-block">PE(pos, 2i)   = sin( pos / 10000<span class="cm">^(2i/d_model)</span> )
+PE(pos, 2i+1) = cos( pos / 10000<span class="cm">^(2i/d_model)</span> )</div>
+        <p>حيث <span class="code-inline">pos</span> هو موضع الـ token في الجملة و<span class="code-inline">i</span> بيرقّم بُعد الـ embedding. الأبعاد الزوجية بتستخدم sine، والفردية بتستخدم cosine، وطول الموجة بيزيد عبر الأبعاد — بعض الأبعاد بتتذبذب بسرعة (بتشفّر موضع دقيق محلي)، وبعضها بتتذبذب ببطء (بتشفّر موضع خشن بعيد المدى).</p>
+        <p>الـ vector بتاع الـ positional encoding ببساطة بيتم <span class="highlight">جمعه (add)</span> عنصر بعنصر مع embedding الـ token قبل أول طبقة:</p>
+        <div class="code-block">input_to_encoder = token_embedding + positional_encoding</div>
+
+        <h3>ليه sine/cosine بالتحديد؟</h3>
+        <ul>
+          <li>بتنتج نمط فريد لكل موضع، حتى للجمل الطويلة جداً.</li>
+          <li>محدودة بين -1 و1، فما بتسيطرش على أو بتزعزعش مقياس embedding الـ token نفسه.</li>
+          <li>بسبب متطابقات مثلثية، تشفير الموضع <span class="code-inline">pos + k</span> ممكن يتعبّر عنه كدالة خطية بسيطة من تشفير الموضع <span class="code-inline">pos</span> — ده بيسهّل على الموديل إنه يتعلم يعمل attend حسب الموضع <em>النسبي</em>.</li>
+          <li>لأنها ثابتة (مش متعلَّمة)، بتعمّم على أطوال جمل أطول من أي حاجة اتشافت وقت التدريب.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة</div>
+          كتير من نسخ الـ Transformer الحديثة (زي BERT) بتستخدم بدل كده <span class="term">learned positional embeddings</span> — جدول بحث متعلَّم (trainable) مفهرس بالموضع، زي أي طبقة embedding عادية. الطريقتين شائعتين عملياً.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ self-attention مالهاش إحساس جوهري بالترتيب، فالـ Transformers بتضيف vector للـ positional encoding لكل embedding token. الورقة الأصلية بتستخدم دوال sine/cosine ثابتة بترددات مختلفة، بتدّي كل موضع بصمة فريدة ومحدودة بتعمّم على أطوال ما اتشافتش قبل كده.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Architecture -->
+  <div class="section" id="architecture">
+    <div class="section-header" onclick="toggle('architecture')">
+      <div class="section-icon">05</div>
+      <div class="section-title">The Transformer Architecture — Encoder &amp; Decoder</div>
+      <div class="section-toggle" id="toggle-architecture">▼</div>
+    </div>
+    <div class="section-body open" id="body-architecture">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('architecture','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('architecture','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="architecture-en">
+        <h3>The two stacks</h3>
+        <p>The original Transformer is an <span class="term">encoder-decoder</span> model, built as a stack of <span class="code-inline">N</span> identical layers on each side (N = 6 in the original paper).</p>
+
+        <h3>Inside one encoder layer</h3>
+        <ol>
+          <li><span class="highlight">Multi-head self-attention</span> — every input token attends to every other input token (bidirectional — it can look both left and right).</li>
+          <li><span class="highlight">Add &amp; Norm</span> — a residual connection (add the sublayer's input back to its output) followed by layer normalization. This keeps gradients flowing well through deep stacks and stabilizes training.</li>
+          <li><span class="highlight">Position-wise feed-forward network (FFN)</span> — a small 2-layer MLP (with a ReLU/GELU in between) applied independently and identically to each token's vector. It gives the model extra non-linear transformation capacity per position.</li>
+          <li><span class="highlight">Add &amp; Norm</span> again after the FFN.</li>
+        </ol>
+
+        <h3>Inside one decoder layer</h3>
+        <p>The decoder layer has three sub-layers instead of two:</p>
+        <ol>
+          <li><span class="highlight">Masked multi-head self-attention</span> — the decoder attends to previous decoder tokens only, never future ones. A mask sets attention scores for future positions to −∞ before the softmax, forcing their weight to 0. This preserves the <span class="term">autoregressive</span> property needed for generation.</li>
+          <li><span class="highlight">Encoder-decoder cross-attention</span> — Query comes from the decoder's own representation so far; Key and Value come from the encoder's final output. This is how the decoder "reads" the source sequence while generating the target.</li>
+          <li><span class="highlight">Position-wise feed-forward network</span> — same role as in the encoder.</li>
+        </ol>
+        <p>Each of the three sub-layers is wrapped with its own residual connection + layer normalization ("Add &amp; Norm"), exactly like the encoder.</p>
+
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+            <text x="200" y="24" text-anchor="middle" font-size="13" fill="var(--c-blue)" font-weight="700" font-family="'IBM Plex Mono',monospace">ENCODER (×N)</text>
+            <text x="560" y="24" text-anchor="middle" font-size="13" fill="var(--c-rose)" font-weight="700" font-family="'IBM Plex Mono',monospace">DECODER (×N)</text>
+
+            <rect x="60" y="40" width="280" height="46" rx="8" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1.2"/>
+            <text x="200" y="68" text-anchor="middle" font-size="12.5" fill="var(--c-blue)" font-weight="600">Multi-Head Self-Attention</text>
+
+            <rect x="60" y="96" width="280" height="26" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+            <text x="200" y="113" text-anchor="middle" font-size="11" fill="var(--muted)">Add &amp; Norm</text>
+
+            <rect x="60" y="132" width="280" height="46" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1.2"/>
+            <text x="200" y="160" text-anchor="middle" font-size="12.5" fill="var(--c-teal)" font-weight="600">Feed-Forward Network</text>
+
+            <rect x="60" y="188" width="280" height="26" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+            <text x="200" y="205" text-anchor="middle" font-size="11" fill="var(--muted)">Add &amp; Norm</text>
+
+            <rect x="45" y="30" width="310" height="195" rx="12" fill="none" stroke="var(--c-blue)" stroke-width="1" stroke-dasharray="3 3"/>
+            <text x="200" y="240" text-anchor="middle" font-size="11" fill="var(--muted)">stacked N times ↑</text>
+
+            <rect x="420" y="40" width="280" height="46" rx="8" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1.2"/>
+            <text x="560" y="60" text-anchor="middle" font-size="11.5" fill="var(--c-rose)" font-weight="600">Masked Multi-Head</text>
+            <text x="560" y="76" text-anchor="middle" font-size="11.5" fill="var(--c-rose)" font-weight="600">Self-Attention</text>
+
+            <rect x="420" y="96" width="280" height="24" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+            <text x="560" y="112" text-anchor="middle" font-size="10.5" fill="var(--muted)">Add &amp; Norm</text>
+
+            <rect x="420" y="130" width="280" height="46" rx="8" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.2"/>
+            <text x="560" y="150" text-anchor="middle" font-size="11.5" fill="var(--c-amber)" font-weight="600">Encoder-Decoder</text>
+            <text x="560" y="166" text-anchor="middle" font-size="11.5" fill="var(--c-amber)" font-weight="600">Cross-Attention</text>
+
+            <rect x="420" y="186" width="280" height="24" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+            <text x="560" y="202" text-anchor="middle" font-size="10.5" fill="var(--muted)">Add &amp; Norm</text>
+
+            <rect x="420" y="220" width="280" height="40" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1.2"/>
+            <text x="560" y="245" text-anchor="middle" font-size="11.5" fill="var(--c-teal)" font-weight="600">Feed-Forward Network</text>
+
+            <rect x="420" y="270" width="280" height="24" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+            <text x="560" y="286" text-anchor="middle" font-size="10.5" fill="var(--muted)">Add &amp; Norm</text>
+
+            <rect x="405" y="30" width="310" height="278" rx="12" fill="none" stroke="var(--c-rose)" stroke-width="1" stroke-dasharray="3 3"/>
+            <text x="560" y="325" text-anchor="middle" font-size="11" fill="var(--muted)">stacked N times ↑</text>
+
+            <path d="M340 63 C 380 63, 380 150, 420 150" fill="none" stroke="var(--c-amber)" stroke-width="1.5" stroke-dasharray="4 2"/>
+            <text x="378" y="105" text-anchor="middle" font-size="10" fill="var(--c-amber)">K, V</text>
+
+            <rect x="60" y="365" width="280" height="30" rx="7" fill="var(--card)" stroke="var(--border)" stroke-width="1"/>
+            <text x="200" y="385" text-anchor="middle" font-size="11" fill="var(--text)">input embedding + positional encoding</text>
+
+            <rect x="420" y="365" width="280" height="30" rx="7" fill="var(--card)" stroke="var(--border)" stroke-width="1"/>
+            <text x="560" y="385" text-anchor="middle" font-size="11" fill="var(--text)">output embedding + positional encoding (shifted right)</text>
+          </svg>
+          <div class="diagram-caption">Figure 2 — One encoder layer (left) and one decoder layer (right), each stacked N times</div>
+        </div>
+
+        <table class="compare-table">
+          <tr><th>Component</th><th>Encoder</th><th>Decoder</th></tr>
+          <tr><td>Self-attention type</td><td>Full / bidirectional</td><td>Masked / causal (looks only left)</td></tr>
+          <tr><td>Extra sub-layer</td><td>—</td><td>Encoder-decoder cross-attention</td></tr>
+          <tr><td>Sub-layers per block</td><td>2 (attention, FFN)</td><td>3 (masked attention, cross-attention, FFN)</td></tr>
+          <tr><td>Residuals + LayerNorm</td><td>After every sub-layer</td><td>After every sub-layer</td></tr>
+        </table>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          The Transformer stacks N encoder layers (self-attention + FFN, both wrapped in residual + layer norm) and N decoder layers (masked self-attention + cross-attention to the encoder + FFN). Residual connections and layer normalization are what make it possible to stack many layers without training instability.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="architecture-ar" dir="rtl">
+        <h3>الطبقتان (Stacks)</h3>
+        <p>الـ Transformer الأصلي هو موديل <span class="term">encoder-decoder</span>، مبني كـ stack من <span class="code-inline">N</span> طبقة متطابقة على كل جانب (N = 6 في الورقة الأصلية).</p>
+
+        <h3>جوّه طبقة encoder واحدة</h3>
+        <ol>
+          <li><span class="highlight">Multi-head self-attention</span> — كل token في الإدخال بيعمل attend على كل token تاني في الإدخال (bidirectional — يقدر يبص يمين وشمال).</li>
+          <li><span class="highlight">Add &amp; Norm</span> — اتصال متبقٍّ (residual) (إضافة مدخل الـ sublayer لمخرجه) متبوع بـ layer normalization. ده بيخلّي الـ gradients تتدفق كويس عبر stacks عميقة وبيثبّت التدريب.</li>
+          <li><span class="highlight">Position-wise Feed-Forward Network (FFN)</span> — MLP صغير بطبقتين (مع ReLU/GELU بينهم) بيتطبق بشكل مستقل ومتطابق على vector كل token. بيدّي الموديل قدرة تحويل غير خطي إضافية لكل موضع.</li>
+          <li><span class="highlight">Add &amp; Norm</span> مرة تانية بعد الـ FFN.</li>
+        </ol>
+
+        <h3>جوّه طبقة decoder واحدة</h3>
+        <p>طبقة الـ decoder فيها 3 sub-layers بدل 2:</p>
+        <ol>
+          <li><span class="highlight">Masked multi-head self-attention</span> — الـ decoder بيعمل attend بس على tokens الـ decoder السابقة، أبداً المستقبلية. الـ mask بيحط درجات attention للمواضع المستقبلية على −∞ قبل الـ softmax، فوزنها بيبقى 0. ده بيحافظ على خاصية <span class="term">autoregressive</span> اللازمة للتوليد.</li>
+          <li><span class="highlight">Encoder-decoder cross-attention</span> — الـ Query جاي من تمثيل الـ decoder نفسه لحد دلوقتي؛ الـ Key والـ Value جايين من مخرج الـ encoder النهائي. كده الـ decoder "بيقرا" جملة المصدر وهو بيولّد الهدف.</li>
+          <li><span class="highlight">Feed-Forward Network</span> — نفس دور الـ encoder.</li>
+        </ol>
+        <p>كل واحدة من الـ 3 sub-layers ملفوفة بـ residual connection + layer normalization ("Add &amp; Norm") بتاعتها، بالظبط زي الـ encoder.</p>
+
+        <table class="compare-table">
+          <tr><th>المكوّن</th><th>Encoder</th><th>Decoder</th></tr>
+          <tr><td>نوع self-attention</td><td>كامل / bidirectional</td><td>Masked / سببي (بيبص شمال بس)</td></tr>
+          <tr><td>Sub-layer إضافي</td><td>—</td><td>Encoder-decoder cross-attention</td></tr>
+          <tr><td>عدد الـ sub-layers لكل block</td><td>2 (attention, FFN)</td><td>3 (masked attention, cross-attention, FFN)</td></tr>
+          <tr><td>Residuals + LayerNorm</td><td>بعد كل sub-layer</td><td>بعد كل sub-layer</td></tr>
+        </table>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ Transformer بيكدّس N طبقة encoder (self-attention + FFN، ملفوفين بـ residual + layer norm) وN طبقة decoder (masked self-attention + cross-attention مع الـ encoder + FFN). الـ residual connections والـ layer normalization هما اللي بيخلّوا تكديس طبقات كتير ممكن من غير عدم استقرار في التدريب.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Encoder-Decoder Flow -->
+  <div class="section" id="pipeline">
+    <div class="section-header" onclick="toggle('pipeline')">
+      <div class="section-icon">06</div>
+      <div class="section-title">End-to-End Flow — Machine Translation Example</div>
+      <div class="section-toggle" id="toggle-pipeline">▼</div>
+    </div>
+    <div class="section-body open" id="body-pipeline">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('pipeline','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('pipeline','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="pipeline-en">
+        <h3>Full pipeline, step by step</h3>
+        <p>Take an English → French translation task as a concrete walkthrough:</p>
+        <ol>
+          <li><span class="highlight">Tokenize + embed the source</span> — the English sentence is split into subword tokens, each mapped to an embedding vector, and positional encoding is added.</li>
+          <li><span class="highlight">Encoder stack</span> — the embedded source sequence passes through N encoder layers. The final output is a sequence of context-rich vectors, one per source token, that encode the full meaning of the English sentence (each vector already "knows about" every other token via self-attention).</li>
+          <li><span class="highlight">Start decoding</span> — the decoder begins with a special <span class="code-inline">&lt;start&gt;</span> token as its only input.</li>
+          <li><span class="highlight">Decoder stack, one step</span> — masked self-attention over the tokens generated so far, then cross-attention where Query = decoder state, Key/Value = encoder's final output (so the decoder looks back at the English sentence), then the FFN.</li>
+          <li><span class="highlight">Predict next token</span> — the decoder's final vector is projected to vocabulary size and passed through softmax, giving a probability distribution over the French vocabulary. The highest-probability (or sampled) token is chosen, e.g. "Le".</li>
+          <li><span class="highlight">Feed back and repeat</span> — the newly generated token is appended to the decoder's input, and steps 4-5 repeat: generate "chat", then "est", then "noir", then a special <span class="code-inline">&lt;end&gt;</span> token, which stops generation.</li>
+        </ol>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Source (English): "The cat is black"</p>
+          <p>Encoder runs once, producing rich vectors for "The", "cat", "is", "black".</p>
+          <p>Decoder generates one token at a time: <span class="code-inline">&lt;start&gt;</span> → "Le" → "chat" → "est" → "noir" → <span class="code-inline">&lt;end&gt;</span>, each step attending back to the encoder's output through cross-attention.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Key point</div>
+          The encoder runs only <em>once</em> per input sentence. The decoder runs <em>repeatedly</em>, one token at a time, re-using the same fixed encoder output at every step (this is why encoder-decoder generation is called <span class="term">autoregressive</span> on the decoder side, even though the encoder itself is fully parallel).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          The encoder processes the whole source sentence once, in parallel, producing context vectors. The decoder then generates the target sentence one token at a time, using masked self-attention over what it has generated so far plus cross-attention back into the encoder's fixed output, until it emits an end token.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="pipeline-ar" dir="rtl">
+        <h3>الـ Pipeline الكامل، خطوة بخطوة</h3>
+        <p>خد مهمة ترجمة إنجليزي ← فرنساوي كمثال ملموس:</p>
+        <ol>
+          <li><span class="highlight">Tokenize + embed للمصدر</span> — الجملة الإنجليزية بتتقسم لـ subword tokens، كل واحدة بتتحوّل لـ embedding vector، وبيتضاف الـ positional encoding.</li>
+          <li><span class="highlight">Encoder stack</span> — جملة المصدر (بعد الـ embedding) بتعدّي عبر N طبقة encoder. المخرج النهائي هو تسلسل من vectors غنية بالسياق، واحد لكل token مصدر، بتشفّر المعنى الكامل للجملة الإنجليزية (كل vector "عارف" عن كل token تاني عن طريق self-attention).</li>
+          <li><span class="highlight">بداية الـ decoding</span> — الـ decoder بيبدأ بـ token خاص <span class="code-inline">&lt;start&gt;</span> كمدخل وحيد.</li>
+          <li><span class="highlight">Decoder stack، خطوة واحدة</span> — masked self-attention على الـ tokens اللي اتولّدت لحد دلوقتي، بعدين cross-attention حيث Query = حالة الـ decoder، Key/Value = مخرج الـ encoder النهائي (فالـ decoder بيرجع يبص على الجملة الإنجليزية)، بعدين الـ FFN.</li>
+          <li><span class="highlight">توقّع الـ token التالي</span> — الـ vector النهائي للـ decoder بيتحوّل لحجم القاموس ويعدّي على softmax، وبيدّي توزيع احتمالي على القاموس الفرنساوي. الـ token صاحب أعلى احتمال (أو المأخوذ بالعينة) بيتم اختياره، مثلاً "Le".</li>
+          <li><span class="highlight">التغذية الراجعة والتكرار</span> — الـ token الجديد بيتضاف لمدخل الـ decoder، والخطوتين 4-5 بيتكرروا: يتولّد "chat"، بعدين "est"، بعدين "noir"، بعدين token خاص <span class="code-inline">&lt;end&gt;</span> بيوقف التوليد.</li>
+        </ol>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>المصدر (إنجليزي): "The cat is black"</p>
+          <p>الـ encoder بيشتغل مرة واحدة بس، وبينتج vectors غنية لـ "The"، "cat"، "is"، "black".</p>
+          <p>الـ decoder بيولّد token واحد كل مرة: <span class="code-inline">&lt;start&gt;</span> ← "Le" ← "chat" ← "est" ← "noir" ← <span class="code-inline">&lt;end&gt;</span>، وكل خطوة بترجع تعمل attend على مخرج الـ encoder عن طريق cross-attention.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">نقطة مهمة</div>
+          الـ encoder بيشتغل مرة واحدة بس <em>Once</em> لكل جملة إدخال. الـ decoder بيشتغل <em>بشكل متكرر</em>، token واحد كل مرة، ومعيد استخدام نفس مخرج الـ encoder الثابت في كل خطوة (لهذا توليد encoder-decoder بيتسمى <span class="term">autoregressive</span> من ناحية الـ decoder، رغم إن الـ encoder نفسه متوازي بالكامل).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ encoder بيعالج جملة المصدر كلها مرة واحدة، بالتوازي، ومنتج context vectors. الـ decoder بعدين بيولّد جملة الهدف token واحد كل مرة، باستخدام masked self-attention على اللي اتولّد لحد دلوقتي مع cross-attention لمخرج الـ encoder الثابت، لحد ما يطلع token النهاية.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Model Families -->
+  <div class="section" id="variants">
+    <div class="section-header" onclick="toggle('variants')">
+      <div class="section-icon">07</div>
+      <div class="section-title">Encoder-Only vs Decoder-Only vs Encoder-Decoder</div>
+      <div class="section-toggle" id="toggle-variants">▼</div>
+    </div>
+    <div class="section-body open" id="body-variants">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('variants','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('variants','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="variants-en">
+        <p>Once researchers realized the encoder and decoder blocks are each useful on their own, three families of models emerged, keeping only what a given task needs.</p>
+
+        <h3>Encoder-only — the "BERT" family</h3>
+        <p>Uses only the encoder stack, with full bidirectional self-attention (every token sees every other token, including ones after it). Not designed to generate text token-by-token; instead it produces rich contextual embeddings for an input, typically trained with a <span class="term">masked language modeling</span> objective (hide some tokens, predict them from both sides). Best for tasks that need to <em>understand</em> a fixed input: classification, sentiment analysis, NER, extractive question answering.</p>
+
+        <h3>Decoder-only — the "GPT" family</h3>
+        <p>Uses only the (masked) decoder stack, without any cross-attention block (there's no separate encoder feeding it). It is trained to predict the next token given only the tokens before it, causally. This makes it naturally suited to open-ended <em>generation</em>: chatbots, text completion, code generation, and — with enough scale — few-shot learning across almost any task by framing it as "predict what comes next."</p>
+
+        <h3>Encoder-Decoder — the "T5 / original Transformer" family</h3>
+        <p>Uses both stacks as in the original architecture: the encoder builds a full understanding of the input, the decoder generates a new sequence conditioned on it via cross-attention. Best suited to tasks that transform one sequence into a genuinely different one: translation, summarization, question answering where the answer must be composed (not just extracted).</p>
+
+        <table class="compare-table">
+          <tr><th>Family</th><th>Example models</th><th>Attention pattern</th><th>Best for</th></tr>
+          <tr><td>Encoder-only</td><td>BERT, RoBERTa</td><td>Bidirectional self-attention</td><td>Classification, NER, understanding tasks</td></tr>
+          <tr><td>Decoder-only</td><td>GPT family, LLaMA</td><td>Causal (masked) self-attention</td><td>Open-ended generation, chat, completion</td></tr>
+          <tr><td>Encoder-decoder</td><td>T5, BART, original Transformer</td><td>Bidirectional encoder + causal decoder + cross-attention</td><td>Translation, summarization, seq-to-seq</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Encoder-only is like a very attentive reader who reads a whole passage first, then answers questions about it — they can look back and forth freely. Decoder-only is like a storyteller improvising a story out loud, one word at a time, never able to "unsay" or revise, only continue forward based on what has already been said. Encoder-decoder is like a professional translator: first they read and fully understand the source sentence (encoder), then they compose the translation while continually glancing back at the original (decoder + cross-attention).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Encoder-only models (BERT) excel at understanding fixed input. Decoder-only models (GPT) excel at open-ended generation. Encoder-decoder models (T5) excel at transforming one sequence into another, like translation or summarization. The choice depends on whether the task needs understanding, generation, or both.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="variants-ar" dir="rtl">
+        <p>لما الباحثين لاحظوا إن الـ encoder والـ decoder كل واحد مفيد لوحده، ظهرت 3 عائلات موديلات، كل واحدة بتحتفظ بس بالجزء اللي المهمة محتاجاه.</p>
+
+        <h3>Encoder-only — عائلة "BERT"</h3>
+        <p>بتستخدم الـ encoder stack بس، بـ self-attention كامل bidirectional (كل token بيشوف كل token تاني، حتى اللي بعده). مش مصمم إنه يولّد نص token بعد token؛ بدل كده بينتج embeddings سياقية غنية للإدخال، وعادة بيتدرب بهدف <span class="term">masked language modeling</span> (تخبي بعض الـ tokens، وتتوقعها من الاتجاهين). أفضل للمهام اللي محتاجة <em>فهم</em> إدخال ثابت: تصنيف، تحليل مشاعر، NER، الإجابة الاستخراجية على الأسئلة.</p>
+
+        <h3>Decoder-only — عائلة "GPT"</h3>
+        <p>بتستخدم الـ (masked) decoder stack بس، من غير أي cross-attention block (مفيش encoder منفصل بيغذّيه). بيتدرب إنه يتوقع الـ token التالي معتمداً بس على الـ tokens اللي قبله، بشكل سببي (causal). ده بيخلّيه مناسب طبيعياً للـ <em>توليد</em> المفتوح: chatbots، إكمال النص، توليد الكود، ومع حجم كافي — تعلّم few-shot عبر أي مهمة تقريباً عن طريق صياغتها كـ "توقّع اللي جاي".</p>
+
+        <h3>Encoder-Decoder — عائلة "T5 / الـ Transformer الأصلي"</h3>
+        <p>بتستخدم الـ stacks الاتنين زي المعمارية الأصلية: الـ encoder بيبني فهم كامل للإدخال، والـ decoder بيولّد تسلسل جديد بالاعتماد عليه عن طريق cross-attention. مناسب أكتر للمهام اللي بتحوّل تسلسل لتسلسل مختلف فعلياً: ترجمة، تلخيص، إجابة الأسئلة اللي محتاجة تُصاغ (مش بس تُستخرج).</p>
+
+        <table class="compare-table">
+          <tr><th>العائلة</th><th>أمثلة موديلات</th><th>نمط الـ attention</th><th>الأفضل لـ</th></tr>
+          <tr><td>Encoder-only</td><td>BERT, RoBERTa</td><td>Self-attention bidirectional</td><td>تصنيف، NER، مهام الفهم</td></tr>
+          <tr><td>Decoder-only</td><td>عائلة GPT، LLaMA</td><td>Self-attention سببي (masked)</td><td>توليد مفتوح، محادثة، إكمال</td></tr>
+          <tr><td>Encoder-decoder</td><td>T5, BART, الـ Transformer الأصلي</td><td>encoder bidirectional + decoder سببي + cross-attention</td><td>ترجمة، تلخيص، seq-to-seq</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ Encoder-only زي قارئ منتبه جداً بيقرا فقرة كاملة الأول، وبعدين بيجاوب أسئلة عنها — يقدر يرجع ويتقدم بحرية. الـ Decoder-only زي راوي بيرتجل قصة بصوت عالي، كلمة كلمة، وما يقدرش "يسحب كلامه" أو يعدّله، بس يكمّل قدام بناءً على اللي اتقال. الـ Encoder-decoder زي مترجم محترف: الأول بيقرا ويفهم جملة المصدر كاملة (encoder)، بعدين بيصيغ الترجمة وهو باستمرار بيراجع الأصل (decoder + cross-attention).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          موديلات Encoder-only (زي BERT) بتتفوق في فهم إدخال ثابت. موديلات Decoder-only (زي GPT) بتتفوق في التوليد المفتوح. موديلات Encoder-decoder (زي T5) بتتفوق في تحويل تسلسل لتسلسل تاني، زي الترجمة أو التلخيص. الاختيار بيعتمد على إذا كانت المهمة محتاجة فهم، توليد، أو الاتنين.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Advantages and Limitations -->
+  <div class="section" id="tradeoffs">
+    <div class="section-header" onclick="toggle('tradeoffs')">
+      <div class="section-icon">08</div>
+      <div class="section-title">Advantages and Limitations</div>
+      <div class="section-toggle" id="toggle-tradeoffs">▼</div>
+    </div>
+    <div class="section-body open" id="body-tradeoffs">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('tradeoffs','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('tradeoffs','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="tradeoffs-en">
+        <h3>Advantages</h3>
+        <ul>
+          <li><span class="highlight">Parallelization</span> — no recurrence means all tokens in a training batch can be processed simultaneously on a GPU/TPU, drastically speeding up training compared to RNNs.</li>
+          <li><span class="highlight">Long-range dependencies</span> — any two tokens are connected by a direct computation, regardless of distance, so information doesn't have to survive a long chain of steps.</li>
+          <li><span class="highlight">Transfer learning at scale</span> — the architecture scales extremely well with more data and parameters, which is why it underlies almost all modern large language models (BERT, GPT, T5, and beyond).</li>
+          <li><span class="highlight">Flexibility</span> — the same core block (multi-head attention + FFN) works for text, and — with adaptation — images, audio, and other modalities.</li>
+        </ul>
+
+        <h3>Limitations</h3>
+        <ul>
+          <li><span class="highlight">Quadratic compute and memory</span> — self-attention computes a score for every pair of tokens, so cost grows as O(sequence length²). Very long documents become expensive or infeasible without special techniques (sparse attention, sliding windows, linear attention approximations).</li>
+          <li><span class="highlight">Data hunger</span> — Transformers have less built-in inductive bias about sequence structure than RNNs, so they typically need large amounts of training data to reach strong performance.</li>
+          <li><span class="highlight">No inherent notion of order</span> — position must be injected artificially (positional encoding); the raw attention mechanism itself is order-agnostic.</li>
+          <li><span class="highlight">High compute and energy cost</span> — training large Transformer-based models requires substantial hardware and energy resources.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">Important</div>
+          The quadratic cost of self-attention is the single biggest practical limitation of the vanilla Transformer. It is the main reason context-window length has historically been constrained, and it has motivated a large body of research into more efficient attention variants.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Transformers trade the sequential bottleneck of RNNs for parallel, direct long-range connections — a huge win for training speed and dependency modeling — at the cost of quadratic compute with sequence length and a need for large training datasets.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="tradeoffs-ar" dir="rtl">
+        <h3>المميزات</h3>
+        <ul>
+          <li><span class="highlight">Parallelization</span> — عدم وجود recurrence معناه إن كل الـ tokens في batch التدريب ممكن تتعالج في نفس الوقت على GPU/TPU، وده بيسرّع التدريب بشكل كبير مقارنة بـ RNN.</li>
+          <li><span class="highlight">Long-range dependencies</span> — أي زوج tokens متصلين بحساب مباشر، بغض النظر عن المسافة، فالمعلومة مش محتاجة تعيش عبر سلسلة طويلة من الخطوات.</li>
+          <li><span class="highlight">Transfer learning على نطاق واسع</span> — المعمارية بتتوسّع (scale) كويس جداً مع زيادة البيانات والـ parameters، ولهذا هي أساس تقريباً كل نماذج اللغة الضخمة الحديثة (BERT، GPT، T5، وأكتر).</li>
+          <li><span class="highlight">مرونة</span> — نفس الـ block الأساسي (multi-head attention + FFN) بيشتغل للنص، ومع تعديلات — للصور والصوت ووسائط تانية.</li>
+        </ul>
+
+        <h3>القيود</h3>
+        <ul>
+          <li><span class="highlight">حساب وذاكرة تربيعية</span> — self-attention بيحسب درجة لكل زوج tokens، فالتكلفة بتكبر كـ O(طول الجملة²). المستندات الطويلة جداً بتبقى مكلفة أو غير عملية من غير تقنيات خاصة (sparse attention، sliding windows، تقريبات linear attention).</li>
+          <li><span class="highlight">جوع للبيانات</span> — الـ Transformers عندها inductive bias مدمج أقل عن بنية التسلسل مقارنة بـ RNN، فعادة بتحتاج كمية كبيرة من بيانات التدريب عشان توصل لأداء قوي.</li>
+          <li><span class="highlight">مفيش إحساس جوهري بالترتيب</span> — الموضع لازم يتحقن بشكل صناعي (positional encoding)؛ آلية الـ attention الخام نفسها ما بتهتمش بالترتيب.</li>
+          <li><span class="highlight">تكلفة حسابية وطاقة عالية</span> — تدريب موديلات Transformer الكبيرة بيحتاج موارد hardware وطاقة كبيرة.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">مهم</div>
+          التكلفة التربيعية للـ self-attention هي أكبر قيد عملي للـ Transformer الأساسي (vanilla). هي السبب الرئيسي وراء إن طول نافذة السياق (context window) كان تاريخياً محدود، وهي اللي حفّزت بحث كبير على نسخ attention أكثر كفاءة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ Transformers بتستبدل الاختناق المتتالي بتاع RNN باتصالات مباشرة وبالتوازي بعيدة المدى — مكسب كبير لسرعة التدريب ونمذجة الاعتماديات — بس على حساب حساب تربيعي بالنسبة لطول الجملة وحاجة لمجموعات بيانات تدريب كبيرة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9: Applications -->
+  <div class="section" id="applications">
+    <div class="section-header" onclick="toggle('applications')">
+      <div class="section-icon">09</div>
+      <div class="section-title">Applications in NLP</div>
+      <div class="section-toggle" id="toggle-applications">▼</div>
+    </div>
+    <div class="section-body open" id="body-applications">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('applications','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('applications','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="applications-en">
+        <h3>Where Transformers are used today</h3>
+        <ul>
+          <li><span class="highlight">Machine translation</span> — the original task Transformers were designed for (encoder-decoder), still a core use case.</li>
+          <li><span class="highlight">Text summarization</span> — abstractive summarization (generating a new, shorter version) benefits directly from encoder-decoder models like T5 and BART.</li>
+          <li><span class="highlight">Text generation and chat</span> — decoder-only GPT-style models power chatbots, writing assistants, and code generation tools.</li>
+          <li><span class="highlight">Question answering</span> — both extractive (BERT-style, find the answer span in a passage) and generative (T5/GPT-style, compose a free-form answer).</li>
+          <li><span class="highlight">Text classification and sentiment analysis</span> — encoder-only models fine-tuned on top of pretrained contextual embeddings.</li>
+          <li><span class="highlight">Named Entity Recognition and information extraction</span> — contextual embeddings from encoder-only models sharply improved accuracy over earlier feature-based methods.</li>
+          <li><span class="highlight">The foundation of modern LLMs</span> — essentially every large language model in use today (GPT-family, Claude, LLaMA, Gemini, and others) is built from stacks of Transformer decoder blocks, scaled up with far more layers, parameters, and training data than the original 2017 architecture.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">Example — from lecture to industry</div>
+          <p>Everything covered in this guide — Q/K/V attention, multi-head attention, positional encoding, residual + layer norm blocks — is literally the same machinery running, at a much larger scale, inside the chatbot or coding assistant you might use every day. Scaling up depth, width, and training data is most of what separates the original 2017 Transformer from today's frontier LLMs.</p>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Transformers now underlie nearly every mainstream NLP application — translation, summarization, generation, classification, question answering, and information extraction — and the decoder-only Transformer, scaled up massively, is the architecture behind modern large language models.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="applications-ar" dir="rtl">
+        <h3>أين تُستخدم الـ Transformers اليوم</h3>
+        <ul>
+          <li><span class="highlight">الترجمة الآلية</span> — المهمة الأصلية اللي اتصمم الـ Transformer عشانها (encoder-decoder)، لسه استخدام أساسي.</li>
+          <li><span class="highlight">تلخيص النصوص</span> — الـ abstractive summarization (توليد نسخة جديدة أقصر) بتستفيد مباشرة من موديلات encoder-decoder زي T5 وBART.</li>
+          <li><span class="highlight">توليد النص والمحادثة</span> — موديلات decoder-only بأسلوب GPT بتشغّل الـ chatbots ومساعدي الكتابة وأدوات توليد الكود.</li>
+          <li><span class="highlight">الإجابة على الأسئلة</span> — سواء extractive (بأسلوب BERT، إيجاد الإجابة داخل فقرة) أو generative (بأسلوب T5/GPT، صياغة إجابة حرة).</li>
+          <li><span class="highlight">تصنيف النصوص وتحليل المشاعر</span> — موديلات encoder-only متضبوطة (fine-tuned) فوق embeddings سياقية مدرَّبة مسبقاً.</li>
+          <li><span class="highlight">Named Entity Recognition واستخراج المعلومات</span> — الـ embeddings السياقية من موديلات encoder-only حسّنت الدقة بشكل كبير عن الطرق القديمة القائمة على features.</li>
+          <li><span class="highlight">أساس نماذج اللغة الضخمة الحديثة</span> — تقريباً كل large language model مستخدم النهاردة (عائلة GPT، Claude، LLaMA، Gemini، وغيرهم) مبني من stacks من decoder blocks بتاعة الـ Transformer، بمقياس أكبر بكتير من ناحية الطبقات والـ parameters وبيانات التدريب مقارنة بالمعمارية الأصلية سنة 2017.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">مثال — من المحاضرة للصناعة</div>
+          <p>كل حاجة اتغطت في هذا الدليل — Q/K/V attention، multi-head attention، positional encoding، بلوكات residual + layer norm — هي حرفياً نفس الآلية اللي شغّالة، بمقياس أكبر بكتير، جوّه الـ chatbot أو مساعد البرمجة اللي ممكن تستخدمه كل يوم. توسيع العمق والعرض وبيانات التدريب هو معظم اللي بيفرّق بين Transformer 2017 الأصلي وأحدث LLMs النهاردة.</p>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ Transformers دلوقتي أساس تقريباً كل تطبيق NLP رئيسي — ترجمة، تلخيص، توليد، تصنيف، إجابة أسئلة، واستخراج معلومات — والـ decoder-only Transformer، بمقياس أكبر بكتير، هو المعمارية وراء نماذج اللغة الضخمة الحديثة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

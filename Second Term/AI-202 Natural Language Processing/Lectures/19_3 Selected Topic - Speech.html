@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: Selected Topic - Speech — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #basics     .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #sampling   .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #features   .section-icon { background: var(--c-teal-bg);    color: var(--c-teal);    border: 1.5px solid var(--c-teal-mid); }
+  #windowing  .section-icon { background: var(--c-purple-bg);  color: var(--c-purple);  border: 1.5px solid var(--c-purple-mid); }
+  #production .section-icon { background: var(--c-rose-bg);    color: var(--c-rose);    border: 1.5px solid var(--c-rose-mid); }
+  #cepstrum   .section-icon { background: var(--c-emerald-bg); color: var(--c-emerald); border: 1.5px solid var(--c-emerald-mid); }
+  #lpc        .section-icon { background: var(--c-indigo-bg);  color: var(--c-indigo);  border: 1.5px solid var(--c-indigo-mid); }
+  #vq         .section-icon { background: var(--c-orange-bg);  color: var(--c-orange);  border: 1.5px solid var(--c-orange-mid); }
+  #hmm        .section-icon { background: var(--c-sky-bg);     color: var(--c-sky);     border: 1.5px solid var(--c-sky-mid); }
+
+  /* Section left-border accent stripe */
+  #basics     { border-left: 4px solid var(--c-blue); }
+  #sampling   { border-left: 4px solid var(--c-amber); }
+  #features   { border-left: 4px solid var(--c-teal); }
+  #windowing  { border-left: 4px solid var(--c-purple); }
+  #production { border-left: 4px solid var(--c-rose); }
+  #cepstrum   { border-left: 4px solid var(--c-emerald); }
+  #lpc        { border-left: 4px solid var(--c-indigo); }
+  #vq         { border-left: 4px solid var(--c-orange); }
+  #hmm        { border-left: 4px solid var(--c-sky); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  /* ── Diagrams ── */
+  .diagram-box {
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin: 16px 0;
+  }
+  .diagram-box svg { width: 100%; height: auto; display: block; }
+  .diagram-caption { text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: Selected Topic - Speech</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('basics')">Speech Basics</button>
+      <button class="toc-chip" onclick="scrollTo('sampling')">Sampling &amp; Nyquist</button>
+      <button class="toc-chip" onclick="scrollTo('features')">Speech Features</button>
+      <button class="toc-chip" onclick="scrollTo('windowing')">Windowing</button>
+      <button class="toc-chip" onclick="scrollTo('production')">Vocal Tract &amp; Formants</button>
+      <button class="toc-chip" onclick="scrollTo('cepstrum')">Cepstrum &amp; MFCC</button>
+      <button class="toc-chip" onclick="scrollTo('lpc')">LPC</button>
+      <button class="toc-chip" onclick="scrollTo('vq')">Vector Quantization</button>
+      <button class="toc-chip" onclick="scrollTo('hmm')">HMMs for ASR</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Speech Basics -->
+  <div class="section" id="basics">
+    <div class="section-header" onclick="toggle('basics')">
+      <div class="section-icon">01</div>
+      <div class="section-title">What is Speech, and Why is Speech Recognition Hard?</div>
+      <div class="section-toggle open" id="toggle-basics">▼</div>
+    </div>
+    <div class="section-body open" id="body-basics">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('basics','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('basics','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="basics-en">
+        <h3>Sound, Audio, Music, Speech</h3>
+        <p>Physically, <span class="term">sound</span> is a disturbance (a pressure wave) travelling through the air. Two properties describe it: <span class="highlight">amplitude</span> (how loud — the strength of the pressure change) and <span class="highlight">frequency</span> (how fast it vibrates, measured in Hz, which we perceive as pitch).</p>
+        <p><span class="term">Audio</span> and <span class="term">music</span> both span the full range humans can hear, roughly <strong>20 Hz – 20,000 Hz</strong>. <span class="term">Speech</span>, however, concentrates almost all of its useful information in a much narrower band, roughly <strong>300 Hz – 3,400 Hz</strong> — this is exactly the band that old telephone systems were engineered to carry, because it is enough for humans to understand each other.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Music is like a full orchestra — every instrument, every octave matters. Speech is like a phone call — you only need a narrow "understandable" slice of the sound to get the message. That is why old telephones sounded thin but you could still understand every word.
+        </div>
+
+        <h3>Speech components and speech vs. image processing</h3>
+        <p>A speech signal actually carries two layers of information at once: the <span class="highlight">linguistic content</span> (what words are being said) and <span class="highlight">speaker-related information</span> (who is speaking, their accent, emotion, health, gender). <span class="term">Speech processing</span> deals with manipulating the raw signal (compression, enhancement, synthesis); <span class="term">speech analysis</span> extracts meaningful features from it (for recognition, identification, verification).</p>
+        <p>Compared to <span class="term">image processing</span>, speech is fundamentally a <strong>1-D signal that varies over time</strong>, while an image is a <strong>2-D signal that varies over space</strong>. Images are usually static snapshots; speech is inherently sequential — order matters enormously (say "no" backwards and it means nothing). This is why speech systems rely on temporal models (like HMMs) while classic image systems historically relied on spatial filters (and now CNNs).</p>
+
+        <h3>Why is Speech Recognition hard? Three sources of difficulty</h3>
+        <table class="compare-table">
+          <tr><th>Category</th><th>What goes wrong</th><th>Example</th></tr>
+          <tr><td><span class="highlight">1. Environmental Interference</span></td><td>Background noise, reverberation, overlapping talkers, microphone quality</td><td>Recognizing speech in a moving car or a crowded café</td></tr>
+          <tr><td><span class="highlight">2. Linguistic Complexity</span></td><td>Accents/dialects, homophones, coarticulation (sounds blending into neighbors)</td><td>"recognize speech" vs "wreck a nice beach" sound almost identical</td></tr>
+          <tr><td><span class="highlight">3. Speaker Diversity &amp; Atypical Speech</span></td><td>Different pitch/rate across age and gender, speech impairments, non-native speakers</td><td>A child's voice has a much higher pitch than an adult male's</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">Overview: the full speech-to-text pipeline</div>
+          <p>This is the roadmap for the rest of this guide — a raw analog wave becomes text (or a class label) through several transformation stages:</p>
+          <div class="diagram-box">
+            <svg viewBox="0 0 860 190" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 Z" fill="var(--muted)"/>
+                </marker>
+              </defs>
+              <!-- stage boxes -->
+              <g font-family="Sora, sans-serif" font-size="12" font-weight="600">
+                <rect x="10" y="70" width="90" height="50" rx="8" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1.5"/>
+                <text x="55" y="90" text-anchor="middle" fill="var(--c-blue)">Raw</text>
+                <text x="55" y="105" text-anchor="middle" fill="var(--c-blue)">Audio</text>
+
+                <rect x="120" y="70" width="100" height="50" rx="8" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.5"/>
+                <text x="170" y="90" text-anchor="middle" fill="var(--c-amber)">Sampling &amp;</text>
+                <text x="170" y="105" text-anchor="middle" fill="var(--c-amber)">Quantization</text>
+
+                <rect x="240" y="70" width="100" height="50" rx="8" fill="var(--c-purple-bg)" stroke="var(--c-purple)" stroke-width="1.5"/>
+                <text x="290" y="90" text-anchor="middle" fill="var(--c-purple)">Framing &amp;</text>
+                <text x="290" y="105" text-anchor="middle" fill="var(--c-purple)">Windowing</text>
+
+                <rect x="360" y="70" width="80" height="50" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1.5"/>
+                <text x="400" y="90" text-anchor="middle" fill="var(--c-teal)">DFT /</text>
+                <text x="400" y="105" text-anchor="middle" fill="var(--c-teal)">Spectrum</text>
+
+                <rect x="460" y="70" width="90" height="50" rx="8" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1.5"/>
+                <text x="505" y="90" text-anchor="middle" fill="var(--c-rose)">Mel Filter-</text>
+                <text x="505" y="105" text-anchor="middle" fill="var(--c-rose)">bank</text>
+
+                <rect x="570" y="70" width="90" height="50" rx="8" fill="var(--c-emerald-bg)" stroke="var(--c-emerald)" stroke-width="1.5"/>
+                <text x="615" y="90" text-anchor="middle" fill="var(--c-emerald)">Cepstrum /</text>
+                <text x="615" y="105" text-anchor="middle" fill="var(--c-emerald)">MFCC</text>
+
+                <rect x="680" y="70" width="80" height="50" rx="8" fill="var(--c-indigo-bg)" stroke="var(--c-indigo)" stroke-width="1.5"/>
+                <text x="720" y="90" text-anchor="middle" fill="var(--c-indigo)">Feature</text>
+                <text x="720" y="105" text-anchor="middle" fill="var(--c-indigo)">Vectors</text>
+
+                <rect x="780" y="70" width="70" height="50" rx="8" fill="var(--c-sky-bg)" stroke="var(--c-sky)" stroke-width="1.5"/>
+                <text x="815" y="90" text-anchor="middle" fill="var(--c-sky)">HMM</text>
+                <text x="815" y="105" text-anchor="middle" fill="var(--c-sky)">Classifier</text>
+              </g>
+              <!-- arrows -->
+              <g stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow1)">
+                <line x1="100" y1="95" x2="118" y2="95"/>
+                <line x1="220" y1="95" x2="238" y2="95"/>
+                <line x1="340" y1="95" x2="358" y2="95"/>
+                <line x1="440" y1="95" x2="458" y2="95"/>
+                <line x1="550" y1="95" x2="568" y2="95"/>
+                <line x1="660" y1="95" x2="678" y2="95"/>
+                <line x1="760" y1="95" x2="778" y2="95"/>
+              </g>
+              <text x="430" y="30" text-anchor="middle" font-family="Sora, sans-serif" font-size="13" font-weight="700" fill="var(--text)">The Speech Processing &amp; Recognition Pipeline</text>
+              <text x="430" y="165" text-anchor="middle" font-family="Sora, sans-serif" font-size="11" fill="var(--muted)">Every stage above is a section in this guide — follow the TOC chips in order</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Speech is a narrowband (300–3400 Hz) 1-D time signal carrying both words and speaker identity. Speech recognition is hard because of noise, linguistic ambiguity, and speaker diversity. The rest of this guide walks through the full pipeline that turns a sound wave into text.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="basics-ar" dir="rtl">
+        <h3>الصوت، الـ Audio، الموسيقى، والـ Speech</h3>
+        <p>فيزيائياً، <span class="term">الصوت (sound)</span> هو اضطراب (موجة ضغط) بينتقل عبر الهواء. بيوصف بخاصيتين: <span class="highlight">Amplitude</span> (شدة الصوت) و<span class="highlight">Frequency</span> (سرعة الاهتزاز بالـ Hz، وهذا اللي بنحسّه كـ "طبقة الصوت" أو pitch).</p>
+        <p><span class="term">Audio</span> والـ <span class="term">Music</span> بيغطّوا كل المدى اللي يقدر الإنسان يسمعه، تقريباً <strong>20 Hz – 20,000 Hz</strong>. أما <span class="term">Speech</span> فمعلوماته المفيدة تتركّز في مدى أضيق بكثير، تقريباً <strong>300 Hz – 3,400 Hz</strong> — وهذا بالضبط المدى اللي صُمّمت أنظمة التليفون القديمة عشان تنقله، لأنه كافي عشان نفهم بعض.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الموسيقى مثل أوركسترا كاملة — كل آلة وكل أوكتاف مهم. الـ Speech مثل مكالمة تليفون — تحتاج بس شريحة ضيقة "مفهومة" من الصوت عشان توصل الرسالة. لهذا التليفونات القديمة كانت تبان "رفيعة" بالصوت بس تقدر تفهم كل كلمة.</p>
+        </div>
+
+        <h3>مكونات الـ Speech ومقارنة مع معالجة الصور</h3>
+        <p>إشارة الـ Speech بتحمل طبقتين من المعلومات بنفس الوقت: <span class="highlight">المحتوى اللغوي</span> (ما الكلمات المنطوقة) و<span class="highlight">معلومات المتحدث</span> (مين اللي يتكلم، لهجته، حالته النفسية، جنسه). <span class="term">Speech Processing</span> بيتعامل مع الإشارة الخام (ضغط، تحسين، توليد صوت)؛ بينما <span class="term">Speech Analysis</span> بيستخرج features مفيدة منها (للتعرّف والتحقق من الهوية).</p>
+        <p>بالمقارنة مع <span class="term">Image Processing</span>، الـ Speech هي أساساً إشارة <strong>1-D بتتغيّر عبر الزمن</strong>، بينما الصورة إشارة <strong>2-D بتتغيّر عبر المكان</strong>. الصور عادة لقطة ثابتة، لكن الـ Speech متسلسلة بطبيعتها — الترتيب مهم جداً (قول "لا" بالمقلوب ما له معنى). لهذا أنظمة الـ Speech بتعتمد على نماذج زمنية (مثل HMM) بينما أنظمة الصور التقليدية بتعتمد على فلاتر مكانية (والآن CNNs).</p>
+
+        <h3>ليش Speech Recognition صعب؟ ثلاث مصادر للصعوبة</h3>
+        <table class="compare-table">
+          <tr><th>الفئة</th><th>ما يحصل من خلل</th><th>مثال</th></tr>
+          <tr><td><span class="highlight">1. Environmental Interference</span></td><td>ضوضاء خلفية، صدى، تداخل متحدثين، جودة الميكروفون</td><td>التعرّف على الكلام داخل سيارة تتحرك أو مقهى مزدحم</td></tr>
+          <tr><td><span class="highlight">2. Linguistic Complexity</span></td><td>لهجات، كلمات متجانسة الصوت (homophones)، تداخل الأصوات المتجاورة (coarticulation)</td><td>"recognize speech" و"wreck a nice beach" يتشابهون صوتياً تقريباً</td></tr>
+          <tr><td><span class="highlight">3. Speaker Diversity &amp; Atypical Speech</span></td><td>اختلاف pitch والسرعة حسب العمر والجنس، إعاقات كلامية، متحدثون غير أصليين</td><td>صوت الطفل أعلى pitch بكثير من صوت الرجل البالغ</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">نظرة عامة: خط أنابيب تحويل الكلام إلى نص</div>
+          <p>هذا هو المخطط لباقي هذا الدليل — الموجة التناظرية الخام تتحول إلى نص (أو تصنيف) عبر عدة مراحل تحويل، من Sampling، إلى Windowing، إلى DFT، إلى Mel Filterbank، إلى Cepstrum/MFCC، وأخيراً HMM Classifier. تابع الـ TOC chips بالأعلى بالترتيب.</p>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ Speech إشارة زمنية 1-D ضيّقة النطاق (300–3400 Hz) بتحمل الكلمات وهوية المتحدث معاً. الـ Speech Recognition صعب بسبب الضوضاء، الغموض اللغوي، وتنوّع المتحدثين. باقي هذا الدليل بيشرح كل مرحلة من التحويل من موجة صوتية إلى نص.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Sampling & Nyquist -->
+  <div class="section" id="sampling">
+    <div class="section-header" onclick="toggle('sampling')">
+      <div class="section-icon">02</div>
+      <div class="section-title">From Analog to Digital — Sampling, Quantization &amp; the Nyquist Theorem</div>
+      <div class="section-toggle open" id="toggle-sampling">▼</div>
+    </div>
+    <div class="section-body open" id="body-sampling">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('sampling','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('sampling','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="sampling-en">
+        <h3>Speech Acquisition</h3>
+        <p>A microphone converts the physical sound wave into a continuous electrical voltage — an <span class="term">analog signal</span>. A computer cannot store or process something continuous; it needs discrete numbers. Converting analog to digital requires two independent steps: <span class="highlight">sampling</span> (discretizing in time) and <span class="highlight">quantization</span> (discretizing in amplitude).</p>
+
+        <h3>Sampling: discretizing time</h3>
+        <p><span class="term">Sampling</span> means measuring the amplitude of the analog wave at regular time intervals, producing a sequence of numbers. The number of measurements per second is the <span class="highlight">sampling rate</span> (or sampling frequency), measured in Hz.</p>
+
+        <h3>Quantization: discretizing amplitude</h3>
+        <p><span class="term">Quantization</span> rounds each measured amplitude value to the nearest of a finite set of levels (e.g., 256 levels for 8-bit audio, 65,536 for 16-bit audio). More bits = finer amplitude resolution = less quantization error/noise, at the cost of more storage.</p>
+
+        <div class="diagram-box">
+          <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+            <text x="350" y="22" text-anchor="middle" font-family="Sora, sans-serif" font-size="13" font-weight="700" fill="var(--text)">Analog Wave → Sampling → Quantization → Digital Samples</text>
+            <!-- axes -->
+            <line x1="50" y1="140" x2="650" y2="140" stroke="var(--border)" stroke-width="1.5"/>
+            <line x1="50" y1="40" x2="50" y2="220" stroke="var(--border)" stroke-width="1.5"/>
+            <!-- analog wave -->
+            <path d="M 50 140 C 90 60, 130 60, 170 140 C 210 220, 250 220, 290 140 C 330 60, 370 60, 410 140 C 450 220, 490 220, 530 140 C 570 60, 610 60, 650 140"
+                  fill="none" stroke="var(--c-teal)" stroke-width="2.5" opacity="0.85"/>
+            <!-- quantization levels -->
+            <g stroke="var(--border)" stroke-width="1" stroke-dasharray="2,3">
+              <line x1="50" y1="70" x2="650" y2="70"/>
+              <line x1="50" y1="105" x2="650" y2="105"/>
+              <line x1="50" y1="175" x2="650" y2="175"/>
+              <line x1="50" y1="210" x2="650" y2="210"/>
+            </g>
+            <!-- sample stems -->
+            <g stroke="var(--c-amber)" stroke-width="2">
+              <line x1="90" y1="140" x2="90" y2="70"/>
+              <line x1="130" y1="140" x2="130" y2="70"/>
+              <line x1="170" y1="140" x2="170" y2="140"/>
+              <line x1="210" y1="140" x2="210" y2="210"/>
+              <line x1="250" y1="140" x2="250" y2="210"/>
+              <line x1="290" y1="140" x2="290" y2="140"/>
+              <line x1="330" y1="140" x2="330" y2="70"/>
+              <line x1="370" y1="140" x2="370" y2="70"/>
+              <line x1="410" y1="140" x2="410" y2="140"/>
+              <line x1="450" y1="140" x2="450" y2="210"/>
+              <line x1="490" y1="140" x2="490" y2="210"/>
+              <line x1="530" y1="140" x2="530" y2="140"/>
+              <line x1="570" y1="140" x2="570" y2="70"/>
+              <line x1="610" y1="140" x2="610" y2="70"/>
+            </g>
+            <g fill="var(--c-amber)">
+              <circle cx="90" cy="70" r="4"/><circle cx="130" cy="70" r="4"/><circle cx="170" cy="140" r="4"/>
+              <circle cx="210" cy="210" r="4"/><circle cx="250" cy="210" r="4"/><circle cx="290" cy="140" r="4"/>
+              <circle cx="330" cy="70" r="4"/><circle cx="370" cy="70" r="4"/><circle cx="410" cy="140" r="4"/>
+              <circle cx="450" cy="210" r="4"/><circle cx="490" cy="210" r="4"/><circle cx="530" cy="140" r="4"/>
+              <circle cx="570" cy="70" r="4"/><circle cx="610" cy="70" r="4"/>
+            </g>
+            <text x="50" y="235" font-family="'IBM Plex Mono', monospace" font-size="11" fill="var(--muted)">teal curve = analog signal</text>
+            <text x="330" y="235" font-family="'IBM Plex Mono', monospace" font-size="11" fill="var(--c-amber)">amber dots = digital samples snapped to quantization levels</text>
+          </svg>
+          <div class="diagram-caption">Sampling picks time instants; quantization snaps each amplitude to the nearest allowed level.</div>
+        </div>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Sampling is like taking photos of a moving wave. If you take enough photos per second, you can play them back and clearly see the motion — a smooth "video" of the wave. If you take too few photos, the motion looks wrong or jumps unnaturally (like a spinning wheel that looks like it's turning backwards in old films). Quantization is like only being able to describe brightness using a limited palette of grays instead of a continuous scale — some detail gets rounded away.
+        </div>
+
+        <h3>The Nyquist Sampling Theorem</h3>
+        <p>The <span class="term">Nyquist Theorem</span> states that to accurately represent (and later reconstruct) an analog signal, the <span class="highlight">sampling frequency must be at least twice the highest frequency present in the signal</span>: <span class="code-inline">fs ≥ 2 × fmax</span>. This <span class="code-inline">2 × fmax</span> value is called the <span class="highlight">Nyquist rate</span>.</p>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Speech's useful energy tops out around 3,400–4,000 Hz for telephone-quality speech (or ~8,000 Hz for wideband speech), so telephone systems sample at <strong>8,000 Hz</strong> (Nyquist rate = 2 × 4,000 Hz). Music, which needs to represent up to ~20,000 Hz (the edge of human hearing), is sampled at <strong>44,100 Hz</strong> (CD audio) — comfortably above 2 × 20,000 Hz.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Warning: Aliasing</div>
+          If you sample <em>below</em> the Nyquist rate, high frequencies "fold back" and masquerade as false lower frequencies in your digital signal — this distortion is called <span class="term">aliasing</span>, and it cannot be undone after the fact. This is why real acquisition systems place an <span class="highlight">anti-aliasing low-pass filter</span> before the sampler, to remove frequency content above fs/2 before it can corrupt the signal.
+        </div>
+
+        <h3>Comparison: speech acquisition vs. image acquisition (camera)</h3>
+        <p>A camera performs an analogous analog-to-digital process, but in two spatial dimensions instead of one temporal dimension: it "samples" light intensity at a discrete grid of pixel locations (spatial sampling rate = image resolution), and "quantizes" each pixel's brightness/color into a fixed number of levels (e.g., 256 per channel for 8-bit color). Undersampling in a camera similarly causes aliasing — visible as moiré patterns on fine repeating textures.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Analog-to-digital conversion = sampling (time) + quantization (amplitude). The Nyquist theorem requires fs ≥ 2×fmax to avoid aliasing; speech is typically sampled at 8 kHz (telephone) or 16 kHz (wideband ASR), always behind an anti-aliasing filter.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="sampling-ar" dir="rtl">
+        <h3>اكتساب الكلام (Speech Acquisition)</h3>
+        <p>الميكروفون بيحوّل الموجة الصوتية الفيزيائية إلى جهد كهربائي مستمر — <span class="term">إشارة تناظرية (Analog Signal)</span>. الكمبيوتر ما يقدر يخزّن أو يعالج شي مستمر؛ هو يحتاج أرقام منفصلة (discrete). تحويل التناظري إلى رقمي يحتاج خطوتين مستقلتين: <span class="highlight">Sampling</span> (تقطيع الزمن) و<span class="highlight">Quantization</span> (تقطيع السعة/Amplitude).</p>
+
+        <h3>Sampling: تقطيع الزمن</h3>
+        <p><span class="term">Sampling</span> يعني قياس سعة (amplitude) الموجة التناظرية على فترات زمنية منتظمة، وينتج عنها متتالية من الأرقام. عدد القياسات في الثانية اسمه <span class="highlight">Sampling Rate</span> (معدل أخذ العينات) ويقاس بالـ Hz.</p>
+
+        <h3>Quantization: تقطيع السعة</h3>
+        <p><span class="term">Quantization</span> بيقرّب كل قيمة سعة تم قياسها لأقرب مستوى من مجموعة محدودة من المستويات (مثلاً 256 مستوى لصوت 8-bit، أو 65,536 مستوى لصوت 16-bit). كل ما زادت عدد الـ bits كل ما زادت دقة السعة وقلّ خطأ/ضوضاء الـ Quantization، لكن بمساحة تخزين أكبر.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ Sampling مثل تصوير موجة متحركة بالكاميرا. لو صوّرت عدد كافي من الصور بالثانية، تقدر تعيد تشغيلها وتشوف الحركة بشكل سلس. لو صوّرت صور قليلة جداً، الحركة بتبان غلط أو "تقفز" بشكل غير طبيعي (زي عجلة السيارة اللي تبان تدور بالعكس في الأفلام القديمة). الـ Quantization مثل وصف السطوع باستخدام عدد محدود من درجات الرمادي بدل تدرّج مستمر — تفاصيل معينة بتتقرّب وتضيع.
+        </div>
+
+        <h3>نظرية Nyquist لأخذ العينات</h3>
+        <p>تنص <span class="term">نظرية Nyquist</span> على أنه عشان تمثّل (وتعيد بناء) إشارة تناظرية بدقة، لازم <span class="highlight">معدل أخذ العينات يكون على الأقل ضعف أعلى تردد موجود في الإشارة</span>: <span class="code-inline">fs ≥ 2 × fmax</span>. هذه القيمة <span class="code-inline">2 × fmax</span> تسمى <span class="highlight">Nyquist rate</span>.</p>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>طاقة الـ Speech المفيدة توصل لحوالي 3,400–4,000 Hz بجودة التليفون (أو ~8,000 Hz للـ wideband speech)، فأنظمة التليفون بتأخذ عينات بمعدل <strong>8,000 Hz</strong> (Nyquist rate = 2 × 4,000 Hz). الموسيقى، اللي تحتاج تمثيل حتى ~20,000 Hz (حدود سمع الإنسان)، تُؤخذ عيناتها بمعدل <strong>44,100 Hz</strong> (جودة CD) — أعلى بأمان من 2 × 20,000 Hz.</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">تحذير: Aliasing</div>
+          لو أخذت عينات بمعدل <em>أقل</em> من Nyquist rate، الترددات العالية "تنطوي" وتظهر كترددات منخفضة زائفة في إشارتك الرقمية — هذا التشويه اسمه <span class="term">Aliasing</span>، ولا يمكن إصلاحه بعد حدوثه. لهذا أنظمة الاكتساب الحقيقية تضع <span class="highlight">فلتر تمرير منخفض مضاد للـ Aliasing (anti-aliasing filter)</span> قبل جهاز أخذ العينات، عشان يشيل أي محتوى ترددي أعلى من fs/2 قبل ما يفسد الإشارة.
+        </div>
+
+        <h3>مقارنة: اكتساب الكلام مقابل اكتساب الصورة (كاميرا)</h3>
+        <p>الكاميرا بتعمل عملية تناظري-إلى-رقمي مشابهة، لكن في بعدين مكانيين بدل بعد زمني واحد: هي "تأخذ عينات" من شدة الضوء على شبكة منفصلة من مواقع البكسل (معدل أخذ العينات المكاني = دقة الصورة)، و"تُكمّم" سطوع/لون كل بكسل إلى عدد ثابت من المستويات (مثلاً 256 لكل قناة في اللون 8-bit). قلة العينات في الكاميرا كمان بتسبب Aliasing — تظهر كأنماط موجيّة (moiré) على الأنسجة المتكررة الدقيقة.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          تحويل التناظري إلى رقمي = Sampling (الزمن) + Quantization (السعة). نظرية Nyquist تتطلب fs ≥ 2×fmax لتجنب الـ Aliasing؛ الـ Speech عادة تُؤخذ عيناته بمعدل 8 kHz (تليفون) أو 16 kHz (ASR واسع النطاق)، دائماً خلف فلتر anti-aliasing.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Speech Features -->
+  <div class="section" id="features">
+    <div class="section-header" onclick="toggle('features')">
+      <div class="section-icon">03</div>
+      <div class="section-title">Speech Features — Zero-Crossing Rate, Energy &amp; Power, Fourier Descriptors &amp; DFT</div>
+      <div class="section-toggle open" id="toggle-features">▼</div>
+    </div>
+    <div class="section-body open" id="body-features">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('features','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('features','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="features-en">
+        <h3>Speech Visualization</h3>
+        <p>Before extracting features, speech is usually visualized as a <span class="term">waveform</span> (amplitude vs. time) or a <span class="term">spectrogram</span> (frequency vs. time, with color/intensity showing energy) — the spectrogram is essentially a stack of DFTs computed over short overlapping time windows, so it directly foreshadows the windowing + DFT pipeline covered next.</p>
+
+        <h3>Zero-Crossing Rate (ZCR)</h3>
+        <p>The <span class="term">Zero-Crossing Rate</span> counts how many times the signal changes sign (crosses zero amplitude) per frame. It is one of the cheapest features to compute — no transform needed, just counting sign changes.</p>
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          ZCR is like counting how many times a rope crosses a line on the floor while you shake it. Shake it gently and slowly (a low, smooth voiced sound like a vowel) and it crosses the line rarely. Shake it violently and fast (a hissy, noisy sound like "s" or "sh") and it crosses constantly. High ZCR usually signals unvoiced/fricative sounds; low ZCR signals voiced sounds like vowels.
+        </div>
+
+        <h3>Energy &amp; Power</h3>
+        <p><span class="term">Short-term energy</span> is the sum of squared amplitude samples in a frame; <span class="term">power</span> is that energy normalized by frame length (energy per sample). Together with ZCR, energy is the classic, cheap feature pair used for <span class="highlight">voice activity detection (VAD)</span> — separating silence from speech and voiced from unvoiced regions.</p>
+
+        <h3>Fourier Descriptors &amp; the Discrete Fourier Transform (DFT)</h3>
+        <p>Time-domain samples alone don't tell you which pitches/frequencies are present. The <span class="term">Discrete Fourier Transform (DFT)</span> converts a block of N time-domain samples into N complex numbers representing the signal's content at N discrete frequencies — decomposing the waveform into a sum of sine/cosine components. <span class="term">Fourier descriptors</span> are simply the magnitude (and sometimes phase) coefficients of this transform, used as features that describe the spectral shape of the sound.</p>
+
+        <div class="example-box">
+          <div class="label">Code Example (Python, using librosa/numpy style pseudocode)</div>
+          <div class="code-block">
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># One frame of speech (N samples)</span>
+frame = signal[start:start+N]
+
+<span class="cm"># Zero-crossing rate</span>
+zcr = np.<span class="fn">mean</span>(np.abs(np.diff(np.sign(frame))) &gt; 0)
+
+<span class="cm"># Short-term energy</span>
+energy = np.<span class="fn">sum</span>(frame ** 2)
+power  = energy / len(frame)
+
+<span class="cm"># DFT -&gt; magnitude spectrum (Fourier descriptors)</span>
+spectrum = np.<span class="fn">fft</span>.fft(frame)
+magnitude = np.abs(spectrum[:N//2])   <span class="cm"># keep positive frequencies only</span>
+          </div>
+        </div>
+
+        <h3>Formant Frequencies (preview)</h3>
+        <p><span class="term">Formants</span> are peaks in the spectral envelope caused by resonances of the vocal tract; they are the acoustic fingerprint of vowels and are covered in full in the Speech Production section below — they are listed here because they are one of the classic "features" table entries alongside ZCR, energy, and MFCC.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          ZCR and energy/power are cheap time-domain features good for voice-activity detection. The DFT moves a frame into the frequency domain, producing Fourier descriptors (magnitude spectrum) — the foundation for every spectral feature that follows, including formants, cepstrum, and MFCC.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="features-ar" dir="rtl">
+        <h3>تصور الكلام (Speech Visualization)</h3>
+        <p>قبل استخراج الـ Features، عادة يتم تصور الكلام كـ <span class="term">Waveform</span> (السعة مقابل الزمن) أو <span class="term">Spectrogram</span> (التردد مقابل الزمن، مع لون/شدة تمثل الطاقة) — الـ Spectrogram أساساً هو تكديس لعدة DFT محسوبة على نوافذ زمنية قصيرة متداخلة، فهو يمهّد مباشرة لخط أنابيب Windowing + DFT اللي جاي.</p>
+
+        <h3>معدل عبور الصفر (Zero-Crossing Rate - ZCR)</h3>
+        <p><span class="term">Zero-Crossing Rate</span> بيعد كم مرة الإشارة بتغيّر إشارتها (تعبر السعة صفر) في كل frame. هو من أرخص الـ Features حساباً — بدون أي تحويل، بس عدّ تغيرات الإشارة.</p>
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ ZCR مثل عدّ كم مرة حبل يعبر خط على الأرض وأنت تهزّه. لو هززته بلطف وبطء (صوت منخفض وسلس مثل حرف علّة/vowel) بيعبر الخط نادراً. لو هززته بعنف وسرعة (صوت "حفيف" ضوضائي مثل "س" أو "ش") بيعبر باستمرار. الـ ZCR العالي عادة يدل على أصوات غير معبّرة (unvoiced/fricative)؛ الـ ZCR المنخفض يدل على أصوات معبّرة (voiced) مثل حروف العلّة.
+        </div>
+
+        <h3>الطاقة والقدرة (Energy &amp; Power)</h3>
+        <p><span class="term">Short-term Energy</span> هي مجموع مربعات عينات السعة في الـ frame؛ الـ <span class="term">Power</span> هي هذه الطاقة مقسومة على طول الـ frame (طاقة لكل عينة). مع الـ ZCR، تُستخدم الطاقة كزوج features كلاسيكي ورخيص لـ <span class="highlight">Voice Activity Detection (VAD)</span> — فصل الصمت عن الكلام، والأصوات المعبّرة عن غير المعبّرة.</p>
+
+        <h3>واصفات فورييه وتحويل فورييه المنفصل (DFT)</h3>
+        <p>عينات المجال الزمني وحدها ما بتخبرك أي طبقات صوتية/ترددات موجودة. <span class="term">Discrete Fourier Transform (DFT)</span> بيحوّل مجموعة من N عينة زمنية إلى N رقم عقدي يمثّل محتوى الإشارة عند N تردد منفصل — بيفكّك الموجة إلى مجموع مركّبات جيب/جيب تمام. <span class="term">Fourier Descriptors</span> هي ببساطة معاملات المقدار (وأحياناً الطور) لهذا التحويل، تُستخدم كـ features تصف الشكل الطيفي للصوت.</p>
+
+        <h3>ترددات الـ Formant (نظرة سريعة)</h3>
+        <p><span class="term">Formants</span> هي قمم في الغلاف الطيفي (spectral envelope) ناتجة عن رنين القناة الصوتية؛ هي البصمة الصوتية لحروف العلّة، وسنغطيها بالتفصيل في قسم إنتاج الكلام لاحقاً — مذكورة هنا لأنها من ضمن جدول الـ Features الكلاسيكي جنب ZCR والطاقة وMFCC.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ ZCR والطاقة/القدرة features رخيصة في المجال الزمني مفيدة لـ Voice Activity Detection. الـ DFT ينقل الـ frame إلى المجال الترددي، منتجاً Fourier Descriptors (طيف المقدار) — الأساس لكل feature طيفي لاحق، بما فيها الـ Formants وCepstrum وMFCC.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Windowing -->
+  <div class="section" id="windowing">
+    <div class="section-header" onclick="toggle('windowing')">
+      <div class="section-icon">04</div>
+      <div class="section-title">Windowing Techniques — Rectangular, Triangular, Hanning, Hamming</div>
+      <div class="section-toggle open" id="toggle-windowing">▼</div>
+    </div>
+    <div class="section-body open" id="body-windowing">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('windowing','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('windowing','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="windowing-en">
+        <h3>Why do we window speech at all?</h3>
+        <p>Speech is <span class="highlight">non-stationary</span> — its frequency content changes constantly as the mouth moves (from one phoneme to the next). But the DFT assumes the signal it analyzes is periodic/stationary. If you ran a DFT on an entire multi-second sentence at once, you would get one blurry average spectrum, losing all information about which sounds happened when.</p>
+        <p>The solution: split the signal into short <span class="term">frames</span> (typically 20–30 ms) short enough that the vocal tract is roughly "frozen" in shape during that frame — speech is considered <span class="highlight">quasi-stationary</span> over such short windows. Before running the DFT on a frame, we multiply it by a <span class="term">window function</span> that tapers the frame's edges toward zero.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Analyzing an entire sentence with one DFT is like trying to describe an entire movie with a single blurry photograph — you lose all the individual scenes. Windowing is like looking at the movie through a small moving frame (like a camera panning across it), examining one short clip at a time so you can track how the "scene" (the sound) changes moment to moment.
+        </div>
+
+        <h3>Why not just cut sharp rectangular chunks?</h3>
+        <p>A plain rectangular cut (no tapering) creates abrupt discontinuities at the frame edges. In the frequency domain, sharp edges spread energy across many spurious frequencies — an artifact called <span class="term">spectral leakage</span>. Tapering (smoothly fading) the edges toward zero before the DFT greatly reduces this leakage, giving a cleaner, more accurate spectral estimate.</p>
+
+        <h3>The window types</h3>
+        <table class="compare-table">
+          <tr><th>Window</th><th>Shape</th><th>Trade-off</th></tr>
+          <tr><td><span class="highlight">Rectangular</span></td><td>Flat top, hard edges (no tapering)</td><td>Best frequency resolution, but worst spectral leakage</td></tr>
+          <tr><td><span class="highlight">Triangular (Bartlett)</span></td><td>Linear ramp up then down</td><td>Simple tapering, moderate leakage reduction</td></tr>
+          <tr><td><span class="highlight">Hanning (Hann)</span></td><td>Raised-cosine bell curve touching zero at both edges</td><td>Good leakage suppression, smooth edges</td></tr>
+          <tr><td><span class="highlight">Hamming</span></td><td>Raised-cosine bell curve, edges not quite zero</td><td>Best side-lobe suppression for main-lobe width — most popular in speech/ASR</td></tr>
+        </table>
+
+        <div class="diagram-box">
+          <svg viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg">
+            <text x="320" y="20" text-anchor="middle" font-family="Sora, sans-serif" font-size="13" font-weight="700" fill="var(--text)">Window Function Shapes</text>
+            <line x1="40" y1="140" x2="600" y2="140" stroke="var(--border)" stroke-width="1.5"/>
+            <!-- rectangular -->
+            <path d="M 60 140 L 60 60 L 180 60 L 180 140" fill="none" stroke="var(--c-blue)" stroke-width="2.5"/>
+            <!-- triangular -->
+            <path d="M 200 140 L 260 60 L 320 140" fill="none" stroke="var(--c-amber)" stroke-width="2.5"/>
+            <!-- hanning -->
+            <path d="M 340 140 C 360 140, 365 60, 400 60 C 435 60, 440 140, 460 140" fill="none" stroke="var(--c-teal)" stroke-width="2.5"/>
+            <!-- hamming -->
+            <path d="M 480 132 C 500 135, 505 60, 540 60 C 575 60, 580 135, 600 132" fill="none" stroke="var(--c-purple)" stroke-width="2.5"/>
+            <g font-family="'IBM Plex Mono', monospace" font-size="10.5">
+              <text x="120" y="158" text-anchor="middle" fill="var(--c-blue)">Rectangular</text>
+              <text x="260" y="158" text-anchor="middle" fill="var(--c-amber)">Triangular</text>
+              <text x="400" y="158" text-anchor="middle" fill="var(--c-teal)">Hanning</text>
+              <text x="540" y="158" text-anchor="middle" fill="var(--c-purple)">Hamming</text>
+            </g>
+          </svg>
+          <div class="diagram-caption">Hanning touches zero at the edges; Hamming leaves a small non-zero residual — this small difference changes their side-lobe behavior.</div>
+        </div>
+
+        <h3>Non-overlapped vs. overlapped windowing</h3>
+        <p>If frames are placed back-to-back with no overlap, information near each frame's tapered (attenuated) edges is partially lost — since the window forces the edges toward zero, sounds occurring right at a frame boundary get suppressed. <span class="term">Overlapped windowing</span> (e.g., 50% overlap, moving the frame forward by only 10 ms for a 20 ms frame) ensures every point in the signal is fully represented near the center of at least one frame, giving smoother, more reliable feature tracks over time.</p>
+
+        <div class="example-box">
+          <div class="label">Code Example</div>
+          <div class="code-block">
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+frame_len = <span class="fn">int</span>(0.025 * fs)   <span class="cm"># 25 ms frame</span>
+hop_len   = <span class="fn">int</span>(0.010 * fs)   <span class="cm"># 10 ms hop -&gt; 60% overlap</span>
+
+hamming = np.hamming(frame_len)
+
+frames = []
+<span class="kw">for</span> start <span class="kw">in</span> <span class="fn">range</span>(0, len(signal) - frame_len, hop_len):
+    frame = signal[start:start+frame_len] * hamming
+    frames.append(frame)
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Speech is non-stationary, so we analyze it in short quasi-stationary frames. Windows (Rectangular, Triangular, Hanning, Hamming) taper frame edges to reduce spectral leakage before the DFT. Hamming is the most common choice in ASR. Overlapping frames prevents information loss at frame edges.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="windowing-ar" dir="rtl">
+        <h3>ليش أصلاً نستخدم Windowing على الكلام؟</h3>
+        <p>الـ Speech <span class="highlight">غير ساكنة (non-stationary)</span> — محتواها الترددي يتغير باستمرار مع حركة الفم (من صوت لآخر). لكن الـ DFT يفترض أن الإشارة اللي بيحللها دورية/ساكنة. لو طبّقت DFT على جملة كاملة مدتها عدة ثواني دفعة وحدة، بتحصل على طيف واحد ضبابي متوسط، وتفقد كل المعلومات عن وقت حدوث كل صوت.</p>
+        <p>الحل: تقسيم الإشارة إلى <span class="term">Frames</span> قصيرة (عادة 20–30 ms) قصيرة كفاية بحيث تكون القناة الصوتية "متجمدة" تقريباً بنفس الشكل خلال هذا الـ Frame — يعتبر الكلام <span class="highlight">شبه ساكن (quasi-stationary)</span> على هذه النوافذ القصيرة. قبل تطبيق DFT على الـ frame، نضربه في <span class="term">دالة نافذة (Window Function)</span> تخفّف حواف الـ frame تدريجياً نحو الصفر.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تحليل جملة كاملة بـ DFT واحد مثل محاولة وصف فيلم كامل بصورة واحدة ضبابية — تفقد كل المشاهد الفردية. الـ Windowing مثل مشاهدة الفيلم من خلال إطار صغير متحرك (كاميرا تتحرك عبره)، تفحص مقطع قصير في كل مرة عشان تتابع كيف يتغير "المشهد" (الصوت) لحظة بلحظة.
+        </div>
+
+        <h3>ليش ما نقطع أجزاء مستطيلة حادة فقط؟</h3>
+        <p>القطع المستطيل البسيط (بدون تخفيف) ينتج انقطاعات مفاجئة عند حواف الـ frame. في المجال الترددي، الحواف الحادة تنشر الطاقة عبر ترددات زائفة كثيرة — يسمى هذا التشوه <span class="term">Spectral Leakage</span>. تخفيف الحواف تدريجياً نحو الصفر قبل الـ DFT يقلل هذا التسرب بشكل كبير، ويعطي تقدير طيفي أنظف وأدق.</p>
+
+        <h3>أنواع النوافذ</h3>
+        <table class="compare-table">
+          <tr><th>النافذة</th><th>الشكل</th><th>المفاضلة</th></tr>
+          <tr><td><span class="highlight">Rectangular</span></td><td>سطح مستوٍ، حواف حادة (بدون تخفيف)</td><td>أفضل دقة ترددية، لكن أسوأ Spectral Leakage</td></tr>
+          <tr><td><span class="highlight">Triangular (Bartlett)</span></td><td>ارتفاع خطي ثم انخفاض خطي</td><td>تخفيف بسيط، تقليل معتدل للتسرب</td></tr>
+          <tr><td><span class="highlight">Hanning (Hann)</span></td><td>منحنى جرسي (raised-cosine) يلمس الصفر عند الحافتين</td><td>قمع جيد للتسرب، حواف سلسة</td></tr>
+          <tr><td><span class="highlight">Hamming</span></td><td>منحنى جرسي، الحواف لا تصل تماماً للصفر</td><td>أفضل قمع للـ side-lobes مقابل عرض الفص الرئيسي — الأكثر شيوعاً في Speech/ASR</td></tr>
+        </table>
+
+        <h3>Non-Overlapped مقابل Overlapped Windowing</h3>
+        <p>لو تم وضع الـ frames متتالية بدون تداخل، جزء من المعلومات قرب حواف كل frame المخففة (المضعّفة) بيضيع جزئياً — لأن النافذة تدفع الحواف نحو الصفر، فالأصوات اللي تحدث بالضبط عند حدود الـ frame تُقمع. <span class="term">Overlapped Windowing</span> (مثلاً تداخل 50%، تحريك الـ frame للأمام بـ 10 ms فقط لـ frame طوله 20 ms) يضمن أن كل نقطة في الإشارة ممثّلة بشكل كامل قرب مركز frame واحد على الأقل، مما يعطي مسارات features أنعم وأكثر موثوقية عبر الزمن.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الكلام غير ساكن، لذا نحلله في frames قصيرة شبه ساكنة. النوافذ (Rectangular، Triangular، Hanning، Hamming) تخفف حواف الـ frame لتقليل Spectral Leakage قبل الـ DFT. Hamming هي الأكثر شيوعاً في ASR. تداخل الـ frames يمنع فقدان المعلومات عند الحواف.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Speech Production & Formants -->
+  <div class="section" id="production">
+    <div class="section-header" onclick="toggle('production')">
+      <div class="section-icon">05</div>
+      <div class="section-title">Speech Production &amp; the Vocal Tract — Formants and the Cylindrical Model</div>
+      <div class="section-toggle open" id="toggle-production">▼</div>
+    </div>
+    <div class="section-body open" id="body-production">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('production','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('production','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="production-en">
+        <h3>How the human vocal tract produces speech</h3>
+        <p><span class="term">Speech production</span> starts at the lungs, which push air through the <span class="highlight">vocal folds (larynx)</span>. For <span class="term">voiced sounds</span> (vowels, "b", "m"), the folds vibrate periodically, producing a buzzy source signal at the <span class="highlight">fundamental frequency (F0)</span> — perceived as pitch. For <span class="term">unvoiced sounds</span> (like "s", "f"), the folds stay open and air is forced through a narrow constriction, producing turbulent noise instead.</p>
+        <p>This source signal (buzz or noise) then travels through the <span class="term">vocal tract</span> — the throat, mouth, and nasal cavity — which acts as a resonant filter, shaping the sound's spectrum. Moving the tongue, jaw, and lips changes the shape of this tract, which changes which frequencies resonate (get amplified) and which are damped.</p>
+
+        <h3>Formants</h3>
+        <p>The resonant frequency peaks produced by the vocal tract's shape are called <span class="term">formants</span>, labeled F1, F2, F3... in increasing frequency order. F1 and F2 alone are usually enough to distinguish vowels from each other — this is why vowel identity is often plotted on an "F1 vs F2" chart.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          The vocal tract is like a wind instrument (a flute or an organ pipe). The vibrating vocal folds are the reed/breath providing raw energy; the shape of the tract (like the tube of the instrument, or the position of your fingers on the holes) determines which frequencies resonate loudly. Every vowel is a slightly different "instrument shape," giving each vowel its own unique formant "chord."
+        </div>
+
+        <h3>The Cylindrical Vocal Tract Model</h3>
+        <p>To make formant computation mathematically tractable, engineers approximate the vocal tract as a series of connected <span class="term">acoustic tube sections</span> (cylinders) of varying cross-sectional area — much like a stack of cylinders of different diameters glued end to end. Sound propagates through this tube system, reflecting at each junction where the cross-section changes area. Solving the acoustic wave equations for this simplified tube model yields the tract's resonant (formant) frequencies as a function of the tube geometry — this same physical model underlies Linear Predictive Coding, covered in the next section.</p>
+
+        <h3>Formant Computation &amp; the Feature Space</h3>
+        <p>In practice, formants are estimated from a speech frame's <span class="term">spectral envelope</span> — the smooth curve tracing the overall shape of the spectrum, ignoring the fine, jagged harmonic detail caused by the pitch (F0) buzz. Peaks in this smoothed envelope are the formants. Once estimated, the formant frequencies (F1, F2, F3, ...) of a frame form a compact numerical <span class="term">feature space</span> — a low-dimensional description of "which vowel/sound is being made" that a classifier can work with directly.</p>
+
+        <h3>Formant Estimation methods</h3>
+        <ul>
+          <li><span class="highlight">Peak-picking on the DFT spectrum</span> — smooth the raw spectrum, then find local maxima.</li>
+          <li><span class="highlight">LPC-based estimation</span> — fit an all-pole (LPC) model to the frame (covered next section) and find the roots of its polynomial; the roots' angles map directly to formant frequencies. This is the standard, more robust approach since LPC naturally produces a smooth spectral envelope.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">Why not just use the raw DFT spectrum?</div>
+          The raw DFT magnitude spectrum of voiced speech is "harmonic-comb-shaped" — spiky at multiples of F0 — because of the buzzy glottal source. Formants are properties of the vocal-tract filter, not the source, so raw peaks can be confused with pitch harmonics. Spectral smoothing (or LPC modeling) is needed to separate the tract's resonance shape from the source's harmonic structure.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          Speech = source (vocal-fold buzz or turbulent noise) filtered by the vocal tract's shape. Formants (F1, F2, F3...) are the resonant peaks of that filter and are the acoustic signature of vowels. The cylindrical tube model approximates the tract mathematically; formants are usually estimated via LPC.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="production-ar" dir="rtl">
+        <h3>كيف تُنتج القناة الصوتية البشرية الكلام</h3>
+        <p><span class="term">إنتاج الكلام (Speech Production)</span> يبدأ من الرئتين، اللي تدفع الهواء عبر <span class="highlight">الأحبال الصوتية (larynx)</span>. في <span class="term">الأصوات المعبّرة (Voiced Sounds)</span> (حروف العلّة، "b"، "m")، تهتز الأحبال بشكل دوري، منتجة إشارة مصدر "طنينية" عند <span class="highlight">التردد الأساسي (F0)</span> — نحسّه كـ pitch. في <span class="term">الأصوات غير المعبّرة (Unvoiced)</span> (مثل "s"، "f")، تبقى الأحبال مفتوحة ويُدفع الهواء عبر تضييق، منتجاً ضوضاء مضطربة بدلاً من ذلك.</p>
+        <p>إشارة المصدر هذه (طنين أو ضوضاء) بعدين تمر عبر <span class="term">القناة الصوتية (Vocal Tract)</span> — الحلق والفم والتجويف الأنفي — اللي تعمل كفلتر رنّان، تشكّل طيف الصوت. تحريك اللسان والفك والشفاه يغيّر شكل هذه القناة، وهذا يغيّر أي ترددات ترنّ (تُضخّم) وأيها تُخمَد.</p>
+
+        <h3>الـ Formants</h3>
+        <p>قمم الترددات الرنانة الناتجة عن شكل القناة الصوتية تسمى <span class="term">Formants</span>، وتُرمّز F1، F2، F3... بترتيب تصاعدي. عادة F1 وF2 وحدهما كافيان للتمييز بين حروف العلّة — لهذا هوية حرف العلّة غالباً تُرسم على مخطط "F1 مقابل F2".</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          القناة الصوتية مثل آلة نفخ (فلوت أو أنبوب أرغن). الأحبال الصوتية المهتزة هي "الريشة"/النفس اللي توفر الطاقة الخام؛ شكل القناة (مثل أنبوب الآلة، أو موضع أصابعك على الفتحات) يحدد أي الترددات ترنّ بصوت عالٍ. كل حرف علّة هو "شكل آلة" مختلف قليلاً، يعطي كل حرف علّة "وتر" formant فريد له.
+        </div>
+
+        <h3>نموذج القناة الصوتية الأسطواني (Cylindrical Vocal Tract Model)</h3>
+        <p>عشان نخلي حساب الـ Formant قابل للحل رياضياً، المهندسون بيقرّبون القناة الصوتية كسلسلة من <span class="term">أقسام أنبوب صوتي</span> (أسطوانات) متصلة بمساحات مقطع عرضي مختلفة — تقريباً مثل تكديس أسطوانات بأقطار مختلفة ملصوقة طرف بطرف. الصوت ينتشر عبر نظام الأنبوب هذا، وينعكس عند كل وصلة يتغير فيها المقطع العرضي. حل معادلات الموجة الصوتية لهذا النموذج المبسط يعطي ترددات الرنين (formants) للقناة كدالة في هندسة الأنبوب — نفس هذا النموذج الفيزيائي هو أساس Linear Predictive Coding، اللي نغطيه في القسم القادم.</p>
+
+        <h3>حساب الـ Formant ومساحة الـ Features</h3>
+        <p>عملياً، تُقدَّر الـ Formants من <span class="term">الغلاف الطيفي (Spectral Envelope)</span> لـ frame الكلام — المنحنى الناعم اللي يتتبّع الشكل العام للطيف، متجاهلاً التفاصيل التوافقية الحادة الناتجة عن طنين الـ pitch (F0). القمم في هذا الغلاف الناعم هي الـ Formants. بعد تقديرها، ترددات الـ Formant (F1، F2، F3، ...) لـ frame معين تشكّل <span class="term">مساحة features</span> رقمية مضغوطة — وصف منخفض الأبعاد لـ "أي حرف علّة/صوت يُنطق" يقدر الـ classifier يشتغل عليه مباشرة.</p>
+
+        <h3>طرق تقدير الـ Formant</h3>
+        <ul>
+          <li><span class="highlight">اختيار القمم على طيف DFT</span> — تنعيم الطيف الخام، ثم إيجاد القمم المحلية.</li>
+          <li><span class="highlight">التقدير المبني على LPC</span> — ملاءمة نموذج all-pole (LPC) للـ frame (يُغطى في القسم القادم) وإيجاد جذور كثير الحدود الخاص به؛ زوايا الجذور تُترجم مباشرة لترددات Formant. هذه هي الطريقة القياسية الأكثر موثوقية لأن LPC ينتج طبيعياً غلافاً طيفياً ناعماً.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">ليش ما نستخدم طيف DFT الخام مباشرة؟</div>
+          طيف مقدار DFT الخام للكلام المعبّر يكون "بشكل مشط توافقي" — مسنّن عند مضاعفات F0 — بسبب مصدر الحنجرة الطنيني. الـ Formants خاصية لفلتر القناة الصوتية، مش المصدر، فالقمم الخام ممكن تُخلط مع توافقيات الـ pitch. تنعيم الطيف (أو نمذجة LPC) ضروري لفصل شكل رنين القناة عن البنية التوافقية للمصدر.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الكلام = مصدر (طنين الأحبال الصوتية أو ضوضاء مضطربة) مُفلتَر بشكل القناة الصوتية. الـ Formants (F1، F2، F3...) هي قمم الرنين لهذا الفلتر وهي البصمة الصوتية لحروف العلّة. نموذج الأنبوب الأسطواني يقرّب القناة رياضياً؛ عادة تُقدَّر الـ Formants عبر LPC.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Cepstrum & MFCC -->
+  <div class="section" id="cepstrum">
+    <div class="section-header" onclick="toggle('cepstrum')">
+      <div class="section-icon">06</div>
+      <div class="section-title">Cepstral Analysis — the Cepstrum and Mel-Frequency Cepstral Coefficients (MFCC)</div>
+      <div class="section-toggle open" id="toggle-cepstrum">▼</div>
+    </div>
+    <div class="section-body open" id="body-cepstrum">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('cepstrum','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('cepstrum','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="cepstrum-en">
+        <h3>The problem: source and filter are mixed together</h3>
+        <p>As noted in the previous section, a voiced speech spectrum is really <span class="term">source (glottal buzz) × filter (vocal-tract resonances)</span> multiplied together in the frequency domain. We want to separate them — specifically, we usually want to keep the vocal-tract filter shape (which encodes <em>what phoneme</em> is being said) and discard/separate the pitch source (which encodes <em>who</em> and their intonation).</p>
+
+        <h3>What is the Cepstrum?</h3>
+        <p>The <span class="term">Cepstrum</span> (an anagram of "spectrum") is computed by: (1) taking the DFT of the frame, (2) taking the log of the magnitude of that spectrum, (3) taking the inverse DFT of the result. Because multiplication becomes addition under a logarithm, <span class="code-inline">log(source × filter) = log(source) + log(filter)</span> — the source and filter components become additively separable. When we then apply the inverse DFT, the slowly-varying filter envelope and the fast-varying source harmonics land in <em>different regions</em> of the output axis, called <span class="term">quefrency</span> (a deliberate anagram of "frequency," measured in units of time).</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine a smoothie that mixed fruit (the slow vocal-tract shape) and ice chips (the fast pitch buzz) — in the blended smoothie you cannot separate them by looking. The Cepstrum's log + inverse-transform trick is like a clever centrifuge: it spins the mixture so the "fruit" (low quefrency = filter/formant info) settles at the bottom and the "ice" (high quefrency = pitch harmonics) rises to the top, letting you scoop out just the part you want.
+        </div>
+
+        <h3>Step-by-step computational process</h3>
+        <ol>
+          <li>Frame + window the speech signal (as in the Windowing section).</li>
+          <li>Compute the DFT of the frame → complex spectrum.</li>
+          <li>Take the magnitude, then the natural log: <span class="code-inline">log|X(f)|</span>.</li>
+          <li>Compute the Inverse DFT of the log-magnitude spectrum → the (real) cepstrum, indexed by quefrency.</li>
+          <li>Low-quefrency coefficients ≈ vocal-tract/formant envelope (what was said); high-quefrency coefficients ≈ pitch/F0 harmonics (who/how it was said). Keep the region you need — usually the low-quefrency part for phoneme recognition.</li>
+        </ol>
+
+        <h3>From Cepstrum to MFCC — mimicking human hearing</h3>
+        <p>The plain cepstrum uses a linear frequency (Hz) scale, but human hearing does not perceive pitch linearly — we are far more sensitive to small frequency differences at low frequencies than at high ones. The <span class="term">Mel scale</span> is a perceptual frequency scale designed to match this: roughly linear below ~1,000 Hz and roughly logarithmic above it.</p>
+        <p><span class="term">Mel-Frequency Cepstral Coefficients (MFCC)</span> insert a <span class="highlight">Mel filterbank</span> step before the log and inverse transform: after computing the DFT magnitude spectrum, it is passed through a bank of overlapping triangular filters spaced evenly on the Mel scale (narrow at low frequencies, wide at high frequencies), producing a small set (e.g., 26) of Mel-band energies. Then the log of these energies is taken, and finally a <span class="term">Discrete Cosine Transform (DCT)</span> — instead of an inverse DFT — decorrelates them into the final MFCC coefficients (typically the first 12–13 are kept, plus energy, plus their deltas/delta-deltas for velocity/acceleration).</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Your ear is like a piano tuner who can tell apart notes right next to each other in the bass register (low frequencies) but starts lumping notes together in the far treble (high frequencies) unless they're quite far apart. The Mel filterbank builds this same "unequal sensitivity" directly into the feature extractor, so the resulting features emphasize the frequency differences that actually matter to human (and machine) perception.
+        </div>
+
+        <div class="diagram-box">
+          <svg viewBox="0 0 800 130" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="var(--muted)"/>
+              </marker>
+            </defs>
+            <g font-family="Sora, sans-serif" font-size="11.5" font-weight="600">
+              <rect x="10" y="45" width="100" height="45" rx="8" fill="var(--c-purple-bg)" stroke="var(--c-purple)" stroke-width="1.5"/>
+              <text x="60" y="72" text-anchor="middle" fill="var(--c-purple)">Framed + Windowed</text>
+
+              <rect x="130" y="45" width="90" height="45" rx="8" fill="var(--c-teal-bg)" stroke="var(--c-teal)" stroke-width="1.5"/>
+              <text x="175" y="72" text-anchor="middle" fill="var(--c-teal)">DFT → |X(f)|</text>
+
+              <rect x="240" y="45" width="100" height="45" rx="8" fill="var(--c-rose-bg)" stroke="var(--c-rose)" stroke-width="1.5"/>
+              <text x="290" y="72" text-anchor="middle" fill="var(--c-rose)">Mel Filterbank</text>
+
+              <rect x="360" y="45" width="80" height="45" rx="8" fill="var(--c-amber-bg)" stroke="var(--c-amber)" stroke-width="1.5"/>
+              <text x="400" y="72" text-anchor="middle" fill="var(--c-amber)">log(·)</text>
+
+              <rect x="460" y="45" width="80" height="45" rx="8" fill="var(--c-blue-bg)" stroke="var(--c-blue)" stroke-width="1.5"/>
+              <text x="500" y="72" text-anchor="middle" fill="var(--c-blue)">DCT</text>
+
+              <rect x="560" y="45" width="90" height="45" rx="8" fill="var(--c-emerald-bg)" stroke="var(--c-emerald)" stroke-width="1.5"/>
+              <text x="605" y="72" text-anchor="middle" fill="var(--c-emerald)">MFCC (12-13)</text>
+            </g>
+            <g stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow2)">
+              <line x1="110" y1="67" x2="128" y2="67"/>
+              <line x1="220" y1="67" x2="238" y2="67"/>
+              <line x1="340" y1="67" x2="358" y2="67"/>
+              <line x1="440" y1="67" x2="458" y2="67"/>
+              <line x1="540" y1="67" x2="558" y2="67"/>
+            </g>
+            <text x="400" y="115" text-anchor="middle" font-family="Sora, sans-serif" font-size="11" fill="var(--muted)">The MFCC extraction pipeline (Cepstrum's "perceptual" cousin)</text>
+          </svg>
+        </div>
+
+        <div class="example-box">
+          <div class="label">Code Example (librosa)</div>
+          <div class="code-block">
+<span class="kw">import</span> librosa
+
+y, sr = librosa.<span class="fn">load</span>(<span class="str">"speech.wav"</span>, sr=16000)
+
+<span class="cm"># 13 MFCCs, 25ms frame, 10ms hop</span>
+mfcc = librosa.feature.<span class="fn">mfcc</span>(
+    y=y, sr=sr, n_mfcc=13,
+    n_fft=<span class="fn">int</span>(0.025*sr), hop_length=<span class="fn">int</span>(0.010*sr)
+)
+<span class="cm"># mfcc.shape -&gt; (13, num_frames)</span>
+
+<span class="cm"># Add velocity (delta) and acceleration (delta-delta)</span>
+delta      = librosa.feature.<span class="fn">delta</span>(mfcc)
+delta2     = librosa.feature.<span class="fn">delta</span>(mfcc, order=2)
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Why keep only 12-13 coefficients?</div>
+          The very low MFCC coefficients (like the 0th) capture overall loudness, and the higher-order ones increasingly capture fine, speaker-specific/pitch detail rather than phoneme identity. Truncating to ~12-13 coefficients keeps the smooth vocal-tract-shape information while discarding fine pitch harmonics — exactly the separation the cepstrum was designed to give us.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          The Cepstrum separates the vocal-tract filter from the pitch source via log + inverse-DFT (source × filter → additive, separable regions in quefrency). MFCC refines this using a perceptual Mel filterbank before the log and a DCT instead of inverse-DFT, producing the single most widely used speech feature in classical ASR.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="cepstrum-ar" dir="rtl">
+        <h3>المشكلة: المصدر والفلتر ممزوجان معاً</h3>
+        <p>كما ذُكر في القسم السابق، طيف الكلام المعبّر هو فعلياً <span class="term">المصدر (طنين الحنجرة) × الفلتر (رنين القناة الصوتية)</span> مضروبين معاً في المجال الترددي. نبي نفصلهم — تحديداً، عادة نبي نحتفظ بشكل فلتر القناة الصوتية (اللي يحمل <em>أي صوت/phoneme</em> يُنطق) ونتجاهل/نفصل مصدر الـ pitch (اللي يحمل <em>هوية</em> المتحدث ونغمته).</p>
+
+        <h3>ما هو الـ Cepstrum؟</h3>
+        <p>يُحسب <span class="term">Cepstrum</span> (وهو anagram لكلمة "Spectrum") بـ: (1) أخذ DFT للـ frame، (2) أخذ log لمقدار هذا الطيف، (3) أخذ Inverse DFT للنتيجة. لأن الضرب يتحول لجمع تحت اللوغاريتم، <span class="code-inline">log(source × filter) = log(source) + log(filter)</span> — مكونا المصدر والفلتر يصبحان قابلين للفصل جمعياً. عندما نطبق Inverse DFT بعدها، الغلاف البطيء التغير (الفلتر) والتوافقيات السريعة التغير (المصدر) تقع في <em>مناطق مختلفة</em> من محور الخرج، اسمه <span class="term">Quefrency</span> (anagram متعمّد لكلمة "Frequency"، يُقاس بوحدات زمن).</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل عصير مخلوط فيه فواكه (شكل القناة الصوتية البطيء) وقطع ثلج (طنين الـ pitch السريع) — في العصير المخلوط ما تقدر تفصلهم بالنظر. حيلة log + inverse-transform في الـ Cepstrum مثل جهاز طرد مركزي ذكي: يدوّر الخليط بحيث "الفاكهة" (quefrency منخفض = معلومات الفلتر/الـ formant) تستقر بالأسفل و"الثلج" (quefrency عالي = توافقيات الـ pitch) يطفو للأعلى، فتقدر تسحب بالضبط الجزء اللي تحتاجه.
+        </div>
+
+        <h3>العملية الحسابية خطوة بخطوة</h3>
+        <ol>
+          <li>تقطيع الإشارة إلى frames وتطبيق window (كما في قسم Windowing).</li>
+          <li>حساب DFT للـ frame → طيف عقدي.</li>
+          <li>أخذ المقدار، ثم اللوغاريتم الطبيعي: <span class="code-inline">log|X(f)|</span>.</li>
+          <li>حساب Inverse DFT لطيف log-magnitude → الـ Cepstrum (الحقيقي)، مفهرس بالـ quefrency.</li>
+          <li>معاملات quefrency منخفض ≈ غلاف القناة الصوتية/الـ formants (ماذا قيل)؛ معاملات quefrency عالي ≈ توافقيات pitch/F0 (من قال وكيف). احتفظ بالمنطقة اللي تحتاجها — عادة الجزء منخفض الـ quefrency للتعرف على الصوتيات.</li>
+        </ol>
+
+        <h3>من Cepstrum إلى MFCC — محاكاة سمع الإنسان</h3>
+        <p>الـ Cepstrum العادي يستخدم مقياس تردد خطي (Hz)، لكن سمع الإنسان ما يدرك الـ pitch بشكل خطي — نحن أكثر حساسية بكثير للفروقات الترددية الصغيرة عند الترددات المنخفضة مقارنة بالعالية. <span class="term">مقياس Mel</span> هو مقياس تردد إدراكي مصمم عشان يطابق هذا: خطي تقريباً تحت ~1,000 Hz ولوغاريتمي تقريباً فوقها.</p>
+        <p><span class="term">Mel-Frequency Cepstral Coefficients (MFCC)</span> تضيف خطوة <span class="highlight">Mel Filterbank</span> قبل الـ log والتحويل العكسي: بعد حساب طيف مقدار DFT، يمر عبر مجموعة من الفلاتر المثلثية المتداخلة الموزعة بالتساوي على مقياس Mel (ضيقة عند الترددات المنخفضة، واسعة عند العالية)، منتجة مجموعة صغيرة (مثلاً 26) من طاقات نطاقات Mel. بعدها يُؤخذ log لهذه الطاقات، وأخيراً <span class="term">Discrete Cosine Transform (DCT)</span> — بدل inverse DFT — تفصل ترابطها إلى معاملات MFCC النهائية (عادة يُحتفظ بأول 12-13 معامل، بالإضافة للطاقة، وقيم delta/delta-delta للسرعة والتسارع).</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          أذنك مثل مُوَظِّف بيانو يقدر يميّز نوتات قريبة من بعض جداً في السجل المنخفض (الترددات المنخفضة)، لكن يبدأ يخلط النوتات في المدى العالي جداً (الترددات العالية) إلا لو كانت متباعدة كفاية. الـ Mel Filterbank يبني نفس "الحساسية غير المتساوية" مباشرة في مستخرج الـ features، فالـ features الناتجة تركّز على الفروقات الترددية اللي فعلاً مهمة لإدراك الإنسان (والآلة).
+        </div>
+
+        <div class="example-box">
+          <div class="label">مثال كود (librosa)</div>
+          <div class="code-block">
+<span class="kw">import</span> librosa
+
+y, sr = librosa.<span class="fn">load</span>(<span class="str">"speech.wav"</span>, sr=16000)
+
+<span class="cm"># 13 MFCC، frame 25ms، hop 10ms</span>
+mfcc = librosa.feature.<span class="fn">mfcc</span>(
+    y=y, sr=sr, n_mfcc=13,
+    n_fft=<span class="fn">int</span>(0.025*sr), hop_length=<span class="fn">int</span>(0.010*sr)
+)
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">ليش نحتفظ بـ 12-13 معامل فقط؟</div>
+          المعاملات المنخفضة جداً في MFCC (مثل المعامل رقم 0) تعكس شدة الصوت الكلية، والمعاملات ذات الرتبة الأعلى تعكس بشكل متزايد تفاصيل دقيقة خاصة بالمتحدث/الـ pitch بدل هوية الصوتيات. الاقتصار على ~12-13 معامل يحافظ على معلومات شكل القناة الصوتية الناعمة بينما يتجاهل توافقيات الـ pitch الدقيقة — بالضبط الفصل اللي صُمم الـ Cepstrum عشان يعطينا إياه.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ Cepstrum يفصل فلتر القناة الصوتية عن مصدر الـ pitch عبر log + inverse-DFT (المصدر × الفلتر → جمعي، مناطق قابلة للفصل في الـ quefrency). MFCC يحسّن هذا باستخدام Mel Filterbank إدراكي قبل الـ log وDCT بدل inverse-DFT، منتجاً أكثر feature للكلام استخداماً في ASR الكلاسيكي.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: LPC -->
+  <div class="section" id="lpc">
+    <div class="section-header" onclick="toggle('lpc')">
+      <div class="section-icon">07</div>
+      <div class="section-title">Linear Predictive Coding (LPC) — System Model, Autocorrelation &amp; Covariance Methods</div>
+      <div class="section-toggle open" id="toggle-lpc">▼</div>
+    </div>
+    <div class="section-body open" id="body-lpc">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('lpc','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('lpc','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="lpc-en">
+        <h3>The core idea: predict the next sample from the past</h3>
+        <p><span class="term">Linear Predictive Coding (LPC)</span> models each speech sample as a <span class="highlight">linear combination of the previous p samples</span>: <span class="code-inline">ŝ(n) = a1·s(n-1) + a2·s(n-2) + ... + ap·s(n-p)</span>. This works remarkably well for speech because the vocal tract behaves like an all-pole resonant filter (recall the cylindrical tube model) — and an all-pole filter's output at any instant really is approximately predictable from its recent past.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          LPC is like predicting the next note in a musical scale based on the last few notes you just heard — if the melody has been smoothly rising, the next note is probably close to where the trend points. LPC does exactly this numerically for the waveform: it learns, per frame, the best "trend coefficients" that predict each new sample from the recent past.
+        </div>
+
+        <h3>The System Model &amp; the prediction error e(n)</h3>
+        <p>The true sample almost never matches the prediction exactly. The difference is the <span class="term">prediction error (residual)</span>: <span class="code-inline">e(n) = s(n) − ŝ(n)</span>. In the underlying speech production model, this residual approximately corresponds to the original excitation source signal (the glottal buzz for voiced speech, or noise for unvoiced speech) — the part the all-pole vocal-tract filter could not "explain away."</p>
+        <p>The LPC coefficients <span class="code-inline">a1...ap</span> themselves compactly describe the vocal-tract filter's shape (equivalent, mathematically, to describing the tract's formant resonances) — this is why LPC coefficients (or values derived from them, like LPC-cepstral coefficients) are used directly as ASR features, and also why LPC underlies the formant-estimation method from the previous section.</p>
+
+        <h3>Finding the coefficients: minimizing total prediction error</h3>
+        <p>The coefficients are found by <span class="highlight">minimizing the sum of squared errors</span> over a frame. Solving this minimization leads to a set of linear equations (the "normal equations") relating the coefficients to the signal's autocorrelation or covariance. There are two standard ways to set these equations up:</p>
+
+        <table class="compare-table">
+          <tr><th>Method</th><th>How it windows the data</th><th>Trade-off</th></tr>
+          <tr><td><span class="highlight">Autocorrelation Method</span></td><td>Assumes the signal is zero outside the analyzed frame (implicitly windowed)</td><td>Always produces a stable filter; simpler, solved efficiently with the Levinson-Durbin recursion; standard choice in practice</td></tr>
+          <tr><td><span class="highlight">Covariance Method</span></td><td>Uses samples just outside the frame boundary too (no windowing assumption)</td><td>More accurate for short frames/high pitch, but does not guarantee a stable filter; needs a different (Cholesky-based) solver</td></tr>
+        </table>
+
+        <div class="example-box">
+          <div class="label">Code Example (via librosa, autocorrelation-based LPC)</div>
+          <div class="code-block">
+<span class="kw">import</span> librosa
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+y, sr = librosa.<span class="fn">load</span>(<span class="str">"vowel.wav"</span>, sr=16000)
+frame = y[1000:1000+400] * np.hamming(400)
+
+<span class="cm"># Order-12 LPC via autocorrelation method (Levinson-Durbin)</span>
+a = librosa.<span class="fn">lpc</span>(frame, order=12)
+<span class="cm"># a[0]=1, a[1:] are the prediction coefficients (negated convention)</span>
+
+<span class="cm"># Residual / error signal</span>
+predicted = np.<span class="fn">convolve</span>(frame, -a)[:len(frame)]
+e = frame - predicted
+          </div>
+        </div>
+
+        <h3>Why LPC matters in ASR</h3>
+        <p>LPC gives a compact (~10-16 numbers), efficient-to-compute description of the vocal tract's shape per frame, making it historically one of the dominant feature sets before MFCC became the default. It is still widely used in speech coding/compression (cellular codecs), and LPC-derived cepstral coefficients remain a valid alternative feature to MFCC.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          LPC predicts each sample from a linear combination of past samples, modeling the vocal tract as an all-pole filter. The coefficients are found by minimizing squared prediction error, using the Autocorrelation method (stable, standard) or the Covariance method (more accurate but not guaranteed stable). The residual e(n) approximates the excitation source.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="lpc-ar" dir="rtl">
+        <h3>الفكرة الأساسية: التنبؤ بالعينة القادمة من الماضي</h3>
+        <p><span class="term">Linear Predictive Coding (LPC)</span> يُنمذج كل عينة كلام كـ <span class="highlight">مجموعة خطية من الـ p عينة السابقة</span>: <span class="code-inline">ŝ(n) = a1·s(n-1) + a2·s(n-2) + ... + ap·s(n-p)</span>. هذا يشتغل بشكل ممتاز مع الكلام لأن القناة الصوتية تتصرف مثل فلتر رنّان all-pole (تذكّر نموذج الأنبوب الأسطواني) — وخرج فلتر all-pole في أي لحظة فعلياً يمكن التنبؤ به تقريباً من ماضيه القريب.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          LPC مثل التنبؤ بالنوتة الموسيقية القادمة بناءً على آخر بضع نوتات سمعتها — لو كانت اللحن يصعد بسلاسة، النوتة القادمة غالباً قريبة من اتجاه هذا الصعود. LPC بيعمل بالضبط هذا رقمياً للموجة: يتعلم، لكل frame، أفضل "معاملات اتجاه" تتنبأ بكل عينة جديدة من الماضي القريب.
+        </div>
+
+        <h3>نموذج النظام وخطأ التنبؤ e(n)</h3>
+        <p>العينة الحقيقية تقريباً أبداً ما تطابق التنبؤ تماماً. الفرق هو <span class="term">خطأ التنبؤ (residual)</span>: <span class="code-inline">e(n) = s(n) − ŝ(n)</span>. في نموذج إنتاج الكلام الأساسي، هذا الـ residual يقابل تقريباً إشارة مصدر الإثارة الأصلية (طنين الحنجرة للكلام المعبّر، أو ضوضاء للكلام غير المعبّر) — الجزء اللي فلتر القناة الصوتية all-pole ما قدر "يفسّره".</p>
+        <p>معاملات LPC <span class="code-inline">a1...ap</span> نفسها تصف بشكل مضغوط شكل فلتر القناة الصوتية (مكافئ رياضياً لوصف رنين الـ formants للقناة) — لهذا معاملات LPC (أو قيم مشتقة منها، مثل LPC-cepstral coefficients) تُستخدم مباشرة كـ features في ASR، ولهذا كمان LPC هو أساس طريقة تقدير الـ Formant من القسم السابق.</p>
+
+        <h3>إيجاد المعاملات: تصغير إجمالي خطأ التنبؤ</h3>
+        <p>تُوجد المعاملات عبر <span class="highlight">تصغير مجموع مربعات الأخطاء</span> على مستوى الـ frame. حل هذا التصغير يؤدي لمجموعة معادلات خطية ("normal equations") تربط المعاملات بـ autocorrelation أو covariance الإشارة. هناك طريقتان قياسيتان لإعداد هذه المعادلات:</p>
+
+        <table class="compare-table">
+          <tr><th>الطريقة</th><th>كيف تُعامل البيانات</th><th>المفاضلة</th></tr>
+          <tr><td><span class="highlight">Autocorrelation Method</span></td><td>تفترض أن الإشارة صفر خارج الـ frame المُحلَّل (windowing ضمني)</td><td>دائماً تنتج فلتر مستقر؛ أبسط، تُحل بكفاءة عبر Levinson-Durbin recursion؛ الخيار القياسي عملياً</td></tr>
+          <tr><td><span class="highlight">Covariance Method</span></td><td>تستخدم عينات خارج حدود الـ frame أيضاً (بدون افتراض windowing)</td><td>أدق في الـ frames القصيرة/الـ pitch العالي، لكن لا تضمن فلتر مستقر؛ تحتاج حل مختلف (مبني على Cholesky)</td></tr>
+        </table>
+
+        <h3>ليش LPC مهم في ASR</h3>
+        <p>LPC يعطي وصفاً مضغوطاً (~10-16 رقم)، سهل الحساب لشكل القناة الصوتية لكل frame، مما جعله تاريخياً من أهم مجموعات الـ features قبل ما يصبح MFCC الخيار الافتراضي. لا يزال يُستخدم بشكل واسع في ترميز/ضغط الكلام (كودكات الهاتف الخلوي)، ومعاملات LPC-cepstral المشتقة منه لا تزال بديل صالح لـ MFCC.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          LPC يتنبأ بكل عينة من تركيبة خطية للعينات الماضية، منمذجاً القناة الصوتية كفلتر all-pole. توجد المعاملات بتصغير مربع خطأ التنبؤ، باستخدام طريقة Autocorrelation (مستقرة، قياسية) أو طريقة Covariance (أدق لكن غير مضمونة الاستقرار). الـ residual e(n) يقارب إشارة مصدر الإثارة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Vector Quantization -->
+  <div class="section" id="vq">
+    <div class="section-header" onclick="toggle('vq')">
+      <div class="section-icon">08</div>
+      <div class="section-title">Vector Quantization (VQ) — Compressing the Feature Space into a Codebook</div>
+      <div class="section-toggle open" id="toggle-vq">▼</div>
+    </div>
+    <div class="section-body open" id="body-vq">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('vq','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('vq','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="vq-en">
+        <h3>The problem VQ solves</h3>
+        <p>Every speech frame, after MFCC/LPC extraction, becomes a continuous-valued feature vector (e.g., 13 real numbers). Continuous vectors are expensive to model and store directly, and many classic recognizers (especially discrete-observation HMMs) need a finite, discrete set of symbols to work with — not an infinite continuum of possible vectors.</p>
+        <p><span class="term">Vector Quantization (VQ)</span> solves this by clustering the enormous space of possible feature vectors into a small, finite set of <span class="highlight">representative vectors</span> called a <span class="term">codebook</span> (typically 256, 512, or 1024 entries). Every incoming feature vector is then replaced by the index of its nearest codebook entry (its "codeword").</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine trying to describe every possible paint color in the world using only a box of 256 Crayola crayons. VQ builds the "best" box of 256 crayons (the codebook) for your specific problem by clustering millions of real paint samples, then for any new color, just picks the closest crayon and reports its name/number instead of the color's exact RGB value. You lose a little precision but gain a compact, symbolic representation.
+        </div>
+
+        <h3>Building the codebook: clustering</h3>
+        <p>The codebook is typically built with a clustering algorithm like <span class="highlight">k-means</span> or the classic <span class="highlight">LBG (Linde-Buzo-Gray) algorithm</span>, which iteratively splits and refines clusters over a large training set of feature vectors until the codebook minimizes total quantization error (the average distance between vectors and their assigned codeword).</p>
+
+        <h3>The basic VQ block diagram</h3>
+        <div class="diagram-box">
+          <svg viewBox="0 0 700 130" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="var(--muted)"/>
+              </marker>
+            </defs>
+            <g font-family="Sora, sans-serif" font-size="12" font-weight="600">
+              <rect x="20" y="45" width="120" height="45" rx="8" fill="var(--c-emerald-bg)" stroke="var(--c-emerald)" stroke-width="1.5"/>
+              <text x="80" y="72" text-anchor="middle" fill="var(--c-emerald)">Feature Vector x</text>
+
+              <rect x="200" y="45" width="140" height="45" rx="8" fill="var(--c-orange-bg)" stroke="var(--c-orange)" stroke-width="1.5"/>
+              <text x="270" y="66" text-anchor="middle" fill="var(--c-orange)">Nearest-Neighbor</text>
+              <text x="270" y="80" text-anchor="middle" fill="var(--c-orange)">Search in Codebook</text>
+
+              <rect x="400" y="45" width="120" height="45" rx="8" fill="var(--c-sky-bg)" stroke="var(--c-sky)" stroke-width="1.5"/>
+              <text x="460" y="72" text-anchor="middle" fill="var(--c-sky)">Codeword Index i</text>
+
+              <rect x="200" y="10" width="140" height="24" rx="6" fill="var(--bg2)" stroke="var(--border)" stroke-width="1"/>
+              <text x="270" y="26" text-anchor="middle" font-size="10.5" fill="var(--muted)">Codebook {c1...cK}</text>
+            </g>
+            <g stroke="var(--muted)" stroke-width="1.5" marker-end="url(#arrow3)">
+              <line x1="140" y1="67" x2="198" y2="67"/>
+              <line x1="340" y1="67" x2="398" y2="67"/>
+              <line x1="270" y1="34" x2="270" y2="43"/>
+            </g>
+          </svg>
+          <div class="diagram-caption">Basic VQ: replace a continuous feature vector with the index of its closest codebook entry.</div>
+        </div>
+
+        <h3>The extended block diagram (training + recognition)</h3>
+        <p>In practice, VQ is used two ways: <span class="highlight">(1) Training</span> — cluster a large pool of feature vectors (often per speaker, for speaker identification/verification) offline to build the codebook; <span class="highlight">(2) Recognition</span> — for a new utterance, quantize its feature vectors against each candidate speaker's/model's codebook and measure total quantization distortion; the codebook that yields the lowest distortion identifies the best-matching speaker or is fed as a symbol sequence into a discrete HMM for phoneme/word recognition.</p>
+
+        <div class="example-box">
+          <div class="label">Code Example (k-means as a VQ codebook)</div>
+          <div class="code-block">
+<span class="kw">from</span> sklearn.cluster <span class="kw">import</span> KMeans
+
+<span class="cm"># feature_vectors: (num_frames, 13) MFCC matrix from many training utterances</span>
+codebook = <span class="fn">KMeans</span>(n_clusters=256, random_state=0).fit(feature_vectors)
+
+<span class="cm"># Quantize a new frame's feature vector</span>
+codeword_index = codebook.<span class="fn">predict</span>(new_frame_mfcc.reshape(1, -1))
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Trade-off</div>
+          A larger codebook (more codewords) reduces quantization error/distortion but needs more training data to estimate reliably and increases storage/computation. A codebook that is too small blurs together acoustically distinct sounds, hurting recognition accuracy.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          VQ compresses continuous MFCC/LPC feature vectors into a small discrete codebook (built via k-means/LBG clustering), replacing each vector with its nearest codeword index. This makes discrete-observation HMMs and speaker-identification systems tractable.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="vq-ar" dir="rtl">
+        <h3>المشكلة التي يحلها VQ</h3>
+        <p>كل frame من الكلام، بعد استخراج MFCC/LPC، يصبح متجه features بقيم مستمرة (مثلاً 13 رقم حقيقي). المتجهات المستمرة مكلفة نمذجتها وتخزينها مباشرة، وكثير من أنظمة التعرّف الكلاسيكية (خصوصاً discrete-observation HMMs) تحتاج مجموعة رموز محدودة ومنفصلة عشان تشتغل — مش تكامل لانهائي من المتجهات الممكنة.</p>
+        <p><span class="term">Vector Quantization (VQ)</span> يحل هذا بتجميع الفضاء الهائل من متجهات features الممكنة إلى مجموعة صغيرة ومحدودة من <span class="highlight">متجهات تمثيلية</span> تسمى <span class="term">Codebook</span> (عادة 256 أو 512 أو 1024 مدخل). كل متجه feature وارد يُستبدل بعدها بمؤشر أقرب مدخل في الـ codebook (يسمى "codeword").</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل محاولة وصف كل لون طلاء ممكن في العالم باستخدام صندوق فيه 256 قلم كرايولا فقط. VQ يبني "أفضل" صندوق من 256 قلم (الـ codebook) لمشكلتك المحددة عبر تجميع ملايين عينات الطلاء الحقيقية، وبعدين لأي لون جديد، يختار أقرب قلم ويرجّع اسمه/رقمه بدل قيمة RGB الدقيقة للون. تخسر دقة بسيطة لكن تكسب تمثيل رمزي مضغوط.
+        </div>
+
+        <h3>بناء الـ Codebook: التجميع (Clustering)</h3>
+        <p>عادة يُبنى الـ Codebook بخوارزمية تجميع مثل <span class="highlight">k-means</span> أو الخوارزمية الكلاسيكية <span class="highlight">LBG (Linde-Buzo-Gray)</span>، اللي بشكل تكراري تقسّم وتحسّن المجموعات على مجموعة تدريب كبيرة من متجهات features حتى يُصغّر الـ codebook إجمالي خطأ الـ quantization (متوسط المسافة بين المتجهات والـ codeword المخصص لها).</p>
+
+        <h3>المخطط الأساسي لـ VQ</h3>
+        <div class="example-box">
+          <div class="label">مخطط</div>
+          <p>Feature Vector x → بحث Nearest-Neighbor في الـ Codebook {c1...cK} → مؤشر Codeword i. أي متجه feature مستمر يُستبدل بمؤشر أقرب مدخل codebook.</p>
+        </div>
+
+        <h3>المخطط الموسّع (تدريب + تعرّف)</h3>
+        <p>عملياً، يُستخدم VQ بطريقتين: <span class="highlight">(1) التدريب</span> — تجميع مجموعة كبيرة من متجهات features (غالباً لكل متحدث، للتعرف على/التحقق من هوية المتحدث) بشكل offline لبناء الـ codebook؛ <span class="highlight">(2) التعرّف</span> — لعبارة جديدة، تُكمَّم متجهات features الخاصة بها مقابل codebook كل متحدث/نموذج مرشح ويُقاس إجمالي تشويه الـ quantization؛ الـ codebook اللي يعطي أقل تشويه يحدد أفضل متحدث مطابق، أو يُغذَّى كسلسلة رموز إلى discrete HMM للتعرف على الصوتيات/الكلمات.</p>
+
+        <div class="example-box">
+          <div class="label">مثال كود (k-means كـ codebook لـ VQ)</div>
+          <div class="code-block">
+<span class="kw">from</span> sklearn.cluster <span class="kw">import</span> KMeans
+
+<span class="cm"># feature_vectors: مصفوفة MFCC (num_frames, 13) من عبارات تدريب كثيرة</span>
+codebook = <span class="fn">KMeans</span>(n_clusters=256, random_state=0).fit(feature_vectors)
+
+<span class="cm"># تكميم متجه feature لـ frame جديد</span>
+codeword_index = codebook.<span class="fn">predict</span>(new_frame_mfcc.reshape(1, -1))
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">المفاضلة</div>
+          الـ codebook الأكبر (codewords أكثر) يقلل خطأ/تشويه الـ quantization لكن يحتاج بيانات تدريب أكثر عشان يُقدَّر بموثوقية ويزيد التخزين/الحساب. الـ codebook الصغير جداً يخلط أصوات مختلفة صوتياً مع بعض، مما يضر بدقة التعرف.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          VQ يضغط متجهات features المستمرة (MFCC/LPC) إلى codebook صغير منفصل (يُبنى عبر k-means/LBG clustering)، ويستبدل كل متجه بمؤشر أقرب codeword. هذا يجعل discrete-observation HMMs وأنظمة التعرف على هوية المتحدث قابلة للتطبيق عملياً.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9: HMMs for ASR -->
+  <div class="section" id="hmm">
+    <div class="section-header" onclick="toggle('hmm')">
+      <div class="section-icon">09</div>
+      <div class="section-title">Putting It Together — Hidden Markov Models for Automatic Speech Recognition</div>
+      <div class="section-toggle open" id="toggle-hmm">▼</div>
+    </div>
+    <div class="section-body open" id="body-hmm">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('hmm','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('hmm','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="hmm-en">
+        <h3>Recap: what we have built up to this point</h3>
+        <p>Raw audio → sampled &amp; quantized (Section 2) → split into overlapping windowed frames (Section 4) → converted into a feature vector per frame via MFCC/LPC (Sections 6–7), possibly quantized into a discrete symbol via VQ (Section 8). The recognizer's job is: given this sequence of feature vectors/symbols, figure out the most likely sequence of words (or phonemes) that produced it.</p>
+
+        <h3>Why a Markov Model, and why "Hidden"?</h3>
+        <p>A plain <span class="term">Markov Model</span> assumes the system moves through a sequence of observable states, where the next state depends only on the current one. But in speech, we never directly observe which phoneme/sound-state the speaker is "in" — we only observe the <span class="highlight">acoustic feature vectors</span> (MFCC frames) that the hidden state produced. This is exactly the situation a <span class="term">Hidden Markov Model (HMM)</span> is built for:</p>
+        <ul>
+          <li>The <span class="highlight">states</span> are hidden — they represent something like sub-phoneme units (e.g., the beginning/middle/end of a phoneme).</li>
+          <li>Each state has <span class="highlight">observations</span> (the feature vectors) tied to it, generated according to some probability distribution (or, in the VQ case, a probability over discrete codewords).</li>
+          <li>We no longer know the exact state sequence given the data — we only see the observations and must infer/estimate the hidden path.</li>
+          <li>This structure allows modeling an underlying unobservable process (the true, unseen sequence of vocal-tract configurations) from what we can measure (the sound).</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Imagine you cannot see into a room, but every few seconds someone slides a note under the door describing the temperature. You know the room secretly switches between "heater on" and "heater off" states, and each state tends to produce certain temperature readings — but you never see the switch itself, only the notes. An HMM is the mathematical machinery for inferring the most likely sequence of hidden heater-states from the sequence of observed notes. In ASR, the "room" is the vocal tract, the "notes" are MFCC vectors, and the "heater states" are phoneme sub-units.
+        </div>
+
+        <h3>HMMs for ASR — how it fits together</h3>
+        <table class="compare-table">
+          <tr><th>HMM Element</th><th>Speech Recognition Meaning</th></tr>
+          <tr><td>Hidden states</td><td>Sub-phoneme units (e.g., 3 states per phoneme: onset, steady, release)</td></tr>
+          <tr><td>Observations</td><td>MFCC feature vectors per frame (continuous), or VQ codeword indices (discrete)</td></tr>
+          <tr><td>Transition probabilities</td><td>Likelihood of staying in / moving to the next sub-phoneme state, learned from training data</td></tr>
+          <tr><td>Emission probabilities</td><td>Likelihood of observing a given feature vector/codeword while in a given state (Gaussian Mixture Models for continuous MFCCs, or a lookup table for discrete VQ symbols)</td></tr>
+          <tr><td>Decoding (Viterbi algorithm)</td><td>Finds the single most likely hidden state sequence — and hence the most likely word sequence — given the observed features</td></tr>
+        </table>
+
+        <p>Individual phoneme HMMs are chained together (using a pronunciation dictionary) into word HMMs, and word HMMs are chained (using a language model of likely word sequences) into a full sentence-level search graph — the <span class="term">Viterbi algorithm</span> then finds the best path through this entire graph given the acoustic observations, yielding the recognized word sequence.</p>
+
+        <div class="example-box">
+          <div class="label">Why this closes the loop back to NLP</div>
+          <p>Once the HMM/acoustic model outputs a sequence of words, everything downstream is exactly the text-based NLP you've already studied in this course: tokenization, POS tagging, parsing, NER, and so on can all run on the recognized transcript. Speech recognition is simply the audio "front door" that converts sound into the text your other NLP pipelines already know how to process — and modern end-to-end neural ASR systems (which you may see referenced elsewhere) still conceptually solve the exact same alignment problem that HMMs solve here.</p>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          HMMs model speech as a sequence of hidden phoneme sub-states that stochastically emit observable acoustic features (MFCC or VQ symbols). Training learns transition and emission probabilities from labeled data; the Viterbi algorithm decodes the most likely hidden path (and thus word sequence) from new audio — turning the entire signal-processing pipeline of this lecture into usable text for the rest of NLP.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="hmm-ar" dir="rtl">
+        <h3>ملخص: ماذا بنينا حتى الآن</h3>
+        <p>الصوت الخام → أُخذت عيناته وكُمّم (القسم 2) → قُسّم إلى frames متداخلة مع windowing (القسم 4) → حُوّل إلى متجه feature لكل frame عبر MFCC/LPC (الأقسام 6-7)، ربما كُمّم إلى رمز منفصل عبر VQ (القسم 8). مهمة الـ recognizer الآن: بالنظر لهذه المتتالية من متجهات features/الرموز، اكتشف أكثر متتالية كلمات (أو صوتيات) احتمالاً أنتجتها.</p>
+
+        <h3>ليش Markov Model، وليش "Hidden"؟</h3>
+        <p><span class="term">Markov Model</span> العادي يفترض أن النظام يتحرك عبر متتالية من حالات ملاحَظة، حيث الحالة القادمة تعتمد فقط على الحالية. لكن في الكلام، ما نلاحظ أبداً بشكل مباشر أي صوتية/حالة صوت المتحدث "فيها" — نلاحظ فقط <span class="highlight">متجهات features الصوتية</span> (frames الـ MFCC) اللي أنتجتها الحالة المخفية. هذا بالضبط الوضع اللي صُمم من أجله <span class="term">Hidden Markov Model (HMM)</span>:</p>
+        <ul>
+          <li>الـ <span class="highlight">States</span> مخفية — تمثّل شي مثل وحدات صوتية فرعية (مثلاً بداية/وسط/نهاية الصوتية).</li>
+          <li>كل حالة عندها <span class="highlight">Observations</span> (متجهات features) مرتبطة بها، تُولَّد حسب توزيع احتمالي معين (أو، في حالة VQ، احتمال على codewords منفصلة).</li>
+          <li>ما نعرف بالضبط متتالية الحالات بالنظر للبيانات — نرى فقط الـ observations ولازم نستنتج/نقدّر المسار المخفي.</li>
+          <li>هذا التركيب يسمح بنمذجة عملية غير ملاحَظة أساسية (المتتالية الحقيقية غير المرئية لتشكيلات القناة الصوتية) من اللي نقدر نقيسه (الصوت).</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل إنك ما تقدر تشوف داخل غرفة، لكن كل بضع ثواني حد يمرر ورقة تحت الباب تصف درجة الحرارة. تعرف أن الغرفة سرّاً تتبدل بين حالتي "المدفأة شغالة" و"المدفأة مطفية"، وكل حالة تميل لإنتاج قراءات حرارة معينة — لكن ما تشوف التبديل نفسه، فقط الأوراق. الـ HMM هي الآلية الرياضية لاستنتاج أكثر متتالية احتمالاً من حالات المدفأة المخفية من متتالية الأوراق الملاحَظة. في ASR، "الغرفة" هي القناة الصوتية، "الأوراق" هي متجهات MFCC، و"حالات المدفأة" هي الوحدات الفرعية للصوتيات.
+        </div>
+
+        <h3>HMMs في ASR — كيف تترابط كل القطع</h3>
+        <table class="compare-table">
+          <tr><th>عنصر HMM</th><th>المعنى في Speech Recognition</th></tr>
+          <tr><td>Hidden States</td><td>وحدات صوتية فرعية (مثلاً 3 حالات لكل صوتية: بداية، ثبات، نهاية)</td></tr>
+          <tr><td>Observations</td><td>متجهات features من MFCC لكل frame (مستمرة)، أو مؤشرات codeword من VQ (منفصلة)</td></tr>
+          <tr><td>Transition Probabilities</td><td>احتمال البقاء في / الانتقال للحالة الصوتية الفرعية التالية، تُتعلّم من بيانات التدريب</td></tr>
+          <tr><td>Emission Probabilities</td><td>احتمال ملاحظة متجه feature/codeword معين أثناء حالة معينة (Gaussian Mixture Models لـ MFCC المستمرة، أو جدول بحث لرموز VQ المنفصلة)</td></tr>
+          <tr><td>فك الترميز (خوارزمية Viterbi)</td><td>تجد أكثر متتالية حالات مخفية احتمالاً — وبالتالي أكثر متتالية كلمات احتمالاً — بالنظر للـ features الملاحَظة</td></tr>
+        </table>
+
+        <p>الـ HMMs الخاصة بكل صوتية تُسلسل معاً (باستخدام قاموس نطق) إلى HMMs للكلمات، والـ HMMs الخاصة بالكلمات تُسلسل (باستخدام language model لمتتاليات الكلمات المحتملة) إلى رسم بحث كامل على مستوى الجملة — بعدها خوارزمية <span class="term">Viterbi</span> تجد أفضل مسار عبر هذا الرسم بالكامل بالنظر للـ observations الصوتية، منتجة متتالية الكلمات المتعرَّف عليها.</p>
+
+        <div class="example-box">
+          <div class="label">ليش هذا يُغلق الحلقة مع NLP</div>
+          <p>بمجرد ما الـ HMM/النموذج الصوتي يُخرج متتالية كلمات، كل ما بعد ذلك هو بالضبط NLP النصي اللي درسته في هذا المقرر: tokenization، POS tagging، parsing، NER، وهكذا كلها تقدر تُطبَّق على النص المتعرَّف عليه. الـ Speech Recognition هو ببساطة "الباب الأمامي" الصوتي اللي يحوّل الصوت إلى النص اللي باقي أنظمة NLP عندك تعرف تتعامل معه بالفعل — وأنظمة ASR العصبية الحديثة end-to-end (اللي ممكن تشوفها مذكورة في أماكن أخرى) لا تزال مفاهيمياً تحل نفس مشكلة المحاذاة اللي تحلها HMMs هنا.</p>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ HMMs تنمذج الكلام كمتتالية من حالات فرعية صوتية مخفية تُصدر احتمالياً features صوتية ملاحَظة (MFCC أو رموز VQ). التدريب يتعلم احتمالات الانتقال والإصدار من بيانات مُصنَّفة؛ خوارزمية Viterbi تفك ترميز أكثر مسار مخفي احتمالاً (وبالتالي متتالية الكلمات) من صوت جديد — محوّلة خط أنابيب معالجة الإشارة كامل من هذه المحاضرة إلى نص قابل للاستخدام لباقي NLP.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

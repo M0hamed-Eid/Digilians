@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NLP: ChatGPT — Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Core palette */
+    --bg: #f0ede8;
+    --bg2: #e8e3dc;
+    --card: #faf9f7;
+    --border: #d4cfc6;
+    --text: #1c1917;
+    --muted: #6b6460;
+    --radius: 12px;
+
+    /* Section accent colors — each section gets its own identity */
+    --c-blue:        #1d4ed8;
+    --c-blue-bg:     #dbeafe;
+    --c-blue-mid:    #93c5fd;
+
+    --c-amber:       #b45309;
+    --c-amber-bg:    #fef3c7;
+    --c-amber-mid:   #fcd34d;
+
+    --c-teal:        #0f766e;
+    --c-teal-bg:     #ccfbf1;
+    --c-teal-mid:    #5eead4;
+
+    --c-purple:      #6d28d9;
+    --c-purple-bg:   #ede9fe;
+    --c-purple-mid:  #c4b5fd;
+
+    --c-rose:        #be123c;
+    --c-rose-bg:     #ffe4e6;
+    --c-rose-mid:    #fda4af;
+
+    --c-emerald:     #047857;
+    --c-emerald-bg:  #d1fae5;
+    --c-emerald-mid: #6ee7b7;
+
+    --c-indigo:      #3730a3;
+    --c-indigo-bg:   #e0e7ff;
+    --c-indigo-mid:  #a5b4fc;
+
+    --c-orange:      #c2410c;
+    --c-orange-bg:   #ffedd5;
+    --c-orange-mid:  #fdba74;
+
+    --c-sky:         #0369a1;
+    --c-sky-bg:      #e0f2fe;
+    --c-sky-mid:     #7dd3fc;
+
+    /* Semantic */
+    --accent-blue:         var(--c-blue);
+    --accent-blue-light:   var(--c-blue-bg);
+    --accent-teal:         var(--c-teal);
+    --accent-teal-light:   var(--c-teal-bg);
+    --accent-amber:        var(--c-amber);
+    --accent-amber-light:  var(--c-amber-bg);
+    --accent-purple:       var(--c-purple);
+    --accent-purple-light: var(--c-purple-bg);
+    --accent-coral:        var(--c-rose);
+    --accent-coral-light:  var(--c-rose-bg);
+    --accent-green:        var(--c-emerald);
+    --accent-green-light:  var(--c-emerald-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141210;
+      --bg2: #1c1917;
+      --card: #1f1d1b;
+      --border: #2e2b28;
+      --text: #e7e3dd;
+      --muted: #9c9790;
+
+      --c-blue-bg:     #1e3a6e;
+      --c-amber-bg:    #5c3009;
+      --c-teal-bg:     #0a3d38;
+      --c-purple-bg:   #3b1f72;
+      --c-rose-bg:     #6b0f24;
+      --c-emerald-bg:  #083d2a;
+      --c-indigo-bg:   #1e1b5e;
+      --c-orange-bg:   #6b2206;
+      --c-sky-bg:      #0c3352;
+
+      --c-blue:        #60a5fa;
+      --c-amber:       #fbbf24;
+      --c-teal:        #2dd4bf;
+      --c-purple:      #a78bfa;
+      --c-rose:        #fb7185;
+      --c-emerald:     #34d399;
+      --c-indigo:      #818cf8;
+      --c-orange:      #fb923c;
+      --c-sky:         #38bdf8;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 36px 20px 100px; }
+
+  /* ── Header ── */
+  .header {
+    margin-bottom: 44px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--border);
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    left: 0; top: -8px;
+    width: 56px; height: 4px;
+    background: linear-gradient(90deg, var(--c-blue), var(--c-purple), var(--c-teal));
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--c-blue) 0%, var(--c-purple) 60%, var(--c-teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p { color: var(--muted); font-size: 13.5px; }
+
+  /* ── TOC chips ── */
+  .toc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+  .toc-chip {
+    border: none; cursor: pointer;
+    padding: 5px 13px; border-radius: 20px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    transition: transform .12s, box-shadow .12s;
+    letter-spacing: 0.02em;
+  }
+  .toc-chip:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+
+  /* Each chip gets its own color */
+  .toc-chip:nth-child(1) { background: var(--c-blue-bg);    color: var(--c-blue); }
+  .toc-chip:nth-child(2) { background: var(--c-amber-bg);   color: var(--c-amber); }
+  .toc-chip:nth-child(3) { background: var(--c-teal-bg);    color: var(--c-teal); }
+  .toc-chip:nth-child(4) { background: var(--c-purple-bg);  color: var(--c-purple); }
+  .toc-chip:nth-child(5) { background: var(--c-rose-bg);    color: var(--c-rose); }
+  .toc-chip:nth-child(6) { background: var(--c-emerald-bg); color: var(--c-emerald); }
+  .toc-chip:nth-child(7) { background: var(--c-indigo-bg);  color: var(--c-indigo); }
+  .toc-chip:nth-child(8) { background: var(--c-orange-bg);  color: var(--c-orange); }
+  .toc-chip:nth-child(9) { background: var(--c-sky-bg);     color: var(--c-sky); }
+  .toc-chip:nth-child(10) { background: var(--c-blue-bg);   color: var(--c-blue); }
+
+  /* ── Section cards ── */
+  .section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .section:hover { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+
+  .section-header {
+    padding: 18px 22px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; user-select: none;
+  }
+
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: -0.5px;
+  }
+
+  /* Section icons: each gets a bold accent color */
+  #intro         .section-icon { background: var(--c-blue-bg);    color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+  #evolution     .section-icon { background: var(--c-amber-bg);   color: var(--c-amber);   border: 1.5px solid var(--c-amber-mid); }
+  #advantages    .section-icon { background: var(--c-teal-bg);    color: var(--c-teal);    border: 1.5px solid var(--c-teal-mid); }
+  #disadvantages .section-icon { background: var(--c-purple-bg); color: var(--c-purple);  border: 1.5px solid var(--c-purple-mid); }
+  #comparison    .section-icon { background: var(--c-rose-bg);    color: var(--c-rose);    border: 1.5px solid var(--c-rose-mid); }
+  #chatgpt       .section-icon { background: var(--c-emerald-bg);color: var(--c-emerald); border: 1.5px solid var(--c-emerald-mid); }
+  #training      .section-icon { background: var(--c-indigo-bg); color: var(--c-indigo);  border: 1.5px solid var(--c-indigo-mid); }
+  #capabilities  .section-icon { background: var(--c-orange-bg); color: var(--c-orange);  border: 1.5px solid var(--c-orange-mid); }
+  #gpt4          .section-icon { background: var(--c-sky-bg);    color: var(--c-sky);     border: 1.5px solid var(--c-sky-mid); }
+  #future        .section-icon { background: var(--c-blue-bg);   color: var(--c-blue);    border: 1.5px solid var(--c-blue-mid); }
+
+  /* Section left-border accent stripe */
+  #intro         { border-left: 4px solid var(--c-blue); }
+  #evolution     { border-left: 4px solid var(--c-amber); }
+  #advantages    { border-left: 4px solid var(--c-teal); }
+  #disadvantages { border-left: 4px solid var(--c-purple); }
+  #comparison    { border-left: 4px solid var(--c-rose); }
+  #chatgpt       { border-left: 4px solid var(--c-emerald); }
+  #training      { border-left: 4px solid var(--c-indigo); }
+  #capabilities  { border-left: 4px solid var(--c-orange); }
+  #gpt4          { border-left: 4px solid var(--c-sky); }
+  #future        { border-left: 4px solid var(--c-blue); }
+
+  .section-title { font-size: 16.5px; font-weight: 600; flex: 1; }
+  .section-toggle { color: var(--muted); font-size: 16px; transition: transform .2s; }
+  .section-toggle.open { transform: rotate(180deg); }
+  .section-body { padding: 24px 26px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ── Language tabs ── */
+  .lang-tabs {
+    display: flex; gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 9px; overflow: hidden;
+    margin-bottom: 22px;
+    background: var(--bg2);
+  }
+  .lang-tab {
+    flex: 1; padding: 8px 12px;
+    text-align: center; font-size: 13px; font-weight: 600;
+    cursor: pointer; background: transparent;
+    color: var(--muted); border: none;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .lang-tab.active { background: var(--c-blue); color: #fff; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+
+  /* ── Content typography ── */
+  h3 {
+    font-size: 13.5px; font-weight: 700;
+    margin: 20px 0 8px; color: var(--text);
+    text-transform: uppercase; letter-spacing: .04em;
+  }
+  h3:first-child { margin-top: 0; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 7px; }
+
+  /* ── Inline tags ── */
+  .term {
+    background: var(--c-amber-bg);
+    color: var(--c-amber);
+    padding: 2px 7px; border-radius: 5px;
+    font-weight: 700; font-size: 13px;
+    border: 1px solid var(--c-amber-mid);
+  }
+  .highlight {
+    background: var(--c-purple-bg);
+    color: var(--c-purple);
+    padding: 2px 7px; border-radius: 5px;
+    font-size: 13px; font-weight: 600;
+    border: 1px solid var(--c-purple-mid);
+  }
+  .code-inline {
+    background: var(--bg2);
+    color: var(--c-indigo);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Content boxes ── */
+  .analogy-box {
+    background: linear-gradient(135deg, var(--c-teal-bg) 0%, color-mix(in srgb, var(--c-teal-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-teal);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+    position: relative;
+  }
+  .analogy-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-teal); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .analogy-box .label::before { content: '💡'; font-size: 13px; }
+
+  .example-box {
+    background: linear-gradient(135deg, var(--c-blue-bg) 0%, color-mix(in srgb, var(--c-blue-bg) 60%, white) 100%);
+    border-left: 4px solid var(--c-blue);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .example-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-blue); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .example-box .label::before { content: '▶'; font-size: 10px; }
+
+  .summary-box {
+    background: linear-gradient(135deg, var(--c-emerald-bg), color-mix(in srgb, var(--c-emerald-bg) 50%, white));
+    border: 1.5px solid var(--c-emerald-mid);
+    padding: 14px 18px; border-radius: 10px; margin: 20px 0 0;
+  }
+  .summary-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-emerald); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .summary-box .label::before { content: '✦'; font-size: 11px; }
+
+  .warning-box {
+    background: linear-gradient(135deg, var(--c-rose-bg), color-mix(in srgb, var(--c-rose-bg) 60%, white));
+    border-left: 4px solid var(--c-rose);
+    padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
+  }
+  .warning-box .label {
+    font-size: 10.5px; font-weight: 700;
+    color: var(--c-rose); text-transform: uppercase;
+    letter-spacing: .7px; margin-bottom: 5px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .warning-box .label::before { content: '⚠'; font-size: 12px; }
+
+  /* ── Tables ── */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 14px 0; border-radius: 8px; overflow: hidden; }
+  .compare-table th {
+    background: linear-gradient(90deg, var(--c-purple-bg), color-mix(in srgb, var(--c-indigo-bg) 50%, var(--c-purple-bg)));
+    color: var(--c-purple); padding: 9px 14px;
+    text-align: left; font-weight: 700;
+    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .compare-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table tr:nth-child(even) td { background: var(--bg2); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: #0f1117;
+    color: #cdd6f4;
+    padding: 16px 18px; border-radius: 10px;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    font-size: 12.5px; overflow-x: auto;
+    margin: 14px 0; line-height: 1.65;
+    border: 1px solid #2a2d3e;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .code-block .kw { color: #89b4fa; }   /* blue — keywords */
+  .code-block .str { color: #a6e3a1; }  /* green — strings */
+  .code-block .cm { color: #585b70; }   /* muted — comments */
+  .code-block .fn { color: #f9e2af; }   /* yellow — functions */
+
+  [dir="rtl"] { font-family: 'Sora', 'Tahoma', 'Arabic Typesetting', sans-serif; }
+
+  /* ── Pipeline diagram (training stages) ── */
+  .pipeline {
+    display: flex; align-items: stretch; gap: 10px;
+    margin: 16px 0; flex-wrap: wrap;
+  }
+  .pipeline-step {
+    flex: 1; min-width: 160px;
+    background: var(--bg2);
+    border: 1.5px solid var(--border);
+    border-top: 4px solid var(--step-color, var(--c-indigo));
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .pipeline-step .pipeline-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    color: var(--step-color, var(--c-indigo));
+    margin-bottom: 6px;
+  }
+  .pipeline-step .pipeline-title {
+    font-size: 14px; font-weight: 700;
+    margin-bottom: 6px; color: var(--text);
+  }
+  .pipeline-step .pipeline-desc {
+    font-size: 12.5px; color: var(--muted); line-height: 1.5;
+  }
+  .pipeline-arrow {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: var(--muted);
+    flex: 0 0 auto; padding: 0 2px;
+  }
+  @media (max-width: 640px) {
+    .pipeline { flex-direction: column; }
+    .pipeline-arrow { transform: rotate(90deg); padding: 4px 0; }
+  }
+
+  /* ── Timeline diagram (evolution of LLMs) ── */
+  .timeline { position: relative; margin: 18px 0 6px; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px;
+    width: 2px; background: var(--border);
+  }
+  .timeline-item { position: relative; margin-bottom: 16px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -24px; top: 3px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--item-color, var(--c-amber));
+    border: 2px solid var(--card);
+    box-shadow: 0 0 0 2px var(--item-color, var(--c-amber));
+  }
+  .timeline-item .t-year {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700;
+    color: var(--item-color, var(--c-amber)); margin-bottom: 2px;
+  }
+  .timeline-item .t-title { font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
+  .timeline-item .t-desc { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <h1>NLP: ChatGPT</h1>
+    <p>Bilingual study guide — English + Arabic | Digilians Data Science Diploma</p>
+    <div class="toc-chips">
+      <button class="toc-chip" onclick="scrollTo('intro')">Introduction</button>
+      <button class="toc-chip" onclick="scrollTo('evolution')">Evolution of LLMs</button>
+      <button class="toc-chip" onclick="scrollTo('advantages')">Advantages</button>
+      <button class="toc-chip" onclick="scrollTo('disadvantages')">Disadvantages</button>
+      <button class="toc-chip" onclick="scrollTo('comparison')">LLM Comparison</button>
+      <button class="toc-chip" onclick="scrollTo('chatgpt')">What is ChatGPT?</button>
+      <button class="toc-chip" onclick="scrollTo('training')">Training ChatGPT</button>
+      <button class="toc-chip" onclick="scrollTo('capabilities')">Capabilities &amp; Limits</button>
+      <button class="toc-chip" onclick="scrollTo('gpt4')">GPT-4</button>
+      <button class="toc-chip" onclick="scrollTo('future')">Future &amp; Conclusion</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Introduction -->
+  <div class="section" id="intro">
+    <div class="section-header" onclick="toggle('intro')">
+      <div class="section-icon">01</div>
+      <div class="section-title">Introduction — What is a Large Language Model?</div>
+      <div class="section-toggle" id="toggle-intro">▼</div>
+    </div>
+    <div class="section-body open" id="body-intro">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('intro','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('intro','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="intro-en">
+        <h3>What is an LLM?</h3>
+        <p>A <span class="term">Large Language Model (LLM)</span> is a type of language model with an enormous number of parameters — typically billions or more — trained on huge amounts of unlabeled text using <span class="term">self-supervised</span> or semi-supervised learning. Instead of building a specialized model for every single task (one model for translation, another for summarization, another for sentiment), an LLM is <span class="term">general-purpose</span>: one model that can perform a very wide range of language tasks.</p>
+        <p>LLMs learn the syntax and semantics of human language, and they also "memorize" a large amount of general world knowledge simply by being exposed to massive text during training.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of an LLM as a person who has read almost every book, article, and website ever written, and remembers the patterns of how language and ideas fit together — without being told explicit grammar rules. Ask them almost anything, and they can respond fluently, because they have seen so many examples of how humans write and talk.
+        </div>
+
+        <h3>Why are LLMs mainly Transformer-based?</h3>
+        <p>Nearly all modern LLMs (GPT, BERT, T5, LLaMA, PaLM, etc.) are built on the <span class="term">Transformer</span> architecture, introduced in 2017. Transformers use <span class="term">self-attention</span>, which lets the model weigh the importance of every word relative to every other word in a sequence — this made it possible to train on much larger datasets, in parallel, and to capture long-range dependencies far better than earlier architectures.</p>
+
+        <h3>Key drivers of LLM success</h3>
+        <ul>
+          <li><b>Data</b> — training on massive, diverse text corpora scraped from books, articles, and the web.</li>
+          <li><b>Parameters</b> — billions of learned weights that let the model capture complex patterns.</li>
+          <li><b>Compute</b> — large-scale GPU/TPU clusters that make training such huge models feasible.</li>
+        </ul>
+        <p>At the same time, LLMs raise real concerns: they can perpetuate <span class="highlight">bias</span> and <span class="highlight">misinformation</span> present in their training data, and ongoing research focuses on making them safer, fairer, and more transparent.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          An LLM is a general-purpose, Transformer-based model with billions of parameters, trained on massive unlabeled text via self-supervised learning. Its power comes from data, scale, and compute — but this also brings ethical challenges like bias and misinformation.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="intro-ar" dir="rtl">
+        <h3>ما هو الـ LLM؟</h3>
+        <p><span class="term">Large Language Model (LLM)</span> هو نوع من language models عنده عدد هائل من الـ parameters — عادة بالمليارات أو أكثر — ويتدرّب على كميات ضخمة من النص غير المُصنَّف (unlabeled) باستخدام <span class="term">self-supervised learning</span>. بدل ما نبني model مخصص لكل مهمة (واحد للترجمة، واحد للتلخيص، واحد لـ sentiment)، الـ LLM هو <span class="term">general-purpose</span>: model واحد يقدر يعمل مجموعة واسعة جداً من مهام اللغة.</p>
+        <p>الـ LLMs بتتعلّم قواعد اللغة (syntax) والمعنى (semantics)، وكمان "تحفظ" كمية كبيرة من المعرفة العامة عن العالم بمجرد التعرّض لكميات ضخمة من النص أثناء الـ training.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          تخيّل الـ LLM كشخص قرأ تقريباً كل كتاب ومقال وموقع كُتب على الإطلاق، ويتذكّر الأنماط اللي بتربط اللغة والأفكار مع بعض — بدون ما حد يشرحله قواعد نحوية صريحة. اسأله أي شي تقريباً، وهيرد بطلاقة، لأنه شاف أمثلة كثيرة جداً عن كيف الناس بتكتب وتتكلم.
+        </div>
+
+        <h3>ليش أغلب الـ LLMs مبنية على Transformer؟</h3>
+        <p>تقريباً كل الـ LLMs الحديثة (GPT، BERT، T5، LLaMA، PaLM...) مبنية على معمارية <span class="term">Transformer</span> اللي ظهرت سنة 2017. الـ Transformers تستخدم <span class="term">self-attention</span>، اللي بتخلي الـ model يوزن أهمية كل كلمة بالنسبة لكل كلمة ثانية في الجملة — وهذا خلّى التدريب على datasets أكبر بكثير ممكن، وبالتوازي (parallel)، وقدر يلتقط العلاقات البعيدة (long-range dependencies) أحسن بكثير من المعماريات القديمة.</p>
+
+        <h3>أهم عوامل نجاح الـ LLMs</h3>
+        <ul>
+          <li><b>البيانات (Data)</b> — تدريب على نصوص ضخمة ومتنوعة من كتب ومقالات والويب.</li>
+          <li><b>الـ Parameters</b> — مليارات من الأوزان المتعلّمة اللي بتخلي الـ model يلتقط أنماط معقدة.</li>
+          <li><b>القدرة الحسابية (Compute)</b> — clusters ضخمة من GPU/TPU بتخلي تدريب models بهذا الحجم ممكن.</li>
+        </ul>
+        <p>في نفس الوقت، الـ LLMs بتثير مخاوف حقيقية: ممكن تعزّز الـ <span class="highlight">bias</span> والـ <span class="highlight">misinformation</span> الموجودة في بيانات التدريب، والأبحاث المستمرة بتركّز على خلي الـ models أكثر أماناً وعدالة وشفافية.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ LLM هو model عام الغرض مبني على Transformer وبمليارات الـ parameters، يتدرّب على نص ضخم غير مصنّف عبر self-supervised learning. قوته جاية من البيانات والحجم والقدرة الحسابية — لكن هذا بيجيب معه تحديات أخلاقية زي الـ bias والمعلومات المضلّلة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Evolution of LLMs -->
+  <div class="section" id="evolution">
+    <div class="section-header" onclick="toggle('evolution')">
+      <div class="section-icon">02</div>
+      <div class="section-title">Evolution of LLMs — From N-grams to Transformers</div>
+      <div class="section-toggle" id="toggle-evolution">▼</div>
+    </div>
+    <div class="section-body open" id="body-evolution">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('evolution','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('evolution','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="evolution-en">
+        <h3>A timeline of key milestones</h3>
+        <div class="timeline">
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">Early 2000s</div>
+            <div class="t-title">Early statistical / neural language models</div>
+            <div class="t-desc">Simple neural architectures and statistical n-gram models trained on small datasets — predicting the next word from the previous few words.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2013</div>
+            <div class="t-title">Word embeddings (Word2Vec)</div>
+            <div class="t-desc">Tomas Mikolov and colleagues proposed dense vector representations of words that capture semantic relationships (e.g. king − man + woman ≈ queen). Still used inside LLMs today.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2014</div>
+            <div class="t-title">Recurrent Neural Networks (RNNs)</div>
+            <div class="t-desc">RNNs model sequential data by passing information step by step, but suffer from the vanishing gradient problem on long sequences.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2015</div>
+            <div class="t-title">LSTM networks</div>
+            <div class="t-desc">Long Short-Term Memory networks — a type of RNN that can remember information over longer periods, significantly improving language model performance.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2017</div>
+            <div class="t-title">Attention mechanisms &amp; the Transformer</div>
+            <div class="t-desc">Attention lets a model selectively focus on the most relevant parts of the input. The Transformer architecture (built on self-attention) revolutionized NLP — training in parallel, capturing long-range dependencies.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2018 →</div>
+            <div class="t-title">Scaling up: GPT family, BERT, T5...</div>
+            <div class="t-desc">Focus shifted to scaling parameters and data. GPT-3 reached 175 billion parameters. This scaling trend directly led to today's LLMs.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">Nov 2022</div>
+            <div class="t-title">ChatGPT is released</div>
+            <div class="t-desc">OpenAI releases ChatGPT, built on GPT-3.5 (later GPT-4), fine-tuned with supervised learning and reinforcement learning — bringing LLMs to mainstream, conversational use.</div>
+          </div>
+        </div>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          This evolution is like the history of transportation: walking (n-gram models) → bicycles (early neural nets) → cars (RNN/LSTM, faster but still limited by traffic/roads) → airplanes (Transformers, able to "skip" distance entirely via attention and go anywhere directly). Each step removed a bottleneck that was holding the previous approach back.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          LLMs evolved from simple statistical/n-gram models → word embeddings → RNN/LSTM → attention → Transformers → massively scaled GPT-style models. Each step solved a limitation of the one before it, ultimately enabling models like ChatGPT.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="evolution-ar" dir="rtl">
+        <h3>خط زمني لأهم المحطات</h3>
+        <div class="timeline">
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">أوائل الألفينات</div>
+            <div class="t-title">أول نماذج إحصائية/عصبية للغة</div>
+            <div class="t-desc">معماريات عصبية بسيطة ونماذج n-gram إحصائية تدربت على datasets صغيرة — بتتوقّع الكلمة التالية بناءً على الكلمات القليلة السابقة.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2013</div>
+            <div class="t-title">Word Embeddings (Word2Vec)</div>
+            <div class="t-desc">Tomas Mikolov وزملاؤه اقترحوا تمثيلات متجهية كثيفة (dense vectors) للكلمات بتلتقط العلاقات الدلالية بينها. لا تزال تُستخدم داخل الـ LLMs اليوم.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2014</div>
+            <div class="t-title">الشبكات العصبية المتكررة (RNNs)</div>
+            <div class="t-desc">الـ RNNs بتنمذج البيانات المتسلسلة عبر تمرير المعلومة خطوة بخطوة، لكنها تعاني من مشكلة vanishing gradient في الجُمل الطويلة.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2015</div>
+            <div class="t-title">شبكات LSTM</div>
+            <div class="t-desc">نوع من الـ RNN قادر يتذكّر المعلومات لفترات أطول، حسّن أداء نماذج اللغة بشكل ملحوظ.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2017</div>
+            <div class="t-title">آليات الـ Attention ومعمارية Transformer</div>
+            <div class="t-desc">الـ Attention بتخلي الـ model يركّز بشكل انتقائي على الأجزاء الأهم من المُدخل. معمارية Transformer (المبنية على self-attention) غيّرت NLP كلياً — تدريب متوازٍ، والتقاط علاقات بعيدة المدى.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">2018 وما بعدها</div>
+            <div class="t-title">التوسّع: عائلة GPT، BERT، T5...</div>
+            <div class="t-desc">التركيز انتقل لتوسيع الـ parameters والبيانات. GPT-3 وصل لـ 175 مليار parameter. هذا الاتجاه أدّى مباشرة لظهور الـ LLMs الحالية.</div>
+          </div>
+          <div class="timeline-item" style="--item-color: var(--c-amber)">
+            <div class="t-year">نوفمبر 2022</div>
+            <div class="t-title">إطلاق ChatGPT</div>
+            <div class="t-desc">OpenAI أطلقت ChatGPT، مبني على GPT-3.5 (لاحقاً GPT-4)، ومضبوط (fine-tuned) بالـ supervised learning والـ reinforcement learning — وهذا جاب الـ LLMs للاستخدام العام والمحادثاتي.</div>
+          </div>
+        </div>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          هذا التطور مثل تاريخ وسائل النقل: مشي (نماذج n-gram) ← دراجة (شبكات عصبية مبكرة) ← سيارة (RNN/LSTM، أسرع لكن محدودة بالطرق والزحمة) ← طائرة (Transformers، تقدر "تتخطى" المسافة كلياً عبر الـ attention وتوصل مباشرة لأي مكان). كل خطوة أزالت عائق كان يحدّ من الطريقة السابقة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ LLMs تطورت من نماذج إحصائية/n-gram بسيطة ← word embeddings ← RNN/LSTM ← attention ← Transformers ← نماذج GPT ضخمة الحجم. كل خطوة حلّت قيداً في الخطوة السابقة، وأدّت في النهاية لظهور نماذج مثل ChatGPT.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Advantages -->
+  <div class="section" id="advantages">
+    <div class="section-header" onclick="toggle('advantages')">
+      <div class="section-icon">03</div>
+      <div class="section-title">Advantages of LLMs</div>
+      <div class="section-toggle" id="toggle-advantages">▼</div>
+    </div>
+    <div class="section-body open" id="body-advantages">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('advantages','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('advantages','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="advantages-en">
+        <h3>Why LLMs are so widely adopted</h3>
+        <ul>
+          <li><b>High performance</b> — state-of-the-art results across a wide range of NLP tasks, often surpassing previous specialized benchmarks.</li>
+          <li><b>General purpose</b> — one model can handle translation, summarization, question answering, coding, and more, without retraining a new model per task.</li>
+          <li><b>Reduced need for labeled data</b> — pretraining uses unlabeled text, cutting the cost and time of manual annotation.</li>
+          <li><b>Continuous learning / fine-tuning</b> — LLMs can be fine-tuned on new data to adapt and improve for specific domains or tasks over time.</li>
+          <li><b>Rich knowledge representation</b> — general world knowledge picked up during pretraining can be leveraged for many downstream tasks (few-shot / zero-shot learning).</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          A traditional NLP pipeline is like hiring a different specialist for every job — a translator, a proofreader, a summarizer. An LLM is like hiring one extremely well-read generalist who can do a competent job at nearly all of these tasks, and who can pick up a new specialty quickly with a bit of extra coaching (fine-tuning).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          LLMs offer high performance, versatility across tasks, less reliance on labeled data, easy fine-tuning, and broad general knowledge — making them powerful, flexible tools for a huge range of NLP applications.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="advantages-ar" dir="rtl">
+        <h3>ليش الـ LLMs منتشرة هالقد</h3>
+        <ul>
+          <li><b>أداء عالٍ (High performance)</b> — نتائج state-of-the-art في مجموعة واسعة من مهام NLP، وغالباً بتتفوّق على النماذج المتخصصة السابقة.</li>
+          <li><b>عام الغرض (General purpose)</b> — model واحد يقدر يعمل ترجمة، تلخيص، question answering، برمجة، وأكثر، بدون إعادة تدريب model جديد لكل مهمة.</li>
+          <li><b>تقليل الحاجة لبيانات مُصنَّفة</b> — الـ pretraining بيستخدم نص غير مصنّف، وهذا بيقلّل تكلفة ووقت الـ annotation اليدوي.</li>
+          <li><b>التعلّم المستمر / Fine-tuning</b> — تقدر تضبط الـ LLM على بيانات جديدة عشان يتكيّف ويتحسّن لمجال أو مهمة محددة بمرور الوقت.</li>
+          <li><b>تمثيل معرفي غني</b> — المعرفة العامة اللي اكتسبها الـ model أثناء الـ pretraining ممكن تُستغل في مهام كثيرة (few-shot / zero-shot learning).</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ pipeline التقليدي في NLP زي ما توظّف متخصص مختلف لكل مهمة — مترجم، مدقق لغوي، ملخّص. الـ LLM زي ما توظّف شخص واحد مثقف جداً يقدر يسوّي شغل مقبول في كل هذه المهام تقريباً، وكمان يقدر يتعلّم تخصص جديد بسرعة بشوية تدريب إضافي (fine-tuning).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ LLMs تقدّم أداء عالي، مرونة عبر المهام، اعتماد أقل على البيانات المصنّفة، fine-tuning سهل، ومعرفة عامة واسعة — وهذا بيخليها أدوات قوية ومرنة لمجموعة ضخمة من تطبيقات NLP.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Disadvantages -->
+  <div class="section" id="disadvantages">
+    <div class="section-header" onclick="toggle('disadvantages')">
+      <div class="section-icon">04</div>
+      <div class="section-title">Disadvantages of LLMs</div>
+      <div class="section-toggle" id="toggle-disadvantages">▼</div>
+    </div>
+    <div class="section-body open" id="body-disadvantages">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('disadvantages','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('disadvantages','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="disadvantages-en">
+        <h3>The costs and risks of LLMs</h3>
+        <ul>
+          <li><b>Computational resources</b> — training and running LLMs requires massive amounts of compute, making them expensive to develop and deploy.</li>
+          <li><b>Environmental / carbon footprint</b> — the energy consumed by large-scale training has a real environmental impact.</li>
+          <li><b>Bias and fairness</b> — LLMs can learn and reproduce biases present in their training data, leading to unfair or discriminatory outputs.</li>
+          <li><b>Privacy concerns</b> — models trained on sensitive data may memorize and unintentionally reveal information that should stay confidential.</li>
+          <li><b>Interpretability</b> — the internal reasoning of an LLM is largely a "black box," making it hard to explain why it produced a particular answer.</li>
+          <li><b>Hallucination &amp; lack of true understanding</b> — LLMs predict plausible next words statistically; they don't "know" facts the way a database does, so they can generate confident but incorrect statements.</li>
+          <li><b>Knowledge cutoff</b> — a model's knowledge is frozen at the point its training data was collected; it does not automatically know about events after that.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">Important Note</div>
+          Because LLMs generate text by predicting statistically likely words, not by looking up verified facts, they can produce very confident-sounding but false statements — this is called <span class="term">hallucination</span>. Always verify important claims from an LLM against a trustworthy source, especially in high-stakes contexts (medical, legal, financial).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          LLMs are costly to train, environmentally taxing, hard to interpret, and can inherit bias, leak sensitive information, or hallucinate false facts. These limitations must be actively managed, not ignored.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="disadvantages-ar" dir="rtl">
+        <h3>تكاليف ومخاطر الـ LLMs</h3>
+        <ul>
+          <li><b>الموارد الحسابية</b> — تدريب وتشغيل الـ LLMs يحتاج قدرة حسابية ضخمة، وهذا بيخليها مكلفة جداً في التطوير والنشر.</li>
+          <li><b>البصمة البيئية / الكربونية</b> — الطاقة المستهلكة في التدريب على نطاق واسع لها تأثير بيئي حقيقي.</li>
+          <li><b>التحيّز والعدالة (Bias and fairness)</b> — الـ LLMs ممكن تتعلّم وتكرّر التحيّزات الموجودة في بيانات التدريب، مما يؤدي لنتائج غير عادلة أو تمييزية.</li>
+          <li><b>مخاوف الخصوصية</b> — models تدربت على بيانات حساسة ممكن تحفظ وتكشف معلومات كان لازم تبقى سرية.</li>
+          <li><b>قابلية التفسير (Interpretability)</b> — الاستدلال الداخلي للـ LLM غالباً "صندوق أسود"، وهذا بيصعّب تفسير ليش أعطى إجابة معينة.</li>
+          <li><b>الـ Hallucination وغياب الفهم الحقيقي</b> — الـ LLM بيتوقّع الكلمة التالية إحصائياً؛ ما "بيعرف" الحقائق زي قاعدة بيانات، فممكن يولّد جُمل واثقة لكن غلط.</li>
+          <li><b>حدود المعرفة (Knowledge cutoff)</b> — معرفة الـ model متجمّدة عند لحظة جمع بيانات التدريب؛ ما بيعرف تلقائياً أحداث بعد هذا التاريخ.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة مهمة</div>
+          بما إن الـ LLM بيولّد النص بالتنبؤ بالكلمات الأكثر احتمالاً إحصائياً، مش بالرجوع لحقائق مؤكدة، فممكن يطلع جُمل تبدو واثقة جداً لكنها غلط — هذا اسمه <span class="term">Hallucination</span>. دائماً تحقّق من أي معلومة مهمة من الـ LLM من مصدر موثوق، خصوصاً في سياقات حساسة (طبية، قانونية، مالية).
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ LLMs مكلفة في التدريب، مرهقة بيئياً، صعبة التفسير، وممكن ترث تحيّزات أو تسرّب معلومات حساسة أو "تهلوس" بحقائق غلط. لازم إدارة هذه القيود بشكل فعّال مش تجاهلها.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: LLM Comparison -->
+  <div class="section" id="comparison">
+    <div class="section-header" onclick="toggle('comparison')">
+      <div class="section-icon">05</div>
+      <div class="section-title">Comparing Transformer-Based LLM Families</div>
+      <div class="section-toggle" id="toggle-comparison">▼</div>
+    </div>
+    <div class="section-body open" id="body-comparison">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('comparison','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('comparison','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="comparison-en">
+        <h3>Dimensions used to compare LLMs</h3>
+        <ul>
+          <li><b>Number of parameters</b> — more parameters generally means more capacity to capture complex patterns, but also higher risk of overfitting and higher cost. Parameter count alone does not determine quality; data and architecture matter too.</li>
+          <li><b>Inference speed</b> — how fast the model produces output; depends on hardware, model size, and implementation. Critical for production deployment and user experience.</li>
+          <li><b>Fine-tuning</b> — adapting a pre-trained model to a specific task/domain using labeled data. Types include task-specific, domain-specific, and multi-task fine-tuning.</li>
+          <li><b>Architecture approach</b> — encoder-only, decoder-only, or encoder-decoder (see table below).</li>
+          <li><b>Language support</b> — most popular LLMs are trained mainly on English data and perform best there; multilingual NLP is an active research area.</li>
+        </ul>
+
+        <h3>Encoder-only vs Decoder-only vs Encoder-Decoder</h3>
+        <table class="compare-table">
+          <tr><th>Model family</th><th>Architecture type</th><th>Typical use case</th><th>Training objective</th></tr>
+          <tr><td><span class="highlight">BERT</span></td><td>Encoder-only</td><td>Understanding tasks: classification, NER, sentence similarity</td><td>Masked language modeling (predict hidden/masked words using context from both directions)</td></tr>
+          <tr><td><span class="highlight">GPT family / ChatGPT</span></td><td>Decoder-only</td><td>Generation tasks: chatbots, text completion, creative writing, code generation</td><td>Autoregressive next-token prediction (predict the next word given only previous words)</td></tr>
+          <tr><td><span class="highlight">T5</span></td><td>Encoder-Decoder</td><td>Text-to-text tasks: translation, summarization, question answering</td><td>Every task is framed as "input text → output text"</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          An encoder-only model (BERT) is like a very careful reader who reads the whole sentence first (both left and right context) before answering a comprehension question. A decoder-only model (GPT) is like a storyteller who only knows what has already been said and must keep generating the next word without knowing the future. An encoder-decoder model (T5) is like a translator who first fully reads and understands the source sentence (encoder), then writes out the translation word by word (decoder).
+        </div>
+
+        <div class="example-box">
+          <div class="label">Fine-tuning steps (typical workflow)</div>
+          <ol>
+            <li>Select a pre-trained language model</li>
+            <li>Load the pre-trained model and weights</li>
+            <li>Prepare labeled, task-specific data</li>
+            <li>Define the task-specific architecture (e.g. add a classification head)</li>
+            <li>Fine-tune the model on the new data</li>
+            <li>Evaluate performance</li>
+            <li>Iterate until satisfied</li>
+          </ol>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          LLMs are compared along parameters, speed, fine-tuning approach, architecture, and language support. Architecturally: BERT (encoder-only) is best for understanding, GPT (decoder-only) is best for generation, and T5 (encoder-decoder) frames everything as text-to-text.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="comparison-ar" dir="rtl">
+        <h3>الأبعاد المستخدمة لمقارنة الـ LLMs</h3>
+        <ul>
+          <li><b>عدد الـ Parameters</b> — عدد أكبر عادة يعني قدرة أكبر على التقاط أنماط معقدة، لكن كمان خطر أكبر للـ overfitting وتكلفة أعلى. عدد الـ parameters وحده ما بيحدد الجودة؛ البيانات والمعمارية كمان مهمة.</li>
+          <li><b>سرعة الاستدلال (Inference Speed)</b> — مدى سرعة الـ model في إنتاج المخرجات؛ تعتمد على الـ hardware وحجم الـ model والتنفيذ. مهمة جداً للنشر الإنتاجي وتجربة المستخدم.</li>
+          <li><b>Fine-Tuning</b> — تكييف model مُدرَّب مسبقاً لمهمة/مجال محدد باستخدام بيانات مصنّفة. الأنواع تشمل: task-specific، domain-specific، وmulti-task fine-tuning.</li>
+          <li><b>نهج المعمارية (Architecture Approach)</b> — encoder-only، أو decoder-only، أو encoder-decoder (انظر الجدول أدناه).</li>
+          <li><b>دعم اللغات</b> — أغلب الـ LLMs الشهيرة متدربة بالأساس على بيانات إنجليزية وأداؤها أفضل فيها؛ NLP متعدد اللغات مجال بحث نشط.</li>
+        </ul>
+
+        <h3>Encoder-only مقابل Decoder-only مقابل Encoder-Decoder</h3>
+        <table class="compare-table">
+          <tr><th>عائلة الـ Model</th><th>نوع المعمارية</th><th>الاستخدام النموذجي</th><th>هدف التدريب</th></tr>
+          <tr><td><span class="highlight">BERT</span></td><td>Encoder-only</td><td>مهام الفهم: تصنيف، NER، تشابه الجُمل</td><td>Masked Language Modeling (توقّع كلمات مخفية باستخدام السياق من الاتجاهين)</td></tr>
+          <tr><td><span class="highlight">عائلة GPT / ChatGPT</span></td><td>Decoder-only</td><td>مهام التوليد: chatbots، إكمال النص، كتابة إبداعية، توليد كود</td><td>Autoregressive next-token prediction (توقّع الكلمة التالية بناءً على الكلمات السابقة فقط)</td></tr>
+          <tr><td><span class="highlight">T5</span></td><td>Encoder-Decoder</td><td>مهام Text-to-Text: ترجمة، تلخيص، question answering</td><td>كل مهمة تُصاغ كـ "نص مُدخل ← نص مُخرج"</td></tr>
+        </table>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          model من نوع encoder-only (BERT) مثل قارئ دقيق جداً بيقرأ الجملة كاملة أولاً (السياق من الجهتين) قبل ما يجاوب على سؤال فهم. model من نوع decoder-only (GPT) مثل راوي قصص بيعرف بس اللي اتقال لحد الآن ولازم يستمر يولّد الكلمة التالية بدون ما يعرف المستقبل. model من نوع encoder-decoder (T5) مثل مترجم بيقرأ ويفهم الجملة الأصلية كاملة أولاً (encoder)، ثم يكتب الترجمة كلمة كلمة (decoder).
+        </div>
+
+        <div class="example-box">
+          <div class="label">خطوات الـ Fine-tuning (سير عمل نموذجي)</div>
+          <ol>
+            <li>اختيار model مُدرَّب مسبقاً</li>
+            <li>تحميل الـ model والأوزان المُدرَّبة</li>
+            <li>تجهيز بيانات مصنّفة خاصة بالمهمة</li>
+            <li>تعريف معمارية خاصة بالمهمة (مثلاً إضافة classification head)</li>
+            <li>ضبط الـ model (Fine-tune) على البيانات الجديدة</li>
+            <li>تقييم الأداء</li>
+            <li>التكرار حتى الوصول لنتيجة مُرضية</li>
+          </ol>
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          الـ LLMs تُقارن حسب الـ parameters، السرعة، أسلوب الـ fine-tuning، المعمارية، ودعم اللغات. من ناحية المعمارية: BERT (encoder-only) الأفضل للفهم، GPT (decoder-only) الأفضل للتوليد، وT5 (encoder-decoder) بيصيغ كل شي كـ text-to-text.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: What is ChatGPT -->
+  <div class="section" id="chatgpt">
+    <div class="section-header" onclick="toggle('chatgpt')">
+      <div class="section-icon">06</div>
+      <div class="section-title">What is ChatGPT?</div>
+      <div class="section-toggle" id="toggle-chatgpt">▼</div>
+    </div>
+    <div class="section-body open" id="body-chatgpt">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('chatgpt','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('chatgpt','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="chatgpt-en">
+        <h3>ChatGPT in a nutshell</h3>
+        <p><span class="term">ChatGPT</span> is an AI chatbot developed by OpenAI and released on November 30, 2022. It is built on top of OpenAI's <span class="term">GPT (Generative Pre-trained Transformer)</span> family — originally GPT-3.5, later also GPT-4 — and has been fine-tuned specifically for conversation using both supervised learning and reinforcement learning techniques.</p>
+        <p>ChatGPT grew extraordinarily fast: it reached over 1 million users within just five days of launch, making it one of the fastest-adopted consumer software products in history.</p>
+
+        <h3>What makes ChatGPT different from older chatbots?</h3>
+        <ul>
+          <li><b>Trained on massive text data</b> — this lets it produce natural, human-like responses rather than robotic, templated ones.</li>
+          <li><b>Generative, not rule-based</b> — it generates new responses on the fly, instead of picking from a fixed set of pre-written replies or rules.</li>
+          <li><b>Handles a wide range of tasks</b> — from casual chit-chat to complex question answering, translation, coding help, and more — in the same conversation.</li>
+        </ul>
+
+        <h3>Key architectural features</h3>
+        <ul>
+          <li><b>Self-attention</b> — lets the model weigh different parts of the input text when generating output, capturing long-range dependencies between words.</li>
+          <li><b>Contextualized embeddings</b> — word representations that shift depending on surrounding context, capturing nuance in meaning.</li>
+          <li><b>Multi-layered (deep) architecture</b> — stacked Transformer layers let the model build increasingly abstract and sophisticated representations of language.</li>
+        </ul>
+
+        <h3>Benefits of using ChatGPT</h3>
+        <ul>
+          <li><b>Flexibility</b> — one interface for many different tasks.</li>
+          <li><b>Cost-effective</b> — reduces need for many specialized tools/staff for basic language tasks.</li>
+          <li><b>Scalability</b> — can serve huge numbers of users simultaneously.</li>
+          <li><b>Improved user engagement</b> — natural, conversational interaction.</li>
+          <li><b>24/7 availability</b> — always accessible, no downtime tied to human schedules.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          An old rule-based chatbot is like a vending machine — press a button, get one of a fixed set of pre-made items. ChatGPT is like a skilled chef who can cook you something new based on what you ask for, drawing on broad culinary knowledge rather than a fixed menu.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          ChatGPT is a conversational AI built on the GPT Transformer architecture, fine-tuned specifically for dialogue. Unlike older rule-based bots, it generates novel, context-aware responses using self-attention and deep, contextual language representations.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="chatgpt-ar" dir="rtl">
+        <h3>ChatGPT باختصار</h3>
+        <p><span class="term">ChatGPT</span> هو chatbot ذكاء اصطناعي طوّرته OpenAI وأُطلق في 30 نوفمبر 2022. مبني فوق عائلة <span class="term">GPT (Generative Pre-trained Transformer)</span> الخاصة بـ OpenAI — بالأساس GPT-3.5، ولاحقاً GPT-4 — وتم ضبطه (fine-tuned) خصيصاً للمحادثة باستخدام تقنيات supervised learning وreinforcement learning.</p>
+        <p>ChatGPT نما بسرعة استثنائية: وصل لأكثر من مليون مستخدم خلال خمسة أيام فقط من إطلاقه، مما جعله من أسرع منتجات البرمجيات الاستهلاكية انتشاراً في التاريخ.</p>
+
+        <h3>ما الذي يميّز ChatGPT عن الـ chatbots القديمة؟</h3>
+        <ul>
+          <li><b>مدرَّب على بيانات نصية ضخمة</b> — هذا بيخليه ينتج ردود طبيعية شبيهة بالبشر بدل ردود آلية وثابتة.</li>
+          <li><b>توليدي (Generative) مش قائم على قواعد</b> — بيولّد ردود جديدة لحظياً، بدل ما يختار من مجموعة ردود أو قواعد ثابتة مسبقاً.</li>
+          <li><b>يتعامل مع مجموعة واسعة من المهام</b> — من الدردشة العادية لـ question answering معقّد، ترجمة، مساعدة برمجية، وأكثر — كل ذلك ضمن نفس المحادثة.</li>
+        </ul>
+
+        <h3>أهم ملامح المعمارية</h3>
+        <ul>
+          <li><b>Self-attention</b> — بتخلي الـ model يوزن أجزاء مختلفة من النص المُدخل عند توليد المخرج، ويلتقط العلاقات البعيدة بين الكلمات.</li>
+          <li><b>Contextualized Embeddings</b> — تمثيلات كلمات بتتغيّر حسب السياق المحيط، وتلتقط دقائق المعنى.</li>
+          <li><b>معمارية متعددة الطبقات (Deep)</b> — طبقات Transformer متراكمة بتخلي الـ model يبني تمثيلات أعمق وأكثر تعقيداً للّغة.</li>
+        </ul>
+
+        <h3>فوائد استخدام ChatGPT</h3>
+        <ul>
+          <li><b>المرونة (Flexibility)</b> — واجهة واحدة لمهام كثيرة مختلفة.</li>
+          <li><b>فعّال من ناحية التكلفة</b> — بيقلّل الحاجة لأدوات/موظفين متخصصين كثيرين للمهام اللغوية الأساسية.</li>
+          <li><b>قابلية التوسّع (Scalability)</b> — يقدر يخدم أعداد هائلة من المستخدمين في نفس الوقت.</li>
+          <li><b>تحسين تفاعل المستخدم</b> — تفاعل طبيعي ومحادثاتي.</li>
+          <li><b>متاح 24/7</b> — دائماً متاح، بدون توقف مرتبط بجداول بشرية.</li>
+        </ul>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          الـ chatbot القديم القائم على القواعد مثل آلة بيع أوتوماتيكية — تضغط زر وتاخذ واحد من عناصر ثابتة مُعدّة مسبقاً. ChatGPT مثل شيف ماهر يقدر يطبخلك شي جديد بناءً على طلبك، معتمد على معرفة طهي واسعة مش قائمة طعام ثابتة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          ChatGPT هو AI محادثاتي مبني على معمارية GPT Transformer، ومضبوط خصيصاً للحوار. بعكس الـ bots القديمة القائمة على القواعد، هو يولّد ردود جديدة وواعية للسياق باستخدام self-attention وتمثيلات لغوية عميقة وسياقية.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: How ChatGPT is Trained -->
+  <div class="section" id="training">
+    <div class="section-header" onclick="toggle('training')">
+      <div class="section-icon">07</div>
+      <div class="section-title">How ChatGPT is Trained — Pretraining → SFT → RLHF</div>
+      <div class="section-toggle" id="toggle-training">▼</div>
+    </div>
+    <div class="section-body open" id="body-training">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('training','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('training','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="training-en">
+        <h3>The three-stage training pipeline</h3>
+        <div class="pipeline">
+          <div class="pipeline-step" style="--step-color: var(--c-blue)">
+            <div class="pipeline-num">STAGE 1</div>
+            <div class="pipeline-title">Pretraining</div>
+            <div class="pipeline-desc">Train on a massive, unlabeled text corpus to predict the next word. The model learns grammar, facts, and reasoning patterns — but not yet how to follow instructions well.</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step" style="--step-color: var(--c-purple)">
+            <div class="pipeline-num">STAGE 2</div>
+            <div class="pipeline-title">Supervised Fine-Tuning (SFT)</div>
+            <div class="pipeline-desc">Human labelers write ideal responses to sample prompts. The model is fine-tuned on these (prompt, response) pairs to learn to follow instructions and hold a conversation.</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step" style="--step-color: var(--c-indigo)">
+            <div class="pipeline-num">STAGE 3</div>
+            <div class="pipeline-title">RLHF (Reward Model + PPO)</div>
+            <div class="pipeline-desc">Humans rank multiple model outputs; a reward model learns to score responses. The SFT model is then further optimized against this reward model using the PPO reinforcement learning algorithm.</div>
+          </div>
+        </div>
+
+        <h3>Step 1 — Pretraining</h3>
+        <p>ChatGPT starts from a base GPT model pretrained on a massive, general text corpus using <span class="term">self-supervised learning</span> — the model repeatedly predicts a missing or next word given surrounding context, with no human labels needed. This gives the model broad language ability and general knowledge, but on its own it is not naturally good at politely and directly answering questions the way a human assistant would.</p>
+
+        <h3>Step 2 — Supervised Fine-Tuning (SFT)</h3>
+        <p>OpenAI hired human labelers (contractors) to create a supervised training dataset: for many prompts (some collected from real user submissions to the OpenAI API, some hand-written by labelers to cover categories with little real data — plain prompts, few-shot prompts, and user-based prompts), labelers wrote an ideal, high-quality response. The base GPT model was then fine-tuned on these (prompt, response) pairs, producing what is called the <span class="term">SFT model</span> — an early version of GPT-3.5. To keep the data diverse, only up to 200 prompts were allowed per user ID, near-duplicate prompts were removed, and any personally identifiable information (PII) was stripped out.</p>
+
+        <h3>Step 3 — Reward Modeling + RLHF</h3>
+        <p>Next, for a single input prompt, the SFT model generates several (4–9) candidate responses. Human labelers rank these responses from best to worst. This ranking data is used to train a separate <span class="term">reward model</span> — a model that learns to predict a numerical "quality score" for any given response, matching human preference. Finally, the SFT model (now treated as a "policy") is further trained using <span class="term">Reinforcement Learning from Human Feedback (RLHF)</span>: the <span class="term">Proximal Policy Optimization (PPO)</span> algorithm repeatedly generates responses, scores them with the reward model, and nudges the policy's parameters toward producing higher-scoring (more human-preferred) responses — balancing exploring new response styles against sticking with what already works.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          Think of pretraining as a student's general education — years of broad reading that build vocabulary and background knowledge. SFT is like a teacher handing the student a set of model essays to imitate, showing what a "good answer" looks like. RLHF is like the student writing many essays, a teacher grading and ranking each one, and the student adjusting their writing style over time to earn higher and higher grades — without ever being handed the "perfect" answer directly, only feedback on quality.
+        </div>
+
+        <div class="example-box">
+          <div class="label">Simplified API usage (pseudocode)</div>
+          <div class="code-block">
+<span class="kw">import</span> openai
+
+openai.api_key = <span class="str">"YOUR_API_KEY"</span>
+
+<span class="cm"># Send a prompt to a ChatGPT-style model</span>
+response = openai.ChatCompletion.<span class="fn">create</span>(
+    model=<span class="str">"gpt-3.5-turbo"</span>,
+    messages=[
+        {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: <span class="str">"You are a helpful NLP tutor."</span>},
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Explain RLHF in one sentence."</span>}
+    ]
+)
+
+<span class="fn">print</span>(response.choices[0].message[<span class="str">"content"</span>])
+<span class="cm"># The reply reflects the pretraining + SFT + RLHF pipeline behind the model</span>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Important Note</div>
+          RLHF does not make a model factually correct — it makes it more aligned with what human raters preferred (helpfulness, tone, format, safety). A response can be well-aligned and confidently phrased while still being factually wrong.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          ChatGPT's training has three stages: Pretraining (learn language broadly from raw text), Supervised Fine-Tuning (learn to follow instructions from human-written examples), and RLHF (align the model's behavior with human preferences using a reward model and the PPO algorithm).
+        </div>
+      </div>
+
+      <div class="lang-panel" id="training-ar" dir="rtl">
+        <h3>خط تدريب من ثلاث مراحل</h3>
+        <div class="pipeline">
+          <div class="pipeline-step" style="--step-color: var(--c-blue)">
+            <div class="pipeline-num">مرحلة 1</div>
+            <div class="pipeline-title">Pretraining</div>
+            <div class="pipeline-desc">تدريب على كمية ضخمة من النص غير المصنّف للتنبؤ بالكلمة التالية. الـ model يتعلّم القواعد والحقائق وأنماط الاستدلال — لكن لسه ما يعرف يتّبع التعليمات بشكل جيد.</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step" style="--step-color: var(--c-purple)">
+            <div class="pipeline-num">مرحلة 2</div>
+            <div class="pipeline-title">Supervised Fine-Tuning (SFT)</div>
+            <div class="pipeline-desc">مُصنّفون بشريون بيكتبوا ردود مثالية لأمثلة من الـ prompts. الـ model يُضبط (fine-tuned) على أزواج (prompt, response) هذه عشان يتعلّم يتّبع التعليمات ويحافظ على محادثة.</div>
+          </div>
+          <div class="pipeline-arrow">→</div>
+          <div class="pipeline-step" style="--step-color: var(--c-indigo)">
+            <div class="pipeline-num">مرحلة 3</div>
+            <div class="pipeline-title">RLHF (Reward Model + PPO)</div>
+            <div class="pipeline-desc">البشر بيرتّبوا عدة مخرجات من الـ model؛ ثم reward model يتعلّم يقيّم الردود. بعدين الـ SFT model يُحسَّن أكثر مقابل هذا الـ reward model باستخدام خوارزمية PPO للـ reinforcement learning.</div>
+          </div>
+        </div>
+
+        <h3>الخطوة 1 — Pretraining</h3>
+        <p>ChatGPT يبدأ من base GPT model مُدرَّب مسبقاً على مجموعة نصوص ضخمة وعامة باستخدام <span class="term">self-supervised learning</span> — الـ model بيتوقّع بشكل متكرر كلمة مفقودة أو تالية بناءً على السياق المحيط، بدون الحاجة لأي labels بشرية. هذا بيعطي الـ model قدرة لغوية واسعة ومعرفة عامة، لكن لوحده مش جيد بشكل طبيعي في الإجابة بأدب ووضوح زي مساعد بشري.</p>
+
+        <h3>الخطوة 2 — Supervised Fine-Tuning (SFT)</h3>
+        <p>OpenAI وظّفت مُصنّفين بشريين (contractors) لإنشاء dataset تدريب مُشرَف عليه: لعدد كبير من الـ prompts (بعضها مجمّع من طلبات مستخدمين حقيقيين عبر OpenAI API، وبعضها مكتوب يدوياً من المُصنّفين لتغطية فئات قليلة البيانات — plain prompts، few-shot prompts، وuser-based prompts)، كتب المُصنّفون رداً مثالياً وعالي الجودة. بعدين تم ضبط الـ base GPT model على أزواج (prompt, response) هذه، منتجاً ما يُسمى <span class="term">SFT model</span> — نسخة مبكرة من GPT-3.5. للحفاظ على تنوّع البيانات، سُمح بحد أقصى 200 prompt لكل مستخدم، وأُزيلت الـ prompts شبه المكررة، وأُزيلت أي معلومات تعريف شخصية (PII).</p>
+
+        <h3>الخطوة 3 — Reward Modeling وRLHF</h3>
+        <p>بعدين، لنفس الـ prompt، الـ SFT model يولّد عدة ردود مرشّحة (4 إلى 9). المُصنّفون البشريون يرتّبوا هذه الردود من الأفضل للأسوأ. بيانات الترتيب هذه تُستخدم لتدريب <span class="term">reward model</span> منفصل — model يتعلّم يتوقّع "درجة جودة" رقمية لأي رد، بما يطابق تفضيل الإنسان. أخيراً، الـ SFT model (يُعامَل الآن كـ "policy") يُدرَّب أكثر باستخدام <span class="term">Reinforcement Learning from Human Feedback (RLHF)</span>: خوارزمية <span class="term">Proximal Policy Optimization (PPO)</span> بتولّد ردود بشكل متكرر، وتقيّمها بالـ reward model، وتعدّل معاملات الـ policy تدريجياً نحو إنتاج ردود بدرجة أعلى (أكثر تفضيلاً من البشر) — موازنة بين استكشاف أساليب رد جديدة والاستمرار في اللي أثبت نجاحه.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          فكّر في الـ Pretraining كتعليم عام للطالب — سنوات من القراءة الواسعة اللي بتبني المفردات والمعرفة الخلفية. الـ SFT مثل مدرّس بيعطي الطالب مجموعة مقالات نموذجية يقلّدها، ويوريه شكل "الإجابة الجيدة". الـ RLHF مثل الطالب يكتب مقالات كثيرة، ومدرّس يصحّح ويرتّب كل واحدة، والطالب يعدّل أسلوب كتابته بمرور الوقت عشان يحصل على درجات أعلى — بدون ما حد يعطيه الإجابة "المثالية" مباشرة، بس feedback عن الجودة.
+        </div>
+
+        <div class="example-box">
+          <div class="label">استخدام API مبسّط (pseudocode)</div>
+          <div class="code-block">
+<span class="kw">import</span> openai
+
+openai.api_key = <span class="str">"YOUR_API_KEY"</span>
+
+<span class="cm"># إرسال prompt لـ model من نوع ChatGPT</span>
+response = openai.ChatCompletion.<span class="fn">create</span>(
+    model=<span class="str">"gpt-3.5-turbo"</span>,
+    messages=[
+        {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: <span class="str">"You are a helpful NLP tutor."</span>},
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Explain RLHF in one sentence."</span>}
+    ]
+)
+
+<span class="fn">print</span>(response.choices[0].message[<span class="str">"content"</span>])
+<span class="cm"># الرد بيعكس خط الـ pretraining + SFT + RLHF اللي خلف الـ model</span>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة مهمة</div>
+          الـ RLHF ما بيخلي الـ model صحيح من ناحية الحقائق — هو بيخليه أكثر توافقاً مع اللي فضّله المقيّمون البشريون (فائدة، نبرة، تنسيق، أمان). الرد ممكن يكون متوافقاً جداً ومصاغاً بثقة لكن غلط من ناحية الحقائق.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          تدريب ChatGPT فيه ثلاث مراحل: Pretraining (تعلّم اللغة بشكل عام من نص خام)، Supervised Fine-Tuning (تعلّم اتّباع التعليمات من أمثلة مكتوبة بشرياً)، وRLHF (مواءمة سلوك الـ model مع تفضيلات البشر باستخدام reward model وخوارزمية PPO).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Capabilities and Limitations -->
+  <div class="section" id="capabilities">
+    <div class="section-header" onclick="toggle('capabilities')">
+      <div class="section-icon">08</div>
+      <div class="section-title">ChatGPT — Capabilities and Limitations</div>
+      <div class="section-toggle" id="toggle-capabilities">▼</div>
+    </div>
+    <div class="section-body open" id="body-capabilities">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('capabilities','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('capabilities','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="capabilities-en">
+        <h3>What ChatGPT is good at</h3>
+        <ul>
+          <li>Answering questions and explaining concepts in a conversational way.</li>
+          <li>Drafting and editing text — emails, essays, summaries, reports.</li>
+          <li>Writing, explaining, and debugging code across many programming languages.</li>
+          <li>Brainstorming ideas and role-playing different personas/styles.</li>
+          <li>Basic translation between languages.</li>
+        </ul>
+
+        <h3>Key limitations</h3>
+        <ul>
+          <li><b>Hallucination</b> — can generate plausible-sounding but false or fabricated information, especially for niche facts, citations, or numbers.</li>
+          <li><b>Knowledge cutoff</b> — the model's core training data has a fixed cutoff date; it does not automatically know about events after that unless given additional context or tools.</li>
+          <li><b>Prompt sensitivity</b> — small changes in how a question is phrased can lead to noticeably different answers.</li>
+          <li><b>Lack of true reasoning</b> — the model is very good at pattern completion, but can still make basic logical or arithmetic mistakes, especially on multi-step reasoning.</li>
+          <li><b>No persistent memory (by default)</b> — most sessions don't retain information from unrelated past conversations unless explicitly designed to.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">Example</div>
+          <p>Prompt: "Summarize the plot of a well-known novel in three sentences." — ChatGPT typically handles this well, because it has seen many summaries of popular books during training.</p>
+          <p>Prompt: "What is the exact revenue of a small, obscure company in Q3 of this year?" — ChatGPT is likely to either say it doesn't know, or worse, confidently guess a plausible-sounding but incorrect number (hallucination).</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">Important Note</div>
+          Never rely on ChatGPT alone for high-stakes facts (medical, legal, financial, or safety-critical information) without independent verification from authoritative sources.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          ChatGPT excels at conversational, generative, and language-related tasks, but its limitations — hallucination, a fixed knowledge cutoff, prompt sensitivity, and imperfect reasoning — mean its outputs should always be reviewed, especially for important decisions.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="capabilities-ar" dir="rtl">
+        <h3>فيما يتميّز ChatGPT</h3>
+        <ul>
+          <li>الإجابة على الأسئلة وشرح المفاهيم بطريقة محادثاتية.</li>
+          <li>كتابة وتحرير النصوص — إيميلات، مقالات، ملخصات، تقارير.</li>
+          <li>كتابة وشرح وتصحيح الكود في لغات برمجة كثيرة.</li>
+          <li>توليد أفكار (brainstorming) وتمثيل شخصيات/أساليب مختلفة.</li>
+          <li>ترجمة أساسية بين اللغات.</li>
+        </ul>
+
+        <h3>أهم القيود</h3>
+        <ul>
+          <li><b>Hallucination</b> — ممكن يولّد معلومات تبدو منطقية لكنها غلط أو مُختلقة، خصوصاً للحقائق النادرة أو الاستشهادات أو الأرقام.</li>
+          <li><b>حدود المعرفة (Knowledge Cutoff)</b> — بيانات تدريب الـ model الأساسية لها تاريخ توقّف ثابت؛ ما بيعرف تلقائياً أحداث بعد هذا التاريخ إلا إذا أُعطي سياق أو أدوات إضافية.</li>
+          <li><b>حساسية الـ Prompt</b> — تغييرات صغيرة في صياغة السؤال ممكن تؤدي لإجابات مختلفة بشكل ملحوظ.</li>
+          <li><b>غياب الاستدلال الحقيقي</b> — الـ model ممتاز جداً في إكمال الأنماط، لكن ممكن يرتكب أخطاء منطقية أو حسابية بسيطة، خصوصاً في الاستدلال متعدد الخطوات.</li>
+          <li><b>لا يوجد ذاكرة دائمة (افتراضياً)</b> — أغلب الجلسات ما بتحتفظ بمعلومات من محادثات سابقة غير مرتبطة إلا إذا صُمِّم لذلك عمداً.</li>
+        </ul>
+
+        <div class="example-box">
+          <div class="label">مثال</div>
+          <p>Prompt: "لخّص حبكة رواية معروفة في ثلاث جمل." — ChatGPT عادة بيتعامل مع هذا بشكل جيد، لأنه شاف ملخصات كثيرة لكتب مشهورة أثناء التدريب.</p>
+          <p>Prompt: "ما هي الإيرادات الدقيقة لشركة صغيرة غير معروفة في الربع الثالث من هذا العام؟" — الأرجح إن ChatGPT إما يقول ما يعرف، أو الأسوأ، يخمّن رقماً يبدو منطقياً لكنه غلط (Hallucination).</p>
+        </div>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة مهمة</div>
+          لا تعتمد أبداً على ChatGPT وحده في معلومات حساسة (طبية، قانونية، مالية، أو معلومات حرجة للسلامة) بدون تحقّق مستقل من مصادر موثوقة.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          ChatGPT يتفوّق في المهام المحادثاتية والتوليدية واللغوية، لكن قيوده — الـ hallucination، وحدود المعرفة الثابتة، وحساسية الـ prompt، والاستدلال غير الكامل — تعني إن مخرجاته لازم تُراجَع دائماً، خصوصاً للقرارات المهمة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 9: GPT-4 -->
+  <div class="section" id="gpt4">
+    <div class="section-header" onclick="toggle('gpt4')">
+      <div class="section-icon">09</div>
+      <div class="section-title">GPT-4 — What's New</div>
+      <div class="section-toggle" id="toggle-gpt4">▼</div>
+    </div>
+    <div class="section-body open" id="body-gpt4">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('gpt4','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('gpt4','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="gpt4-en">
+        <h3>GPT-4 at a glance</h3>
+        <p><span class="term">GPT-4</span> is a large, <span class="term">multimodal</span> model capable of processing both image and text inputs and producing text outputs — a step beyond GPT-3.5, which was text-only. One of its main goals was to improve understanding and generation of natural language in more complex, nuanced scenarios, and to substantially reduce hallucination compared to earlier GPT-3.5 models.</p>
+
+        <h3>GPT-3.5 vs GPT-4</h3>
+        <table class="compare-table">
+          <tr><th>Aspect</th><th>GPT-3.5</th><th>GPT-4</th></tr>
+          <tr><td>Input modality</td><td>Text only</td><td>Text + images (multimodal)</td></tr>
+          <tr><td>Context window</td><td>Smaller</td><td>Larger (multiple context-window options, e.g. 8K / 32K tokens)</td></tr>
+          <tr><td>Reasoning on complex tasks</td><td>Weaker on nuanced, multi-step problems</td><td>Noticeably stronger reasoning and reliability</td></tr>
+          <tr><td>Standardized exam performance</td><td>Simulated bar exam: bottom ~10% of test takers</td><td>Simulated bar exam: top ~10% of test takers</td></tr>
+          <tr><td>Factuality</td><td>More prone to hallucination</td><td>Meaningfully fewer hallucinations on internal factuality evaluations</td></tr>
+          <tr><td>Multilingual performance</td><td>Strongest in English</td><td>Strong across many languages, even on translated benchmark variants</td></tr>
+        </table>
+
+        <h3>Multimodal input</h3>
+        <p>GPT-4 can accept prompts that interleave text and images — for example, a photo of a document, a diagram, or a screenshot alongside a question about it — and respond with text that reasons over both. This opens use cases like describing images, extracting information from charts/screenshots, and answering questions about visual content.</p>
+
+        <h3>Larger context window</h3>
+        <p>A <span class="term">context window</span> is the maximum amount of text (measured in tokens) a model can "see" at once — both the conversation history and the current prompt. A larger context window lets GPT-4 work with longer documents, longer conversations, and more detailed instructions without losing earlier context.</p>
+
+        <h3>Improved benchmark performance</h3>
+        <p>On traditional NLP benchmarks, GPT-4 generally outperforms earlier LLMs, and on the MMLU benchmark (57 subjects, multiple-choice), it performs strongly not just in English but across most of the 26 languages tested — including outperforming the previous English-only state of the art in the majority of them.</p>
+
+        <h3>Still has limitations</h3>
+        <p>Despite these improvements, GPT-4 shares the same fundamental limitations as earlier GPT models: it is not fully reliable, can still hallucinate facts, and can still make reasoning errors — so care, human review, and grounding in verified sources remain essential, especially in high-stakes settings.</p>
+
+        <div class="analogy-box">
+          <div class="label">Analogy</div>
+          If GPT-3.5 is like a very well-read person who can only read text, GPT-4 is that same person after also gaining eyesight — now they can look at a photo, a chart, or a handwritten note and reason about it in words, in addition to everything they could already do with text. They're also more careful and thoughtful than before, but still not infallible.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          GPT-4 extends GPT-3.5 with multimodal (text + image) input, a larger context window, stronger reasoning, better benchmark and exam performance, and meaningfully fewer hallucinations — but it is still not fully reliable and requires the same careful, verified use as earlier models.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="gpt4-ar" dir="rtl">
+        <h3>GPT-4 بنظرة سريعة</h3>
+        <p><span class="term">GPT-4</span> هو model كبير و<span class="term">multimodal</span> (متعدد الوسائط) قادر يعالج مدخلات نصية وصور معاً وينتج مخرجات نصية — خطوة إضافية بعد GPT-3.5 اللي كان نصياً فقط. من أهم أهدافه تحسين فهم وتوليد اللغة الطبيعية في سيناريوهات أكثر تعقيداً ودقة، وتقليل الـ hallucination بشكل كبير مقارنة بنماذج GPT-3.5 السابقة.</p>
+
+        <h3>GPT-3.5 مقابل GPT-4</h3>
+        <table class="compare-table">
+          <tr><th>الجانب</th><th>GPT-3.5</th><th>GPT-4</th></tr>
+          <tr><td>نوع المدخلات</td><td>نص فقط</td><td>نص + صور (multimodal)</td></tr>
+          <tr><td>Context Window</td><td>أصغر</td><td>أكبر (خيارات متعددة، مثلاً 8K / 32K token)</td></tr>
+          <tr><td>الاستدلال في المهام المعقدة</td><td>أضعف في المسائل الدقيقة متعددة الخطوات</td><td>استدلال وموثوقية أقوى بشكل ملحوظ</td></tr>
+          <tr><td>الأداء في الامتحانات المعيارية</td><td>bar exam محاكى: أدنى ~10% من المتقدمين</td><td>bar exam محاكى: أعلى ~10% من المتقدمين</td></tr>
+          <tr><td>الدقة الواقعية (Factuality)</td><td>أكثر عرضة للـ hallucination</td><td>hallucinations أقل بشكل ملموس في تقييمات الحقائق الداخلية</td></tr>
+          <tr><td>الأداء متعدد اللغات</td><td>الأقوى بالإنجليزية</td><td>قوي عبر لغات كثيرة، حتى في نسخ الـ benchmark المترجمة</td></tr>
+        </table>
+
+        <h3>المدخلات متعددة الوسائط (Multimodal)</h3>
+        <p>GPT-4 يقدر يستقبل prompts فيها نص وصور مع بعض — مثلاً صورة لوثيقة، أو diagram، أو screenshot مع سؤال عنها — ويردّ بنص يستدل على الاثنين معاً. هذا يفتح استخدامات مثل وصف الصور، استخراج معلومات من رسوم بيانية/screenshots، والإجابة على أسئلة عن محتوى بصري.</p>
+
+        <h3>Context Window أكبر</h3>
+        <p><span class="term">Context window</span> هو أقصى كمية نص (تُقاس بالـ tokens) يقدر الـ model "يشوفها" مرة وحدة — سواء تاريخ المحادثة أو الـ prompt الحالي. الـ context window الأكبر بيخلي GPT-4 يشتغل مع وثائق أطول، محادثات أطول، وتعليمات أكثر تفصيلاً بدون ما يفقد السياق السابق.</p>
+
+        <h3>تحسّن الأداء على الـ Benchmarks</h3>
+        <p>على benchmarks تقليدية في NLP، GPT-4 عموماً يتفوّق على LLMs السابقة، وعلى benchmark الـ MMLU (57 مادة، اختيار من متعدد)، يؤدي بقوة مش بس بالإنجليزية بل عبر أغلب الـ 26 لغة اللي اختُبرت — بما في ذلك التفوّق على أفضل أداء إنجليزي سابق في أغلبها.</p>
+
+        <h3>لا يزال فيه قيود</h3>
+        <p>رغم هذه التحسينات، GPT-4 يشارك نفس القيود الأساسية لنماذج GPT السابقة: مش موثوق بشكل كامل، ولا يزال ممكن "يهلوس" بحقائق، وممكن يرتكب أخطاء استدلال — فالحذر والمراجعة البشرية والاستناد لمصادر موثوقة تبقى أساسية، خصوصاً في السياقات الحساسة.</p>
+
+        <div class="analogy-box">
+          <div class="label">تشبيه</div>
+          لو GPT-3.5 مثل شخص مثقف جداً بس يقدر يقرأ نص فقط، فـ GPT-4 هو نفس الشخص بعد ما اكتسب بصر — الآن يقدر يشوف صورة أو رسم بياني أو ملاحظة مكتوبة بخط اليد ويتحدث عنها بالكلام، بالإضافة لكل شي كان يقدر يعمله بالنص. كمان أصبح أكثر حذراً وتروّياً من قبل، لكن ما زال مش معصوم من الخطأ.
+        </div>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          GPT-4 يوسّع GPT-3.5 بإضافة مدخلات multimodal (نص + صورة)، context window أكبر، استدلال أقوى، أداء أفضل في الاختبارات والـ benchmarks، وhallucinations أقل بشكل ملموس — لكنه لا يزال غير موثوق بالكامل ويحتاج نفس الاستخدام الحذر والمُتحقَّق منه للنماذج السابقة.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 10: Future and Conclusion -->
+  <div class="section" id="future">
+    <div class="section-header" onclick="toggle('future')">
+      <div class="section-icon">10</div>
+      <div class="section-title">Potential Future Developments &amp; Conclusion</div>
+      <div class="section-toggle" id="toggle-future">▼</div>
+    </div>
+    <div class="section-body open" id="body-future">
+      <div class="lang-tabs">
+        <button class="lang-tab active" onclick="switchLang('future','en')">English</button>
+        <button class="lang-tab" onclick="switchLang('future','ar')">Arabic — العربية</button>
+      </div>
+
+      <div class="lang-panel active" id="future-en">
+        <h3>Where LLMs might be heading</h3>
+        <ul>
+          <li><b>Deeper multimodal learning</b> — going beyond text and images to video and audio, for more comprehensive models.</li>
+          <li><b>More efficient models</b> — reducing the massive compute requirements so LLMs become accessible on smaller hardware and to more researchers/organizations.</li>
+          <li><b>Personalized learning</b> — tailoring model behavior to individual users for more relevant, engaging responses.</li>
+          <li><b>Better contextual understanding</b> — improving how well models understand the context in which their training data was produced, not just the raw text.</li>
+        </ul>
+
+        <h3>New and emerging uses</h3>
+        <ul>
+          <li><b>Virtual assistants</b> — scheduling, customer inquiries, personalized recommendations.</li>
+          <li><b>Healthcare</b> — analyzing patient data and supporting more personalized treatment insights (always with professional oversight).</li>
+          <li><b>Legal</b> — analyzing contracts and case documents to support (not replace) legal professionals.</li>
+          <li><b>Education</b> — personalized learning experiences and tailored feedback for students.</li>
+        </ul>
+
+        <h3>Implications for society and the economy</h3>
+        <ul>
+          <li><b>Job displacement</b> — automating tasks previously done by humans, requiring workforce adaptation.</li>
+          <li><b>Bias and discrimination</b> — LLMs can amplify biases in training data; fairness must be actively engineered in.</li>
+          <li><b>Privacy</b> — large-scale data requirements raise ongoing questions about responsible data handling.</li>
+          <li><b>Ethics and accountability</b> — questions of transparency, misuse, and who is responsible for model outputs remain active areas of debate and regulation.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">Important Note</div>
+          As LLMs become more capable and more embedded in daily tools, the responsibility to use them thoughtfully — verifying outputs, watching for bias, and respecting privacy — grows correspondingly.
+        </div>
+
+        <h3>Conclusion</h3>
+        <p>LLMs are deep learning models that generate text and understand natural language at scale. Different families — GPT, BERT, T5, and others — have different architectural strengths, from generation to understanding to text-to-text tasks. LLMs already power chatbots, translation, sentiment analysis, and text generation across countless real-world applications, and the field continues to evolve rapidly in size and capability.</p>
+        <p>ChatGPT and GPT-4 represent a major milestone: general-purpose, conversational LLMs fine-tuned with human feedback (RLHF) to be more helpful, safer, and — in GPT-4's case — multimodal. They have enormous potential to transform healthcare, finance, education, and many other industries. At the same time, real concerns remain around bias, privacy, security, and reliability. The path forward requires continuing to improve transparency, interpretability, and fairness alongside raw capability.</p>
+
+        <div class="summary-box">
+          <div class="label">Summary</div>
+          The future of LLMs points toward multimodal, more efficient, more personalized, and more context-aware models with expanding real-world applications — but realizing this potential responsibly requires ongoing attention to bias, privacy, ethics, and reliability.
+        </div>
+      </div>
+
+      <div class="lang-panel" id="future-ar" dir="rtl">
+        <h3>إلى أين تتجه الـ LLMs</h3>
+        <ul>
+          <li><b>تعلّم multimodal أعمق</b> — تجاوز النص والصور للوصول للفيديو والصوت، لبناء models أشمل.</li>
+          <li><b>models أكثر كفاءة</b> — تقليل متطلبات الحوسبة الضخمة عشان الـ LLMs تصبح متاحة على hardware أصغر ولباحثين/مؤسسات أكثر.</li>
+          <li><b>تعلّم مُخصَّص (Personalized)</b> — تكييف سلوك الـ model لكل مستخدم عشان ردود أكثر ملاءمة وتفاعلاً.</li>
+          <li><b>فهم سياقي أفضل</b> — تحسين مدى فهم الـ models للسياق اللي أُنتجت فيه بيانات التدريب، مش بس النص الخام.</li>
+        </ul>
+
+        <h3>استخدامات جديدة وناشئة</h3>
+        <ul>
+          <li><b>مساعدون افتراضيون</b> — جدولة، استفسارات العملاء، توصيات مُخصَّصة.</li>
+          <li><b>الرعاية الصحية</b> — تحليل بيانات المرضى ودعم رؤى علاجية أكثر تخصيصاً (دائماً تحت إشراف مختصين).</li>
+          <li><b>القانون</b> — تحليل العقود ووثائق القضايا لدعم (مش استبدال) المختصين القانونيين.</li>
+          <li><b>التعليم</b> — تجارب تعلّم مُخصَّصة وملاحظات مصمّمة خصيصاً للطلاب.</li>
+        </ul>
+
+        <h3>الآثار على المجتمع والاقتصاد</h3>
+        <ul>
+          <li><b>فقدان الوظائف</b> — أتمتة مهام كان يقوم بها البشر، وهذا يتطلّب تكيّف القوى العاملة.</li>
+          <li><b>التحيّز والتمييز</b> — الـ LLMs ممكن تضخّم تحيّزات موجودة في بيانات التدريب؛ العدالة لازم تُصمَّم بشكل فعّال.</li>
+          <li><b>الخصوصية</b> — متطلبات البيانات الضخمة بتثير أسئلة مستمرة حول التعامل المسؤول مع البيانات.</li>
+          <li><b>الأخلاقيات والمساءلة</b> — أسئلة الشفافية وسوء الاستخدام ومن المسؤول عن مخرجات الـ model لا تزال مجالات نقاش وتنظيم نشطة.</li>
+        </ul>
+
+        <div class="warning-box">
+          <div class="label">ملاحظة مهمة</div>
+          كلما أصبحت الـ LLMs أقدر وأكثر اندماجاً في أدوات الحياة اليومية، تزداد المسؤولية في استخدامها بتروّي — التحقق من المخرجات، الانتباه للتحيّز، واحترام الخصوصية.
+        </div>
+
+        <h3>الخاتمة</h3>
+        <p>الـ LLMs هي models تعلّم عميق تولّد نصاً وتفهم اللغة الطبيعية على نطاق واسع. عائلات مختلفة — GPT، BERT، T5، وغيرها — عندها نقاط قوة معمارية مختلفة، من التوليد للفهم لمهام text-to-text. الـ LLMs بالفعل تشغّل chatbots، ترجمة، تحليل مشاعر، وتوليد نصوص عبر تطبيقات واقعية لا تُحصى، والمجال مستمر بالتطور بسرعة من ناحية الحجم والقدرة.</p>
+        <p>ChatGPT وGPT-4 يمثّلان محطة رئيسية: LLMs محادثاتية عامة الغرض، مضبوطة بـ human feedback (RLHF) عشان تكون أكثر فائدة وأماناً — وفي حالة GPT-4، متعددة الوسائط. عندها إمكانية هائلة لتحويل الرعاية الصحية والمالية والتعليم وصناعات كثيرة أخرى. في نفس الوقت، تبقى مخاوف حقيقية حول التحيّز والخصوصية والأمان والموثوقية. الطريق للأمام يتطلّب الاستمرار بتحسين الشفافية وقابلية التفسير والعدالة جنباً إلى جنب مع القدرة الخام.</p>
+
+        <div class="summary-box">
+          <div class="label">ملخص</div>
+          مستقبل الـ LLMs يتّجه نحو models متعددة الوسائط، أكثر كفاءة، أكثر تخصيصاً، وأكثر وعياً بالسياق مع تطبيقات واقعية متوسّعة — لكن تحقيق هذه الإمكانية بمسؤولية يتطلّب اهتماماً مستمراً بالتحيّز والخصوصية والأخلاقيات والموثوقية.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById('body-' + id);
+  const tog = document.getElementById('toggle-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  tog.classList.toggle('open', !isOpen);
+}
+
+function switchLang(section, lang) {
+  const body = document.getElementById('body-' + section);
+  body.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  body.querySelectorAll('.lang-panel').forEach(p => p.classList.remove('active'));
+  body.querySelectorAll('.lang-tab').forEach(t => {
+    if ((lang === 'en' && t.textContent.includes('English')) ||
+        (lang === 'ar' && t.textContent.includes('Arabic'))) {
+      t.classList.add('active');
+    }
+  });
+  const panel = document.getElementById(section + '-' + lang);
+  if (panel) panel.classList.add('active');
+}
+
+function scrollTo(id) {
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
